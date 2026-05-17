@@ -1,0 +1,108 @@
+{% extends 'attendance/base.html' %}
+
+{% block content %}
+<!-- Main Success Canvas -->
+<div class="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+<!-- Left Side: Visual Confirmation -->
+<div class="lg:col-span-5 flex flex-col items-center text-center">
+<!-- Large Success Checkmark with Precision Ring -->
+<div class="relative mb-8">
+<!-- Outer Decorative Ring -->
+<div class="absolute inset-0 rounded-full border border-primary/5 scale-150"></div>
+<div class="absolute inset-0 rounded-full border border-primary/10 scale-125"></div>
+<!-- Main Checkmark Container -->
+<div class="relative w-48 h-48 rounded-full bg-white flex items-center justify-center shadow-2xl shadow-primary/5">
+<div class="w-40 h-40 rounded-full bg-surface-container flex items-center justify-center">
+<div class="w-32 h-32 rounded-full bg-success-gradient flex items-center justify-center shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-7xl text-white font-light" style="font-variation-settings: 'wght' 200;">check_circle</span>
+</div>
+</div>
+<!-- Biometric Indicator Chip -->
+<div class="absolute -bottom-2 right-4 bg-white px-4 py-2 rounded-full shadow-lg border border-outline-variant/10 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings: 'FILL' 1;">fingerprint</span>
+<span class="text-[10px] font-bold tracking-widest text-primary uppercase">Verified</span>
+</div>
+</div>
+</div>
+<h1 class="text-4xl font-extrabold text-on-surface font-headline tracking-tight mb-2">Welcome back, Omar!</h1>
+<p class="text-on-surface-variant font-medium text-lg opacity-80 italic">"Knowledge is the light of the soul."</p>
+</div>
+<!-- Right Side: Details & Action -->
+<div class="lg:col-span-7 flex flex-col gap-6">
+<!-- Bento Grid Layout for Details -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Confirmation Details Card -->
+<div class="md:col-span-2 bg-surface-container-lowest p-8 rounded-xl shadow-sm border border-outline-variant/5">
+<div class="flex justify-between items-start mb-8">
+<div>
+<h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Attendance Log</h3>
+<div class="text-2xl font-bold text-primary font-headline">Confirmed</div>
+</div>
+<div class="bg-secondary-container px-3 py-1 rounded-full flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+<span class="text-xs font-bold text-on-secondary-container">Live Sync</span>
+</div>
+</div>
+<div class="space-y-6">
+<div class="flex items-center justify-between group">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center group-hover:bg-primary-container transition-colors duration-300">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-white">book</span>
+</div>
+<div>
+<div class="text-xs text-on-surface-variant font-medium">Class</div>
+<div class="text-base font-bold text-on-surface">Artificial Intelligence</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline-variant">chevron_right</span>
+</div>
+<div class="flex items-center justify-between group">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center group-hover:bg-primary-container transition-colors duration-300">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-white">schedule</span>
+</div>
+<div>
+<div class="text-xs text-on-surface-variant font-medium">Recorded Time</div>
+<div class="text-base font-bold text-on-surface">09:02 AM</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline-variant">chevron_right</span>
+</div>
+</div>
+</div>
+<!-- Helpful Tip Card -->
+<div class="md:col-span-2 bg-tertiary-container/10 p-6 rounded-xl border border-tertiary-container/10 flex items-start gap-5">
+<div class="bg-white p-3 rounded-xl shadow-sm">
+<span class="material-symbols-outlined text-on-tertiary-container">lightbulb</span>
+</div>
+<div>
+<h4 class="text-sm font-bold text-on-tertiary-container mb-1">Upcoming Session</h4>
+<p class="text-on-tertiary-container/80 text-sm leading-relaxed">
+                                Your next class is in <span class="font-bold text-primary">Room 503</span> at <span class="font-bold text-primary">11:00 AM</span>. Plenty of time for a library visit!
+                            </p>
+</div>
+</div>
+</div>
+<!-- Footer Actions -->
+<div class="mt-4 flex flex-col md:flex-row items-center gap-4">
+<button class="w-full md:w-auto flex-grow bg-primary text-on-primary font-headline font-bold py-5 px-8 rounded-xl flex items-center justify-center gap-3 hover:bg-primary-container transition-all duration-300 active:scale-[0.98]">
+<span class="material-symbols-outlined text-lg">qr_code_scanner</span>
+                        Back to Scanning
+                    </button>
+<button class="w-full md:w-auto bg-surface-container-high text-on-surface-variant font-bold py-5 px-8 rounded-xl hover:bg-surface-container-highest transition-all duration-300">
+                        View Schedule
+                    </button>
+</div>
+<div class="flex items-center justify-center md:justify-start gap-2 mt-4">
+<span class="w-2 h-2 rounded-full bg-outline-variant"></span>
+<span class="text-[10px] font-medium text-on-surface-variant uppercase tracking-widest opacity-60">System will auto-dismiss in 8s</span>
+</div>
+</div>
+</div>
+<!-- Decorative Background Elements -->
+<div class="fixed top-0 right-0 -z-10 opacity-10 pointer-events-none">
+<img class="w-[800px] h-auto rotate-12" data-alt="abstract geometric pattern composed of fine lines and architectural blueprints in subtle grey on a white background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA4dvh7OFluxMiMxBIaTKSij2YkqYszAXrLR6tyv-MVUh7b9MIOtgU6xoPeuNGhJXe8GhTcSBHxQMfdwI2mZld4BJEvJbYuo3xK35XrL-i4ja7li8xqK4lHqfcwZ6qQDfhVD-RB8EDk2dO_lVvzV9cFp6IjOs3y9o2LToJEszrc8q9cPDSyevmn2X73xQ-a_dLQdoOjTbqXRevXfYLOogQdscslmjBCdnKBGMydKdD1W0ZqzoDMYyL7v_ZXeGWCSVJLACdN7ZoRD0E"/>
+</div>
+<div class="fixed -bottom-24 -left-24 w-96 h-96 bg-primary/5 rounded-full blur-[120px] -z-10 pointer-events-none"></div>
+{% endblock %}
+</body></html>

@@ -1,0 +1,119 @@
+{% extends 'attendance/base.html' %}
+
+{% block content %}
+<div class="p-8 bg-surface-container-lowest min-h-screen">
+    <header class="mb-10">
+        <h1 class="text-4xl font-extrabold text-on-surface tracking-tight mb-2">System Settings</h1>
+        <p class="text-on-surface-variant font-medium">Manage your account preferences and academic system configurations.</p>
+    </header>
+
+    <div class="grid grid-cols-12 gap-8">
+        <!-- Sidebar Navigation -->
+        <aside class="col-span-12 lg:col-span-3 space-y-2">
+            <button onclick="showTab('account')" id="btn-account" class="tab-btn w-full flex items-center gap-3 px-6 py-4 bg-primary text-on-primary rounded-2xl font-bold transition-all">
+                <span class="material-symbols-outlined">person</span> Account
+            </button>
+            <button onclick="showTab('ai')" id="btn-ai" class="tab-btn w-full flex items-center gap-3 px-6 py-4 hover:bg-surface-container rounded-2xl font-medium text-on-surface-variant transition-all">
+                <span class="material-symbols-outlined">settings_remote</span> AI Configuration
+            </button>
+            <button onclick="showTab('notif')" id="btn-notif" class="tab-btn w-full flex items-center gap-3 px-6 py-4 hover:bg-surface-container rounded-2xl font-medium text-on-surface-variant transition-all">
+                <span class="material-symbols-outlined">notifications</span> Notifications
+            </button>
+            <button onclick="showTab('security')" id="btn-security" class="tab-btn w-full flex items-center gap-3 px-6 py-4 hover:bg-surface-container rounded-2xl font-medium text-on-surface-variant transition-all text-error">
+                <span class="material-symbols-outlined">security</span> Privacy & Security
+            </button>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="col-span-12 lg:col-span-9">
+            <form method="POST" action="{% url 'update_settings' %}" class="space-y-8">
+                {% csrf_token %}
+                
+                <!-- Account Section -->
+                <div id="tab-account" class="tab-content space-y-8">
+                    <div class="bg-white rounded-[32px] p-8 border border-surface-container shadow-sm">
+                        <h3 class="font-bold text-xl text-on-surface mb-8">Profile Information</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-2">
+                                <label class="text-sm font-bold text-on-surface-variant ml-2">Admin Name</label>
+                                <input type="text" name="name" value="{{ user.get_full_name|default:'Admin User' }}" class="w-full p-4 bg-surface-container-lowest border border-surface-container rounded-2xl focus:ring-2 focus:ring-primary focus:outline-none transition-all">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-sm font-bold text-on-surface-variant ml-2">Email Address</label>
+                                <input type="email" name="email" value="{{ user.email }}" class="w-full p-4 bg-surface-container-lowest border border-surface-container rounded-2xl focus:ring-2 focus:ring-primary focus:outline-none transition-all">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Section -->
+                <div id="tab-ai" class="tab-content hidden space-y-8">
+                    <div class="bg-white rounded-[32px] p-8 border border-surface-container shadow-sm">
+                        <h3 class="font-bold text-xl text-on-surface mb-8">AI Engine Preferences</h3>
+                        <div class="space-y-6">
+                            <!-- Switch Item -->
+                            <div class="flex items-center justify-between p-4 bg-surface-container-lowest rounded-2xl hover:bg-surface-container-low transition-all">
+                                <div class="flex items-center gap-4">
+                                    <span class="material-symbols-outlined text-primary p-3 bg-primary/10 rounded-xl">face</span>
+                                    <div>
+                                        <p class="font-bold text-on-surface">Live Face Tracking</p>
+                                        <p class="text-xs text-on-surface-variant">Enable real-time biometric scanning during sessions.</p>
+                                    </div>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="face_tracking" checked class="sr-only peer">
+                                    <div class="w-11 h-6 bg-slate-200 peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-primary after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                                </label>
+                            </div>
+
+                            <!-- Switch Item -->
+                            <div class="flex items-center justify-between p-4 bg-surface-container-lowest rounded-2xl hover:bg-surface-container-low transition-all">
+                                <div class="flex items-center gap-4">
+                                    <span class="material-symbols-outlined text-primary p-3 bg-primary/10 rounded-xl">cloud_sync</span>
+                                    <div>
+                                        <p class="font-bold text-on-surface">Auto-Sync Reports</p>
+                                        <p class="text-xs text-on-surface-variant">Automatically upload attendance logs to central server.</p>
+                                    </div>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="auto_sync" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-slate-200 peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-primary after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex justify-end gap-4 pt-4">
+                    <button type="button" onclick="location.reload()" class="px-8 py-4 text-on-surface font-bold hover:bg-surface-container rounded-2xl transition-all">Cancel</button>
+                    <button type="submit" class="px-8 py-4 bg-primary text-on-primary font-bold rounded-2xl shadow-lg hover:shadow-primary/30 hover:-translate-y-1 transition-all active:scale-95">Save Changes</button>
+                </div>
+            </form>
+        </main>
+    </div>
+</div>
+
+<script>
+    function showTab(tabName) {
+        // Hide all tab content
+        document.querySelectorAll('.tab-content').forEach(tab => {
+            tab.classList.add('hidden');
+        });
+        
+        // Show selected tab content
+        document.getElementById('tab-' + tabName).classList.remove('hidden');
+
+        // Reset all button styles
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('bg-primary', 'text-on-primary', 'font-bold');
+            btn.classList.add('hover:bg-surface-container', 'text-on-surface-variant', 'font-medium');
+        });
+
+        // Apply active style to clicked button
+        const activeBtn = document.getElementById('btn-' + tabName);
+        activeBtn.classList.remove('hover:bg-surface-container', 'text-on-surface-variant', 'font-medium');
+        activeBtn.classList.add('bg-primary', 'text-on-primary', 'font-bold');
+    }
+</script>
+{% endblock %}

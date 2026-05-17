@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Gate - ACDC</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .badge {
+            font-size: 2rem; /* 32px or above */
+            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 8px;
+            display: inline-block;
+            margin: 5px;
+        }
+        .badge-granted { background-color: #22c55e; color: white; }
+        .badge-denied { background-color: #ef4444; color: white; }
+        .badge-warning { background-color: #eab308; color: white; }
+        
+        .huge-text {
+            font-size: 3rem; /* 48px */
+            font-weight: 800;
+        }
+        .large-text {
+            font-size: 2.25rem; /* 36px */
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center p-8">
+
+    <div class="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-8">
+        
+        <!-- Video Stream Section -->
+        <div class="flex flex-col items-center bg-gray-800 p-6 rounded-2xl shadow-xl border-4 border-gray-700" id="video-container">
+            <h2 class="text-3xl font-bold mb-4 text-blue-400">Gate Camera</h2>
+            
+            <div class="relative w-full aspect-video bg-black rounded-lg overflow-hidden flex items-center justify-center">
+                <img id="video-stream" src="" class="w-full h-full object-cover hidden" alt="Video Stream">
+                <div id="camera-placeholder" class="text-gray-500 text-xl font-bold">Camera is OFF</div>
+            </div>
+            <div class="mt-4 w-full text-left">
+                <label for="camera-select" class="block text-gray-400 mb-2 font-semibold text-lg">Select Camera / Webcam</label>
+                <select id="camera-select" class="w-full bg-gray-700 text-white p-3 rounded-lg focus:ring-blue-500 focus:border-blue-500 outline-none text-xl">
+                    <option value="0">Default Camera (Index 0)</option>
+                    <option value="1">External Camera 1 (Index 1)</option>
+                    <option value="2">External Camera 2 (Index 2)</option>
+                    <option value="3">External Camera 3 (Index 3)</option>
+                </select>
+            </div>
+
+            <button id="toggle-camera-btn" class="mt-6 px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white text-2xl font-bold rounded-lg w-full transition shadow-lg">
+                Start Scanner
+            </button>
+        </div>
+
+        <!-- Details Section -->
+        <div class="flex flex-col justify-center bg-gray-800 p-8 rounded-2xl shadow-xl min-h-[500px]">
+            <h1 class="text-4xl font-black text-center mb-8 text-gray-300 tracking-widest uppercase border-b border-gray-700 pb-4">
+                Access Verification
+            </h1>
+            
+            <div id="status-container" class="text-center hidden">
+                <div class="mb-6">
+                    <p class="text-gray-400 text-xl uppercase tracking-wider mb-2">Recognized Identity</p>
+                    <h2 id="user-name" class="huge-text text-white">Scanning...</h2>
+                    <p id="user-type" class="text-2xl text-blue-400 font-semibold mt-2">Unknown</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-8 text-left max-w-md mx-auto">
+                    <div class="bg-gray-700 p-4 rounded-lg">
+                        <p class="text-gray-400 text-sm uppercase">ID Number</p>
+                        <p id="user-id" class="text-2xl font-bold">---</p>
+                    </div>
+                    <div class="bg-gray-700 p-4 rounded-lg">
+                        <p class="text-gray-400 text-sm uppercase">Phone</p>
+                        <p id="user-phone" class="text-2xl font-bold">---</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap justify-center gap-4" id="badges-container">
+                    <!-- Badges will be injected here -->
+                </div>
+            </div>
+
+            <div id="idle-container" class="text-center flex-1 flex flex-col justify-center">
+                <div class="animate-pulse">
+                    <svg class="w-24 h-24 text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    <p class="text-2xl text-gray-500 font-bold">Waiting for identity...</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const videoStream = document.getElementById('video-stream');
+        const cameraPlaceholder = document.getElementById('camera-placeholder');
+        const toggleBtn = document.getElementById('toggle-camera-btn');
+        const cameraSelect = document.getElementById('camera-select');
+        
+        const statusContainer = document.getElementById('status-container');
+        const idleContainer = document.getElementById('idle-container');
+        
+        const userNameEl = document.getElementById('user-name');
+        const userTypeEl = document.getElementById('user-type');
+        const userIdEl = document.getElementById('user-id');
+        const userPhoneEl = document.getElementById('user-phone');
+        const badgesContainer = document.getElementById('badges-container');
+        const videoContainer = document.getElementById('video-container');
+
+        let isScanning = false;
+        let pollingInterval = null;
+
+        function updateBadges(data) {
+            badgesContainer.innerHTML = '';
+            
+            // 1. Overall Access Badge
+            const accessBadge = document.createElement('div');
+            if (data.is_allowed) {
+                accessBadge.className = 'badge badge-granted';
+                accessBadge.textContent = 'ACCESS GRANTED';
+                videoContainer.classList.remove('border-red-500', 'border-gray-700');
+                videoContainer.classList.add('border-green-500');
+            } else {
+                accessBadge.className = 'badge badge-denied';
+                accessBadge.textContent = 'ACCESS DENIED';
+                videoContainer.classList.remove('border-green-500', 'border-gray-700');
+                videoContainer.classList.add('border-red-500');
+            }
+            badgesContainer.appendChild(accessBadge);
+
+            // 2. Registration Status Badge (Only if not registered)
+            if (data.user_type === 'Student' && !data.is_registered) {
+                const regBadge = document.createElement('div');
+                regBadge.className = 'badge badge-denied';
+                regBadge.textContent = 'UNREGISTERED';
+                badgesContainer.appendChild(regBadge);
+            }
+
+            // 3. Financial Status Badge (Only for Students, No specific balance shown)
+            if (data.user_type === 'Student') {
+                const finBadge = document.createElement('div');
+                if (data.is_paid) {
+                    finBadge.className = 'badge badge-granted';
+                    finBadge.textContent = 'FINANCIAL OK';
+                } else {
+                    finBadge.className = 'badge badge-warning';
+                    finBadge.textContent = 'PAYMENT DUE';
+                }
+                badgesContainer.appendChild(finBadge);
+            }
+        }
+
+        function pollStatus() {
+            fetch('/attendance/check-status/')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status) {
+                        idleContainer.classList.add('hidden');
+                        statusContainer.classList.remove('hidden');
+
+                        userNameEl.textContent = data.name;
+                        userTypeEl.textContent = data.user_type.toUpperCase();
+                        userIdEl.textContent = data.user_id;
+                        userPhoneEl.textContent = data.phone;
+                        
+                        updateBadges(data);
+                    } else {
+                        idleContainer.classList.remove('hidden');
+                        statusContainer.classList.add('hidden');
+                        videoContainer.classList.remove('border-green-500', 'border-red-500');
+                        videoContainer.classList.add('border-gray-700');
+                    }
+                })
+                .catch(err => console.error("Error polling status:", err));
+        }
+
+        toggleBtn.addEventListener('click', () => {
+            if (!isScanning) {
+                // Start Scanner
+                isScanning = true;
+                const camIdx = cameraSelect.value;
+                videoStream.src = `/attendance/video_feed/?camera=${camIdx}`;
+                videoStream.classList.remove('hidden');
+                cameraPlaceholder.classList.add('hidden');
+                
+                toggleBtn.textContent = "Stop Scanner";
+                toggleBtn.classList.remove('bg-blue-600', 'hover:bg-blue-500');
+                toggleBtn.classList.add('bg-red-600', 'hover:bg-red-500');
+
+                // Start continuous polling (every 1 second)
+                pollingInterval = setInterval(pollStatus, 1000);
+            } else {
+                // Stop Scanner
+                isScanning = false;
+                videoStream.src = "";
+                videoStream.classList.add('hidden');
+                cameraPlaceholder.classList.remove('hidden');
+                
+                toggleBtn.textContent = "Start Scanner";
+                toggleBtn.classList.remove('bg-red-600', 'hover:bg-red-500');
+                toggleBtn.classList.add('bg-blue-600', 'hover:bg-blue-500');
+
+                // Stop polling
+                if (pollingInterval) clearInterval(pollingInterval);
+                
+                // Reset UI
+                idleContainer.classList.remove('hidden');
+                statusContainer.classList.add('hidden');
+                videoContainer.classList.remove('border-green-500', 'border-red-500');
+                videoContainer.classList.add('border-gray-700');
+            }
+        });
+    </script>
+</body>
+</html>

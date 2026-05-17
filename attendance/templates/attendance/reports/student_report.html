@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Attendance Report</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f8f9fa; padding: 20px; }
+        .container { background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; }
+        form { margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+        input, select, button { padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
+        button { background-color: #007bff; color: white; border: none; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #dee2e6; padding: 12px; text-align: left; }
+        th { background-color: #f1f3f5; }
+        .btn-export { background-color: #28a745; margin-bottom: 20px; display: inline-block; padding: 10px 15px; color: white; text-decoration: none; border-radius: 5px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Student Attendance Report</h1>
+    
+    <form method="GET">
+        <input type="text" name="student_id" placeholder="Student ID" value="{{ request.GET.student_id }}">
+        <input type="text" name="course_id" placeholder="Course ID" value="{{ request.GET.course_id }}">
+        <input type="date" name="date_from" value="{{ request.GET.date_from }}">
+        <input type="date" name="date_to" value="{{ request.GET.date_to }}">
+        <button type="submit">Filter</button>
+        <a href="{% url 'student_report' %}" style="padding: 8px; text-decoration: none; background: #6c757d; color: white; border-radius: 4px;">Clear</a>
+    </form>
+
+    <a href="{% url 'export_student_csv' %}?{{ request.GET.urlencode }}" class="btn-export">Export to CSV</a>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Student</th>
+                <th>Course</th>
+                <th>Date</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+            <tr>
+                <td>{{ log.student.name }}</td>
+                <td>{{ log.schedule.course.title|default:"N/A" }}</td>
+                <td>{{ log.timestamp|date:"Y-m-d H:i:s" }}</td>
+                <td>{{ log.status }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4">No records found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

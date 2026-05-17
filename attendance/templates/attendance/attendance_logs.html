@@ -1,0 +1,101 @@
+{% extends 'attendance/base.html' %}
+
+{% block content %}
+<div class="p-8 bg-surface-container-lowest min-h-screen font-sans">
+    <header class="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+            <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">Attendance Logs</h1>
+            <p class="text-slate-500 font-medium">Real-time biometric verification history and audit trails.</p>
+        </div>
+        
+        <div class="flex items-center gap-3">
+            <select id="statusFilter" class="bg-white border border-slate-200 text-slate-700 px-5 py-3 rounded-2xl font-bold text-sm focus:ring-2 focus:ring-primary/20 outline-none shadow-sm cursor-pointer transition-all">
+                <option value="all">All Status</option>
+                <option value="PRESENT">Present Only</option>
+                <option value="FLAGGED">Flagged Only</option>
+            </select>
+
+            <button id="exportBtn" class="bg-slate-900 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-slate-800 hover:shadow-lg transition-all active:scale-95">
+                <span class="material-symbols-outlined text-lg">download</span>
+                Export CSV
+            </button>
+        </div>
+    </header>
+
+    <div class="bg-white rounded-[32px] shadow-sm border border-slate-100 overflow-hidden">
+        <table class="w-full text-left border-collapse" id="logsTable">
+            <thead>
+                <tr class="bg-slate-50/50">
+                    <th class="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-widest">Student</th>
+                    <th class="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-widest">Timestamp</th>
+                    <th class="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-widest">Status</th>
+                    <th class="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-widest text-right">Confidence</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50">
+                {% for log in logs %}
+                <tr class="hover:bg-slate-50/80 transition-all group log-row" data-status="{{ log.status|upper }}">
+                    <td class="px-8 py-6">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-sm">
+                                {{ log.student.name|slice:":1" }}
+                            </div>
+                            <span class="font-bold text-slate-800">{{ log.student.name }}</span>
+                        </div>
+                    </td>
+                    <td class="px-8 py-6 text-sm text-slate-500 font-medium">
+                        {{ log.timestamp|date:"M d, Y" }} • {{ log.timestamp|date:"H:i" }}
+                    </td>
+                    <td class="px-6 py-4">
+                        {% if log.status == 'Present' %}
+                        <span class="text-emerald-500 font-bold text-xs tracking-widest uppercase">PRESENT</span>
+                        {% else %}
+                        <span class="text-red-500 font-bold text-xs tracking-widest uppercase">FLAGGED</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-8 py-6 text-right font-mono text-sm text-slate-900 font-bold">
+                        {{ log.confidence_score|floatformat:2 }}%
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // 1. برمجة الفلتر (تصفية الصفوف بدون تحميل الصفحة)
+    document.getElementById('statusFilter').addEventListener('change', function() {
+        const selectedStatus = this.value;
+        const rows = document.querySelectorAll('.log-row');
+
+        rows.forEach(row => {
+            if (selectedStatus === 'all' || row.getAttribute('data-status') === selectedStatus) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+
+    // 2. برمجة زر التصدير (Export to CSV)
+    document.getElementById('exportBtn').addEventListener('click', function() {
+        let csvContent = "data:text/csv;charset=utf-8,Student,Timestamp,Status,Confidence\n";
+        const rows = document.querySelectorAll('.log-row');
+
+        rows.forEach(row => {
+            const cols = row.querySelectorAll('td');
+            const rowData = Array.from(cols).map(col => col.innerText.replace('•', '').trim()).join(",");
+            csvContent += rowData + "\n";
+        });
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "attendance_logs.csv");
+        document.body.appendChild(link);
+        link.click();
+    });
+</script>
+{% endblock %}
+</body></html>
