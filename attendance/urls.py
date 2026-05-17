@@ -55,4 +55,8 @@ urlpatterns = [
     path('coordinator/faculty/', views.coordinator_faculty, name='coordinator_faculty'),
     path('coordinator/assignments/', views.coordinator_course_assignment, name='coordinator_course_assignment'),
     path('coordinator/register/', views.coordinator_register_user, name='coordinator_register_user'),
+    # Phase 3 Additions
+    path('teacher/profile/', views.teacher_profile, name='teacher_profile'),
+    path('teacher/permissions/', views.teacher_permissions, name='teacher_permissions'),
+    path('classrooms/status/', views.classrooms_status, name='classrooms_status'),
 ]

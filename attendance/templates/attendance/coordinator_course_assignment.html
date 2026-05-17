@@ -1,4 +1,87 @@
 {% extends 'attendance/base.html' %}
 {% block content %}
-<h1>coordinator_course_assignment.html</h1>
+<div class="space-y-6">
+  <div>
+    <h1 class="text-2xl font-extrabold text-slate-900 font-headline">Course Assignment</h1>
+    <p class="text-sm text-slate-500 mt-1">Assign a teacher to a course in a specific classroom</p>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Assignment Form -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100">
+      <div class="px-6 py-4 border-b border-slate-50 flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary">assignment</span>
+        <h2 class="font-bold text-slate-800 font-headline">New Assignment</h2>
+      </div>
+      <form method="post" class="p-6 space-y-4">
+        {% csrf_token %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Teacher</label>
+            <select name="teacher_id" class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none">
+              <option value="">Select Teacher</option>
+              {% for t in teachers %}
+              <option value="{{ t.teacher_id }}">{{ t.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Course</label>
+            <select name="course_id" class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none">
+              <option value="">Select Course</option>
+              {% for c in courses %}
+              <option value="{{ c.id }}">{{ c.course_code }} – {{ c.title }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Classroom</label>
+            <select name="classroom_id" class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none">
+              <option value="">Select Classroom</option>
+              {% for room in classrooms %}
+              <option value="{{ room.id }}">{{ room.name }} ({{ room.location }})</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Batch</label>
+            <input type="text" name="batch" placeholder="e.g. 2024" value="2024"
+              class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Day of Week</label>
+            <select name="day_of_week" class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none">
+              <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
+              <option>Thursday</option><option>Friday</option><option>Saturday</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Start Time</label>
+            <input type="time" name="start_time" class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1.5">End Time</label>
+            <input type="time" name="end_time" class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none">
+          </div>
+        </div>
+        <button type="submit" class="inline-flex items-center gap-2 bg-primary text-white font-bold text-sm px-6 py-3 rounded-xl hover:bg-primary/90 transition-all shadow-sm w-full justify-center">
+          <span class="material-symbols-outlined text-base">add_task</span> Assign Course
+        </button>
+      </form>
+    </div>
+
+    <!-- Info Panel -->
+    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 space-y-4">
+      <div class="flex items-center gap-2 text-sm font-bold text-slate-700">
+        <span class="material-symbols-outlined text-amber-500">info</span>
+        Booking Rules
+      </div>
+      <ul class="text-sm text-slate-600 space-y-2">
+        <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-primary shrink-0"></span> A teacher cannot be assigned two courses at the same time.</li>
+        <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-primary shrink-0"></span> A classroom cannot be used by two courses simultaneously.</li>
+        <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-primary shrink-0"></span> Time overlap is detected automatically.</li>
+      </ul>
+    </div>
+  </div>
+</div>
 {% endblock %}

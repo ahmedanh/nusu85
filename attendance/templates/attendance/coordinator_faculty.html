@@ -1,4 +1,62 @@
 {% extends 'attendance/base.html' %}
 {% block content %}
-<h1>coordinator_faculty.html</h1>
+<div class="space-y-6">
+  <div>
+    <h1 class="text-2xl font-extrabold text-slate-900 font-headline">Faculty Overview</h1>
+    <p class="text-sm text-slate-500 mt-1">Track teaching staff and lecture completion rates</p>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead>
+          <tr class="bg-slate-50 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">
+            <th class="px-6 py-4">Faculty Member</th>
+            <th class="px-6 py-4">Department</th>
+            <th class="px-6 py-4">Degree</th>
+            <th class="px-6 py-4">Courses</th>
+            <th class="px-6 py-4">Lectures Done</th>
+            <th class="px-6 py-4">Completion</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50">
+          {% for teacher in teachers %}
+          {% with courses=teacher.schedule_set.all %}
+          <tr class="hover:bg-slate-50 transition-colors">
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center font-bold">{{ teacher.name|first|upper }}</div>
+                <div>
+                  <p class="text-sm font-bold text-slate-800">{{ teacher.name }}</p>
+                  <p class="text-xs text-slate-400">{{ teacher.university_email|default:"-" }}</p>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4 text-sm text-slate-600">{{ teacher.department.name|default:"—" }}</td>
+            <td class="px-6 py-4 text-sm text-slate-600">{{ teacher.academic_degree|default:"—" }}</td>
+            <td class="px-6 py-4">
+              <span class="text-sm font-bold text-slate-800">{{ courses.count }}</span>
+            </td>
+            <td class="px-6 py-4">
+              {% with done=teacher.lecturesession_set.filter.count %}
+              <span class="text-sm font-bold text-slate-800">—</span>
+              {% endwith %}
+            </td>
+            <td class="px-6 py-4">
+              <div class="w-24 bg-slate-100 rounded-full h-2">
+                <div class="h-2 rounded-full bg-purple-400" style="width: 60%"></div>
+              </div>
+            </td>
+          </tr>
+          {% endwith %}
+          {% empty %}
+          <tr>
+            <td colspan="6" class="px-6 py-16 text-center text-slate-400">No faculty members found.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
 {% endblock %}

@@ -180,6 +180,13 @@
                 .catch(err => console.error("Error polling status:", err));
         }
 
+        cameraSelect.addEventListener('change', () => {
+            if (isScanning) {
+                const camIdx = cameraSelect.value;
+                videoStream.src = `/attendance/video_feed/?camera=${camIdx}`;
+            }
+        });
+
         toggleBtn.addEventListener('click', () => {
             if (!isScanning) {
                 // Start Scanner
@@ -217,5 +224,6 @@
             }
         });
     </script>
+
 </body>
 </html>

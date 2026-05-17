@@ -70,7 +70,7 @@ class UserRole(models.Model):
 # 4. الدكاترة والطلاب
 class Teacher(models.Model):
     teacher_id = models.AutoField(primary_key=True)
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
     name = models.CharField(max_length=255)
     gender = models.CharField(max_length=10)
     academic_degree = models.CharField(max_length=100)
@@ -232,3 +232,59 @@ class FaceLoginSession(models.Model):
     login_time = models.DateTimeField(auto_now_add=True)
     user_type = models.CharField(max_length=50)
     confidence_score = models.FloatField()
+
+
+# ─────────────────────────────────────────────
+# Phase 6: Audit Logging
+# Tracks all sensitive database changes (who, what, when, IP).
+# ─────────────────────────────────────────────
+class AuditLog(models.Model):
+    ACTION_CHOICES = [
+        ('CREATE', 'Created'),
+        ('UPDATE', 'Updated'),
+        ('DELETE', 'Deleted'),
+        ('LOGIN', 'Logged In'),
+        ('LOGOUT', 'Logged Out'),
+        ('FACE_UPLOAD', 'Face Uploaded'),
+        ('TOGGLE_ACCESS', 'Access Toggled'),
+        ('REGISTER', 'User Registered'),
+    ]
+
+    actor = models.ForeignKey(AuthUser, on_delete=models.SET_NULL, null=True, blank=True,
+                              related_name='audit_actions')
+    action = models.CharField(max_length=20, choices=ACTION_CHOICES)
+    target_model = models.CharField(max_length=100, blank=True)
+    target_id = models.CharField(max_length=50, blank=True)
+    description = models.TextField(blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-timestamp']
+        verbose_name = 'Audit Log Entry'
+
+    def __str__(self):
+        actor_name = self.actor.username if self.actor else 'System'
+        return f"[{self.timestamp}] {actor_name} → {self.action} on {self.target_model}#{self.target_id}"
+
+
+def log_audit(request=None, actor=None, action='UPDATE', target_model='', target_id='', description=''):
+    """
+    Convenience helper to create an AuditLog entry.
+    Usage: log_audit(request, action='FACE_UPLOAD', target_model='Teacher', target_id=str(teacher.pk))
+    """
+    ip = None
+    user = actor
+    if request:
+        x_forwarded = request.META.get('HTTP_X_FORWARDED_FOR')
+        ip = x_forwarded.split(',')[0] if x_forwarded else request.META.get('REMOTE_ADDR')
+        if not user and request.user.is_authenticated:
+            user = request.user
+    AuditLog.objects.create(
+        actor=user,
+        action=action,
+        target_model=target_model,
+        target_id=str(target_id),
+        description=description,
+        ip_address=ip,
+    )

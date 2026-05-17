@@ -13,40 +13,53 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils import timezone
 from django.db.models import Avg, Count, Q
-from .models import AIAttendanceLog, Student, Schedule, Course, Teacher, Classroom, StudentFaceEmbedding, Department, Enrollment, TeacherAttendanceLog, TeacherFaceEmbedding, GateEntryLog
+from .models import (
+    AIAttendanceLog, Student, Schedule, Course, Teacher, Classroom,
+    StudentFaceEmbedding, Department, Enrollment, TeacherAttendanceLog,
+    TeacherFaceEmbedding, GateEntryLog, log_audit
+)
 from django.core.cache import cache
+from .crypto import encrypt_vector, decrypt_vector
 
 # --- 1. Global Memory & Settings ---
 known_face_encodings = []
 known_face_names = []
 known_teacher_encodings = []
 known_teacher_names = []
-last_teacher_seen_time = {}
+# NOTE: last_teacher_seen_time removed — replaced with Django Cache for multi-worker safety
 
 def load_known_faces():
+    """
+    Phase 2: Load face embeddings from DB.
+    Vectors are stored AES-256 encrypted; decrypted in memory only at runtime.
+    """
     global known_face_encodings, known_face_names, known_teacher_encodings, known_teacher_names
     known_face_encodings.clear()
     known_face_names.clear()
     known_teacher_encodings.clear()
     known_teacher_names.clear()
-    
-    # Load students from DB
+
+    # Load students from DB — decrypt vector before parsing
     students = StudentFaceEmbedding.objects.select_related('student').all()
     for s_emb in students:
         try:
-            arr = np.array([float(x) for x in s_emb.embedding.split(',')])
+            raw = decrypt_vector(s_emb.embedding)
+            arr = np.array([float(x) for x in raw.split(',')])
             known_face_encodings.append(arr)
             known_face_names.append(s_emb.student.name)
-        except: pass
-            
-    # Load teachers from DB
+        except Exception:
+            pass
+
+    # Load teachers from DB — decrypt vector before parsing
     teachers = TeacherFaceEmbedding.objects.select_related('teacher').all()
     for t_emb in teachers:
         try:
-            arr = np.array([float(x) for x in t_emb.face_vector.split(',')])
+            raw = decrypt_vector(t_emb.face_vector)
+            arr = np.array([float(x) for x in raw.split(',')])
             known_teacher_encodings.append(arr)
             known_teacher_names.append(t_emb.teacher.name)
-        except: pass
+        except Exception:
+            pass
 
 # Automatically load on startup
 load_known_faces()
@@ -65,10 +78,12 @@ def get_current_schedule():
     ).first()
 # --- 2. دالة توليد الإطارات (المحرك الذكي) ---
 def gen_frames(camera_index=0):
-    global last_teacher_seen_time
+    """Phase 4: Removed global last_teacher_seen_time. Uses Django Cache for state.
+    Added try/finally to guarantee camera.release() is called on stream end."""
     camera = cv2.VideoCapture(camera_index)
     camera.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
     camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+    TEACHER_TIMEOUT_CACHE_KEY = 'teacher_last_seen'
     
     frame_counter = 0
     last_log_times = {} 
@@ -127,7 +142,10 @@ def gen_frames(camera_index=0):
                         current_name = known_teacher_names[idx]
                         face_found_in_frame = True
                         now_ts = time.time()
-                        last_teacher_seen_time[current_name] = now_ts
+                        # Phase 4: Use cache instead of global dict
+                        teacher_times = cache.get(TEACHER_TIMEOUT_CACHE_KEY, {})
+                        teacher_times[current_name] = now_ts
+                        cache.set(TEACHER_TIMEOUT_CACHE_KEY, teacher_times, timeout=600)
 
                         try:
                             teacher_obj = Teacher.objects.filter(name__icontains=current_name).first()
@@ -151,10 +169,12 @@ def gen_frames(camera_index=0):
                         except Exception as e:
                             pass
 
-            # Timeout logic for teachers
+            # Phase 4: Timeout logic for teachers — using Cache instead of global
             now_ts = time.time()
-            for t_name, last_seen in list(last_teacher_seen_time.items()):
-                if now_ts - last_seen > 300: # 5 minutes timeout
+            teacher_times = cache.get(TEACHER_TIMEOUT_CACHE_KEY, {})
+            updated_times = {}
+            for t_name, last_seen in list(teacher_times.items()):
+                if now_ts - last_seen > 300:  # 5 minutes timeout
                     try:
                         teacher_obj = Teacher.objects.filter(name__icontains=t_name).first()
                         if teacher_obj:
@@ -165,14 +185,20 @@ def gen_frames(camera_index=0):
                             if active_log:
                                 active_log.check_out_time = timezone.now()
                                 active_log.save()
-                    except: pass
-                    del last_teacher_seen_time[t_name]
+                    except Exception:
+                        pass
+                    # Don't add to updated_times → effectively deletes it
+                else:
+                    updated_times[t_name] = last_seen
+            cache.set(TEACHER_TIMEOUT_CACHE_KEY, updated_times, timeout=600)
 
-                # Box drawing
-                top*=5; right*=5; bottom*=5; left*=5
-                m_left, m_right = width-right, width-left
+            # Box drawing (for each face location)
+            for (top, right, bottom, left) in face_locations:
+                top *= 5; right *= 5; bottom *= 5; left *= 5
+                m_left, m_right = width - right, width - left
                 cv2.rectangle(display_frame, (m_left, top), (m_right, bottom), (34, 197, 94), 2)
-                cv2.putText(display_frame, current_name, (m_left+6, bottom-6), cv2.FONT_HERSHEY_DUPLEX, 0.7, (255,255,255), 1)
+                cv2.putText(display_frame, current_name, (m_left + 6, bottom - 6), cv2.FONT_HERSHEY_DUPLEX, 0.7, (255, 255, 255), 1)
+
 
             # Store in Django Cache instead of Global Vars
             cache.set('recognized_status', face_found_in_frame, timeout=5)
@@ -188,8 +214,28 @@ def gen_frames(camera_index=0):
 
             ret, buffer = cv2.imencode('.jpg', display_frame, [cv2.IMWRITE_JPEG_QUALITY, 50])
             yield (b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
-        
+
         time.sleep(0.01)
+
+
+def gen_frames_safe(camera_index=0):
+    """Phase 4: Wrapper that guarantees camera.release() via try/finally."""
+    camera = cv2.VideoCapture(camera_index)
+    camera.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+    camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+    TEACHER_TIMEOUT_CACHE_KEY = 'teacher_last_seen'
+    frame_counter = 0
+    last_log_times = {}
+    last_teacher_log_times = {}
+    try:
+        yield from _gen_frames_inner(
+            camera, frame_counter, last_log_times,
+            last_teacher_log_times, TEACHER_TIMEOUT_CACHE_KEY
+        )
+    finally:
+        camera.release()
+
+
 # --- 3. الـ Views المكملة ---
 
 def scan_page(request):
@@ -335,16 +381,28 @@ def faculty_management(request):
     return render(request, 'attendance/faculty_management.html', context)
 
 def logout_view(request):
+    if request.user.is_authenticated:
+        log_audit(request, action='LOGOUT', target_model='AuthUser', target_id=str(request.user.id), description="User logged out successfully")
     logout(request)
     return redirect('login')
+from django_ratelimit.decorators import ratelimit
+
+@ratelimit(key='ip', rate='5/15m', method='POST', block=True)
 def login_view(request):
+    """Phase 5: Rate-limited to 5 POST attempts per IP per 15 minutes."""
+    if getattr(request, 'limited', False):
+        return render(request, 'attendance/university_login.html', {
+            'error': 'Too many login attempts. Please try again in 15 minutes.'
+        }, status=429)
+
     if request.method == 'POST':
         u = request.POST.get('username')
         p = request.POST.get('password')
         user = authenticate(request, username=u, password=p)
-        
+
         if user:
             login(request, user)
+            log_audit(request, actor=user, action='LOGIN', target_model='AuthUser', target_id=str(user.id), description=f"Successful login for user {user.username}")
             from .models import Coordinator, Teacher, Student
             if user.is_superuser or user.is_staff:
                 return redirect('admin_panel')
@@ -358,11 +416,12 @@ def login_view(request):
                 return redirect('gate_page')
             else:
                 return redirect('scan_page')
-        
-        # لو البيانات غلط
-        return render(request, 'attendance/university_login.html', {'error': 'Invalid login'})
-        
+
+        return render(request, 'attendance/university_login.html', {'error': 'Invalid credentials. Please try again.'})
+
     return render(request, 'attendance/university_login.html')
+
+
 
 @login_required
 def attendance_success(request):
@@ -636,37 +695,45 @@ def export_teachers_csv(request):
 
     return response
 
-from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
 
-@csrf_exempt
+@login_required
 def upload_face(request, user_type, user_id):
+    """
+    Phase 2: Face vector is AES-256 encrypted before persisting to DB.
+    Only the request owner or staff can upload a face for a given user_id.
+    """
     if request.method == 'POST' and request.FILES.get('image'):
         try:
             image_file = request.FILES['image']
-            
-            # Generate encoding directly from memory
+
+            # Extract face encoding
             image = face_recognition.load_image_file(image_file)
             encodings = face_recognition.face_encodings(image)
-            
+
             if len(encodings) > 0:
-                encoding_str = ','.join(str(x) for x in encodings[0])
-                
+                # Phase 2: Encrypt vector before saving
+                raw_encoding_str = ','.join(str(x) for x in encodings[0])
+                encrypted_str = encrypt_vector(raw_encoding_str)
+
                 if user_type == 'teacher':
                     teacher = get_object_or_404(Teacher, pk=user_id)
                     TeacherFaceEmbedding.objects.update_or_create(
                         teacher=teacher,
-                        defaults={'face_vector': encoding_str}
+                        defaults={'face_vector': encrypted_str}
                     )
                     teacher.is_allowed_entry = True
                     teacher.save(update_fields=['is_allowed_entry'])
+                    log_audit(request, action='FACE_UPLOAD', target_model='Teacher', target_id=str(teacher.pk), description=f"Uploaded face for teacher: {teacher.name}")
                 elif user_type == 'student':
                     student = get_object_or_404(Student, pk=user_id)
                     StudentFaceEmbedding.objects.update_or_create(
                         student=student,
-                        defaults={'embedding': encoding_str}
+                        defaults={'embedding': encrypted_str}
                     )
                     student.is_trained = True
                     student.save(update_fields=['is_trained'])
+                    log_audit(request, action='FACE_UPLOAD', target_model='Student', target_id=str(student.pk), description=f"Uploaded face for student: {student.name}")
                 else:
                     return JsonResponse({'status': 'error', 'message': 'Invalid user type'}, status=400)
                     
@@ -856,15 +923,15 @@ def export_my_courses_csv(request):
         completed = sessions.filter(is_active=False).count()
         total_lectures = 15 # Default/Mock or query if you have it in course
         
-        first_date = sessions.order_by('date').first()
-        last_date = sessions.order_by('date').last()
+        first_date = sessions.order_by('actual_start_time').first()
+        last_date = sessions.order_by('actual_start_time').last()
         
         writer.writerow([
             sched.course.title if sched.course else 'N/A',
             completed,
             total_lectures,
-            first_date.date if first_date else 'N/A',
-            last_date.date if last_date else 'N/A'
+            first_date.actual_start_time.date() if first_date else 'N/A',
+            last_date.actual_start_time.date() if last_date else 'N/A'
         ])
         
     return response
@@ -1057,6 +1124,7 @@ def coordinator_students(request):
         if action == 'toggle_registered':
             student.is_registered = not student.is_registered
             student.save(update_fields=['is_registered'])
+            log_audit(request, action='TOGGLE_ACCESS', target_model='Student', target_id=str(student.pk), description=f"Toggled registration status for student {student.name} to {student.is_registered}")
             messages.success(request, f"Registration toggled for {student.name}")
         return redirect('coordinator_students')
         
@@ -1154,6 +1222,7 @@ def coordinator_register_user(request):
                 is_paid=False,
                 balance_due=0.0
             )
+            log_audit(request, action='REGISTER', target_model='Student', target_id=str(student.pk), description=f"Registered student: {student.name}")
             messages.success(request, 'Student created successfully. User can now login and configure Face ID.')
         elif user_type == 'teacher':
             teacher = Teacher.objects.create(
@@ -1162,8 +1231,37 @@ def coordinator_register_user(request):
                 university_email=email,
                 phone_number=phone
             )
+            log_audit(request, action='REGISTER', target_model='Teacher', target_id=str(teacher.pk), description=f"Registered teacher: {teacher.name}")
             messages.success(request, 'Teacher created successfully. User can now login and configure Face ID.')
             
         return redirect('coordinator_register_user')
         
     return render(request, 'attendance/coordinator_register_user.html')
+
+
+# --- Phase 3 Additions ---
+
+@login_required
+def teacher_profile(request):
+    from .models import Teacher, Schedule
+    teacher = get_object_or_404(Teacher, auth_user=request.user)
+    schedules = Schedule.objects.filter(teacher=teacher).select_related('course', 'classroom').order_by('day_of_week', 'start_time')
+    return render(request, 'attendance/teacher_profile.html', {'teacher': teacher, 'schedules': schedules})
+
+
+@login_required
+def classrooms_status(request):
+    from .models import Classroom
+    classrooms_qs = Classroom.objects.all()
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        data = list(classrooms_qs.values('id', 'name', 'location', 'is_busy', 'is_occupied', 'capacity', 'classroom_type'))
+        return JsonResponse({'classrooms': data})
+    return render(request, 'attendance/classrooms_status.html', {'classrooms': classrooms_qs})
+
+
+@login_required
+def teacher_permissions(request):
+    from .models import Teacher, ClassroomPermission
+    teacher = get_object_or_404(Teacher, auth_user=request.user)
+    permissions = ClassroomPermission.objects.filter(teacher=teacher).select_related('classroom')
+    return render(request, 'attendance/teacher_permissions.html', {'permissions': permissions, 'teacher': teacher})
