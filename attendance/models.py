@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User as AuthUser
+from pgvector.django import VectorField
 
 # 1. الإداريات
 class Department(models.Model):
@@ -110,7 +111,7 @@ class Student(models.Model):
 # 5. جداول الدكاترة والبصمات (التي كانت ناقصة)
 class TeacherFaceEmbedding(models.Model):
     teacher = models.OneToOneField(Teacher, on_delete=models.CASCADE)
-    face_vector = models.TextField() 
+    face_vector = VectorField(dimensions=384)
     updated_at = models.DateTimeField(auto_now=True)
 
 class TeacherAttendanceLog(models.Model):
@@ -125,7 +126,7 @@ class StudentBiometric(models.Model):
 
 class StudentFaceEmbedding(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    embedding = models.TextField()
+    embedding = VectorField(dimensions=384)
 
 # 6. الجداول والانتساب
 class Schedule(models.Model):

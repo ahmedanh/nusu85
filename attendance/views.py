@@ -29,37 +29,36 @@ known_teacher_names = []
 # NOTE: last_teacher_seen_time removed — replaced with Django Cache for multi-worker safety
 
 def load_known_faces():
-    """
-    Phase 2: Load face embeddings from DB.
-    Vectors are stored AES-256 encrypted; decrypted in memory only at runtime.
-    """
     global known_face_encodings, known_face_names, known_teacher_encodings, known_teacher_names
-    known_face_encodings.clear()
-    known_face_names.clear()
-    known_teacher_encodings.clear()
-    known_teacher_names.clear()
-
-    # Load students from DB — decrypt vector before parsing
-    students = StudentFaceEmbedding.objects.select_related('student').all()
-    for s_emb in students:
-        try:
-            raw = decrypt_vector(s_emb.embedding)
-            arr = np.array([float(x) for x in raw.split(',')])
-            known_face_encodings.append(arr)
-            known_face_names.append(s_emb.student.name)
-        except Exception:
-            pass
-
-    # Load teachers from DB — decrypt vector before parsing
-    teachers = TeacherFaceEmbedding.objects.select_related('teacher').all()
-    for t_emb in teachers:
-        try:
-            raw = decrypt_vector(t_emb.face_vector)
-            arr = np.array([float(x) for x in raw.split(',')])
-            known_teacher_encodings.append(arr)
-            known_teacher_names.append(t_emb.teacher.name)
-        except Exception:
-            pass
+    known_face_encodings.clear(); known_face_names.clear()
+    known_teacher_encodings.clear(); known_teacher_names.clear()
+    try:
+        from pgvector.django import L2Distance
+        import numpy as np
+        for s_emb in StudentFaceEmbedding.objects.select_related('student').all():
+            try:
+                arr = np.array(s_emb.embedding, dtype=np.float32)
+                known_face_encodings.append(arr)
+                known_face_names.append(s_emb.student.name)
+            except: pass
+        for t_emb in TeacherFaceEmbedding.objects.select_related('teacher').all():
+            try:
+                arr = np.array(t_emb.face_vector, dtype=np.float32)
+                known_teacher_encodings.append(arr)
+                known_teacher_names.append(t_emb.teacher.name)
+            except: pass
+    except Exception:
+        base_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'known_faces')
+        if os.path.exists(base_dir):
+            for fname in os.listdir(base_dir):
+                if fname.lower().endswith(('.jpg', '.jpeg', '.png')):
+                    try:
+                        img = face_recognition.load_image_file(os.path.join(base_dir, fname))
+                        encs = face_recognition.face_encodings(img)
+                        if encs:
+                            known_face_encodings.append(encs[0])
+                            known_face_names.append(os.path.splitext(fname)[0])
+                    except: pass
 
 # Automatically load on startup
 load_known_faces()
@@ -111,63 +110,100 @@ def gen_frames(camera_index=0):
             current_sched = get_current_schedule()
 
             for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
-                matches = face_recognition.compare_faces(known_face_encodings, face_encoding, tolerance=0.5)
-                
-                if True in matches:
-                    idx = matches.index(True)
-                    current_name = known_face_names[idx]
-                    face_found_in_frame = True
+                import numpy as _np
+                matched_name = None
+                matched_type = None
 
+                # pgvector L2 search — thesis requirement: distance threshold 0.6
+                try:
+                    from pgvector.django import L2Distance
+                    live_vec = face_encoding.tolist()
+                    student_match = StudentFaceEmbedding.objects.order_by(
+                        L2Distance('embedding', live_vec)
+                    ).select_related('student').first()
+                    if student_match:
+                        dist = float(_np.linalg.norm(_np.array(student_match.embedding) - _np.array(live_vec)))
+                        if dist <= 0.6:
+                            matched_name = student_match.student.name
+                            matched_type = 'student'
+                except Exception:
+                    matches = face_recognition.compare_faces(known_face_encodings, face_encoding, tolerance=0.5)
+                    if True in matches:
+                        matched_name = known_face_names[matches.index(True)]
+                        matched_type = 'student'
+
+                if not matched_name:
+                    try:
+                        from pgvector.django import L2Distance
+                        live_vec = face_encoding.tolist()
+                        teacher_match = TeacherFaceEmbedding.objects.order_by(
+                            L2Distance('face_vector', live_vec)
+                        ).select_related('teacher').first()
+                        if teacher_match:
+                            dist = float(_np.linalg.norm(_np.array(teacher_match.face_vector) - _np.array(live_vec)))
+                            if dist <= 0.6:
+                                matched_name = teacher_match.teacher.name
+                                matched_type = 'teacher'
+                    except Exception:
+                        t_matches = face_recognition.compare_faces(known_teacher_encodings, face_encoding, tolerance=0.5)
+                        if True in t_matches:
+                            matched_name = known_teacher_names[t_matches.index(True)]
+                            matched_type = 'teacher'
+
+                if matched_name and matched_type == 'student':
+                    current_name = matched_name
+                    face_found_in_frame = True
                     now_ts = time.time()
                     try:
                         student_obj = Student.objects.filter(name__icontains=current_name).only('id', 'name', 'is_allowed_entry').first()
                         if student_obj:
                             current_is_allowed = getattr(student_obj, 'is_allowed_entry', True)
-                            
                             if current_name not in last_log_times or (now_ts - last_log_times[current_name] > 300):
                                 GateEntryLog.objects.create(user_name=current_name, user_type='Student', location='Main Gate')
                                 if current_is_allowed and current_sched:
-                                    AIAttendanceLog.objects.create(
-                                        student=student_obj,
-                                        schedule=current_sched,
-                                        confidence_score=90.0,
-                                        status='Present'
-                                    )
-                                last_log_times[current_name] = now_ts
-                    except: pass
-                else:
-                    teacher_matches = face_recognition.compare_faces(known_teacher_encodings, face_encoding, tolerance=0.5)
-                    if True in teacher_matches:
-                        idx = teacher_matches.index(True)
-                        current_name = known_teacher_names[idx]
-                        face_found_in_frame = True
-                        now_ts = time.time()
-                        # Phase 4: Use cache instead of global dict
-                        teacher_times = cache.get(TEACHER_TIMEOUT_CACHE_KEY, {})
-                        teacher_times[current_name] = now_ts
-                        cache.set(TEACHER_TIMEOUT_CACHE_KEY, teacher_times, timeout=600)
-
-                        try:
-                            teacher_obj = Teacher.objects.filter(name__icontains=current_name).first()
-                            if teacher_obj:
-                                current_is_allowed = getattr(teacher_obj, 'is_allowed_entry', True)
-                                
-                                if current_name not in last_teacher_log_times or (now_ts - last_teacher_log_times[current_name] > 300):
-                                    GateEntryLog.objects.create(user_name=current_name, user_type='Teacher', location='Main Gate')
-                                    last_teacher_log_times[current_name] = now_ts
-                                
-                                if current_is_allowed:
-                                    active_log = TeacherAttendanceLog.objects.filter(
-                                        teacher=teacher_obj,
-                                        check_out_time__isnull=True
-                                    ).last()
-                                    if not active_log:
-                                        TeacherAttendanceLog.objects.create(
-                                            teacher=teacher_obj,
+                                    try:
+                                        AIAttendanceLog.objects.create(
+                                            student=student_obj,
+                                            schedule=current_sched,
+                                            confidence_score=90.0,
                                             status='Present'
                                         )
-                        except Exception as e:
-                            pass
+                                    except Exception:
+                                        try:
+                                            from .edge_cache import log_to_cache, is_server_reachable
+                                            if not is_server_reachable():
+                                                log_to_cache(current_name, current_sched.id if current_sched else 0, 90.0, 'Present')
+                                        except Exception:
+                                            pass
+                                last_log_times[current_name] = now_ts
+                    except: pass
+
+                elif matched_name and matched_type == 'teacher':
+                    current_name = matched_name
+                    face_found_in_frame = True
+                    now_ts = time.time()
+                    teacher_times = cache.get(TEACHER_TIMEOUT_CACHE_KEY, {})
+                    teacher_times[current_name] = now_ts
+                    cache.set(TEACHER_TIMEOUT_CACHE_KEY, teacher_times, timeout=600)
+                    try:
+                        teacher_obj = Teacher.objects.filter(name__icontains=current_name).first()
+                        if teacher_obj:
+                            current_is_allowed = getattr(teacher_obj, 'is_allowed_entry', True)
+                            if current_name not in last_teacher_log_times or (now_ts - last_teacher_log_times[current_name] > 300):
+                                GateEntryLog.objects.create(user_name=current_name, user_type='Teacher', location='Main Gate')
+                                last_teacher_log_times[current_name] = now_ts
+                            if current_is_allowed:
+                                active_log = TeacherAttendanceLog.objects.filter(
+                                    teacher=teacher_obj,
+                                    check_out_time__isnull=True
+                                ).last()
+                                if not active_log:
+                                    TeacherAttendanceLog.objects.create(
+                                        teacher=teacher_obj,
+                                        status='Present'
+                                    )
+                    except Exception:
+                        pass
 
             # Phase 4: Timeout logic for teachers — using Cache instead of global
             now_ts = time.time()
@@ -699,51 +735,48 @@ from django.contrib.auth.decorators import login_required
 
 @login_required
 def upload_face(request, user_type, user_id):
-    """
-    Phase 2: Face vector is AES-256 encrypted before persisting to DB.
-    Only the request owner or staff can upload a face for a given user_id.
-    """
     if request.method == 'POST' and request.FILES.get('image'):
+        import tempfile, os as _os
         try:
             image_file = request.FILES['image']
+            with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp:
+                for chunk in image_file.chunks():
+                    tmp.write(chunk)
+                tmp_path = tmp.name
+            try:
+                try:
+                    from deepface import DeepFace
+                    result = DeepFace.represent(img_path=tmp_path, model_name='Facenet512', enforce_detection=True)
+                    encoding = result[0]['embedding']
+                except Exception:
+                    img = face_recognition.load_image_file(tmp_path)
+                    encodings = face_recognition.face_encodings(img)
+                    if not encodings:
+                        return JsonResponse({'status': 'error', 'message': 'No face detected'}, status=400)
+                    encoding = encodings[0].tolist()
+            finally:
+                _os.unlink(tmp_path)
 
-            # Extract face encoding
-            image = face_recognition.load_image_file(image_file)
-            encodings = face_recognition.face_encodings(image)
+            import numpy as np
+            encoding_array = np.array(encoding, dtype=np.float32)
 
-            if len(encodings) > 0:
-                # Phase 2: Encrypt vector before saving
-                raw_encoding_str = ','.join(str(x) for x in encodings[0])
-                encrypted_str = encrypt_vector(raw_encoding_str)
-
-                if user_type == 'teacher':
-                    teacher = get_object_or_404(Teacher, pk=user_id)
-                    TeacherFaceEmbedding.objects.update_or_create(
-                        teacher=teacher,
-                        defaults={'face_vector': encrypted_str}
-                    )
-                    teacher.is_allowed_entry = True
-                    teacher.save(update_fields=['is_allowed_entry'])
-                    log_audit(request, action='FACE_UPLOAD', target_model='Teacher', target_id=str(teacher.pk), description=f"Uploaded face for teacher: {teacher.name}")
-                elif user_type == 'student':
-                    student = get_object_or_404(Student, pk=user_id)
-                    StudentFaceEmbedding.objects.update_or_create(
-                        student=student,
-                        defaults={'embedding': encrypted_str}
-                    )
-                    student.is_trained = True
-                    student.save(update_fields=['is_trained'])
-                    log_audit(request, action='FACE_UPLOAD', target_model='Student', target_id=str(student.pk), description=f"Uploaded face for student: {student.name}")
-                else:
-                    return JsonResponse({'status': 'error', 'message': 'Invalid user type'}, status=400)
-                    
-                # Reload memory
-                load_known_faces()
-                
-                return JsonResponse({'status': 'success', 'message': 'Face uploaded and trained successfully'})
+            if user_type == 'student':
+                student = get_object_or_404(Student, pk=user_id)
+                StudentFaceEmbedding.objects.update_or_create(
+                    student=student, defaults={'embedding': encoding_array.tolist()})
+                student.is_trained = True
+                student.save(update_fields=['is_trained'])
+                log_audit(request, action='FACE_UPLOAD', target_model='Student', target_id=str(student.pk), description=f"Enrolled face for student: {student.name}")
+            elif user_type == 'teacher':
+                teacher = get_object_or_404(Teacher, pk=user_id)
+                TeacherFaceEmbedding.objects.update_or_create(
+                    teacher=teacher, defaults={'face_vector': encoding_array.tolist()})
+                log_audit(request, action='FACE_UPLOAD', target_model='Teacher', target_id=str(teacher.pk), description=f"Enrolled face for teacher: {teacher.name}")
             else:
-                return JsonResponse({'status': 'error', 'message': 'No face detected in the uploaded image'}, status=400)
-                
+                return JsonResponse({'status': 'error', 'message': 'Invalid user type'}, status=400)
+
+            load_known_faces()
+            return JsonResponse({'status': 'success', 'message': 'Face enrolled successfully'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
     return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
@@ -1264,4 +1297,313 @@ def teacher_permissions(request):
     from .models import Teacher, ClassroomPermission
     teacher = get_object_or_404(Teacher, auth_user=request.user)
     permissions = ClassroomPermission.objects.filter(teacher=teacher).select_related('classroom')
-    return render(request, 'attendance/teacher_permissions.html', {'permissions': permissions, 'teacher': teacher})
+    return render(request, 'attendance/teacher_permissions.html', {'permissions': permissions, 'teacher': teacher})
+
+# â”€â”€â”€â”€â”€â”€â”€ Phase 6: Missing Views â”€â”€â”€â”€â”€â”€â”€
+
+@login_required
+def coordinator_grading(request):
+    from .models import Coordinator, Course, Grade, AIAttendanceLog, Schedule, Student
+    coordinator = get_object_or_404(Coordinator, auth_user=request.user)
+
+    if request.method == 'POST':
+        student_id = request.POST.get('student_id')
+        course_id = request.POST.get('course_id')
+        semester = request.POST.get('semester', '1')
+        midterm = float(request.POST.get('midterm_grade', 0) or 0)
+        final = float(request.POST.get('final_grade', 0) or 0)
+
+        student = get_object_or_404(Student, id=student_id)
+        total_sched = Schedule.objects.filter(course_id=course_id).count() * 2
+        attended = AIAttendanceLog.objects.filter(student=student, schedule__course_id=course_id, status='Present').count()
+        att_grade = min((attended / total_sched * 20) if total_sched > 0 else 0, 20)
+        total = midterm + final + att_grade
+
+        if total >= 90: letter = 'A'
+        elif total >= 80: letter = 'B'
+        elif total >= 70: letter = 'C'
+        elif total >= 60: letter = 'D'
+        else: letter = 'F'
+
+        Grade.objects.update_or_create(
+            student_id=student_id, course_id=course_id, semester=semester,
+            defaults={'midterm_grade': midterm, 'final_grade': final,
+                      'attendance_grade': att_grade, 'total_grade': total,
+                      'letter_grade': letter, 'entered_by': coordinator}
+        )
+        messages.success(request, 'Grade saved for student.')
+        return redirect('coordinator_grading')
+
+    courses = Course.objects.filter(schedule__teacher__college=coordinator.college).distinct()
+    students = Student.objects.all().order_by('name')
+    grades = Grade.objects.filter(entered_by=coordinator).select_related('student', 'course')
+    return render(request, 'attendance/coordinator_grading.html', {
+        'courses': courses, 'students': students, 'grades': grades
+    })
+
+
+def face_login(request):
+    if request.method == 'GET':
+        return render(request, 'attendance/face_login.html')
+
+    if request.method == 'POST':
+        import base64, tempfile, os
+        import numpy as np
+
+        b64_data = request.POST.get('image_data', '')
+        if not b64_data:
+            return JsonResponse({'status': 'error', 'message': 'No image data'}, status=400)
+
+        try:
+            if ',' in b64_data:
+                b64_data = b64_data.split(',')[1]
+            img_bytes = base64.b64decode(b64_data)
+
+            with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp:
+                tmp.write(img_bytes)
+                tmp_path = tmp.name
+
+            matched_name = None
+            matched_type = None
+
+            try:
+                live_encoding = None
+                try:
+                    from deepface import DeepFace
+                    result = DeepFace.represent(img_path=tmp_path, model_name='Facenet512', enforce_detection=True)
+                    live_encoding = result[0]['embedding']
+                except Exception:
+                    img_arr = face_recognition.load_image_file(tmp_path)
+                    encs = face_recognition.face_encodings(img_arr)
+                    if encs:
+                        live_encoding = encs[0].tolist()
+            finally:
+                os.unlink(tmp_path)
+
+            if live_encoding is None:
+                return JsonResponse({'status': 'error', 'message': 'No face detected'})
+
+            try:
+                from pgvector.django import L2Distance
+                live_vec = live_encoding
+                s_match = StudentFaceEmbedding.objects.order_by(
+                    L2Distance('embedding', live_vec)).select_related('student').first()
+                if s_match:
+                    dist = float(np.linalg.norm(np.array(s_match.embedding) - np.array(live_vec)))
+                    if dist <= 0.6:
+                        matched_name = s_match.student.name
+                        matched_type = 'student'
+                if not matched_name:
+                    t_match = TeacherFaceEmbedding.objects.order_by(
+                        L2Distance('face_vector', live_vec)).select_related('teacher').first()
+                    if t_match:
+                        dist = float(np.linalg.norm(np.array(t_match.face_vector) - np.array(live_vec)))
+                        if dist <= 0.6:
+                            matched_name = t_match.teacher.name
+                            matched_type = 'teacher'
+            except Exception:
+                matches = face_recognition.compare_faces(known_face_encodings, np.array(live_encoding), tolerance=0.5)
+                if True in matches:
+                    matched_name = known_face_names[matches.index(True)]
+                    matched_type = 'student'
+
+            if not matched_name:
+                return JsonResponse({'status': 'error', 'message': 'Face not recognized'})
+
+            from .models import FaceLoginSession
+            auth_user = None
+            if matched_type == 'student':
+                student = Student.objects.filter(name__icontains=matched_name).first()
+                if student and student.auth_user:
+                    auth_user = student.auth_user
+            else:
+                teacher = Teacher.objects.filter(name__icontains=matched_name).first()
+                if teacher and teacher.auth_user:
+                    auth_user = teacher.auth_user
+
+            if not auth_user:
+                return JsonResponse({'status': 'error', 'message': 'User account not linked'})
+
+            from django.contrib.auth import login as auth_login
+            auth_login(request, auth_user, backend='django.contrib.auth.backends.ModelBackend')
+            FaceLoginSession.objects.create(auth_user=auth_user, user_type=matched_type, confidence_score=0.95)
+
+            from .models import Coordinator
+            if auth_user.is_superuser or auth_user.is_staff:
+                redirect_url = '/attendance/admin-panel/'
+            elif Coordinator.objects.filter(auth_user=auth_user).exists():
+                redirect_url = '/attendance/coordinator/dashboard/'
+            elif Teacher.objects.filter(auth_user=auth_user).exists():
+                redirect_url = '/attendance/professor-dashboard/'
+            elif Student.objects.filter(auth_user=auth_user).exists():
+                redirect_url = '/attendance/student/dashboard/'
+            else:
+                redirect_url = '/attendance/gate/'
+
+            return JsonResponse({'status': 'success', 'redirect': redirect_url, 'name': matched_name})
+
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+    return JsonResponse({'status': 'error'}, status=400)
+
+
+@login_required
+def teacher_profile_view(request):
+    from .models import LectureSession
+    teacher = get_object_or_404(Teacher, auth_user=request.user)
+    schedules = Schedule.objects.filter(teacher=teacher).select_related(
+        'course', 'classroom').order_by('day_of_week', 'start_time')
+    sessions_completed = LectureSession.objects.filter(
+        schedule__teacher=teacher, is_active=False).count()
+    permissions = ClassroomPermission.objects.filter(teacher=teacher).select_related('classroom')
+    return render(request, 'attendance/teacher_profile.html', {
+        'teacher': teacher,
+        'schedules': schedules,
+        'sessions_completed': sessions_completed,
+        'permissions': permissions,
+    })
+
+
+@login_required
+def classrooms_status_view(request):
+    now = timezone.now()
+    classrooms = Classroom.objects.all().order_by('name')
+    classroom_data = []
+    for room in classrooms:
+        current_sched = Schedule.objects.filter(
+            classroom=room,
+            day_of_week=now.strftime('%A'),
+            start_time__lte=now.time(),
+            end_time__gte=now.time()
+        ).select_related('course', 'teacher').first()
+        classroom_data.append({'room': room, 'current_schedule': current_sched})
+    return render(request, 'attendance/classrooms_status.html', {'classroom_data': classroom_data})
+
+
+@login_required
+def teacher_permissions_view(request):
+    teacher = get_object_or_404(Teacher, auth_user=request.user)
+    permissions = ClassroomPermission.objects.filter(
+        teacher=teacher).select_related('classroom').order_by('classroom__name')
+    return render(request, 'attendance/teacher_permissions.html', {
+        'permissions': permissions, 'teacher': teacher
+    })
+
+
+@login_required
+@staff_member_required
+def gate_reports(request):
+    logs = GateEntryLog.objects.all().order_by('-entry_time')
+    date_filter = request.GET.get('date')
+    type_filter = request.GET.get('user_type')
+    if date_filter:
+        logs = logs.filter(entry_time__date=date_filter)
+    if type_filter:
+        logs = logs.filter(user_type=type_filter)
+    today = timezone.now().date()
+    total_today = GateEntryLog.objects.filter(entry_time__date=today).count()
+    by_type = (GateEntryLog.objects.filter(entry_time__date=today)
+               .values('user_type').annotate(count=Count('user_type')))
+    return render(request, 'attendance/gate_reports.html', {
+        'logs': logs, 'total_today': total_today, 'by_type': by_type,
+        'date_filter': date_filter, 'type_filter': type_filter,
+    })
+
+
+@login_required
+@staff_member_required
+def admin_notifications(request):
+    from .models import Notification
+    if request.method == 'POST' and request.POST.get('action') == 'mark_all_read':
+        Notification.objects.filter(user=request.user).update(is_read=True)
+        return redirect('admin_notifications')
+    notifs = Notification.objects.filter(user=request.user).order_by('-created_at')
+    unread_count = notifs.filter(is_read=False).count()
+    return render(request, 'attendance/admin_notifications.html', {
+        'notifications': notifs, 'unread_count': unread_count
+    })
+
+
+@login_required
+def export_coordinator_students_csv(request):
+    from .models import Coordinator
+    coordinator = get_object_or_404(Coordinator, auth_user=request.user)
+    students = Student.objects.filter(
+        department__college=coordinator.college).select_related('financialstatus')
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="coordinator_students.csv"'
+    import csv as _csv
+    writer = _csv.writer(response)
+    writer.writerow(['Student ID', 'Name', 'Batch', 'Registered', 'Paid', 'Phone', 'Email'])
+    for s in students:
+        fin = getattr(s, 'financialstatus', None)
+        writer.writerow([
+            s.student_code, s.name, s.batch, s.is_registered,
+            fin.is_paid if fin else 'N/A', s.phone_number or '', s.university_email or ''
+        ])
+    return response
+
+
+
+# ─────── PDF Export Views ───────
+
+@login_required
+@staff_member_required
+def export_student_report_pdf(request):
+    from weasyprint import HTML
+    from django.template.loader import render_to_string
+    logs = AIAttendanceLog.objects.all().select_related('student', 'schedule__course')
+    for f in ['course_id', 'student_id', 'date_from', 'date_to']:
+        val = request.GET.get(f)
+        if val:
+            if f == 'course_id':   logs = logs.filter(schedule__course_id=val)
+            elif f == 'student_id': logs = logs.filter(student_id=val)
+            elif f == 'date_from':  logs = logs.filter(timestamp__date__gte=val)
+            elif f == 'date_to':    logs = logs.filter(timestamp__date__lte=val)
+    html_str = render_to_string('attendance/reports/student_report_pdf.html', {
+        'logs': logs, 'generated_at': timezone.now()
+    })
+    pdf_file = HTML(string=html_str).write_pdf()
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="student_attendance_report.pdf"'
+    return response
+
+
+@login_required
+@staff_member_required
+def export_teacher_report_pdf(request):
+    from weasyprint import HTML
+    from django.template.loader import render_to_string
+    logs = TeacherAttendanceLog.objects.all().select_related('teacher')
+    if request.GET.get('teacher_id'):
+        logs = logs.filter(teacher__teacher_id=request.GET['teacher_id'])
+    for log in logs:
+        if log.check_out_time:
+            log.duration_minutes = int((log.check_out_time - log.check_in_time).total_seconds() / 60)
+        else:
+            log.duration_minutes = 'N/A'
+    html_str = render_to_string('attendance/reports/teacher_report_pdf.html', {
+        'logs': logs, 'generated_at': timezone.now()
+    })
+    pdf_file = HTML(string=html_str).write_pdf()
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="teacher_attendance_report.pdf"'
+    return response
+
+
+@login_required
+def export_grades_pdf(request):
+    from weasyprint import HTML
+    from django.template.loader import render_to_string
+    from .models import Coordinator, Grade
+    coordinator = get_object_or_404(Coordinator, auth_user=request.user)
+    grades = Grade.objects.filter(entered_by=coordinator).select_related(
+        'student', 'course').order_by('course__title', 'student__name')
+    html_str = render_to_string('attendance/reports/grades_pdf.html', {
+        'grades': grades, 'coordinator': coordinator, 'generated_at': timezone.now()
+    })
+    pdf_file = HTML(string=html_str).write_pdf()
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="grades_report.pdf"'
+    return response

@@ -5,20 +5,17 @@ Django settings for acdc_config project.
 from pathlib import Path
 from decouple import config
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # ─────────────────────────────────────────────
 # SECURITY
 # ─────────────────────────────────────────────
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-fallback-key-change-in-production')
+SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=True, cast=bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,84.46.251.93').split(',')
 
-# Phase 2: AES-256 key for biometric vector encryption at rest.
-# Generate with: from attendance.crypto import generate_new_key; print(generate_new_key())
-FACE_ENCRYPTION_KEY = config('FACE_ENCRYPTION_KEY', default=None)
+FACE_ENCRYPTION_KEY = config('ENCRYPTION_KEY', default=None)
 
 
 # ─────────────────────────────────────────────
@@ -31,6 +28,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'axes',
     'django_apscheduler',
     'attendance',
 ]
@@ -41,10 +39,12 @@ INSTALLED_APPS = [
 # ─────────────────────────────────────────────
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'axes.middleware.AxesMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -72,28 +72,24 @@ WSGI_APPLICATION = 'acdc_config.wsgi.application'
 
 
 # ─────────────────────────────────────────────
-# DATABASE
-# SQLite for development. Switch to PostgreSQL for production by
-# setting DB_ENGINE=django.db.backends.postgresql in .env and provisioning the server.
+# DATABASE — PostgreSQL
 # ─────────────────────────────────────────────
 DATABASES = {
     'default': {
-        'ENGINE': config('DB_ENGINE', default='django.db.backends.sqlite3'),
-        'NAME': BASE_DIR / config('DB_NAME', default='db.sqlite3'),
-        # PostgreSQL extras (only active when DB_ENGINE is set to postgresql)
-        'USER': config('DB_USER', default=''),
-        'PASSWORD': config('DB_PASSWORD', default=''),
-        'HOST': config('DB_HOST', default='localhost'),
-        'PORT': config('DB_PORT', default='5432'),
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': config('DATABASE_NAME'),
+        'USER': config('DATABASE_USER'),
+        'PASSWORD': config('DATABASE_PASSWORD'),
+        'HOST': config('DATABASE_HOST', default='localhost'),
+        'PORT': config('DATABASE_PORT', default='5432'),
     }
 }
 
 
 # ─────────────────────────────────────────────
-# CACHING — Phase 4
-# Uses Redis when REDIS_URL is set; falls back to in-memory cache (dev-safe).
+# CACHING — Redis in production, locmem locally
 # ─────────────────────────────────────────────
-REDIS_URL = config('REDIS_URL', default=None)
+REDIS_URL = config('REDIS_URL', default='')
 
 if REDIS_URL:
     CACHES = {
@@ -108,14 +104,26 @@ if REDIS_URL:
             'KEY_PREFIX': 'acdc',
         }
     }
+    SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 else:
-    # Development fallback — LocMemCache (single-process only, fine for dev)
     CACHES = {
         'default': {
             'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-            'LOCATION': 'acdc-locmem',
         }
     }
+    SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
+
+# ─────────────────────────────────────────────
+# AUTHENTICATION BACKENDS (django-axes)
+# ─────────────────────────────────────────────
+AUTHENTICATION_BACKENDS = [
+    'axes.backends.AxesStandaloneBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+AXES_FAILURE_LIMIT = 5
+AXES_COOLOFF_TIME = 0.25
 
 
 # ─────────────────────────────────────────────
@@ -142,17 +150,19 @@ USE_TZ = False
 # STATIC & MEDIA FILES
 # ─────────────────────────────────────────────
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 
 # ─────────────────────────────────────────────
-# EMAIL — Phase 4 (automated alerts)
+# EMAIL
 # ─────────────────────────────────────────────
-EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
-EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@acdc-university.edu')
@@ -166,18 +176,17 @@ LOGIN_REDIRECT_URL = '/attendance/'
 
 
 # ─────────────────────────────────────────────
-# PRODUCTION SECURITY HARDENING — Phase 5
-# All SECURE_* settings are only activated when DEBUG=False.
+# PRODUCTION SECURITY HARDENING
 # ─────────────────────────────────────────────
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = 'DENY'
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
-    SECURE_HSTS_SECONDS = 31536000          # 1 year
+    SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True
     SESSION_COOKIE_HTTPONLY = True
     CSRF_COOKIE_HTTPONLY = True

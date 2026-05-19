@@ -1,229 +1,198 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Gate - ACDC</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .badge {
-            font-size: 2rem; /* 32px or above */
-            font-weight: bold;
-            padding: 10px 20px;
-            border-radius: 8px;
-            display: inline-block;
-            margin: 5px;
-        }
-        .badge-granted { background-color: #22c55e; color: white; }
-        .badge-denied { background-color: #ef4444; color: white; }
-        .badge-warning { background-color: #eab308; color: white; }
-        
-        .huge-text {
-            font-size: 3rem; /* 48px */
-            font-weight: 800;
-        }
-        .large-text {
-            font-size: 2.25rem; /* 36px */
-            font-weight: 700;
-        }
-    </style>
-</head>
-<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center p-8">
+{% extends 'attendance/base.html' %}
+{% block title %}Smart Gate — ACDC{% endblock %}
+{% block content %}
 
-    <div class="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-8">
-        
-        <!-- Video Stream Section -->
-        <div class="flex flex-col items-center bg-gray-800 p-6 rounded-2xl shadow-xl border-4 border-gray-700" id="video-container">
-            <h2 class="text-3xl font-bold mb-4 text-blue-400">Gate Camera</h2>
-            
-            <div class="relative w-full aspect-video bg-black rounded-lg overflow-hidden flex items-center justify-center">
-                <img id="video-stream" src="" class="w-full h-full object-cover hidden" alt="Video Stream">
-                <div id="camera-placeholder" class="text-gray-500 text-xl font-bold">Camera is OFF</div>
-            </div>
-            <div class="mt-4 w-full text-left">
-                <label for="camera-select" class="block text-gray-400 mb-2 font-semibold text-lg">Select Camera / Webcam</label>
-                <select id="camera-select" class="w-full bg-gray-700 text-white p-3 rounded-lg focus:ring-blue-500 focus:border-blue-500 outline-none text-xl">
-                    <option value="0">Default Camera (Index 0)</option>
-                    <option value="1">External Camera 1 (Index 1)</option>
-                    <option value="2">External Camera 2 (Index 2)</option>
-                    <option value="3">External Camera 3 (Index 3)</option>
-                </select>
-            </div>
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+  <div>
+    <h1 class="text-2xl font-extrabold text-slate-900 font-headline">Smart Gate</h1>
+    <p class="text-sm text-slate-500 mt-1">Biometric access verification — real-time face recognition.</p>
+  </div>
+  <span class="flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">
+    <span class="relative flex h-2 w-2">
+      <span class="animate-ping absolute inset-0 rounded-full bg-emerald-400 opacity-75"></span>
+      <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+    </span>
+    Gate Online
+  </span>
+</div>
 
-            <button id="toggle-camera-btn" class="mt-6 px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white text-2xl font-bold rounded-lg w-full transition shadow-lg">
-                Start Scanner
-            </button>
-        </div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-        <!-- Details Section -->
-        <div class="flex flex-col justify-center bg-gray-800 p-8 rounded-2xl shadow-xl min-h-[500px]">
-            <h1 class="text-4xl font-black text-center mb-8 text-gray-300 tracking-widest uppercase border-b border-gray-700 pb-4">
-                Access Verification
-            </h1>
-            
-            <div id="status-container" class="text-center hidden">
-                <div class="mb-6">
-                    <p class="text-gray-400 text-xl uppercase tracking-wider mb-2">Recognized Identity</p>
-                    <h2 id="user-name" class="huge-text text-white">Scanning...</h2>
-                    <p id="user-type" class="text-2xl text-blue-400 font-semibold mt-2">Unknown</p>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4 mb-8 text-left max-w-md mx-auto">
-                    <div class="bg-gray-700 p-4 rounded-lg">
-                        <p class="text-gray-400 text-sm uppercase">ID Number</p>
-                        <p id="user-id" class="text-2xl font-bold">---</p>
-                    </div>
-                    <div class="bg-gray-700 p-4 rounded-lg">
-                        <p class="text-gray-400 text-sm uppercase">Phone</p>
-                        <p id="user-phone" class="text-2xl font-bold">---</p>
-                    </div>
-                </div>
-
-                <div class="flex flex-wrap justify-center gap-4" id="badges-container">
-                    <!-- Badges will be injected here -->
-                </div>
-            </div>
-
-            <div id="idle-container" class="text-center flex-1 flex flex-col justify-center">
-                <div class="animate-pulse">
-                    <svg class="w-24 h-24 text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                    </svg>
-                    <p class="text-2xl text-gray-500 font-bold">Waiting for identity...</p>
-                </div>
-            </div>
-
-        </div>
+  <!-- Camera panel -->
+  <div class="bg-slate-900 rounded-2xl overflow-hidden shadow-lg">
+    <div class="px-5 py-4 border-b border-white/10 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-slate-400 text-lg">videocam</span>
+        <h2 class="font-bold text-white text-sm">Gate Camera</h2>
+      </div>
+      <select id="camera-select"
+        class="bg-slate-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg border border-white/10 outline-none cursor-pointer">
+        <option value="0">Camera 0 (Default)</option>
+        <option value="1">Camera 1 (External)</option>
+        <option value="2">Camera 2 (External)</option>
+        <option value="3">Camera 3 (External)</option>
+      </select>
     </div>
 
-    <script>
-        const videoStream = document.getElementById('video-stream');
-        const cameraPlaceholder = document.getElementById('camera-placeholder');
-        const toggleBtn = document.getElementById('toggle-camera-btn');
-        const cameraSelect = document.getElementById('camera-select');
-        
-        const statusContainer = document.getElementById('status-container');
-        const idleContainer = document.getElementById('idle-container');
-        
-        const userNameEl = document.getElementById('user-name');
-        const userTypeEl = document.getElementById('user-type');
-        const userIdEl = document.getElementById('user-id');
-        const userPhoneEl = document.getElementById('user-phone');
-        const badgesContainer = document.getElementById('badges-container');
-        const videoContainer = document.getElementById('video-container');
+    <div class="relative aspect-video bg-black flex items-center justify-center" id="video-wrapper">
+      <img id="video-stream" src="" class="w-full h-full object-cover hidden" alt="Video Stream"/>
+      <div id="camera-placeholder" class="flex flex-col items-center gap-3 text-slate-600">
+        <span class="material-symbols-outlined text-5xl">videocam_off</span>
+        <p class="text-sm font-semibold">Camera is OFF</p>
+      </div>
+      <!-- Scan overlay -->
+      <div id="scan-overlay" class="absolute inset-0 hidden pointer-events-none">
+        <div class="absolute inset-x-0 top-1/2 h-0.5 bg-emerald-400/60 animate-pulse"></div>
+      </div>
+    </div>
 
-        let isScanning = false;
-        let pollingInterval = null;
+    <div class="p-4">
+      <button id="toggle-camera-btn"
+        class="w-full py-3 rounded-xl font-bold text-sm transition-all bg-primary text-white hover:bg-primary-container flex items-center justify-center gap-2">
+        <span class="material-symbols-outlined text-lg">play_circle</span> Start Scanner
+      </button>
+    </div>
+  </div>
 
-        function updateBadges(data) {
-            badgesContainer.innerHTML = '';
-            
-            // 1. Overall Access Badge
-            const accessBadge = document.createElement('div');
-            if (data.is_allowed) {
-                accessBadge.className = 'badge badge-granted';
-                accessBadge.textContent = 'ACCESS GRANTED';
-                videoContainer.classList.remove('border-red-500', 'border-gray-700');
-                videoContainer.classList.add('border-green-500');
-            } else {
-                accessBadge.className = 'badge badge-denied';
-                accessBadge.textContent = 'ACCESS DENIED';
-                videoContainer.classList.remove('border-green-500', 'border-gray-700');
-                videoContainer.classList.add('border-red-500');
-            }
-            badgesContainer.appendChild(accessBadge);
+  <!-- Identity panel -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col">
+    <div class="px-5 py-4 border-b border-slate-50">
+      <h2 class="font-bold text-slate-800 text-sm">Access Verification</h2>
+    </div>
 
-            // 2. Registration Status Badge (Only if not registered)
-            if (data.user_type === 'Student' && !data.is_registered) {
-                const regBadge = document.createElement('div');
-                regBadge.className = 'badge badge-denied';
-                regBadge.textContent = 'UNREGISTERED';
-                badgesContainer.appendChild(regBadge);
-            }
+    <!-- Idle state -->
+    <div id="idle-container" class="flex-1 flex flex-col items-center justify-center p-10 text-center">
+      <div class="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mb-4 animate-pulse">
+        <span class="material-symbols-outlined text-slate-400 text-3xl">face_recognition</span>
+      </div>
+      <p class="font-semibold text-slate-500 text-sm">Waiting for identity scan…</p>
+      <p class="text-xs text-slate-400 mt-1">Start the scanner to begin verification.</p>
+    </div>
 
-            // 3. Financial Status Badge (Only for Students, No specific balance shown)
-            if (data.user_type === 'Student') {
-                const finBadge = document.createElement('div');
-                if (data.is_paid) {
-                    finBadge.className = 'badge badge-granted';
-                    finBadge.textContent = 'FINANCIAL OK';
-                } else {
-                    finBadge.className = 'badge badge-warning';
-                    finBadge.textContent = 'PAYMENT DUE';
-                }
-                badgesContainer.appendChild(finBadge);
-            }
-        }
+    <!-- Result state -->
+    <div id="status-container" class="hidden flex-1 flex flex-col p-6 gap-5">
 
-        function pollStatus() {
-            fetch('/attendance/check-status/')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status) {
-                        idleContainer.classList.add('hidden');
-                        statusContainer.classList.remove('hidden');
+      <!-- Access badge -->
+      <div id="access-banner"
+        class="rounded-xl px-5 py-4 flex items-center gap-3 transition-all">
+        <span id="access-icon" class="material-symbols-outlined text-2xl" style="font-variation-settings:'FILL' 1">check_circle</span>
+        <div>
+          <p id="access-label" class="font-extrabold text-lg font-headline">ACCESS GRANTED</p>
+          <p id="user-type" class="text-sm font-medium opacity-80">Unknown</p>
+        </div>
+      </div>
 
-                        userNameEl.textContent = data.name;
-                        userTypeEl.textContent = data.user_type.toUpperCase();
-                        userIdEl.textContent = data.user_id;
-                        userPhoneEl.textContent = data.phone;
-                        
-                        updateBadges(data);
-                    } else {
-                        idleContainer.classList.remove('hidden');
-                        statusContainer.classList.add('hidden');
-                        videoContainer.classList.remove('border-green-500', 'border-red-500');
-                        videoContainer.classList.add('border-gray-700');
-                    }
-                })
-                .catch(err => console.error("Error polling status:", err));
-        }
+      <!-- Identity details -->
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-slate-50 rounded-xl p-4">
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Name</p>
+          <p id="user-name" class="font-bold text-slate-800 text-sm">—</p>
+        </div>
+        <div class="bg-slate-50 rounded-xl p-4">
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">ID</p>
+          <p id="user-id" class="font-bold text-slate-800 text-sm font-mono">—</p>
+        </div>
+        <div class="bg-slate-50 rounded-xl p-4">
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Phone</p>
+          <p id="user-phone" class="font-bold text-slate-800 text-sm">—</p>
+        </div>
+        <div class="bg-slate-50 rounded-xl p-4" id="financial-card">
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Fees</p>
+          <p id="financial-label" class="font-bold text-sm">—</p>
+        </div>
+      </div>
 
-        cameraSelect.addEventListener('change', () => {
-            if (isScanning) {
-                const camIdx = cameraSelect.value;
-                videoStream.src = `/attendance/video_feed/?camera=${camIdx}`;
-            }
-        });
+      <!-- Extra badges -->
+      <div id="badges-container" class="flex flex-wrap gap-2"></div>
+    </div>
+  </div>
+</div>
 
-        toggleBtn.addEventListener('click', () => {
-            if (!isScanning) {
-                // Start Scanner
-                isScanning = true;
-                const camIdx = cameraSelect.value;
-                videoStream.src = `/attendance/video_feed/?camera=${camIdx}`;
-                videoStream.classList.remove('hidden');
-                cameraPlaceholder.classList.add('hidden');
-                
-                toggleBtn.textContent = "Stop Scanner";
-                toggleBtn.classList.remove('bg-blue-600', 'hover:bg-blue-500');
-                toggleBtn.classList.add('bg-red-600', 'hover:bg-red-500');
+<script>
+const videoStream = document.getElementById('video-stream');
+const cameraPlaceholder = document.getElementById('camera-placeholder');
+const scanOverlay = document.getElementById('scan-overlay');
+const toggleBtn = document.getElementById('toggle-camera-btn');
+const cameraSelect = document.getElementById('camera-select');
+const statusContainer = document.getElementById('status-container');
+const idleContainer = document.getElementById('idle-container');
+const accessBanner = document.getElementById('access-banner');
+const accessIcon = document.getElementById('access-icon');
+const accessLabel = document.getElementById('access-label');
+const userNameEl = document.getElementById('user-name');
+const userTypeEl = document.getElementById('user-type');
+const userIdEl = document.getElementById('user-id');
+const userPhoneEl = document.getElementById('user-phone');
+const financialLabel = document.getElementById('financial-label');
+const badgesContainer = document.getElementById('badges-container');
 
-                // Start continuous polling (every 1 second)
-                pollingInterval = setInterval(pollStatus, 1000);
-            } else {
-                // Stop Scanner
-                isScanning = false;
-                videoStream.src = "";
-                videoStream.classList.add('hidden');
-                cameraPlaceholder.classList.remove('hidden');
-                
-                toggleBtn.textContent = "Start Scanner";
-                toggleBtn.classList.remove('bg-red-600', 'hover:bg-red-500');
-                toggleBtn.classList.add('bg-blue-600', 'hover:bg-blue-500');
+let isScanning = false;
+let pollingInterval = null;
 
-                // Stop polling
-                if (pollingInterval) clearInterval(pollingInterval);
-                
-                // Reset UI
-                idleContainer.classList.remove('hidden');
-                statusContainer.classList.add('hidden');
-                videoContainer.classList.remove('border-green-500', 'border-red-500');
-                videoContainer.classList.add('border-gray-700');
-            }
-        });
-    </script>
+function showResult(data) {
+  idleContainer.classList.add('hidden');
+  statusContainer.classList.remove('hidden');
+  userNameEl.textContent = data.name || '—';
+  userTypeEl.textContent = data.user_type || 'Unknown';
+  userIdEl.textContent = data.user_id || '—';
+  userPhoneEl.textContent = data.phone || '—';
 
-</body>
-</html>
+  if (data.is_allowed) {
+    accessBanner.className = 'rounded-xl px-5 py-4 flex items-center gap-3 bg-emerald-50 text-emerald-800';
+    accessIcon.textContent = 'check_circle';
+    accessLabel.textContent = 'ACCESS GRANTED';
+  } else {
+    accessBanner.className = 'rounded-xl px-5 py-4 flex items-center gap-3 bg-red-50 text-red-800';
+    accessIcon.textContent = 'cancel';
+    accessLabel.textContent = 'ACCESS DENIED';
+  }
+
+  financialLabel.textContent = data.is_paid ? 'Paid' : 'Payment Due';
+  financialLabel.className = 'font-bold text-sm ' + (data.is_paid ? 'text-emerald-600' : 'text-amber-600');
+
+  badgesContainer.innerHTML = '';
+  if (data.user_type === 'Student' && !data.is_registered) {
+    badgesContainer.innerHTML += '<span class="text-xs font-bold bg-red-50 text-red-700 px-3 py-1 rounded-full border border-red-100">Unregistered</span>';
+  }
+}
+
+function showIdle() {
+  idleContainer.classList.remove('hidden');
+  statusContainer.classList.add('hidden');
+}
+
+function pollStatus() {
+  fetch('/attendance/check-status/')
+    .then(r => r.json())
+    .then(data => { data.status ? showResult(data) : showIdle(); })
+    .catch(() => {});
+}
+
+cameraSelect.addEventListener('change', () => {
+  if (isScanning) videoStream.src = `/attendance/video_feed/?camera=${cameraSelect.value}`;
+});
+
+toggleBtn.addEventListener('click', () => {
+  isScanning = !isScanning;
+  if (isScanning) {
+    videoStream.src = `/attendance/video_feed/?camera=${cameraSelect.value}`;
+    videoStream.classList.remove('hidden');
+    cameraPlaceholder.classList.add('hidden');
+    scanOverlay.classList.remove('hidden');
+    toggleBtn.innerHTML = '<span class="material-symbols-outlined text-lg">stop_circle</span> Stop Scanner';
+    toggleBtn.className = 'w-full py-3 rounded-xl font-bold text-sm transition-all bg-red-600 text-white hover:bg-red-700 flex items-center justify-center gap-2';
+    pollingInterval = setInterval(pollStatus, 1000);
+  } else {
+    videoStream.src = '';
+    videoStream.classList.add('hidden');
+    cameraPlaceholder.classList.remove('hidden');
+    scanOverlay.classList.add('hidden');
+    toggleBtn.innerHTML = '<span class="material-symbols-outlined text-lg">play_circle</span> Start Scanner';
+    toggleBtn.className = 'w-full py-3 rounded-xl font-bold text-sm transition-all bg-primary text-white hover:bg-primary-container flex items-center justify-center gap-2';
+    clearInterval(pollingInterval);
+    showIdle();
+  }
+});
+</script>
+
+{% endblock %}

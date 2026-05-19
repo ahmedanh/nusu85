@@ -1,303 +1,262 @@
 {% extends 'attendance/base.html' %}
-
+{% block title %}Chancellor Dashboard — ACDC{% endblock %}
 {% block content %}
-<!-- Main Content Canvas -->
-<!-- Header Section -->
-<header class="mb-10 flex justify-between items-end">
-<div>
-<h1 class="text-3xl font-extrabold text-primary tracking-tight mb-2">Chancellor Control Panel</h1>
-<p class="text-on-surface-variant font-medium">Monitoring academic infrastructure &amp; biometric ecosystems.</p>
+
+<!-- Header -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+  <div>
+    <h1 class="text-2xl font-extrabold text-slate-900 font-headline">Chancellor Control Panel</h1>
+    <p class="text-sm text-slate-500 mt-1">Live biometric & academic infrastructure overview</p>
+  </div>
+  <div class="flex gap-2 flex-wrap">
+    <a href="{% url 'export_teachers' %}"
+      class="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-all shadow-sm">
+      <span class="material-symbols-outlined text-lg">download</span> Export Faculty
+    </a>
+    <a href="{% url 'coordinator_register_user' %}"
+      class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary-container transition-all shadow-sm">
+      <span class="material-symbols-outlined text-lg">person_add</span> New Enrollment
+    </a>
+  </div>
 </div>
-<div class="flex gap-3">
-<button onclick="window.location.href='{% url 'export_teachers' %}'" 
-    class="flex items-center gap-2 px-4 py-2 rounded-xl bg-surface-container-high text-on-surface hover:bg-surface-container-highest transition-colors border border-outline-variant">
-    <span class="material-symbols-outlined text-[20px]">download</span>
-    <span class="text-sm font-medium">Export Data</span>
-</button>
-<button onclick="window.location.href='/admin/attendance/student/add/'" 
-    class="flex items-center gap-3 px-6 py-3 bg-slate-900 text-white rounded-2xl ...">
-    <span class="material-symbols-outlined text-xl">person_add</span>
-    <span class="text-sm">New Enrollment</span>
-</button>
+
+<!-- KPI Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
+
+  <!-- Total Students -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+    <div class="flex items-start justify-between mb-4">
+      <div class="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center">
+        <span class="material-symbols-outlined text-blue-600">school</span>
+      </div>
+      <span class="text-xs font-bold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full">+12% MoM</span>
+    </div>
+    <p id="total-students-count" class="text-3xl font-extrabold text-slate-900 font-headline">{{ total_students }}</p>
+    <p class="text-sm text-slate-500 font-medium mt-1">Registered Students</p>
+    <div class="mt-4 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+      <div class="h-full bg-blue-500 rounded-full" style="width:85%"></div>
+    </div>
+  </div>
+
+  <!-- Active Faculty -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+    <div class="flex items-start justify-between mb-4">
+      <div class="w-11 h-11 rounded-xl bg-purple-50 flex items-center justify-center">
+        <span class="material-symbols-outlined text-purple-600">supervisor_account</span>
+      </div>
+      <span class="text-xs font-bold text-slate-400">98% Verified</span>
+    </div>
+    <p class="text-3xl font-extrabold text-slate-900 font-headline">{{ active_faculty }}</p>
+    <p class="text-sm text-slate-500 font-medium mt-1">Active Faculty Members</p>
+    <div class="mt-4 flex gap-1">
+      <div class="h-1.5 bg-purple-500 flex-1 rounded-full"></div>
+      <div class="h-1.5 bg-purple-500 flex-1 rounded-full"></div>
+      <div class="h-1.5 bg-purple-500 flex-1 rounded-full"></div>
+      <div class="h-1.5 bg-slate-100 flex-1 rounded-full"></div>
+    </div>
+  </div>
+
+  <!-- AI Engine -->
+  <div class="bg-primary rounded-2xl shadow-lg p-6 relative overflow-hidden sm:col-span-2 lg:col-span-1">
+    <div class="relative z-10">
+      <div class="flex items-start justify-between mb-4">
+        <div class="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center border border-white/20">
+          <span class="material-symbols-outlined text-white">face</span>
+        </div>
+        <span class="flex items-center gap-1.5 text-[11px] font-bold text-emerald-300">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inset-0 rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          AI Online
+        </span>
+      </div>
+      <p id="ai-accuracy" class="text-3xl font-extrabold text-white font-headline">94.2%</p>
+      <p class="text-sm text-white/70 font-medium mt-1">Face Recognition Accuracy</p>
+      <div class="mt-4">
+        <div class="flex justify-between text-[11px] font-semibold text-white/60 mb-1.5">
+          <span>Training Progress</span>
+          <span id="training-percent">{{ training_progress }}%</span>
+        </div>
+        <div class="h-1.5 bg-white/10 rounded-full overflow-hidden">
+          <div id="training-bar" class="h-full bg-emerald-400 rounded-full transition-all duration-700"
+            style="width:{{ training_progress }}%"></div>
+        </div>
+      </div>
+    </div>
+    <div class="absolute -right-6 -bottom-6 opacity-10">
+      <span class="material-symbols-outlined text-[100px]" style="font-variation-settings:'wght' 100">android_fingerprint</span>
+    </div>
+  </div>
 </div>
-</header>
-<!-- High-Level Analytics Bento Grid -->
-<div class="grid grid-cols-12 gap-6 mb-10">
-<!-- Total Students -->
-<div class="col-span-12 md:col-span-4 bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant/10">
-<div class="flex justify-between items-start mb-4">
-<div class="p-3 bg-secondary-container rounded-xl">
-<span class="material-symbols-outlined text-on-secondary-container" data-icon="school">school</span>
-</div>
-<span class="text-emerald-600 text-xs font-bold bg-emerald-50 px-2 py-1 rounded-full">+12% MoM</span>
-</div>
-<div id="total-students-count" class="text-3xl font-extrabold text-primary mb-1">
-    {{ total_students }}
-</div>
-<div class="text-sm text-on-surface-variant font-medium">Total Registered Students</div>
-<div class="mt-4 h-1 bg-surface-container-high rounded-full overflow-hidden">
-<div class="h-full bg-primary w-[85%]"></div>
-</div>
-</div>
-<!-- Faculty Analytics -->
-<div class="col-span-12 md:col-span-4 bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant/10">
-<div class="flex justify-between items-start mb-4">
-<div class="p-3 bg-primary-container rounded-xl">
-<span class="material-symbols-outlined text-on-primary-container" data-icon="supervisor_account">supervisor_account</span>
-</div>
-<span class="text-on-surface-variant text-xs font-bold">98% Verified</span>
-</div>
-<div class="text-3xl font-extrabold text-primary mb-1">{{ teachers.count }}</div>
-<div class="text-sm text-on-surface-variant font-medium">Active Faculty Members</div>
-<div class="mt-4 flex gap-1">
-<div class="h-1 bg-primary flex-1 rounded-full"></div>
-<div class="h-1 bg-primary flex-1 rounded-full"></div>
-<div class="h-1 bg-primary flex-1 rounded-full"></div>
-<div class="h-1 bg-outline-variant flex-1 rounded-full opacity-30"></div>
-</div>
-</div>
-<!-- Face Training Health -->
-<div class="col-span-12 md:col-span-4 bg-primary text-on-primary p-6 rounded-xl shadow-lg shadow-primary/10 relative overflow-hidden">
-<div class="relative z-10">
-<div class="flex justify-between items-start mb-4">
-<div class="p-3 bg-white/10 rounded-xl backdrop-blur-md">
-<span class="material-symbols-outlined text-white" data-icon="face">face</span>
-</div>
-<div class="flex items-center gap-1.5">
-<span class="relative flex h-2 w-2">
-<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-<span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-</span>
-<span class="text-[10px] font-bold tracking-widest uppercase">AI Engine Online</span>
-</div>
-</div>
-<div id="ai-accuracy" class="text-3xl font-extrabold mb-1">94.2%</div>
-<div class="text-sm font-medium opacity-80">Face Training Accuracy</div>
-<p class="mt-4 text-xs opacity-60 leading-relaxed">System refined 2.4k neural paths in last 24h. Minimal latency detected.</p>
-</div>
-<!-- Decorative element -->
-<div class="absolute -right-10 -bottom-10 opacity-10">
-<span class="material-symbols-outlined text-[120px]" style="font-variation-settings: 'wght' 100">android_fingerprint</span>
-</div>
-</div>
-</div>
-<!-- Data Tables Section -->
-<div class="grid grid-cols-12 gap-8">
-<!-- Manage Users Table -->
-<div class="col-span-12 lg:col-span-8 bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/10 overflow-hidden">
-<div class="p-6 border-b border-surface-container flex justify-between items-center">
-<h2 class="text-lg font-bold text-primary">User Management</h2>
-<div class="flex gap-2">
-<button class="p-2 text-on-surface-variant hover:bg-surface-container rounded-lg"><span class="material-symbols-outlined">filter_list</span></button>
-<button class="p-2 text-on-surface-variant hover:bg-surface-container rounded-lg"><span class="material-symbols-outlined">more_vert</span></button>
-</div>
-</div>
-<div class="overflow-x-auto">
-<table class="w-full text-left border-collapse">
-<thead class="bg-surface-container-low">
-<tr>
-<th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">User</th>
-<th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Department</th>
-<th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Status</th>
-<th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider text-right">Actions</th>
-</tr>
-</thead>
-<tbody class="divide-y divide-surface-container">
-    {% for teacher in teachers %}
-    <tr class="hover:bg-surface-container-low/50 transition-colors">
-        <td class="px-6 py-4">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-slate-200 overflow-hidden flex items-center justify-center">
-                    <span class="text-primary font-bold">{{ teacher.name|slice:":1"|upper }}</span>
+
+<!-- Main Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+  <!-- Faculty Table -->
+  <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-50 flex items-center justify-between">
+      <h2 class="font-bold text-slate-800 font-headline">Faculty Management</h2>
+      <a href="{% url 'faculty_management' %}"
+        class="text-xs font-bold text-primary hover:underline flex items-center gap-1">
+        View all <span class="material-symbols-outlined text-sm">arrow_forward</span>
+      </a>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50 text-xs text-slate-400 uppercase tracking-wider">
+          <tr>
+            <th class="px-6 py-3 text-left font-semibold">Member</th>
+            <th class="px-6 py-3 text-left font-semibold">Department</th>
+            <th class="px-6 py-3 text-left font-semibold">Status</th>
+            <th class="px-6 py-3 text-right font-semibold">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50">
+          {% for teacher in teachers %}
+          <tr class="hover:bg-slate-50 transition-colors">
+            <td class="px-6 py-3">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-sm flex-shrink-0">
+                  {{ teacher.name|first|upper }}
                 </div>
                 <div>
-                    <div class="text-sm font-bold text-primary">{{ teacher.name }}</div>
-                    <div class="text-[11px] text-on-surface-variant">ID: {{ teacher.teacher_id }}</div>
+                  <p class="font-semibold text-slate-800">{{ teacher.name }}</p>
+                  <p class="text-xs text-slate-400">ID: {{ teacher.teacher_id }}</p>
                 </div>
-            </div>
-        </td>
-        <td class="px-6 py-4">
-            <span class="text-xs font-semibold px-2.5 py-1 bg-surface-container rounded-full text-on-surface-variant">
+              </div>
+            </td>
+            <td class="px-6 py-3">
+              <span class="text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">
                 {{ teacher.major|default:"General" }}
-            </span>
-        </td>
-        <td class="px-6 py-4">
-            <div class="flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                <span class="text-xs font-medium text-on-surface">Verified</span>
-            </div>
-        </td>
-        <td class="px-6 py-4 text-right">
-            <div class="flex justify-end gap-2">
-                <a href="/admin/attendance/teacher/{{ teacher.pk }}/change/" 
-                  class="p-1.5 text-on-surface-variant hover:text-primary transition-colors">
-                   <span class="material-symbols-outlined text-lg">edit</span>
+              </span>
+            </td>
+            <td class="px-6 py-3">
+              <span class="flex items-center gap-1.5 text-xs font-semibold
+                {% if teacher.is_allowed_entry %}text-emerald-700{% else %}text-red-600{% endif %}">
+                <span class="w-1.5 h-1.5 rounded-full {% if teacher.is_allowed_entry %}bg-emerald-500{% else %}bg-red-500{% endif %}"></span>
+                {% if teacher.is_allowed_entry %}Active{% else %}Blocked{% endif %}
+              </span>
+            </td>
+            <td class="px-6 py-3 text-right">
+              <div class="flex items-center justify-end gap-1">
+                <a href="/attendance/user/teacher/{{ teacher.pk }}/upload-face/"
+                  title="Upload Face"
+                  class="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors">
+                  <span class="material-symbols-outlined text-lg">face</span>
                 </a>
-            </div>
-        </td>
-    </tr>
-    {% empty %}
-    <tr>
-        <td colspan="4" class="px-6 py-4 text-center text-sm text-slate-500">No teachers found in the system.</td>
-    </tr>
-    {% endfor %}
-</tbody>
-</table>
-</div>
-</div>
-<!-- Room Management List -->
-<div class="col-span-12 lg:col-span-4 flex flex-col gap-6">
-<!-- Room Status Widget -->
-<div class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/10 p-6">
-<h3 class="text-sm font-bold text-primary mb-6 flex items-center justify-between">
-                        Real-time Room Status
- <div class="flex items-center gap-1.5 bg-emerald-500/10 px-2 py-1 rounded-full">
-    <span class="relative flex h-2 w-2">
-        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-    </span>
-    <span class="text-[10px] text-emerald-600 font-bold uppercase tracking-widest">Live Monitor</span>
-</div></h3>
-<div class="space-y-4">
-<!-- Room Item -->
-<div class="space-y-4">
-    {% for room in classrooms %}
-    <div class="flex items-center justify-between p-3 rounded-xl bg-surface-container-low transition-colors hover:bg-surface-container-low/80">
-        <div class="flex items-center gap-3">
-            <div class="w-1.5 h-10 rounded-full {% if room.is_occupied %}bg-error{% else %}bg-emerald-500{% endif %}"></div>
-            <div>
-                <div class="text-sm font-bold text-primary">{{ room.name }}</div>
-                <div class="text-[10px] text-on-surface-variant">
-                    {% if room.is_occupied %}
-                        {{ room.current_teacher|default:"In Session" }}
-                    {% else %}
-                        Unassigned
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        <span class="text-[10px] font-bold px-2 py-0.5 rounded uppercase {% if room.is_occupied %}text-error bg-error-container/30{% else %}text-emerald-500 bg-emerald-500/10{% endif %}">
-            {% if room.is_occupied %}Occupied{% else %}Empty{% endif %}
+                <a href="/admin/attendance/teacher/{{ teacher.pk }}/change/"
+                  title="Edit"
+                  class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                  <span class="material-symbols-outlined text-lg">edit</span>
+                </a>
+                <a href="{% url 'toggle_access' 'teacher' teacher.teacher_id %}"
+                  title="Toggle Access"
+                  class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                  <span class="material-symbols-outlined text-lg">block</span>
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" class="px-6 py-10 text-center text-slate-400 text-sm">
+              <span class="material-symbols-outlined text-3xl block mb-1 opacity-30">group_off</span>
+              No faculty members registered yet.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Right sidebar -->
+  <div class="space-y-5">
+
+    <!-- Classroom status -->
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-50 flex items-center justify-between">
+        <h3 class="font-bold text-slate-800 text-sm">Room Status</h3>
+        <span class="flex items-center gap-1.5 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">
+          <span class="relative flex h-1.5 w-1.5">
+            <span class="animate-ping absolute inset-0 rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+          </span>
+          Live
         </span>
-    </div>
-    {% empty %}
-    <div class="text-[10px] text-center text-on-surface-variant">No classrooms registered.</div>
-    {% endfor %}
-</div>
-
-<div class="mb-4">
-    <a href="/admin/attendance/classroom/" 
-       class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all duration-300">
-        <span class="material-symbols-outlined text-[14px]">domain</span>
-        <span class="text-[11px] font-bold uppercase tracking-wider">View All Facilities</span>
-    </a>
-</div>
-<!-- Face Training Stats -->
-<div class="bg-tertiary-container rounded-xl p-6 text-on-tertiary-container">
-<div class="flex items-center gap-3 mb-4">
-<span class="material-symbols-outlined text-xl">android_fingerprint</span>
-<h3 class="text-sm font-bold">Face-ID Training Status</h3>
-</div>
-<div class="space-y-4">
-<div>
-<div class="flex justify-between text-[11px] font-bold mb-1.5">
-<span>Batch Processing #{{ batch_number }}</span>
-<span id="training-percent">{{ training_progress }}%</span>
-</div>
-<div class="h-1.5 bg-white/5 rounded-full overflow-hidden">
-<div id="training-bar" class="h-full bg-emerald-500" style="width: {{ training_progress }}%"></div>
-</div>
-<p class="text-[10px] opacity-70 leading-relaxed italic">Currently optimizing latent space for new student enrollments in Engineering Department.</p>
-</div>
-</div>
-</div>
-</div>
-<div id="enrollmentModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    
-    <div class="bg-white w-full max-w-lg rounded-[32px] shadow-2xl overflow-hidden transform transition-all scale-95 opacity-0 duration-300" id="modalContainer">
-        
-        <div class="p-8 border-b border-surface-container flex justify-between items-center bg-surface-container-lowest">
-            <div>
-                <h3 class="text-2xl font-black text-on-surface">New Enrollment</h3>
-                <p class="text-sm text-on-surface-variant font-medium">Register a new student biometric profile.</p>
-            </div>
-            <button onclick="toggleModal()" class="p-2 hover:bg-surface-container rounded-full transition-colors text-on-surface-variant">
-                <span class="material-symbols-outlined">close</span>
-            </button>
+      </div>
+      <div class="p-3 space-y-2 max-h-64 overflow-y-auto">
+        {% for room in classrooms %}
+        <div class="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors">
+          <div class="w-1 h-8 rounded-full {% if room.is_occupied %}bg-red-500{% else %}bg-emerald-500{% endif %} flex-shrink-0"></div>
+          <div class="flex-1 min-w-0">
+            <p class="text-xs font-bold text-slate-800 truncate">{{ room.name }}</p>
+            <p class="text-[10px] text-slate-400">{{ room.location }}</p>
+          </div>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0
+            {% if room.is_occupied %}bg-red-100 text-red-700{% else %}bg-emerald-100 text-emerald-700{% endif %}">
+            {% if room.is_occupied %}Busy{% else %}Free{% endif %}
+          </span>
         </div>
-
-        <form class="p-8 space-y-6">
-            <div class="space-y-2">
-                <label class="text-sm font-bold text-on-surface-variant">Full Name</label>
-                <input type="text" placeholder="e.g. Ahmed Ali" class="w-full px-6 py-4 bg-surface-container-lowest border border-surface-container rounded-2xl focus:border-primary outline-none transition-all">
-            </div>
-
-            <div class="space-y-2">
-                <label class="text-sm font-bold text-on-surface-variant">Department</label>
-                <select class="w-full px-6 py-4 bg-surface-container-lowest border border-surface-container rounded-2xl focus:border-primary outline-none transition-all appearance-none">
-                    <option>Computer Science</option>
-                    <option>Information Systems</option>
-                </select>
-            </div>
-
-            <div class="flex gap-4 pt-4">
-                <button type="button" onclick="toggleModal()" class="flex-1 py-4 text-on-surface font-bold hover:bg-surface-container rounded-2xl transition-all">Cancel</button>
-                <button type="submit" class="flex-1 py-4 bg-primary text-on-primary font-bold rounded-2xl shadow-lg hover:shadow-primary/30 transition-all active:scale-95">Complete</button>
-            </div>
-        </form>
+        {% empty %}
+        <p class="text-xs text-slate-400 text-center py-4">No classrooms registered.</p>
+        {% endfor %}
+      </div>
+      <div class="px-4 pb-4 pt-2">
+        <a href="{% url 'classrooms_status' %}"
+          class="block w-full text-center text-xs font-bold text-primary bg-primary/5 hover:bg-primary/10 py-2.5 rounded-xl transition-colors">
+          View all rooms
+        </a>
+      </div>
     </div>
+
+    <!-- Quick actions -->
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+      <h3 class="font-bold text-slate-800 text-sm mb-4">Quick Actions</h3>
+      <div class="grid grid-cols-2 gap-2">
+        {% for action in actions|default:"" %}{% endfor %}
+        <a href="{% url 'student_report' %}"
+          class="flex flex-col items-center gap-2 p-3 rounded-xl bg-slate-50 hover:bg-blue-50 hover:text-blue-700 transition-all text-slate-500 group">
+          <span class="material-symbols-outlined text-xl group-hover:scale-110 transition-transform">people</span>
+          <span class="text-[10px] font-bold text-center leading-tight">Student Report</span>
+        </a>
+        <a href="{% url 'teacher_report' %}"
+          class="flex flex-col items-center gap-2 p-3 rounded-xl bg-slate-50 hover:bg-purple-50 hover:text-purple-700 transition-all text-slate-500 group">
+          <span class="material-symbols-outlined text-xl group-hover:scale-110 transition-transform">school</span>
+          <span class="text-[10px] font-bold text-center leading-tight">Faculty Report</span>
+        </a>
+        <a href="{% url 'gate_reports' %}"
+          class="flex flex-col items-center gap-2 p-3 rounded-xl bg-slate-50 hover:bg-amber-50 hover:text-amber-700 transition-all text-slate-500 group">
+          <span class="material-symbols-outlined text-xl group-hover:scale-110 transition-transform">sensor_door</span>
+          <span class="text-[10px] font-bold text-center leading-tight">Gate Logs</span>
+        </a>
+        <a href="{% url 'schedule' %}"
+          class="flex flex-col items-center gap-2 p-3 rounded-xl bg-slate-50 hover:bg-emerald-50 hover:text-emerald-700 transition-all text-slate-500 group">
+          <span class="material-symbols-outlined text-xl group-hover:scale-110 transition-transform">calendar_month</span>
+          <span class="text-[10px] font-bold text-center leading-tight">Schedule</span>
+        </a>
+      </div>
+    </div>
+
+  </div>
 </div>
+
 <script>
-function toggleModal() {
-    const modal = document.getElementById('enrollmentModal');
-    const container = document.getElementById('modalContainer');
-    
-    if (modal.classList.contains('hidden')) {
-        modal.classList.remove('hidden');
-        // تأخير بسيط لتفعيل الأنيميشن
-        setTimeout(() => {
-            container.classList.remove('scale-95', 'opacity-0');
-            container.classList.add('scale-100', 'opacity-100');
-        }, 10);
-    } else {
-        container.classList.add('scale-95', 'opacity-0');
-        container.classList.remove('scale-100', 'opacity-100');
-        setTimeout(() => {
-            modal.classList.add('hidden');
-        }, 300);
-    }
+async function refreshStats() {
+  try {
+    const res = await fetch('/attendance/api/chancellor-stats/');
+    const d = await res.json();
+    const sc = document.getElementById('total-students-count');
+    const ac = document.getElementById('ai-accuracy');
+    const tb = document.getElementById('training-bar');
+    const tp = document.getElementById('training-percent');
+    if (sc) sc.textContent = d.total_students;
+    if (ac) ac.textContent = d.global_accuracy + '%';
+    if (tb) tb.style.width = d.training_progress + '%';
+    if (tp) tp.textContent = d.training_progress + '%';
+  } catch(e) {}
 }
-async function updateDashboardRealTime() {
-    try {
-        // 1. طلب البيانات من السيرفر
-        const response = await fetch('/attendance/api/chancellor-stats/');
-        const data = await response.json();
-
-        // 2. تحديث عداد الطلاب (عن طريق الـ ID)
-        const studentCountElem = document.getElementById('total-students-count');
-        if(studentCountElem) {
-            studentCountElem.innerText = data.total_students;
-        }
-
-        // 3. تحديث نسبة الدقة (AI Accuracy)
-        const accuracyElem = document.getElementById('ai-accuracy');
-        if(accuracyElem) {
-            accuracyElem.innerText = data.global_accuracy + '%';
-        }
-
-        // 4. تحديث شريط التحميل (Progress Bar)
-        const progressBar = document.getElementById('training-bar');
-        if(progressBar) {
-            progressBar.style.width = data.training_progress + '%';
-            document.getElementById('training-percent').innerText = data.training_progress + '%';
-        }
-
-    } catch (error) {
-        console.error("فشل التحديث اللحظي:", error);
-    }
-}
-// تشغيل التحديث كل 10000 مللي ثانية (10 ثواني)
-setInterval(updateDashboardRealTime, 10000);
+setInterval(refreshStats, 15000);
 </script>
 {% endblock %}
-</body></html>

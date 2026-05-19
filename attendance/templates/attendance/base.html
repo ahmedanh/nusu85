@@ -1,347 +1,445 @@
 <!DOCTYPE html>
-    
-<html class="light" lang="en">
+<html lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>National University - Management Portal</title>
+<title>{% block title %}National University — ACDC{% endblock %}</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    "colors": {
-                        "tertiary-container": "#332306",
-                        "outline-variant": "#c5c6cd",
-                        "inverse-on-surface": "#f0f1f2",
-                        "primary-fixed-dim": "#bbc6e2",
-                        "surface-container": "#edeeef",
-                        "surface": "#f8f9fa",
-                        "on-tertiary-container": "#a28963",
-                        "error-container": "#ffdad6",
-                        "on-tertiary-fixed-variant": "#574423",
-                        "surface-tint": "#545e76",
-                        "on-secondary-fixed-variant": "#434751",
-                        "on-tertiary-fixed": "#271901",
-                        "surface-container-low": "#f3f4f5",
-                        "secondary-fixed": "#dfe2ee",
-                        "secondary-fixed-dim": "#c3c6d2",
-                        "on-surface": "#191c1d",
-                        "tertiary": "#1a0f00",
-                        "inverse-primary": "#bbc6e2",
-                        "on-primary": "#ffffff",
-                        "tertiary-fixed": "#fcdeb3",
-                        "on-background": "#191c1d",
-                        "tertiary-fixed-dim": "#dfc299",
-                        "secondary-container": "#dcdfec",
-                        "on-secondary": "#ffffff",
-                        "inverse-surface": "#2e3132",
-                        "on-surface-variant": "#45474d",
-                        "primary-fixed": "#d7e2ff",
-                        "surface-container-highest": "#e1e3e4",
-                        "surface-container-high": "#e7e8e9",
-                        "on-error": "#ffffff",
-                        "surface-dim": "#d9dadb",
-                        "background": "#f8f9fa",
-                        "on-tertiary": "#ffffff",
-                        "surface-container-lowest": "#ffffff",
-                        "error": "#ba1a1a",
-                        "on-secondary-fixed": "#181c24",
-                        "primary": "#051125",
-                        "surface-bright": "#f8f9fa",
-                        "secondary": "#5a5e69",
-                        "surface-variant": "#e1e3e4",
-                        "primary-container": "#1b263b",
-                        "on-primary-fixed": "#101b30",
-                        "on-error-container": "#93000a",
-                        "on-primary-fixed-variant": "#3c475d",
-                        "on-secondary-container": "#5f626d",
-                        "outline": "#75777d",
-                        "on-primary-container": "#828da7"
-                    },
-                    "borderRadius": {
-                        "DEFAULT": "0.25rem",
-                        "lg": "0.5rem",
-                        "xl": "0.75rem",
-                        "full": "9999px"
-                    },
-                    "fontFamily": {
-                        "headline": ["Manrope"],
-                        "body": ["Inter"],
-                        "label": ["Inter"]
-                    }
-                },
-            },
-        }
-    </script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "primary":                  "#051125",
+        "primary-container":        "#1b263b",
+        "on-primary":               "#ffffff",
+        "on-primary-container":     "#828da7",
+        "secondary":                "#5a5e69",
+        "secondary-container":      "#dcdfec",
+        "on-secondary-container":   "#5f626d",
+        "surface":                  "#f8f9fa",
+        "surface-container":        "#edeeef",
+        "surface-container-low":    "#f3f4f5",
+        "surface-container-high":   "#e7e8e9",
+        "surface-container-highest":"#e1e3e4",
+        "surface-container-lowest": "#ffffff",
+        "on-surface":               "#191c1d",
+        "on-surface-variant":       "#45474d",
+        "outline":                  "#75777d",
+        "outline-variant":          "#c5c6cd",
+        "error":                    "#ba1a1a",
+        "error-container":          "#ffdad6",
+        "tertiary-container":       "#332306",
+        "on-tertiary-container":    "#a28963",
+      },
+      fontFamily: {
+        headline: ["Manrope"],
+        body:     ["Inter"],
+      },
+    },
+  },
+}
+</script>
 <style>
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
-        }
-        body { font-family: 'Inter', sans-serif; }
-        h1, h2, h3, .font-headline { font-family: 'Manrope', sans-serif; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-    </style>
+  body { font-family: 'Inter', sans-serif; }
+  h1,h2,h3,.font-headline { font-family: 'Manrope', sans-serif; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
+  .fill-icon { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .sidebar-link { @apply flex items-center gap-3 py-2.5 px-4 rounded-xl text-sm font-semibold transition-all duration-150; }
+  .sidebar-link.active { @apply bg-primary text-white shadow-sm; }
+  .sidebar-link:not(.active) { @apply text-slate-500 hover:text-slate-800 hover:bg-slate-100; }
+  #sidebar { transition: transform 0.25s cubic-bezier(.4,0,.2,1); }
+  @media (max-width: 1023px) {
+    #sidebar { transform: translateX(-100%); position: fixed; z-index: 40; }
+    #sidebar.open { transform: translateX(0); }
+  }
+  /* Toast */
+  #toast-container { pointer-events: none; }
+  .toast { animation: slideIn .3s ease, fadeOut .4s ease 3.6s forwards; pointer-events: auto; }
+  @keyframes slideIn { from { opacity:0; transform: translateY(12px); } to { opacity:1; transform: translateY(0); } }
+  @keyframes fadeOut  { to   { opacity:0; transform: translateY(-6px); } }
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+</style>
 </head>
-<body class="bg-surface text-on-surface">
-<!-- TopNavBar -->
-<nav class="fixed top-0 left-0 w-full z-[60] flex items-center h-16 bg-white border-b border-slate-200">
-    
-    <div class="w-72 h-full border-r border-slate-200 px-8 flex items-center">
-        <div class="text-xl font-extrabold text-slate-900 tracking-tight font-headline">National University</div>
-    </div>
+<body class="bg-slate-50 text-on-surface antialiased">
 
-    <div class="flex-1 flex justify-between items-center px-8">
-       <div class="relative group"> <div class="relative flex items-center bg-surface-container-high rounded-full px-4 py-1.5 border border-outline-variant/15 focus-within:border-primary/50 transition-all w-80">
-        <span class="material-symbols-outlined text-on-surface-variant text-lg">search</span>
-        <input id="main-search" class="bg-transparent border-none focus:ring-0 text-sm font-label text-on-surface w-full" placeholder="Search for students, faculty..." type="text" autocomplete="off"/>
-    </div>
+<!-- ── Mobile overlay ──────────────────────────────── -->
+<div id="overlay" onclick="closeSidebar()"
+  class="fixed inset-0 bg-black/40 z-30 hidden lg:hidden"></div>
 
-    <div id="search-results" class="absolute left-0 mt-2 w-full bg-white rounded-2xl shadow-2xl border border-slate-100 hidden z-[110] overflow-hidden">
-        <div id="results-container" class="max-h-64 overflow-y-auto p-2">
-            <p class="text-[10px] text-slate-400 p-2">Start typing to search...</p>
-        </div>
-    </div>
-    </div>
+<!-- ── Sidebar ──────────────────────────────────────── -->
+<aside id="sidebar"
+  class="w-64 h-screen bg-white border-r border-slate-100 shadow-xl lg:shadow-none flex flex-col pt-0 lg:fixed lg:top-0 lg:left-0 lg:z-30">
 
-       <div class="relative" id="notification-container">
-    <button id="notification-btn" class="relative p-2 text-on-surface-variant hover:bg-surface-container rounded-full transition-colors focus:outline-none">
-        <span class="material-symbols-outlined text-2xl">notifications</span>
-        
+  <!-- Logo -->
+  <div class="flex items-center gap-3 px-5 h-16 border-b border-slate-100 flex-shrink-0">
+    <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+      <span class="material-symbols-outlined text-white text-lg">account_balance</span>
+    </div>
+    <div class="leading-tight">
+      <p class="text-xs font-extrabold text-slate-900 font-headline tracking-tight">National University</p>
+      <p class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">ACDC Portal</p>
+    </div>
+    <!-- Mobile close -->
+    <button onclick="closeSidebar()" class="ml-auto lg:hidden p-1 rounded-lg text-slate-400 hover:bg-slate-100">
+      <span class="material-symbols-outlined text-lg">close</span>
+    </button>
+  </div>
+
+  <!-- Nav -->
+  <nav class="flex-1 overflow-y-auto p-3 space-y-0.5">
+
+    {% if request.user.is_staff or request.user.is_superuser %}
+    <!-- ── Admin Nav ── -->
+    <p class="text-[10px] font-bold text-slate-300 uppercase tracking-widest px-3 pt-3 pb-1.5">Management</p>
+    <a href="{% url 'admin_panel' %}" class="sidebar-link {% if request.resolver_match.url_name == 'admin_panel' %}active{% endif %}">
+      <span class="material-symbols-outlined text-xl">dashboard</span> Dashboard
+    </a>
+    <a href="{% url 'scan_page' %}" class="sidebar-link {% if request.resolver_match.url_name == 'scan_page' %}active{% endif %}">
+      <span class="material-symbols-outlined text-xl">center_focus_strong</span> Scanning Station
+    </a>
+    <a href="{% url 'faculty_management' %}" class="sidebar-link {% if request.resolver_match.url_name == 'faculty_management' %}active{% endif %}">
+      <span class="material-symbols-outlined text-xl">group</span> Faculty Management
+    </a>
+    <a href="{% url 'attendance_logs' %}" class="sidebar-link {% if request.resolver_match.url_name == 'attendance_logs' %}active{% endif %}">
+      <span class="material-symbols-outlined text-xl">history</span> Attendance Logs
+    </a>
+    <a href="{% url 'reports_view' %}" class="sidebar-link {% if request.resolver_match.url_name == 'reports_view' %}active{% endif %}">
+      <span class="material-symbols-outlined text-xl">assessment</span> Reports
+    </a>
+    <a href="{% url 'gate_reports' %}" class="sidebar-link {% if request.resolver_match.url_name == 'gate_reports' %}active{% endif %}">
+      <span class="material-symbols-outlined text-xl">sensor_door</span> Gate Reports
+    </a>
+    <a href="{% url 'classrooms_status' %}" class="sidebar-link {% if request.resolver_match.url_name == 'classrooms_status' %}active{% endif %}">
+      <span class="material-symbols-outlined text-xl">meeting_room</span> Classrooms
+    </a>
+    <a href="{% url 'schedule' %}" class="sidebar-link {% if request.resolver_match.url_name == 'schedule' %}active{% endif %}">
+      <span class="material-symbols-outlined text-xl">calendar_month</span> Schedule
+    </a>
+    <p class="text-[10px] font-bold text-slate-300 uppercase tracking-widest px-3 pt-4 pb-1.5">System</p>
+    <a href="{% url 'admin_notifications' %}" class="sidebar-link {% if request.resolver_match.url_name == 'admin_notifications' %}active{% endif %}">
+      <span class="material-symbols-outlined text-xl">notifications</span>
+      Notifications
+      {% if notifications %}
+      <span class="ml-auto bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">{{ notifications|length }}</span>
+      {% endif %}
+    </a>
+    <a href="{% url 'settings_page' %}" class="sidebar-link {% if request.resolver_match.url_name == 'settings_page' %}active{% endif %}">
+      <span class="material-symbols-outlined text-xl">settings</span> Settings
+    </a>
+
+    {% elif request.user.teacher_set.exists or request.user.teacherattendancelog_set.exists %}
+    <!-- ── Teacher Nav (fallback check) ── -->
+    <p class="text-[10px] font-bold text-slate-300 uppercase tracking-widest px-3 pt-3 pb-1.5">Teaching</p>
+    <a href="{% url 'professor_dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'professor_dashboard' %}active{% endif %}">
+      <span class="material-symbols-outlined text-xl">dashboard</span> Dashboard
+    </a>
+    <a href="{% url 'teacher_profile' %}" class="sidebar-link {% if request.resolver_match.url_name == 'teacher_profile' %}active{% endif %}">
+      <span class="material-symbols-outlined text-xl">person</span> My Profile
+    </a>
+    <a href="{% url 'teacher_timeline' %}" class="sidebar-link {% if request.resolver_match.url_name == 'teacher_timeline' %}active{% endif %}">
+      <span class="material-symbols-outlined text-xl">timeline</span> Lecture Timeline
+    </a>
+    <a href="{% url 'teacher_attendance_records' %}" class="sidebar-link {% if request.resolver_match.url_name == 'teacher_attendance_records' %}active{% endif %}">
+      <span class="material-symbols-outlined text-xl">fact_check</span> Attendance Records
+    </a>
+    <a href="{% url 'teacher_permissions' %}" class="sidebar-link {% if request.resolver_match.url_name == 'teacher_permissions' %}active{% endif %}">
+      <span class="material-symbols-outlined text-xl">lock_open</span> Room Permissions
+    </a>
+    <a href="{% url 'classrooms_status' %}" class="sidebar-link {% if request.resolver_match.url_name == 'classrooms_status' %}active{% endif %}">
+      <span class="material-symbols-outlined text-xl">meeting_room</span> Classrooms
+    </a>
+    <a href="{% url 'schedule' %}" class="sidebar-link {% if request.resolver_match.url_name == 'schedule' %}active{% endif %}">
+      <span class="material-symbols-outlined text-xl">calendar_month</span> Schedule
+    </a>
+
+    {% else %}
+    <!-- ── Student / Coordinator fallback ── -->
+    <p class="text-[10px] font-bold text-slate-300 uppercase tracking-widest px-3 pt-3 pb-1.5">My Portal</p>
+    <a href="{% url 'student_dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}">
+      <span class="material-symbols-outlined text-xl">dashboard</span> Dashboard
+    </a>
+    <a href="{% url 'student_profile' %}" class="sidebar-link {% if request.resolver_match.url_name == 'student_profile' %}active{% endif %}">
+      <span class="material-symbols-outlined text-xl">person</span> My Profile
+    </a>
+    <a href="{% url 'student_courses' %}" class="sidebar-link {% if request.resolver_match.url_name == 'student_courses' %}active{% endif %}">
+      <span class="material-symbols-outlined text-xl">menu_book</span> My Courses
+    </a>
+    <a href="{% url 'schedule' %}" class="sidebar-link {% if request.resolver_match.url_name == 'schedule' %}active{% endif %}">
+      <span class="material-symbols-outlined text-xl">calendar_month</span> Schedule
+    </a>
+    <a href="{% url 'student_support' %}" class="sidebar-link {% if request.resolver_match.url_name == 'student_support' %}active{% endif %}">
+      <span class="material-symbols-outlined text-xl">support_agent</span> Support
+    </a>
+    {% endif %}
+
+  </nav>
+
+  <!-- User card at bottom -->
+  <div class="p-3 border-t border-slate-100 flex-shrink-0">
+    <div class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors group">
+      <div class="w-9 h-9 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-sm flex-shrink-0">
+        {{ request.user.get_full_name|first|upper|default:request.user.username|first|upper }}
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-xs font-bold text-slate-800 truncate">
+          {{ request.user.get_full_name|default:request.user.username }}
+        </p>
+        <p class="text-[10px] text-slate-400 truncate">
+          {% if request.user.is_superuser %}System Admin
+          {% elif request.user.is_staff %}Staff
+          {% else %}{{ request.user.email|default:"User" }}{% endif %}
+        </p>
+      </div>
+      <a href="{% url 'logout' %}" title="Sign out"
+        class="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100">
+        <span class="material-symbols-outlined text-lg">logout</span>
+      </a>
+    </div>
+  </div>
+</aside>
+
+<!-- ── Top bar ──────────────────────────────────────── -->
+<header class="fixed top-0 left-0 lg:left-64 right-0 h-16 bg-white border-b border-slate-100 z-20 flex items-center px-4 lg:px-6 gap-4">
+
+  <!-- Mobile hamburger -->
+  <button onclick="openSidebar()" class="lg:hidden p-2 rounded-xl text-slate-500 hover:bg-slate-100 transition-colors">
+    <span class="material-symbols-outlined">menu</span>
+  </button>
+
+  <!-- Search -->
+  <div class="relative flex-1 max-w-sm group">
+    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none">search</span>
+    <input id="main-search" type="text" autocomplete="off"
+      placeholder="Search students, faculty…"
+      class="w-full pl-9 pr-4 py-2 text-sm bg-slate-100 rounded-xl border border-transparent focus:border-primary/30 focus:bg-white focus:outline-none transition-all"/>
+    <div id="search-results"
+      class="absolute top-full mt-2 left-0 w-full bg-white rounded-2xl shadow-xl border border-slate-100 hidden z-50 overflow-hidden">
+      <div id="results-container" class="max-h-64 overflow-y-auto p-2">
+        <p class="text-xs text-slate-400 p-2">Start typing…</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-2 ml-auto">
+
+    <!-- Notifications bell -->
+    <div class="relative" id="notif-wrap">
+      <button id="notif-btn" onclick="toggleNotif()"
+        class="relative p-2 rounded-xl text-slate-500 hover:bg-slate-100 transition-colors">
+        <span class="material-symbols-outlined">notifications</span>
         {% if notifications %}
-        <span id="notif-badge" class="absolute top-1.5 right-1.5 flex h-2 w-2">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-error opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2 w-2 bg-error"></span>
+        <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500">
+          <span class="animate-ping absolute inset-0 rounded-full bg-red-400 opacity-75"></span>
         </span>
         {% endif %}
-    </button>
+      </button>
 
-    <div id="notification-menu" class="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 hidden z-[100] overflow-hidden transform origin-top-right transition-all">
-        <div class="px-4 py-3 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center">
-            <h3 class="text-sm font-bold text-slate-800">Notifications</h3>
-            <span class="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold">{{ notifications.count }} New</span>
+      <div id="notif-menu"
+        class="absolute right-0 top-14 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 hidden z-50 overflow-hidden">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-slate-50">
+          <h3 class="text-sm font-bold text-slate-800">Notifications</h3>
+          {% if notifications %}
+          <span class="text-[10px] bg-red-50 text-red-600 font-bold px-2 py-0.5 rounded-full">{{ notifications|length }} new</span>
+          {% endif %}
         </div>
-        
-        <div class="max-h-[300px] overflow-y-auto">
-            {% for notif in notifications %}
-            <a href="#" class="flex gap-3 px-4 py-3 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0">
-                <div class="h-8 w-8 rounded-full flex items-center justify-center shrink-0 
-                    {% if notif.notif_type == 'success' %} bg-emerald-100 text-emerald-600 
-                    {% elif notif.notif_type == 'warning' %} bg-amber-100 text-amber-600 
-                    {% else %} bg-blue-100 text-blue-600 {% endif %}">
-                    
-                    <span class="material-symbols-outlined text-sm">
-                        {% if notif.notif_type == 'success' %} check_circle 
-                        {% elif notif.notif_type == 'warning' %} warning 
-                        {% else %} info {% endif %}
-                    </span>
-                </div>
-                <div>
-                    <p class="text-xs text-slate-800 font-medium">{{ notif.message }}</p>
-                    <p class="text-[10px] text-slate-500 mt-1">{{ notif.created_at|timesince }} ago</p>
-                </div>
-            </a>
-            {% empty %}
-            <div class="py-10 text-center">
-                <span class="material-symbols-outlined text-slate-200 text-4xl">notifications_off</span>
-                <p class="text-xs text-slate-400 mt-2">All caught up!</p>
+        <div class="max-h-72 overflow-y-auto">
+          {% for n in notifications %}
+          <div class="flex gap-3 px-4 py-3 hover:bg-slate-50 border-b border-slate-50 last:border-0 transition-colors">
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5
+              {% if n.notif_type == 'success' %}bg-emerald-100 text-emerald-600
+              {% elif n.notif_type == 'warning' %}bg-amber-100 text-amber-600
+              {% elif n.notif_type == 'error' %}bg-red-100 text-red-600
+              {% else %}bg-blue-100 text-blue-600{% endif %}">
+              <span class="material-symbols-outlined text-sm">
+                {% if n.notif_type == 'success' %}check_circle{% elif n.notif_type == 'warning' %}warning{% elif n.notif_type == 'error' %}error{% else %}info{% endif %}
+              </span>
             </div>
-            {% endfor %}
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-medium text-slate-800 leading-snug">{{ n.message }}</p>
+              <p class="text-[10px] text-slate-400 mt-0.5">{{ n.created_at|timesince }} ago</p>
+            </div>
+          </div>
+          {% empty %}
+          <div class="py-10 text-center">
+            <span class="material-symbols-outlined text-4xl text-slate-200">notifications_off</span>
+            <p class="text-xs text-slate-400 mt-2">All caught up!</p>
+          </div>
+          {% endfor %}
         </div>
-
-        <a href="#" class="block py-3 text-center text-[11px] font-bold text-primary hover:bg-primary/5 transition-colors border-t border-slate-50">
-            View All Notifications
+        {% if request.user.is_staff %}
+        <a href="{% url 'admin_notifications' %}"
+          class="block py-2.5 text-center text-xs font-bold text-primary hover:bg-primary/5 border-t border-slate-50 transition-colors">
+          View all notifications →
         </a>
-    </div>
-</div>
-
-            <div class="relative flex items-center gap-3 ml-4 pl-4 border-l border-outline-variant">
-                <button id="profile-btn" class="flex items-center gap-3 hover:opacity-80 transition-all focus:outline-none">
-                    <div class="flex flex-col items-end hidden md:flex">
-                        <span class="text-xs font-bold text-on-surface">Admin User</span>
-                        <span class="text-[10px] text-on-surface-variant">System Manager</span>
-                    </div>
-                    <div class="h-9 w-9 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold text-sm border-2 border-surface shadow-sm">
-                        A
-                    </div>
-                </button>
-
-                <div id="profile-menu" class="absolute right-0 top-12 w-48 bg-white rounded-xl shadow-xl border border-slate-100 py-2 hidden z-[100]">
-                    <a href="#" class="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition-colors">
-                        <span class="material-symbols-outlined text-lg">person</span> Profile
-                    </a>
-                    <hr class="my-1 border-slate-50">
-                    <a href="#" class="flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors">
-                        <span class="material-symbols-outlined text-lg">logout</span> Logout
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-</nav>
-<!-- SideNavBar -->
-<aside class="h-screen w-72 fixed left-0 top-0 pt-16 flex flex-col gap-2 p-4 bg-white border-r border-slate-200 z-50 shadow-xl"><div class="px-4 py-6 mb-2">
-<div class="text-lg font-bold text-slate-900 font-headline">Management</div>
-<div class="text-xs text-on-surface-variant font-medium">Digital Chancellor Portal</div>
-</div>
-<nav class="flex flex-col gap-1">
-    <a href="{% url 'admin_panel' %}" 
-       class="flex items-center gap-3 transition-all py-3 px-4 rounded-xl group 
-       {% if request.resolver_match.url_name == 'admin_panel' %} bg-primary/10 text-primary {% else %} text-slate-500 hover:text-primary hover:bg-slate-100 {% endif %}">
-        <span class="material-symbols-outlined {% if request.resolver_match.url_name == 'admin_panel' %} fill-1 {% endif %}">dashboard</span>
-        <span class="font-bold text-sm">Dashboard</span>
-    </a>
-
-    <a href="{% url 'scan_page' %}" 
-       class="flex items-center gap-3 transition-all py-3 px-4 rounded-xl group 
-       {% if request.resolver_match.url_name == 'scan_page' %} bg-primary/10 text-primary {% else %} text-slate-500 hover:text-primary hover:bg-slate-100 {% endif %}">
-        <span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">center_focus_strong</span>
-        <span class="font-bold text-sm">Scanning Station</span>
-    </a>
-
-    <a href="{% url 'faculty_management' %}" 
-       class="flex items-center gap-3 transition-all py-3 px-4 rounded-xl group 
-       {% if request.resolver_match.url_name == 'faculty_management' %} bg-primary/10 text-primary {% else %} text-slate-500 hover:text-primary hover:bg-slate-100 {% endif %}">
-       <span class="material-symbols-outlined">group</span>
-       <span class="font-bold text-sm">Faculty Management</span>
-    </a>
-
-    <a href="{% url 'attendance_logs' %}" 
-       class="flex items-center gap-3 transition-all py-3 px-4 rounded-xl group 
-       {% if request.resolver_match.url_name == 'attendance_logs' %} bg-primary/10 text-primary {% else %} text-slate-500 hover:text-primary hover:bg-slate-100 {% endif %}">
-        <span class="material-symbols-outlined">history</span>
-        <span class="font-bold text-sm">Attendance Logs</span>
-    </a>
-
-    <a href="{% url 'reports_view' %}" 
-       class="flex items-center gap-3 transition-all py-3 px-4 rounded-xl group 
-       {% if request.resolver_match.url_name == 'reports_view' %} bg-primary/10 text-primary {% else %} text-slate-500 hover:text-primary hover:bg-slate-100 {% endif %}">
-        <span class="material-symbols-outlined">assessment</span>
-        <span class="font-bold text-sm">Reports</span>
-    </a>
-
-    <a href="{% url 'professor_dashboard' %}" 
-       class="flex items-center gap-3 transition-all py-3 px-4 rounded-xl group 
-       {% if request.resolver_match.url_name == 'professor_dashboard' %} bg-primary/10 text-primary {% else %} text-slate-500 hover:text-primary hover:bg-slate-100 {% endif %}">
-        <span class="material-symbols-outlined">school</span>
-        <span class="font-bold text-sm">Professor View</span>
-    </a>
-       <a href="{% url 'settings_page' %}"
-       class="flex items-center gap-3 transition-all py-3 px-4 rounded-xl group 
-       {% if request.resolver_match.url_name == 'settings_page' %} bg-primary/10 text-primary {% else %} text-slate-500 hover:text-primary hover:bg-slate-100 {% endif %}">
-    <span class="material-symbols-outlined">settings</span>
-    <span class="font-bold text-sm">Settings</span>
-    </a>
-</nav>
-<div class="mt-auto p-4 bg-primary-container rounded-xl text-on-primary-container">
-<div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider mb-1">
-<span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                System Status: Active
-            </div>
-<p class="text-[10px] opacity-70">Uptime: 99.9% • Ver: 4.2.0-Stable</p>
-</div>
-</aside>
-<!-- Main Content Canvas -->
-<main class="ml-[288px] pt-20 min-h-screen bg-[#f8fafc] relative">
-    <div class="p-8">
-        {% if messages %}
-            <div class="mb-6 space-y-2">
-                {% for message in messages %}
-                    <div class="p-4 rounded-xl flex items-center gap-3 font-bold shadow-sm animate-pulse
-                        {% if message.tags == 'success' %} bg-emerald-50 text-emerald-700 border border-emerald-100
-                        {% else %} bg-blue-50 text-blue-700 border border-blue-100 {% endif %}">
-                        
-                        <span class="material-symbols-outlined">
-                            {% if message.tags == 'success' %} check_circle {% else %} info {% endif %}
-                        </span>
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            </div>
         {% endif %}
-        {% block content %}
-        {% endblock %}
+      </div>
     </div>
+
+    <!-- Profile dropdown -->
+    <div class="relative" id="profile-wrap">
+      <button id="profile-btn" onclick="toggleProfile()"
+        class="flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-xl hover:bg-slate-100 transition-colors">
+        <div class="text-right hidden sm:block">
+          <p class="text-xs font-bold text-slate-800 leading-tight">
+            {{ request.user.get_full_name|default:request.user.username }}
+          </p>
+          <p class="text-[10px] text-slate-400">
+            {% if request.user.is_superuser %}Admin{% elif request.user.is_staff %}Staff{% else %}User{% endif %}
+          </p>
+        </div>
+        <div class="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-sm">
+          {{ request.user.get_full_name|first|upper|default:request.user.username|first|upper }}
+        </div>
+        <span class="material-symbols-outlined text-slate-400 text-lg">expand_more</span>
+      </button>
+
+      <div id="profile-menu"
+        class="absolute right-0 top-14 w-48 bg-white rounded-2xl shadow-xl border border-slate-100 py-1.5 hidden z-50">
+        <div class="px-4 py-2 border-b border-slate-50 mb-1">
+          <p class="text-xs font-bold text-slate-800">{{ request.user.get_full_name|default:request.user.username }}</p>
+          <p class="text-[10px] text-slate-400 truncate">{{ request.user.email }}</p>
+        </div>
+        {% if request.user.is_staff %}
+        <a href="/admin/" class="flex items-center gap-2 px-4 py-2 text-xs text-slate-600 hover:bg-slate-50 transition-colors">
+          <span class="material-symbols-outlined text-base">admin_panel_settings</span> Django Admin
+        </a>
+        {% endif %}
+        <a href="{% url 'logout' %}"
+          class="flex items-center gap-2 px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors">
+          <span class="material-symbols-outlined text-base">logout</span> Sign Out
+        </a>
+      </div>
+    </div>
+
+  </div>
+</header>
+
+<!-- ── Main canvas ──────────────────────────────────── -->
+<main class="lg:ml-64 pt-16 min-h-screen bg-slate-50">
+  <div class="p-5 lg:p-8">
+
+    <!-- Django messages → toasts -->
+    {% if messages %}
+    <div class="mb-6 space-y-2">
+      {% for message in messages %}
+      <div class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold shadow-sm border
+        {% if message.tags == 'success' %}bg-emerald-50 text-emerald-800 border-emerald-100
+        {% elif message.tags == 'error' %}bg-red-50 text-red-800 border-red-100
+        {% elif message.tags == 'warning' %}bg-amber-50 text-amber-800 border-amber-100
+        {% else %}bg-blue-50 text-blue-800 border-blue-100{% endif %}">
+        <span class="material-symbols-outlined fill-icon text-xl">
+          {% if message.tags == 'success' %}check_circle{% elif message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}
+        </span>
+        {{ message }}
+        <button onclick="this.parentElement.remove()" class="ml-auto opacity-60 hover:opacity-100">
+          <span class="material-symbols-outlined text-base">close</span>
+        </button>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </div>
 </main>
+
+<!-- ── Toast container ──────────────────────────────── -->
+<div id="toast-container" class="fixed bottom-6 right-6 z-[200] flex flex-col gap-2 items-end"></div>
+
 <script>
-    // تعريف عناصر البروفايل
-    const profileBtn = document.getElementById('profile-btn');
-    const profileMenu = document.getElementById('profile-menu');
+// ── Sidebar ──────────────────────────────────────────
+function openSidebar()  { document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.remove('hidden'); }
+function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.add('hidden'); }
 
-    // تعريف عناصر الإشعارات
-    const notifBtn = document.getElementById('notification-btn');
-    const notifMenu = document.getElementById('notification-menu');
-    const notifBadge = document.getElementById('notif-badge');
+// ── Dropdowns ────────────────────────────────────────
+function toggleNotif() {
+  document.getElementById('notif-menu').classList.toggle('hidden');
+  document.getElementById('profile-menu').classList.add('hidden');
+}
+function toggleProfile() {
+  document.getElementById('profile-menu').classList.toggle('hidden');
+  document.getElementById('notif-menu').classList.add('hidden');
+}
+document.addEventListener('click', function(e) {
+  if (!document.getElementById('notif-wrap').contains(e.target))   document.getElementById('notif-menu').classList.add('hidden');
+  if (!document.getElementById('profile-wrap').contains(e.target)) document.getElementById('profile-menu').classList.add('hidden');
+  const sr = document.getElementById('search-results');
+  if (!document.getElementById('main-search').contains(e.target)) sr && sr.classList.add('hidden');
+});
 
-    // تشغيل زر البروفايل
-    profileBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        profileMenu.classList.toggle('hidden');
-        if (notifMenu) notifMenu.classList.add('hidden'); // يقفل الجرس لو مفتوح
-    });
+// ── Global search ─────────────────────────────────────
+const searchInput = document.getElementById('main-search');
+const searchResults = document.getElementById('search-results');
+const resultsContainer = document.getElementById('results-container');
 
-    // تشغيل زر الإشعارات
-    if (notifBtn) {
-        notifBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            notifMenu.classList.toggle('hidden');
-            if (profileMenu) profileMenu.classList.add('hidden'); // يقفل البروفايل لو مفتوح
-            
-            // إخفاء النقطة الحمراء عند الفتح
-            if (notifBadge) notifBadge.classList.add('hidden');
-        });
-    }
-
-   const searchInput = document.getElementById('main-search');
-    const resultsMenu = document.getElementById('search-results');
-    const resultsContainer = document.getElementById('results-container');
-
-    if (searchInput) {
-        searchInput.addEventListener('input', async (e) => {
-            const query = e.target.value;
-
-            if (query.length > 1) {
-                resultsMenu.classList.remove('hidden');
-                
-                try {
-                    // طلب البيانات من السيرفر (الـ View اللي حنعمله)
-                    const response = await fetch(`/attendance/search/?q=${query}`);
-                    const data = await response.json();
-
-                    if (data.results.length > 0) {
-                        // بناء قائمة النتائج الحقيقية
-                        resultsContainer.innerHTML = data.results.map(item => `
-                            <div class="p-3 hover:bg-slate-50 rounded-xl cursor-pointer flex items-center gap-3 transition-all border-b border-slate-50 last:border-0">
-                                <div class="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
-                                    <span class="material-symbols-outlined text-sm">${item.icon}</span>
-                                </div>
-                                <div>
-                                    <p class="text-xs font-bold text-slate-800">${item.title}</p>
-                                    <p class="text-[10px] text-slate-500">${item.sub}</p>
-                                </div>
-                            </div>
-                        `).join('');
-                    } else {
-                        resultsContainer.innerHTML = '<p class="text-xs text-slate-400 p-4 text-center">No results found</p>';
-                    }
-                } catch (error) {
-                    console.error("Search error:", error);
-                }
-            } else {
-                resultsMenu.classList.add('hidden');
-            }
-        });
-    }
-    // إغلاق أي قائمة مفتوحة لو ضغطنا في أي مكان بره
-   window.addEventListener('click', (e) => {
-        if (profileMenu) profileMenu.classList.add('hidden');
-        if (notifMenu) notifMenu.classList.add('hidden');
-        if (resultsMenu && !searchInput.contains(e.target)) {
-            resultsMenu.classList.add('hidden');
+if (searchInput) {
+  let searchTimer;
+  searchInput.addEventListener('input', function() {
+    clearTimeout(searchTimer);
+    const q = this.value.trim();
+    if (q.length < 2) { searchResults.classList.add('hidden'); return; }
+    searchTimer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/attendance/search/?q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        if (data.results && data.results.length > 0) {
+          resultsContainer.innerHTML = data.results.map(item => `
+            <div class="flex items-center gap-3 p-2.5 hover:bg-slate-50 rounded-xl cursor-pointer transition-colors">
+              <div class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+                <span class="material-symbols-outlined text-sm">${item.icon}</span>
+              </div>
+              <div>
+                <p class="text-xs font-bold text-slate-800">${item.title}</p>
+                <p class="text-[10px] text-slate-400">${item.sub}</p>
+              </div>
+            </div>`).join('');
+        } else {
+          resultsContainer.innerHTML = '<p class="text-xs text-slate-400 p-3 text-center">No results found</p>';
         }
-    });
+        searchResults.classList.remove('hidden');
+      } catch(e) {}
+    }, 250);
+  });
+  searchInput.addEventListener('focus', function() {
+    if (this.value.length >= 2) searchResults.classList.remove('hidden');
+  });
+}
+
+// ── Toast helper ──────────────────────────────────────
+function showToast(msg, type = 'info') {
+  const colors = {
+    success: 'bg-emerald-600 text-white',
+    error:   'bg-red-600 text-white',
+    warning: 'bg-amber-500 text-white',
+    info:    'bg-slate-800 text-white',
+  };
+  const icons = { success:'check_circle', error:'error', warning:'warning', info:'info' };
+  const el = document.createElement('div');
+  el.className = `toast flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl text-sm font-semibold max-w-xs ${colors[type] || colors.info}`;
+  el.innerHTML = `<span class="material-symbols-outlined text-lg fill-icon">${icons[type]||'info'}</span><span>${msg}</span>`;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => el.remove(), 4200);
+}
+
+// ── Keyboard shortcut: / focuses search ──────────────
+document.addEventListener('keydown', function(e) {
+  if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+    e.preventDefault();
+    searchInput && searchInput.focus();
+  }
+  if (e.key === 'Escape') {
+    closeSidebar();
+    document.getElementById('notif-menu').classList.add('hidden');
+    document.getElementById('profile-menu').classList.add('hidden');
+  }
+});
 </script>
-</body></html>
+</body>
+</html>

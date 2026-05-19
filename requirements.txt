@@ -1,1 +1,12 @@
 django-apscheduler
+psycopg2-binary
+pgvector
+python-decouple
+cryptography
+deepface
+redis
+django-redis
+whitenoise
+django-axes
+weasyprint
+openpyxl

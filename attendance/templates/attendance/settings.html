@@ -1,119 +1,142 @@
 {% extends 'attendance/base.html' %}
-
+{% block title %}System Settings — ACDC{% endblock %}
 {% block content %}
-<div class="p-8 bg-surface-container-lowest min-h-screen">
-    <header class="mb-10">
-        <h1 class="text-4xl font-extrabold text-on-surface tracking-tight mb-2">System Settings</h1>
-        <p class="text-on-surface-variant font-medium">Manage your account preferences and academic system configurations.</p>
-    </header>
 
-    <div class="grid grid-cols-12 gap-8">
-        <!-- Sidebar Navigation -->
-        <aside class="col-span-12 lg:col-span-3 space-y-2">
-            <button onclick="showTab('account')" id="btn-account" class="tab-btn w-full flex items-center gap-3 px-6 py-4 bg-primary text-on-primary rounded-2xl font-bold transition-all">
-                <span class="material-symbols-outlined">person</span> Account
-            </button>
-            <button onclick="showTab('ai')" id="btn-ai" class="tab-btn w-full flex items-center gap-3 px-6 py-4 hover:bg-surface-container rounded-2xl font-medium text-on-surface-variant transition-all">
-                <span class="material-symbols-outlined">settings_remote</span> AI Configuration
-            </button>
-            <button onclick="showTab('notif')" id="btn-notif" class="tab-btn w-full flex items-center gap-3 px-6 py-4 hover:bg-surface-container rounded-2xl font-medium text-on-surface-variant transition-all">
-                <span class="material-symbols-outlined">notifications</span> Notifications
-            </button>
-            <button onclick="showTab('security')" id="btn-security" class="tab-btn w-full flex items-center gap-3 px-6 py-4 hover:bg-surface-container rounded-2xl font-medium text-on-surface-variant transition-all text-error">
-                <span class="material-symbols-outlined">security</span> Privacy & Security
-            </button>
-        </aside>
+<div class="mb-8">
+  <h1 class="text-2xl font-extrabold text-slate-900 font-headline">System Settings</h1>
+  <p class="text-sm text-slate-500 mt-1">Manage your account preferences and system configurations.</p>
+</div>
 
-        <!-- Main Content Area -->
-        <main class="col-span-12 lg:col-span-9">
-            <form method="POST" action="{% url 'update_settings' %}" class="space-y-8">
-                {% csrf_token %}
-                
-                <!-- Account Section -->
-                <div id="tab-account" class="tab-content space-y-8">
-                    <div class="bg-white rounded-[32px] p-8 border border-surface-container shadow-sm">
-                        <h3 class="font-bold text-xl text-on-surface mb-8">Profile Information</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="space-y-2">
-                                <label class="text-sm font-bold text-on-surface-variant ml-2">Admin Name</label>
-                                <input type="text" name="name" value="{{ user.get_full_name|default:'Admin User' }}" class="w-full p-4 bg-surface-container-lowest border border-surface-container rounded-2xl focus:ring-2 focus:ring-primary focus:outline-none transition-all">
-                            </div>
-                            <div class="space-y-2">
-                                <label class="text-sm font-bold text-on-surface-variant ml-2">Email Address</label>
-                                <input type="email" name="email" value="{{ user.email }}" class="w-full p-4 bg-surface-container-lowest border border-surface-container rounded-2xl focus:ring-2 focus:ring-primary focus:outline-none transition-all">
-                            </div>
-                        </div>
-                    </div>
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+
+  <!-- Tab nav -->
+  <aside class="lg:col-span-1 space-y-1">
+    <button onclick="showTab('account')" id="btn-account"
+      class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all bg-primary text-white">
+      <span class="material-symbols-outlined text-lg">person</span> Account
+    </button>
+    <button onclick="showTab('ai')" id="btn-ai"
+      class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm text-slate-600 hover:bg-slate-100 transition-all">
+      <span class="material-symbols-outlined text-lg">settings_remote</span> AI Config
+    </button>
+    <button onclick="showTab('notif')" id="btn-notif"
+      class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm text-slate-600 hover:bg-slate-100 transition-all">
+      <span class="material-symbols-outlined text-lg">notifications</span> Notifications
+    </button>
+    <button onclick="showTab('security')" id="btn-security"
+      class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm text-red-600 hover:bg-red-50 transition-all">
+      <span class="material-symbols-outlined text-lg">security</span> Privacy & Security
+    </button>
+  </aside>
+
+  <!-- Content -->
+  <main class="lg:col-span-3">
+    <form method="POST" action="{% url 'update_settings' %}" class="space-y-5">
+      {% csrf_token %}
+
+      <!-- Account tab -->
+      <div id="tab-account" class="tab-content space-y-5">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+          <h3 class="font-bold text-slate-800 mb-5">Profile Information</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Full Name</label>
+              <input type="text" name="name" value="{{ user.get_full_name|default:'Admin User' }}"
+                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary/40 outline-none transition-all"/>
+            </div>
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Email Address</label>
+              <input type="email" name="email" value="{{ user.email }}"
+                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary/40 outline-none transition-all"/>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI tab -->
+      <div id="tab-ai" class="tab-content hidden space-y-5">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+          <h3 class="font-bold text-slate-800 mb-5">AI Engine Preferences</h3>
+          <div class="space-y-4">
+            <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-primary text-lg">face</span>
                 </div>
-
-                <!-- AI Section -->
-                <div id="tab-ai" class="tab-content hidden space-y-8">
-                    <div class="bg-white rounded-[32px] p-8 border border-surface-container shadow-sm">
-                        <h3 class="font-bold text-xl text-on-surface mb-8">AI Engine Preferences</h3>
-                        <div class="space-y-6">
-                            <!-- Switch Item -->
-                            <div class="flex items-center justify-between p-4 bg-surface-container-lowest rounded-2xl hover:bg-surface-container-low transition-all">
-                                <div class="flex items-center gap-4">
-                                    <span class="material-symbols-outlined text-primary p-3 bg-primary/10 rounded-xl">face</span>
-                                    <div>
-                                        <p class="font-bold text-on-surface">Live Face Tracking</p>
-                                        <p class="text-xs text-on-surface-variant">Enable real-time biometric scanning during sessions.</p>
-                                    </div>
-                                </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" name="face_tracking" checked class="sr-only peer">
-                                    <div class="w-11 h-6 bg-slate-200 peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-primary after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
-                                </label>
-                            </div>
-
-                            <!-- Switch Item -->
-                            <div class="flex items-center justify-between p-4 bg-surface-container-lowest rounded-2xl hover:bg-surface-container-low transition-all">
-                                <div class="flex items-center gap-4">
-                                    <span class="material-symbols-outlined text-primary p-3 bg-primary/10 rounded-xl">cloud_sync</span>
-                                    <div>
-                                        <p class="font-bold text-on-surface">Auto-Sync Reports</p>
-                                        <p class="text-xs text-on-surface-variant">Automatically upload attendance logs to central server.</p>
-                                    </div>
-                                </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" name="auto_sync" class="sr-only peer">
-                                    <div class="w-11 h-6 bg-slate-200 peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-primary after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
+                <div>
+                  <p class="font-semibold text-slate-800 text-sm">Live Face Tracking</p>
+                  <p class="text-xs text-slate-400">Enable real-time biometric scanning during sessions.</p>
                 </div>
-
-                <!-- Action Buttons -->
-                <div class="flex justify-end gap-4 pt-4">
-                    <button type="button" onclick="location.reload()" class="px-8 py-4 text-on-surface font-bold hover:bg-surface-container rounded-2xl transition-all">Cancel</button>
-                    <button type="submit" class="px-8 py-4 bg-primary text-on-primary font-bold rounded-2xl shadow-lg hover:shadow-primary/30 hover:-translate-y-1 transition-all active:scale-95">Save Changes</button>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" name="face_tracking" checked class="sr-only peer">
+                <div class="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:bg-primary after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:border-slate-300 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
+              </label>
+            </div>
+            <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-primary text-lg">cloud_sync</span>
                 </div>
-            </form>
-        </main>
-    </div>
+                <div>
+                  <p class="font-semibold text-slate-800 text-sm">Auto-Sync Reports</p>
+                  <p class="text-xs text-slate-400">Automatically upload attendance logs to central server.</p>
+                </div>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" name="auto_sync" class="sr-only peer">
+                <div class="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:bg-primary after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:border-slate-300 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notifications tab -->
+      <div id="tab-notif" class="tab-content hidden">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+          <h3 class="font-bold text-slate-800 mb-5">Notification Preferences</h3>
+          <p class="text-sm text-slate-400">Notification settings coming soon.</p>
+        </div>
+      </div>
+
+      <!-- Security tab -->
+      <div id="tab-security" class="tab-content hidden">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+          <h3 class="font-bold text-slate-800 mb-5">Privacy & Security</h3>
+          <p class="text-sm text-slate-400">Security settings coming soon.</p>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex justify-end gap-3 pt-2">
+        <button type="button" onclick="location.reload()"
+          class="px-5 py-2.5 text-slate-600 font-semibold text-sm hover:bg-slate-100 rounded-xl transition-all">Cancel</button>
+        <button type="submit"
+          class="px-5 py-2.5 bg-primary text-white font-bold text-sm rounded-xl hover:bg-primary-container transition-all shadow-sm">Save Changes</button>
+      </div>
+    </form>
+  </main>
 </div>
 
 <script>
-    function showTab(tabName) {
-        // Hide all tab content
-        document.querySelectorAll('.tab-content').forEach(tab => {
-            tab.classList.add('hidden');
-        });
-        
-        // Show selected tab content
-        document.getElementById('tab-' + tabName).classList.remove('hidden');
-
-        // Reset all button styles
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.classList.remove('bg-primary', 'text-on-primary', 'font-bold');
-            btn.classList.add('hover:bg-surface-container', 'text-on-surface-variant', 'font-medium');
-        });
-
-        // Apply active style to clicked button
-        const activeBtn = document.getElementById('btn-' + tabName);
-        activeBtn.classList.remove('hover:bg-surface-container', 'text-on-surface-variant', 'font-medium');
-        activeBtn.classList.add('bg-primary', 'text-on-primary', 'font-bold');
-    }
+function showTab(name) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+  document.getElementById('tab-' + name).classList.remove('hidden');
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.className = b.className
+      .replace('bg-primary text-white font-bold', '')
+      .replace('bg-red-50', '')
+      + ' text-slate-600 hover:bg-slate-100 font-medium';
+  });
+  const btn = document.getElementById('btn-' + name);
+  btn.classList.remove('text-slate-600', 'hover:bg-slate-100', 'font-medium');
+  if (name === 'security') {
+    btn.classList.add('bg-red-50', 'text-red-600', 'font-bold');
+  } else {
+    btn.classList.add('bg-primary', 'text-white', 'font-bold');
+  }
+}
 </script>
+
 {% endblock %}
