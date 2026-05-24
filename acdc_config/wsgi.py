@@ -1,5 +1,5 @@
 """
-WSGI config for acdc_config project.
+WSGI config for SHAMEL (Secure High-dimensional Academic Management & Entry Logic).
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 

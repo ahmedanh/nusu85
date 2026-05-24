@@ -1,58 +1,201 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Student Attendance Report</title>
-    <style>
-        body { font-family: sans-serif; background-color: #f8f9fa; padding: 20px; }
-        .container { background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        h1 { color: #333; }
-        form { margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
-        input, select, button { padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
-        button { background-color: #007bff; color: white; border: none; cursor: pointer; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #dee2e6; padding: 12px; text-align: left; }
-        th { background-color: #f1f3f5; }
-        .btn-export { background-color: #28a745; margin-bottom: 20px; display: inline-block; padding: 10px 15px; color: white; text-decoration: none; border-radius: 5px; }
-    </style>
-</head>
-<body>
-<div class="container">
-    <h1>Student Attendance Report</h1>
-    
-    <form method="GET">
-        <input type="text" name="student_id" placeholder="Student ID" value="{{ request.GET.student_id }}">
-        <input type="text" name="course_id" placeholder="Course ID" value="{{ request.GET.course_id }}">
-        <input type="date" name="date_from" value="{{ request.GET.date_from }}">
-        <input type="date" name="date_to" value="{{ request.GET.date_to }}">
-        <button type="submit">Filter</button>
-        <a href="{% url 'student_report' %}" style="padding: 8px; text-decoration: none; background: #6c757d; color: white; border-radius: 4px;">Clear</a>
-    </form>
+{% extends 'attendance/base.html' %}
+{% block title %}تقرير الحضور — SHAMEL{% endblock %}
+{% block content %}
 
-    <a href="{% url 'export_student_csv' %}?{{ request.GET.urlencode }}" class="btn-export">Export to CSV</a>
+<div class="space-y-6">
 
-    <table>
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">تقرير حضور الطلاب</h1>
+      <p class="text-sm text-slate-500 mt-0.5">
+        {% if below_threshold > 0 %}
+        <span class="text-red-600 font-bold">{{ below_threshold }} طالب</span> أقل من 75% حضور
+        {% else %}
+        جميع الطلاب ضمن الحد المقبول
+        {% endif %}
+      </p>
+    </div>
+    <div class="flex gap-2 flex-wrap">
+      <button onclick="exportReport('csv')"
+         class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm px-4 py-2.5 rounded-xl transition-all shadow-sm">
+        <span class="material-symbols-outlined text-base">download</span> CSV
+      </button>
+      <button onclick="exportReport('excel')"
+         class="inline-flex items-center gap-2 bg-green-700 hover:bg-green-800 text-white font-bold text-sm px-4 py-2.5 rounded-xl transition-all shadow-sm">
+        <span class="material-symbols-outlined text-base">table_view</span> Excel
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <form method="get" id="filter-form" class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-5 space-y-4">
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+
+      {% if is_admin %}
+      <div>
+        <label class="label-xs">الكلية</label>
+        <select name="college_id" class="inp" onchange="this.form.submit()">
+          <option value="">الكل</option>
+          {% for c in colleges %}
+          <option value="{{ c.college_id }}" {% if filters.college_id == c.college_id|stringformat:"s" %}selected{% endif %}>{{ c.college_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+
+      <div>
+        <label class="label-xs">القسم</label>
+        <select name="department_id" class="inp">
+          <option value="">الكل</option>
+          {% for d in departments %}
+          <option value="{{ d.id }}" {% if filters.department_id == d.id|stringformat:"s" %}selected{% endif %}>{{ d.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="label-xs">السنة الدراسية</label>
+        <select name="year_level" class="inp">
+          <option value="">الكل</option>
+          {% for y in year_choices %}
+          <option value="{{ y }}" {% if filters.year_level == y|stringformat:"s" %}selected{% endif %}>السنة {{ y }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="label-xs">المادة</label>
+        <select name="course_id" class="inp">
+          <option value="">الكل</option>
+          {% for c in courses %}
+          <option value="{{ c.id }}" {% if filters.course_id == c.id|stringformat:"s" %}selected{% endif %}>{{ c.title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="label-xs">الفصل</label>
+        <select name="semester" class="inp">
+          <option value="">الكل</option>
+          {% for s in semesters %}
+          <option value="{{ s }}" {% if filters.semester == s %}selected{% endif %}>الفصل {{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="label-xs">الحالة</label>
+        <select name="status" class="inp">
+          <option value="">الكل</option>
+          <option value="Present" {% if filters.status == 'Present' %}selected{% endif %}>حاضر</option>
+          <option value="Absent"  {% if filters.status == 'Absent'  %}selected{% endif %}>غائب</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="label-xs">من تاريخ</label>
+        <input type="date" name="date_from" value="{{ filters.date_from }}" class="inp">
+      </div>
+
+      <div>
+        <label class="label-xs">إلى تاريخ</label>
+        <input type="date" name="date_to" value="{{ filters.date_to }}" class="inp">
+      </div>
+
+      <div>
+        <label class="label-xs">الدفعة</label>
+        <input type="text" name="batch" value="{{ filters.batch }}" placeholder="مثال: 2023" class="inp">
+      </div>
+
+    </div>
+    <div class="flex gap-2">
+      <button type="submit" class="px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary-container transition-all">
+        <span class="material-symbols-outlined text-sm align-middle">search</span> بحث
+      </button>
+      <a href="{% url 'student_report' %}" class="px-5 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-sm font-bold rounded-xl hover:bg-slate-200 transition-all flex items-center gap-1">
+        <span class="material-symbols-outlined text-sm">close</span> مسح
+      </a>
+    </div>
+  </form>
+
+  <!-- Summary Table -->
+  {% if summary %}
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700">
+      <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm">ملخص الحضور — {{ summary|length }} طالب</h2>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
         <thead>
-            <tr>
-                <th>Student</th>
-                <th>Course</th>
-                <th>Date</th>
-                <th>Status</th>
-            </tr>
+          <tr class="bg-slate-50 dark:bg-slate-900/40 text-xs uppercase text-slate-500 dark:text-slate-400">
+            <th class="px-4 py-3 text-right font-bold">#</th>
+            <th class="px-4 py-3 text-right font-bold">اسم الطالب</th>
+            <th class="px-4 py-3 text-center font-bold">القسم</th>
+            <th class="px-4 py-3 text-center font-bold">حاضر</th>
+            <th class="px-4 py-3 text-center font-bold">غائب</th>
+            <th class="px-4 py-3 text-center font-bold">الإجمالي</th>
+            <th class="px-4 py-3 text-center font-bold">نسبة الحضور</th>
+            <th class="px-4 py-3 text-center font-bold">الحالة</th>
+          </tr>
         </thead>
-        <tbody>
-            {% for log in logs %}
-            <tr>
-                <td>{{ log.student.name }}</td>
-                <td>{{ log.schedule.course.title|default:"N/A" }}</td>
-                <td>{{ log.timestamp|date:"Y-m-d H:i:s" }}</td>
-                <td>{{ log.status }}</td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="4">No records found.</td></tr>
-            {% endfor %}
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+          {% for row in summary %}
+          <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/40 {% if row.flag %}bg-red-50/60 dark:bg-red-900/10{% endif %}">
+            <td class="px-4 py-3 text-slate-400 text-xs">{{ forloop.counter }}</td>
+            <td class="px-4 py-3 font-semibold text-slate-800 dark:text-slate-200">
+              {{ row.student.name }}
+              {% if row.flag %}<span class="ms-2 text-[10px] font-bold bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full">تحذير</span>{% endif %}
+            </td>
+            <td class="px-4 py-3 text-center text-slate-500">{{ row.student.department.name|default:"—" }}</td>
+            <td class="px-4 py-3 text-center font-bold text-emerald-600">{{ row.present }}</td>
+            <td class="px-4 py-3 text-center font-bold text-red-500">{{ row.absent }}</td>
+            <td class="px-4 py-3 text-center text-slate-600 dark:text-slate-300">{{ row.total }}</td>
+            <td class="px-4 py-3 text-center">
+              <div class="flex items-center justify-center gap-2">
+                <div class="w-20 h-2 rounded-full bg-slate-200 dark:bg-slate-600 overflow-hidden">
+                  <div class="h-full rounded-full {% if row.pct >= 75 %}bg-emerald-500{% elif row.pct >= 65 %}bg-amber-400{% else %}bg-red-500{% endif %}"
+                       style="width: {{ row.pct }}%"></div>
+                </div>
+                <span class="font-bold text-xs {% if row.pct >= 75 %}text-emerald-600{% elif row.pct >= 65 %}text-amber-500{% else %}text-red-600{% endif %}">{{ row.pct }}%</span>
+              </div>
+            </td>
+            <td class="px-4 py-3 text-center">
+              {% if row.flag %}
+              <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400">راسب</span>
+              {% else %}
+              <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">ناجح</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
         </tbody>
-    </table>
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 py-16 text-center">
+    <span class="material-symbols-outlined text-5xl text-slate-200 dark:text-slate-600">person_search</span>
+    <p class="text-slate-400 mt-3 font-semibold">لا توجد بيانات حضور بهذه المعايير</p>
+  </div>
+  {% endif %}
+
 </div>
-</body>
-</html>
+
+<style>
+  .label-xs { @apply block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5; }
+  .inp { @apply w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-3 py-2.5 text-sm font-medium dark:text-white focus:ring-2 focus:ring-primary/20 outline-none transition-all; }
+</style>
+
+<script>
+function exportReport(fmt) {
+  const params = new URLSearchParams(document.getElementById('filter-form').querySelectorAll('select,input').length
+    ? Object.fromEntries(new FormData(document.getElementById('filter-form')))
+    : {});
+  if (fmt === 'csv') {
+    window.location.href = '{% url "export_student_csv" %}?' + new URLSearchParams(window.location.search).toString();
+  } else {
+    window.location.href = '{% url "export_attendance_excel" %}?' + new URLSearchParams(window.location.search).toString();
+  }
+}
+</script>
+{% endblock %}

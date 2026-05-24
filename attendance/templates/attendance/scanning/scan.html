@@ -44,11 +44,14 @@
 
             <div class="mb-4">
                 <label for="camera-select" class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 block text-center">Camera Source</label>
-                <select id="camera-select" onchange="updateCamera()" class="bg-white border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-primary focus:border-primary block w-48 p-2 text-center shadow-sm">
-                    <option value="0">Default (Index 0)</option>
-                    <option value="1">External (Index 1)</option>
-                    <option value="2">External (Index 2)</option>
-                    <option value="3">External (Index 3)</option>
+                <select id="camera-select" onchange="updateCamera()" class="bg-white border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-primary focus:border-primary block w-56 p-2 text-center shadow-sm">
+                  {% for cam in camera_sources %}
+                  <option value="{{ cam.id }}">{{ cam.name }} — {{ cam.location }}</option>
+                  {% empty %}
+                  <option value="0">Camera 0 (Default)</option>
+                  <option value="1">Camera 1 (USB)</option>
+                  <option value="2">Camera 2 (USB)</option>
+                  {% endfor %}
                 </select>
             </div>
 
@@ -112,9 +115,9 @@
 
 <script>
     function updateCamera() {
-        const camIdx = document.getElementById('camera-select').value;
+        const src = document.getElementById('camera-select').value;
         const videoStream = document.getElementById('main-video-stream');
-        videoStream.src = `/attendance/video_feed/?camera=${camIdx}`;
+        videoStream.src = `/attendance/video_feed/?source=${src}`;
     }
 
     // الدوال الخاصة بـ JavaScript (تأكدي أنها كما هي)

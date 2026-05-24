@@ -1,0 +1,172 @@
+{% extends 'attendance/base.html' %}
+{% block title %}إضافة جدول محاضرة — SHAMEL{% endblock %}
+{% block content %}
+
+<div class="max-w-2xl mx-auto space-y-6">
+
+  <div class="flex items-center gap-4">
+    <a href="{% url 'schedule' %}"
+      class="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-slate-500 hover:text-slate-800 transition-all shadow-sm">
+      <span class="material-symbols-outlined text-lg">arrow_back</span>
+    </a>
+    <div>
+      <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">إضافة محاضرة للجدول</h1>
+      {% if coordinator %}<p class="text-sm text-slate-500 mt-0.5">كلية: <span class="font-bold text-primary">{{ coordinator.college }}</span></p>{% endif %}
+    </div>
+  </div>
+
+  <!-- Conflict warning box -->
+  <div id="conflict-box" class="hidden rounded-2xl p-4 border">
+    <div class="flex items-start gap-3">
+      <span class="material-symbols-outlined text-xl mt-0.5">warning</span>
+      <div class="space-y-1.5 text-sm font-semibold" id="conflict-details"></div>
+    </div>
+  </div>
+
+  <form method="post" id="sched-form" class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+    {% csrf_token %}
+
+    <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary">calendar_month</span>
+      <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm">بيانات المحاضرة</h2>
+    </div>
+
+    <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+
+      <div class="md:col-span-2">
+        <label class="label-xs">المادة الدراسية *</label>
+        <select name="course_id" required class="inp" onchange="checkConflict()">
+          <option value="">— اختر المادة —</option>
+          {% for c in courses %}
+          <option value="{{ c.id }}">{{ c.course_code }} — {{ c.title }}
+            {% if c.college %} ({{ c.college.college_name }}){% endif %}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="label-xs">الأستاذ *</label>
+        <select name="teacher_id" required id="teacher-sel" class="inp" onchange="checkConflict()">
+          <option value="">— اختر الأستاذ —</option>
+          {% for t in teachers %}
+          <option value="{{ t.teacher_id }}">{{ t.academic_degree }} {{ t.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="label-xs">القاعة *</label>
+        <select name="classroom_id" required id="room-sel" class="inp" onchange="checkConflict()">
+          <option value="">— اختر القاعة —</option>
+          {% for r in classrooms %}
+          <option value="{{ r.id }}">{{ r.name }} ({{ r.capacity }} مقعد — {{ r.classroom_type }})</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="label-xs">اليوم *</label>
+        <select name="day_of_week" required id="day-sel" class="inp" onchange="checkConflict()">
+          <option value="">— اختر اليوم —</option>
+          {% for d in days %}
+          <option value="{{ d }}">
+            {% if d == 'Saturday' %}السبت{% elif d == 'Sunday' %}الأحد{% elif d == 'Monday' %}الاثنين
+            {% elif d == 'Tuesday' %}الثلاثاء{% elif d == 'Wednesday' %}الأربعاء{% elif d == 'Thursday' %}الخميس
+            {% else %}الجمعة{% endif %}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 md:col-span-1">
+        <div>
+          <label class="label-xs">من</label>
+          <input type="time" name="start_time" required id="start-time" class="inp" onchange="checkConflict()">
+        </div>
+        <div>
+          <label class="label-xs">إلى</label>
+          <input type="time" name="end_time" required id="end-time" class="inp" onchange="checkConflict()">
+        </div>
+      </div>
+
+      <div>
+        <label class="label-xs">الدفعة (Batch)</label>
+        <input type="text" name="batch" placeholder="مثال: 2023 أو CS-2023" class="inp">
+      </div>
+
+      <div>
+        <label class="label-xs">الفصل الدراسي</label>
+        <select name="semester" class="inp">
+          {% for s in semesters %}
+          <option value="{{ s }}">الفصل {{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="label-xs">عدد المحاضرات المطلوبة</label>
+        <input type="number" name="total_lectures_required" value="14" min="1" max="30" class="inp">
+      </div>
+
+    </div>
+
+    <div class="px-6 pb-6 flex gap-3">
+      <button type="submit" id="submit-btn"
+        class="inline-flex items-center gap-2 bg-primary hover:bg-primary-container text-white font-bold text-sm px-6 py-3 rounded-xl transition-all shadow-sm">
+        <span class="material-symbols-outlined text-base">save</span> إضافة للجدول
+      </button>
+      <a href="{% url 'schedule' %}"
+        class="inline-flex items-center gap-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-sm px-5 py-3 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-all">
+        إلغاء
+      </a>
+    </div>
+  </form>
+</div>
+
+<style>
+  .label-xs { @apply block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5; }
+  .inp { @apply w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm font-medium dark:text-white focus:ring-2 focus:ring-primary/20 outline-none transition-all; }
+</style>
+
+<script>
+let conflictTimer = null;
+const conflictBox = document.getElementById('conflict-box');
+const conflictDetails = document.getElementById('conflict-details');
+const submitBtn = document.getElementById('submit-btn');
+
+async function checkConflict() {
+  clearTimeout(conflictTimer);
+  conflictTimer = setTimeout(async () => {
+    const teacher = document.getElementById('teacher-sel').value;
+    const room    = document.getElementById('room-sel').value;
+    const day     = document.getElementById('day-sel').value;
+    const start   = document.getElementById('start-time').value;
+    const end     = document.getElementById('end-time').value;
+
+    if (!teacher || !day || !start || !end) return;
+
+    const params = new URLSearchParams({ teacher_id: teacher, classroom_id: room, day, start, end });
+    try {
+      const data = await fetch('/attendance/api/check-conflict/?' + params).then(r => r.json());
+      const issues = [];
+      if (data.teacher_conflict) issues.push('<span class="text-amber-700 dark:text-amber-300">⚠ تعارض الأستاذ: ' + data.teacher_msg + '</span>');
+      if (data.room_conflict)    issues.push('<span class="text-red-700 dark:text-red-300">⚠ تعارض القاعة: ' + data.room_msg + '</span>');
+
+      if (issues.length > 0) {
+        conflictBox.className = 'rounded-2xl p-4 border bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700 text-amber-800';
+        conflictBox.querySelector('span').textContent = 'warning';
+        conflictDetails.innerHTML = issues.join('<br>');
+        conflictBox.classList.remove('hidden');
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      } else {
+        conflictBox.classList.add('hidden');
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+    } catch(e) {}
+  }, 400);
+}
+</script>
+{% endblock %}
