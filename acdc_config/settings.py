@@ -63,27 +63,37 @@ WSGI_APPLICATION = 'acdc_config.wsgi.application'
 ASGI_APPLICATION = 'acdc_config.asgi.application'
 
 # ─────────────────────────────────────────────
-# DATABASE — Remote VPS PostgreSQL
+# DATABASE — Remote VPS PostgreSQL  (SQLite offline fallback)
+# Set USE_LOCAL_DB=True in .env to use SQLite (when VPS is unreachable)
 # ─────────────────────────────────────────────
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DATABASE_NAME'),
-        'USER': config('DATABASE_USER'),
-        'PASSWORD': config('DATABASE_PASSWORD'),
-        'HOST': config('DATABASE_HOST', default='localhost'),
-        'PORT': config('DATABASE_PORT', default='5432'),
-        # Persistent connection — eliminates 1-second TCP handshake to remote VPS on every request
-        'CONN_MAX_AGE': None,  # None = permanent (thread-local persistent connection)
-        'OPTIONS': {
-            'connect_timeout': 15,
-            'keepalives': 1,
-            'keepalives_idle': 30,
-            'keepalives_interval': 5,
-            'keepalives_count': 5,
-        },
+_USE_LOCAL = config('USE_LOCAL_DB', default=False, cast=bool)
+
+if _USE_LOCAL:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db_local.sqlite3',
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': config('DATABASE_NAME'),
+            'USER': config('DATABASE_USER'),
+            'PASSWORD': config('DATABASE_PASSWORD'),
+            'HOST': config('DATABASE_HOST', default='localhost'),
+            'PORT': config('DATABASE_PORT', default='5432'),
+            'CONN_MAX_AGE': None,
+            'OPTIONS': {
+                'connect_timeout': 10,
+                'keepalives': 1,
+                'keepalives_idle': 30,
+                'keepalives_interval': 5,
+                'keepalives_count': 5,
+            },
+        }
+    }
 
 
 # ─────────────────────────────────────────────

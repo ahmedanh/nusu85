@@ -2,6 +2,16 @@
 {% block content %}
 <div class="space-y-6" dir="rtl">
 
+  {% if db_error %}
+  <div class="rounded-2xl p-5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 flex items-center gap-3">
+    <span class="material-symbols-outlined text-red-500 text-2xl">cloud_off</span>
+    <div>
+      <div class="font-bold text-red-700 dark:text-red-300">تعذّر الاتصال بقاعدة البيانات</div>
+      <div class="text-sm text-red-600 dark:text-red-400">{{ db_error_msg }}</div>
+    </div>
+  </div>
+  {% endif %}
+
   <div class="flex items-center justify-between">
     <div>
       <h1 class="text-2xl font-bold font-headline text-slate-900">حالة القاعات</h1>

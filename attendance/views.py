@@ -1047,13 +1047,40 @@ def student_dashboard(request):
 @login_required
 def student_profile(request):
     student = get_object_or_404(Student, auth_user=request.user)
+    # gender, nationality, blood_type are DB-only fields (not in model)
+    gender_val = '—'
+    nationality_val = ''
+    blood_type_val = ''
+    try:
+        with connection.cursor() as cur:
+            cur.execute(
+                'SELECT gender, nationality, blood_type FROM attendance_student WHERE id=%s',
+                [student.pk]
+            )
+            row = cur.fetchone()
+            if row:
+                g, nat, bt = row
+                GENDER_MAP = {'M': 'ذكر', 'F': 'أنثى'}
+                gender_val = GENDER_MAP.get(g or '', g or '—') or '—'
+                nationality_val = nat or ''
+                blood_type_val = bt or ''
+    except Exception:
+        pass
+    college_name = '—'
+    try:
+        if student.department and student.department.college:
+            college_name = student.department.college.college_name
+    except Exception:
+        pass
     student_fields = [
         ('الاسم', student.name),
         ('رقم الطالب', student.student_code),
         ('القسم', student.department.name if student.department else '—'),
-        ('الكلية', student.college.college_name if hasattr(student, 'college') and student.college else '—'),
-        ('الجنس', student.gender or '—'),
+        ('الكلية', college_name),
+        ('الجنس', gender_val),
         ('الدفعة', student.batch or '—'),
+        ('الجنسية', nationality_val or '—'),
+        ('فصيلة الدم', blood_type_val or '—'),
     ]
     return render(request, 'attendance/student_profile.html', {
         'student': student,
@@ -1064,9 +1091,69 @@ def student_profile(request):
 @login_required
 def student_courses(request):
     student = get_object_or_404(Student, auth_user=request.user)
+    # My enrolled courses
     enrollments = Enrollment.objects.filter(student=student).select_related('course', 'classroom')
+    enrolled_ids = enrollments.values_list('course_id', flat=True)
+
+    # All courses in student's college/department for browsing
+    college = None
+    try:
+        if student.department and student.department.college:
+            college = student.department.college
+    except Exception:
+        pass
+
+    all_courses_qs = Course.objects.select_related('department', 'college')
+    if college:
+        all_courses_qs = all_courses_qs.filter(college=college)
+
+    # Filters
+    dept_filter  = request.GET.get('dept', '')
+    type_filter  = request.GET.get('ctype', '')
+    search_q     = request.GET.get('q', '').strip()
+
+    if dept_filter:
+        all_courses_qs = all_courses_qs.filter(department_id=dept_filter)
+    if type_filter:
+        # course_type is DB-only — filter via raw SQL id list
+        try:
+            with connection.cursor() as cur:
+                cur.execute(
+                    "SELECT id FROM attendance_course WHERE course_type=%s", [type_filter]
+                )
+                ids = [r[0] for r in cur.fetchall()]
+            all_courses_qs = all_courses_qs.filter(id__in=ids)
+        except Exception:
+            pass
+    if search_q:
+        all_courses_qs = all_courses_qs.filter(name__icontains=search_q)
+
+    # Attach course_type from DB
+    course_type_map = {}
+    try:
+        with connection.cursor() as cur:
+            cur.execute("SELECT id, course_type FROM attendance_course")
+            course_type_map = {r[0]: r[1] for r in cur.fetchall()}
+    except Exception:
+        pass
+
+    all_courses = list(all_courses_qs.order_by('name'))
+    for c in all_courses:
+        c.course_type_val = course_type_map.get(c.pk, '')
+
+    departments = Department.objects.all().order_by('name')
+    if college:
+        departments = departments.filter(college=college)
+
     return render(request, 'attendance/student_courses.html', {
-        'student': student, 'enrollments': enrollments,
+        'student': student,
+        'enrollments': enrollments,
+        'enrolled_ids': list(enrolled_ids),
+        'all_courses': all_courses,
+        'departments': departments,
+        'dept_filter': dept_filter,
+        'type_filter': type_filter,
+        'search_q': search_q,
     })
 
 
@@ -1819,7 +1906,8 @@ def create_ticket(request):
 
     if request.method == 'POST':
         subject  = request.POST.get('subject', '').strip()
-        body     = request.POST.get('body', '').strip()
+        # form sends 'description', fallback to 'body' for compatibility
+        body     = (request.POST.get('description') or request.POST.get('body', '')).strip()
         priority = request.POST.get('priority', 'medium')
 
         if not subject or not body:
@@ -1828,6 +1916,40 @@ def create_ticket(request):
             ticket = SupportTicket.objects.create(
                 user=user, subject=subject, body=body, priority=priority,
             )
+            # Notify admin users
+            admin_users = User.objects.filter(is_staff=True)
+            for admin_u in admin_users:
+                try:
+                    Notification.objects.create(
+                        user=admin_u,
+                        title=f'بلاغ جديد #{ticket.id}',
+                        message=f'{user.get_full_name() or user.username} رفع بلاغاً: {subject}',
+                        notif_type='warning',
+                    )
+                except Exception:
+                    pass
+            # Notify coordinator of the student/teacher college
+            try:
+                college = None
+                if Student.objects.filter(auth_user=user).exists():
+                    st = Student.objects.get(auth_user=user)
+                    if st.department and st.department.college_id:
+                        college = st.department.college
+                if college is None and Teacher.objects.filter(auth_user=user).exists():
+                    tc = Teacher.objects.get(auth_user=user)
+                    college = tc.college if hasattr(tc, 'college') else None
+                if college:
+                    coords = Coordinator.objects.filter(college=college)
+                    for coord in coords:
+                        if coord.auth_user:
+                            Notification.objects.create(
+                                user=coord.auth_user,
+                                title=f'بلاغ جديد #{ticket.id}',
+                                message=f'{user.get_full_name() or user.username} رفع بلاغاً: {subject}',
+                                notif_type='warning',
+                            )
+            except Exception:
+                pass
             messages.success(request, f'تم رفع البلاغ #{ticket.id} بنجاح.')
             return redirect('ticket_detail', ticket_id=ticket.id)
 
@@ -2472,18 +2594,25 @@ def teacher_profile_view(request):
 
 @login_required
 def classrooms_status_view(request):
-    now = timezone.now()
-    classrooms = Classroom.objects.all().order_by('name')
-    classroom_data = []
-    for room in classrooms:
-        current_sched = Schedule.objects.filter(
-            classroom=room,
-            day_of_week=now.strftime('%A'),
-            start_time__lte=now.time(),
-            end_time__gte=now.time()
-        ).select_related('course', 'teacher').first()
-        classroom_data.append({'room': room, 'current_schedule': current_sched})
-    return render(request, 'attendance/classrooms_status.html', {'classroom_data': classroom_data})
+    try:
+        now = timezone.now()
+        classrooms = Classroom.objects.all().order_by('name')
+        classroom_data = []
+        for room in classrooms:
+            current_sched = Schedule.objects.filter(
+                classroom=room,
+                day_of_week=now.strftime('%A'),
+                start_time__lte=now.time(),
+                end_time__gte=now.time()
+            ).select_related('course', 'teacher').first()
+            classroom_data.append({'room': room, 'current_schedule': current_sched})
+        return render(request, 'attendance/classrooms_status.html', {'classroom_data': classroom_data, 'db_error': False})
+    except Exception as e:
+        return render(request, 'attendance/classrooms_status.html', {
+            'classroom_data': [],
+            'db_error': True,
+            'db_error_msg': 'تعذّر الاتصال بقاعدة البيانات. تحقق من الاتصال بالشبكة.',
+        })
 
 
 @login_required

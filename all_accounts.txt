@@ -1,0 +1,50 @@
+ADMIN|admin|Admin@NUSU2026!
+GATE|gate|Gate@NUSU2026!
+COLLEGE=4|الكلية التأسيسية العامة
+  COORD|NO_COORD|Coord@NUSU2026!
+  TEACHER|tchr_4|ACDC@محمد|محمد دريج
+  STUDENT|std_4|ACDC@ربى|ربى إبراهيم|NU-17854
+COLLEGE=5|كلية الطب والجراحة
+  COORD|coord_med|Coord@NUSU2026!
+  TEACHER|tchr_5|ACDC@رنا|رنا الرشيد
+  STUDENT|std_5|ACDC@رامي|رامي حسين|NU-81122
+COLLEGE=6|كلية الصيدلة السريرية والصناعية
+  COORD|coord_pha|Coord@NUSU2026!
+  TEACHER|tchr_6|ACDC@منصور|منصور عمر
+  STUDENT|std_6|ACDC@جمال|جمال دريج|NU-81316
+COLLEGE=7|كلية طب وجراحة الأسنان
+  COORD|coord_den|Coord@NUSU2026!
+  TEACHER|tchr_7|ACDC@جمال|جمال منصور
+  STUDENT|std_7|ACDC@نور|نور فرح|NU-94810
+COLLEGE=8|كلية علوم الراديوجرافيا والتصوير الطبي
+  COORD|coord_rad|Coord@NUSU2026!
+  TEACHER|tchr_8|ACDC@إيمان|إيمان الأمين
+  STUDENT|std_8|ACDC@نيلى|نيلى عبدالله|NU-43386
+COLLEGE=9|كلية علوم المختبرات الطبية
+  COORD|coord_mls|Coord@NUSU2026!
+  TEACHER|tchr_9|ACDC@دينا|دينا مدني
+  STUDENT|std_9|ACDC@هبة|هبة تيجاني|NU-13988
+COLLEGE=10|كلية العلاج الطبيعي
+  COORD|coord_phy|Coord@NUSU2026!
+  TEACHER|tchr_10|ACDC@مريم|مريم محمد
+  STUDENT|std_10|ACDC@ناصر|ناصر ميرغني|NU-38002
+COLLEGE=11|كلية علوم الحاسوب وتقنية المعلومات
+  COORD|coord_csi|Coord@NUSU2026!
+  TEACHER|tchr_11|ACDC@طارق|طارق بابكر
+  STUDENT|std_11|ACDC@أنس|أنس ودعة|NU-93909
+COLLEGE=12|كلية العلوم الإدارية
+  COORD|coord_adm|Coord@NUSU2026!
+  TEACHER|tchr_12|ACDC@هدى|هدى نور
+  STUDENT|std_12|ACDC@فاطمة|فاطمة جبريل|NU-12838
+COLLEGE=13|كلية الهندسة والعمارة
+  COORD|coordinator_demo|Coord@NUSU2026!
+  TEACHER|tchr_13|ACDC@Dr.|Dr. Ahmed Al-Rashid
+  STUDENT|std_13|ACDC@Sara|Sara Mohammed|CS-2024-001
+COLLEGE=14|كلية علوم التمريض والتوليد
+  COORD|coord_nur|Coord@NUSU2026!
+  TEACHER|tchr_14|ACDC@سامي|سامي الشيخ
+  STUDENT|std_14|ACDC@وليد|وليد عمر|NU-31963
+COLLEGE=15|العلاقات الدولية والدراسات الدبلوماسية
+  COORD|coord_ird|Coord@NUSU2026!
+  TEACHER|tchr_15|ACDC@يوسف|يوسف ميرغني
+  STUDENT|std_15|ACDC@فاطمة|فاطمة مكاوي|NU-16714
