@@ -616,6 +616,105 @@ function toggleTheme() {
   document.getElementById('theme-icon').textContent = t === 'dark' ? 'light_mode' : 'dark_mode';
 })();
 
+// ── Arabic translation dictionary ────────────
+const AR = {
+  // Page titles / headings
+  'Faculty Management':'إدارة الكليات','Professor Dashboard':'لوحة الأستاذ',
+  'Teacher Dashboard':'لوحة الأستاذ','Admin Control Panel':'لوحة التحكم',
+  'Control Panel':'لوحة التحكم','Gate Verification':'التحقق عند البوابة',
+  'Gate':'البوابة','Reports':'التقارير','Schedule':'الجدول الدراسي',
+  'Courses':'المقررات','Students':'الطلاب','Teachers':'الأساتذة',
+  'Classrooms':'القاعات','Settings':'الإعدادات','Dashboard':'لوحة المعلومات',
+  'Attendance Logs':'سجلات الحضور','Notifications':'الإشعارات',
+  'Exam Planner':'مخطط الامتحانات','Departments':'الأقسام',
+  'Search Results':'نتائج البحث','My Profile':'ملفي الشخصي',
+  'Audit Log':'سجل التدقيق','Tickets':'التذاكر','Grading':'التقييم',
+  'Batch Grading':'التقييم الجماعي','Excuse Portal':'بوابة الأعذار',
+  'Course Analytics':'تحليلات المقرر','Classrooms Status':'حالة القاعات',
+  'Classroom Status':'حالة القاعة','Gate Reports':'تقارير البوابة',
+  'Onboarding':'الإعداد الأولي','Register User':'تسجيل مستخدم',
+  'Faculty Timeline':'الجدول الزمني للكلية','Teacher Permissions':'صلاحيات الأستاذ',
+  'Teacher Attendance Records':'سجل حضور الأستاذ',
+  'Student Schedule':'جدول الطالب','Course Evaluation':'تقييم المقرر',
+  'Exam Seating Chart':'خريطة جلوس الامتحان','Excuse Approval':'موافقة الأعذار',
+  // Actions
+  'Add Student':'إضافة طالب','Add Teacher':'إضافة أستاذ',
+  'Add Course':'إضافة مقرر','Add Classroom':'إضافة قاعة',
+  'Add Schedule':'إضافة جدول','Register Student':'تسجيل طالب',
+  'Register Teacher':'تسجيل أستاذ','Edit Student':'تعديل بيانات الطالب',
+  'Edit Teacher':'تعديل بيانات الأستاذ','Edit Course':'تعديل المقرر',
+  'Edit Classroom':'تعديل القاعة','Edit Schedule':'تعديل الجدول',
+  'Save Changes':'حفظ التغييرات','Save':'حفظ','Cancel':'إلغاء',
+  'Delete':'حذف','Edit':'تعديل','Search':'بحث','Export':'تصدير',
+  'Submit':'إرسال','Back':'رجوع','View':'عرض','Manage':'إدارة',
+  'Verify':'التحقق','Approve':'موافقة','Reject':'رفض','Filter':'تصفية',
+  'Add New':'إضافة جديد','Create':'إنشاء','Update':'تحديث','Reset':'إعادة تعيين',
+  'Confirm':'تأكيد','Close':'إغلاق','Print':'طباعة','Download':'تنزيل',
+  'Upload':'رفع','Enroll Face':'تسجيل الوجه','Take Photo':'التقاط صورة',
+  'Scan Face':'مسح الوجه',
+  // Table headers
+  'Name':'الاسم','Code':'الرمز','Email':'البريد الإلكتروني',
+  'Phone':'الهاتف','Department':'القسم','College':'الكلية',
+  'Status':'الحالة','Actions':'الإجراءات','Date':'التاريخ',
+  'Time':'الوقت','Day':'اليوم','Start Time':'وقت البداية',
+  'End Time':'وقت النهاية','Day of Week':'يوم الأسبوع',
+  'Batch':'الدفعة','Credits':'الساعات','Total':'الإجمالي',
+  'Present':'حاضر','Absent':'غائب','Excused':'معذور',
+  'Grade':'الدرجة','Semester':'الفصل','Year':'السنة',
+  'Gender':'الجنس','Major':'التخصص','Degree':'الدرجة العلمية',
+  'Blood Type':'فصيلة الدم','Nationality':'الجنسية','Location':'الموقع',
+  'Capacity':'السعة','Course Code':'رمز المقرر','Student Code':'رمز الطالب',
+  'Teacher ID':'معرف الأستاذ','Course Type':'نوع المقرر',
+  'Total Hours':'إجمالي الساعات','Year Level':'السنة الدراسية',
+  'Attendance Rate':'نسبة الحضور','Last Seen':'آخر ظهور',
+  'Registered':'مسجل','Trained':'مدرب','Allowed':'مسموح',
+  'Created':'تاريخ الإنشاء','Updated':'تاريخ التحديث',
+  // Status labels
+  'Active':'نشط','Inactive':'غير نشط','Pending':'قيد الانتظار',
+  'Approved':'مقبول','Rejected':'مرفوض','Blocked':'محظور',
+  'Online':'متصل','Offline':'غير متصل','Open':'مفتوح','Closed':'مغلق',
+  'Enabled':'مفعّل','Disabled':'معطّل',
+  // Common labels
+  'Student':'طالب','Teacher':'أستاذ','Course':'مقرر','Classroom':'قاعة',
+  'All':'الكل','Male':'ذكر','Female':'أنثى','No data found':'لا توجد بيانات',
+  'No results found':'لا توجد نتائج','Loading...':'جاري التحميل...',
+  'Error':'خطأ','Success':'نجاح','Warning':'تحذير','Info':'معلومات',
+  'Yes':'نعم','No':'لا','N/A':'غير متاح','None':'لا يوجد',
+  'Select':'اختر','Select All':'اختر الكل','Clear':'مسح',
+  'Total Students':'إجمالي الطلاب','Total Teachers':'إجمالي الأساتذة',
+  'Total Courses':'إجمالي المقررات','Total Classrooms':'إجمالي القاعات',
+  'Scheduled Lectures':'المحاضرات المجدولة','Today':'اليوم',
+  'This Week':'هذا الأسبوع','This Month':'هذا الشهر',
+  'Monday':'الاثنين','Tuesday':'الثلاثاء','Wednesday':'الأربعاء',
+  'Thursday':'الخميس','Friday':'الجمعة','Saturday':'السبت','Sunday':'الأحد',
+  'January':'يناير','February':'فبراير','March':'مارس','April':'أبريل',
+  'May':'مايو','June':'يونيو','July':'يوليو','August':'أغسطس',
+  'September':'سبتمبر','October':'أكتوبر','November':'نوفمبر','December':'ديسمبر',
+  // Gate specific
+  'Entry Allowed':'الدخول مسموح','Entry Denied':'الدخول محظور',
+  'Face Recognized':'تم التعرف على الوجه','Face Not Recognized':'لم يتم التعرف على الوجه',
+  'Scan Complete':'اكتمل المسح','Verifying...':'جاري التحقق...',
+  'Grant Access':'منح الوصول','Deny Access':'رفض الوصول',
+  // Booking rules / info
+  'Booking Rules':'قواعد الحجز','Current Assignments':'التعيينات الحالية',
+  'New Assignment':'تعيين جديد','Course Assignment':'تعيين المقررات',
+  // Settings
+  'Language':'اللغة','Theme':'المظهر','Dark Mode':'الوضع الداكن',
+  'Light Mode':'الوضع الفاتح','Profile':'الملف الشخصي',
+  'Password':'كلمة المرور','Change Password':'تغيير كلمة المرور',
+  'Security':'الأمان','Notifications':'الإشعارات','Appearance':'المظهر',
+  // Misc
+  'Academic Degree':'الدرجة العلمية','Specialization':'التخصص',
+  'Phone Number':'رقم الهاتف','University Email':'البريد الجامعي',
+  'Profile Photo':'الصورة الشخصية','Face Image':'صورة الوجه',
+  'Enroll':'تسجيل','Attendance Record':'سجل الحضور',
+  'View Details':'عرض التفاصيل','Details':'التفاصيل',
+  'Statistics':'الإحصائيات','Overview':'نظرة عامة',
+  'Recent Activity':'النشاط الأخير','Quick Actions':'الإجراءات السريعة',
+  'Face Enrollment':'تسجيل الوجه','Access Control':'التحكم في الوصول',
+  'System Settings':'إعدادات النظام','User Management':'إدارة المستخدمين',
+};
+
 // ── Language EN / AR ─────────────────────────
 function applyLang(lang) {
   localStorage.setItem('acdc_lang', lang);
@@ -624,7 +723,7 @@ function applyLang(lang) {
   html.dir  = lang === 'ar' ? 'rtl' : 'ltr';
   html.setAttribute('data-lang', lang);
 
-  // Switch all [data-en] / [data-ar] TEXT nodes
+  // Switch all [data-en] / [data-ar] TEXT nodes (explicit markup)
   document.querySelectorAll('[data-en]').forEach(el => {
     if (el.tagName !== 'INPUT') {
       el.textContent = lang === 'ar' ? (el.dataset.ar || el.dataset.en) : el.dataset.en;
@@ -638,10 +737,48 @@ function applyLang(lang) {
       : el.dataset.enPlaceholder;
   });
 
+  // ── Dictionary-based auto-translation ────────
+  // Translate text nodes in headings, labels, buttons, table headers
+  // that are NOT already handled by data-en/data-ar
+  if (lang === 'ar') {
+    const selectors = 'h1,h2,h3,h4,th,label,button,a.nav-link,.page-title,'+
+      '.stat-label,.card-title,.section-title,p.text-xs.font-bold,'+
+      'p.text-sm.font-semibold,span.font-bold,span.font-semibold,'+
+      'td.font-semibold,td.font-bold,.badge,.chip';
+    document.querySelectorAll(selectors).forEach(el => {
+      if (el.closest('[data-en]')) return; // skip if inside explicit bilingual block
+      if (el.children.length > 3) return;  // skip complex elements
+      const txt = el.textContent.trim();
+      if (AR[txt]) el.setAttribute('data-orig-text', txt) || (el.textContent = AR[txt]);
+      // Also handle template buttons/links by full text
+      if (!AR[txt]) {
+        // Try partial match for compound labels like "Add New Teacher"
+        for (const [en, ar] of Object.entries(AR)) {
+          if (txt === en) { el.textContent = ar; break; }
+        }
+      }
+    });
+    // Also translate page <title>
+    const titleEl = document.querySelector('title');
+    if (titleEl) {
+      const t = titleEl.textContent;
+      for (const [en, ar] of Object.entries(AR)) {
+        if (t.includes(en)) {
+          titleEl.textContent = t.replace(en, ar);
+          break;
+        }
+      }
+    }
+  } else {
+    // Restore original text if we stored it
+    document.querySelectorAll('[data-orig-text]').forEach(el => {
+      el.textContent = el.getAttribute('data-orig-text');
+      el.removeAttribute('data-orig-text');
+    });
+  }
+
   // Update lang button label
   document.getElementById('lang-label').textContent = lang === 'ar' ? 'AR' : 'EN';
-
-  // Notification badge "new" text stays numeric — skip
 }
 function toggleLang() {
   const cur = localStorage.getItem('acdc_lang') || 'en';

@@ -40,7 +40,7 @@ tailwind.config = {
     <div class="flex items-center gap-4">
       <span id="gate-status-badge" class="flex items-center gap-1.5 text-xs font-bold text-slate-400 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700">
         <span class="w-2 h-2 rounded-full bg-slate-500"></span>
-        Standby
+        <span data-en="Standby" data-ar="في انتظار">Standby</span>
       </span>
       <span class="text-xs text-slate-500" id="clock"></span>
     </div>
@@ -116,8 +116,8 @@ tailwind.config = {
         <div class="w-20 h-20 rounded-3xl bg-slate-800 flex items-center justify-center mb-5">
           <span class="material-symbols-outlined text-slate-600 text-4xl">face_recognition</span>
         </div>
-        <p class="font-semibold text-slate-400 text-sm">Waiting for face scan…</p>
-        <p class="text-xs text-slate-600 mt-1">Start the scanner to begin.</p>
+        <p class="font-semibold text-slate-400 text-sm"><span data-en="Waiting for face scan…" data-ar="في انتظار مسح الوجه…">Waiting for face scan…</span></p>
+        <p class="text-xs text-slate-600 mt-1"><span data-en="Start the scanner to begin." data-ar="اضغط تشغيل للبدء.">Start the scanner to begin.</span></p>
       </div>
 
       <!-- Result -->
@@ -135,19 +135,19 @@ tailwind.config = {
         <!-- Details grid -->
         <div class="grid grid-cols-2 gap-3">
           <div class="bg-slate-800 rounded-xl p-4 col-span-2">
-            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Name</p>
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1"><span data-en="Name" data-ar="الاسم">Name</span></p>
             <p id="user-name" class="font-bold text-white text-base">—</p>
           </div>
           <div class="bg-slate-800 rounded-xl p-4">
-            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">ID</p>
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1"><span data-en="ID" data-ar="الرقم">ID</span></p>
             <p id="user-id" class="font-bold text-white text-sm font-mono">—</p>
           </div>
           <div class="bg-slate-800 rounded-xl p-4">
-            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Phone</p>
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1"><span data-en="Phone" data-ar="الهاتف">Phone</span></p>
             <p id="user-phone" class="font-bold text-white text-sm">—</p>
           </div>
           <div class="bg-slate-800 rounded-xl p-4 col-span-2">
-            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Fees Status</p>
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1"><span data-en="Fees Status" data-ar="حالة الرسوم">Fees Status</span></p>
             <p id="fees-label" class="font-bold text-sm">—</p>
           </div>
         </div>
@@ -158,7 +158,7 @@ tailwind.config = {
 
       <!-- Log strip -->
       <div class="border-t border-white/10 px-5 py-3">
-        <p class="text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-2">Recent Log</p>
+        <p class="text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-2"><span data-en="Recent Log" data-ar="السجل الأخير">Recent Log</span></p>
         <ul id="log-list" class="space-y-1 text-xs text-slate-500 max-h-28 overflow-y-auto">
           <li class="italic">No events yet.</li>
         </ul>
@@ -168,6 +168,18 @@ tailwind.config = {
   </main>
 
 <script>
+// Apply language from localStorage
+(function(){
+  const lang = localStorage.getItem('acdc_lang') || 'en';
+  if (lang === 'ar') {
+    document.documentElement.lang = 'ar';
+    document.documentElement.dir  = 'rtl';
+    document.querySelectorAll('[data-ar]').forEach(el => {
+      if (el.tagName !== 'INPUT') el.textContent = el.dataset.ar;
+    });
+  }
+})();
+const IS_AR = () => localStorage.getItem('acdc_lang') === 'ar';
 const videoStream   = document.getElementById('video-stream');
 const camPlaceholder= document.getElementById('cam-placeholder');
 const scanOverlay   = document.getElementById('scan-overlay');
@@ -284,14 +296,14 @@ function showResult(data) {
   if (data.is_allowed) {
     accessBanner.className = 'rounded-2xl px-5 py-4 flex items-center gap-3 bg-emerald-900/60 text-emerald-300';
     accessIcon.textContent = 'check_circle';
-    accessLabel.textContent= 'ACCESS GRANTED';
+    accessLabel.textContent= IS_AR() ? 'الدخول مسموح' : 'ACCESS GRANTED';
   } else {
     accessBanner.className = 'rounded-2xl px-5 py-4 flex items-center gap-3 bg-red-900/60 text-red-300';
     accessIcon.textContent = 'cancel';
-    accessLabel.textContent= 'ACCESS DENIED';
+    accessLabel.textContent= IS_AR() ? 'الدخول محظور' : 'ACCESS DENIED';
   }
 
-  feesLabel.textContent = data.is_paid ? 'Paid' : 'Payment Due';
+  feesLabel.textContent = data.is_paid ? (IS_AR() ? 'تم الدفع' : 'Paid') : (IS_AR() ? 'الرسوم مستحقة' : 'Payment Due');
   feesLabel.className   = 'font-bold text-sm ' + (data.is_paid ? 'text-emerald-400' : 'text-amber-400');
 
   tagsEl.innerHTML = '';

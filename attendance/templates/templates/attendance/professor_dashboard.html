@@ -1,32 +1,37 @@
-﻿{% extends 'attendance/base.html' %}
+{% extends 'attendance/base.html' %}
 {% block title %}Session Control — SHAMEL{% endblock %}
 {% block content %}
 
 <!-- Header -->
 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
   <div>
-    <h1 class="text-2xl font-extrabold text-slate-900 font-headline">Session Control</h1>
+    <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">
+      <span data-en="Session Control" data-ar="التحكم في الجلسة">Session Control</span>
+    </h1>
     <p class="text-sm text-slate-500 mt-1">
       {{ current_session.course.title|default:"No Active Session" }}
-      {% if current_session %} — Section {{ current_session.section|default:"A" }}{% endif %}
+      {% if current_session %} — <span data-en="Section" data-ar="شعبة">Section</span> {{ current_session.section|default:"A" }}{% endif %}
     </p>
   </div>
   <div class="flex gap-2 flex-wrap">
     <a href="{% url 'export_my_courses' %}"
-      class="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-all shadow-sm">
-      <span class="material-symbols-outlined text-lg">download</span> Export Courses
+      class="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-semibold hover:bg-slate-50 transition-all shadow-sm">
+      <span class="material-symbols-outlined text-lg">download</span>
+      <span data-en="Export Courses" data-ar="تصدير المقررات">Export Courses</span>
     </a>
     {% if current_session %}
     <form action="{% url 'stop_session' current_session.id %}" method="POST" class="m-0">
       {% csrf_token %}
       <button type="submit"
         class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 text-white text-sm font-bold hover:bg-red-700 transition-all shadow-sm">
-        <span class="material-symbols-outlined text-lg">stop_circle</span> Stop Session
+        <span class="material-symbols-outlined text-lg">stop_circle</span>
+        <span data-en="Stop Session" data-ar="إنهاء الجلسة">Stop Session</span>
       </button>
     </form>
     {% else %}
-    <div class="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-dashed border-slate-300 text-slate-400 text-sm font-medium">
-      <span class="material-symbols-outlined text-lg">event_busy</span> No Active Session
+    <div class="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-dashed border-slate-300 dark:border-slate-600 text-slate-400 text-sm font-medium">
+      <span class="material-symbols-outlined text-lg">event_busy</span>
+      <span data-en="No Active Session" data-ar="لا توجد جلسة نشطة">No Active Session</span>
     </div>
     {% endif %}
   </div>
@@ -43,17 +48,21 @@
             <span class="animate-ping absolute inset-0 rounded-full bg-emerald-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
           </span>
-          Live
+          <span data-en="Live" data-ar="مباشر">Live</span>
         </span>
-        <span class="text-white/60 text-xs">Started {{ current_session.start_time|time:"h:i A" }}</span>
+        <span class="text-white/60 text-xs"><span data-en="Started" data-ar="بدأت">Started</span> {{ current_session.start_time|time:"h:i A" }}</span>
         {% else %}
-        <span class="text-white/50 text-xs font-bold uppercase tracking-widest">System Standby</span>
+        <span class="text-white/50 text-xs font-bold uppercase tracking-widest">
+          <span data-en="System Standby" data-ar="النظام في انتظار">System Standby</span>
+        </span>
         {% endif %}
       </div>
       <p class="text-5xl font-extrabold text-white font-headline mb-1">
         {% if current_session %}{{ present_count }} / {{ total_count }}{% else %}—{% endif %}
       </p>
-      <p class="text-white/70 font-medium">Verified Students Present</p>
+      <p class="text-white/70 font-medium">
+        <span data-en="Verified Students Present" data-ar="طلاب موثقو الحضور">Verified Students Present</span>
+      </p>
     </div>
     <div class="w-24 h-24 rounded-full border-4 border-white/20 flex items-center justify-center flex-shrink-0">
       <div class="w-16 h-16 rounded-full border-4 border-white/50 flex items-center justify-center">
@@ -73,10 +82,14 @@
   <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-5">
 
     <!-- Present -->
-    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-      <div class="px-5 py-4 border-b border-slate-50 flex items-center justify-between">
-        <h3 class="font-bold text-slate-800 text-sm">Present</h3>
-        <span class="text-xs font-bold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full">Verified</span>
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-50 dark:border-slate-700 flex items-center justify-between">
+        <h3 class="font-bold text-slate-800 dark:text-slate-200 text-sm">
+          <span data-en="Present" data-ar="الحاضرون">Present</span>
+        </h3>
+        <span class="text-xs font-bold bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 px-2.5 py-1 rounded-full">
+          <span data-en="Verified" data-ar="موثق">Verified</span>
+        </span>
       </div>
       <div class="p-4 space-y-3 max-h-80 overflow-y-auto">
         {% if current_session %}
@@ -86,26 +99,32 @@
               {{ record.student.name|first|upper }}
             </div>
             <div class="flex-1 min-w-0">
-              <p class="text-sm font-semibold text-slate-800 truncate">{{ record.student.name }}</p>
+              <p class="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">{{ record.student.name }}</p>
               <p class="text-xs text-slate-400">{{ record.timestamp|time:"h:i A" }}</p>
             </div>
             <span class="material-symbols-outlined text-emerald-500 text-lg" style="font-variation-settings:'FILL' 1">check_circle</span>
           </div>
           {% empty %}
-          <p class="text-xs text-slate-400 text-center py-6">Waiting for first scan…</p>
+          <p class="text-xs text-slate-400 text-center py-6">
+            <span data-en="Waiting for first scan…" data-ar="في انتظار أول مسح…">Waiting for first scan…</span>
+          </p>
           {% endfor %}
         {% else %}
-        <p class="text-xs text-slate-400 text-center py-6">No active session.</p>
+        <p class="text-xs text-slate-400 text-center py-6">
+          <span data-en="No active session." data-ar="لا توجد جلسة نشطة.">No active session.</span>
+        </p>
         {% endif %}
       </div>
     </div>
 
     <!-- Absent -->
-    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-      <div class="px-5 py-4 border-b border-slate-50 flex items-center justify-between">
-        <h3 class="font-bold text-slate-800 text-sm">Absent</h3>
-        <span class="text-xs font-bold bg-red-50 text-red-700 px-2.5 py-1 rounded-full">
-          {{ absent_students.count|default:"0" }} Missing
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-50 dark:border-slate-700 flex items-center justify-between">
+        <h3 class="font-bold text-slate-800 dark:text-slate-200 text-sm">
+          <span data-en="Absent" data-ar="الغائبون">Absent</span>
+        </h3>
+        <span class="text-xs font-bold bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 px-2.5 py-1 rounded-full">
+          {{ absent_students.count|default:"0" }} <span data-en="Missing" data-ar="غائب">Missing</span>
         </span>
       </div>
       <div class="p-4 space-y-3 max-h-80 overflow-y-auto">
@@ -116,16 +135,20 @@
               {{ student.name|first|upper }}
             </div>
             <div class="flex-1 min-w-0">
-              <p class="text-sm font-semibold text-slate-800 truncate">{{ student.name }}</p>
-              <p class="text-xs text-slate-400">Not checked in</p>
+              <p class="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">{{ student.name }}</p>
+              <p class="text-xs text-slate-400"><span data-en="Not checked in" data-ar="لم يسجل حضوره">Not checked in</span></p>
             </div>
             <span class="material-symbols-outlined text-red-400 text-lg">cancel</span>
           </div>
           {% empty %}
-          <p class="text-xs text-emerald-600 text-center py-6 font-semibold">All students present!</p>
+          <p class="text-xs text-emerald-600 text-center py-6 font-semibold">
+            <span data-en="All students present!" data-ar="جميع الطلاب حاضرون!">All students present!</span>
+          </p>
           {% endfor %}
         {% else %}
-        <p class="text-xs text-slate-400 text-center py-6">No active tracking.</p>
+        <p class="text-xs text-slate-400 text-center py-6">
+          <span data-en="No active tracking." data-ar="لا يوجد تتبع نشط.">No active tracking.</span>
+        </p>
         {% endif %}
       </div>
     </div>
@@ -135,25 +158,29 @@
   <div class="space-y-5">
 
     <!-- Room availability -->
-    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-      <div class="px-5 py-4 border-b border-slate-50 flex items-center gap-2">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-50 dark:border-slate-700 flex items-center gap-2">
         <span class="material-symbols-outlined text-slate-400 text-lg">meeting_room</span>
-        <h3 class="font-bold text-slate-800 text-sm">Room Availability</h3>
+        <h3 class="font-bold text-slate-800 dark:text-slate-200 text-sm">
+          <span data-en="Room Availability" data-ar="توفر القاعات">Room Availability</span>
+        </h3>
       </div>
       <div class="p-3 space-y-2 max-h-52 overflow-y-auto">
         {% for room in classrooms %}
-        <div class="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50">
+        <div class="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-700/40">
           <div class="w-1 h-8 rounded-full {% if room.is_occupied %}bg-red-500{% else %}bg-emerald-500{% endif %} flex-shrink-0"></div>
           <div class="flex-1 min-w-0">
-            <p class="text-xs font-bold text-slate-800 truncate">{{ room.name }}</p>
+            <p class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">{{ room.name }}</p>
             <p class="text-[10px] text-slate-400">{{ room.location }}</p>
           </div>
           <span class="text-[10px] font-bold px-2 py-0.5 rounded-full {% if room.is_occupied %}bg-red-100 text-red-700{% else %}bg-emerald-100 text-emerald-700{% endif %}">
-            {% if room.is_occupied %}Busy{% else %}Free{% endif %}
+            {% if room.is_occupied %}<span data-en="Busy" data-ar="مشغول">Busy</span>{% else %}<span data-en="Free" data-ar="متاح">Free</span>{% endif %}
           </span>
         </div>
         {% empty %}
-        <p class="text-xs text-slate-400 text-center py-4">No rooms registered.</p>
+        <p class="text-xs text-slate-400 text-center py-4">
+          <span data-en="No rooms registered." data-ar="لا توجد قاعات مسجلة.">No rooms registered.</span>
+        </p>
         {% endfor %}
       </div>
     </div>
@@ -161,13 +188,19 @@
     <!-- Next session -->
     <div class="bg-primary rounded-2xl shadow-lg p-5 relative overflow-hidden">
       <div class="relative z-10">
-        <p class="text-white/50 text-[10px] font-bold uppercase tracking-widest mb-3">Upcoming Next</p>
+        <p class="text-white/50 text-[10px] font-bold uppercase tracking-widest mb-3">
+          <span data-en="Upcoming Next" data-ar="القادم التالي">Upcoming Next</span>
+        </p>
         {% if next_session %}
         <p class="text-xl font-extrabold text-white font-headline mb-1">{{ next_session.course.title }}</p>
         <p class="text-white/60 text-xs">{{ next_session.start_time|time:"h:i A" }} — {{ next_session.classroom.name }}</p>
         {% else %}
-        <p class="text-xl font-extrabold text-white font-headline mb-1">All Clear</p>
-        <p class="text-white/60 text-xs">No more sessions today</p>
+        <p class="text-xl font-extrabold text-white font-headline mb-1">
+          <span data-en="All Clear" data-ar="لا مزيد من الجلسات">All Clear</span>
+        </p>
+        <p class="text-white/60 text-xs">
+          <span data-en="No more sessions today" data-ar="لا توجد جلسات أخرى اليوم">No more sessions today</span>
+        </p>
         {% endif %}
       </div>
       <div class="absolute -right-4 -bottom-4 opacity-10">

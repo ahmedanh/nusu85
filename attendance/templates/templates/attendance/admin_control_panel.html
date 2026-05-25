@@ -5,8 +5,8 @@
 <!-- Header -->
 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
   <div>
-    <h1 class="text-2xl font-extrabold text-slate-900 font-headline">Chancellor Control Panel</h1>
-    <p class="text-sm text-slate-500 mt-1">Live biometric & academic infrastructure overview</p>
+    <h1 class="text-2xl font-extrabold text-slate-900 font-headline"><span data-en="Chancellor Control Panel" data-ar="لوحة تحكم المسؤول">Chancellor Control Panel</span></h1>
+    <p class="text-sm text-slate-500 mt-1"><span data-en="Live biometric & academic infrastructure overview" data-ar="نظرة عامة على البنية التحتية الأكاديمية والبيومترية">Live biometric & academic infrastructure overview</span></p>
   </div>
   <div class="flex gap-2 flex-wrap">
     <a href="{% url 'export_teachers' %}"
@@ -32,7 +32,7 @@
       <span class="text-xs font-bold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full">+12% MoM</span>
     </div>
     <p id="total-students-count" class="text-3xl font-extrabold text-slate-900 font-headline">{{ total_students }}</p>
-    <p class="text-sm text-slate-500 font-medium mt-1">Registered Students</p>
+    <p class="text-sm text-slate-500 font-medium mt-1"><span data-en="Registered Students" data-ar="الطلاب المسجلون">Registered Students</span></p>
     <div class="mt-4 h-1.5 bg-slate-100 rounded-full overflow-hidden">
       <div class="h-full bg-blue-500 rounded-full" style="width:85%"></div>
     </div>
@@ -47,7 +47,7 @@
       <span class="text-xs font-bold text-slate-400">98% Verified</span>
     </div>
     <p class="text-3xl font-extrabold text-slate-900 font-headline">{{ active_faculty }}</p>
-    <p class="text-sm text-slate-500 font-medium mt-1">Active Faculty Members</p>
+    <p class="text-sm text-slate-500 font-medium mt-1"><span data-en="Active Faculty Members" data-ar="أعضاء هيئة التدريس النشطون">Active Faculty Members</span></p>
     <div class="mt-4 flex gap-1">
       <div class="h-1.5 bg-purple-500 flex-1 rounded-full"></div>
       <div class="h-1.5 bg-purple-500 flex-1 rounded-full"></div>
@@ -72,10 +72,10 @@
         </span>
       </div>
       <p id="ai-accuracy" class="text-3xl font-extrabold text-white font-headline">94.2%</p>
-      <p class="text-sm text-white/70 font-medium mt-1">Face Recognition Accuracy</p>
+      <p class="text-sm text-white/70 font-medium mt-1"><span data-en="Face Recognition Accuracy" data-ar="دقة التعرف على الوجه">Face Recognition Accuracy</span></p>
       <div class="mt-4">
         <div class="flex justify-between text-[11px] font-semibold text-white/60 mb-1.5">
-          <span>Training Progress</span>
+          <span><span data-en="Training Progress" data-ar="تقدم التدريب">Training Progress</span></span>
           <span id="training-percent">{{ training_progress }}%</span>
         </div>
         <div class="h-1.5 bg-white/10 rounded-full overflow-hidden">

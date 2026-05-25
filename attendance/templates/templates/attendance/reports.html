@@ -5,30 +5,30 @@
 
 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 no-print">
   <div>
-    <h1 class="text-2xl font-extrabold text-slate-900 font-headline">Analytics & Reports</h1>
-    <p class="text-sm text-slate-500 mt-1">System performance and biometric attendance insights.</p>
+    <h1 class="text-2xl font-extrabold text-slate-900 font-headline"><span data-en="Analytics &amp; Reports" data-ar="التحليلات والتقارير">Analytics &amp; Reports</span></h1>
+    <p class="text-sm text-slate-500 mt-1"><span data-en="System performance and biometric attendance insights." data-ar="أداء النظام ورؤى الحضور البيومترية.">System performance and biometric attendance insights.</span></p>
   </div>
   <button onclick="window.print()"
     class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary-container transition-all shadow-sm">
-    <span class="material-symbols-outlined text-lg">print</span> Export PDF
+    <span class="material-symbols-outlined text-lg">print</span> <span data-en="Export PDF" data-ar="تصدير PDF">Export PDF</span>
   </button>
 </div>
 
 <!-- KPI row -->
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-6">
   <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Avg. Attendance</p>
+    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3"><span data-en="Avg. Attendance" data-ar="متوسط الحضور">Avg. Attendance</span></p>
     <div class="flex items-baseline gap-2">
       <p class="text-4xl font-extrabold text-primary font-headline">{{ avg_attendance|default:"84" }}%</p>
       <span class="text-emerald-500 text-sm font-bold">↑ {{ growth|default:"12" }}%</span>
     </div>
   </div>
   <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Total Sessions</p>
+    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3"><span data-en="Total Sessions" data-ar="إجمالي الجلسات">Total Sessions</span></p>
     <p class="text-4xl font-extrabold text-slate-900 font-headline">{{ total_sessions|default:"156" }}</p>
   </div>
   <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 bg-gradient-to-br from-white to-blue-50/40">
-    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">AI Engine Accuracy</p>
+    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3"><span data-en="AI Engine Accuracy" data-ar="دقة محرك الذكاء الاصطناعي">AI Engine Accuracy</span></p>
     <p class="text-4xl font-extrabold text-blue-600 font-headline">{{ ai_accuracy|default:"98.2" }}%</p>
   </div>
 </div>
@@ -38,7 +38,7 @@
   <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
     <div class="flex items-center gap-2 mb-6">
       <span class="w-1 h-5 bg-primary rounded-full"></span>
-      <h3 class="font-bold text-slate-800 font-headline">Weekly Attendance Trends</h3>
+      <h3 class="font-bold text-slate-800 font-headline"><span data-en="Weekly Attendance Trends" data-ar="اتجاهات الحضور الأسبوعية">Weekly Attendance Trends</span></h3>
     </div>
     <div class="h-72">
       <canvas id="attendanceChart"></canvas>
@@ -46,7 +46,7 @@
   </div>
 
   <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-    <h3 class="font-bold text-slate-800 font-headline mb-5">Top Departments</h3>
+    <h3 class="font-bold text-slate-800 font-headline mb-5"><span data-en="Top Departments" data-ar="أفضل الأقسام">Top Departments</span></h3>
     <div class="space-y-3">
       {% for dept in top_departments %}
       <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors">
