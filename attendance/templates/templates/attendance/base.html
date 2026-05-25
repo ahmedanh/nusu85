@@ -5,40 +5,38 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>{% block title %}SHAMEL{% endblock %}</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="{% static 'fonts/fonts.css' %}" rel="stylesheet"/>
+<!-- ① Tailwind config MUST come before CDN script so darkMode:"class" is honoured -->
 <script>
-tailwind.config = {
-  darkMode: "class",
-  theme: {
-    extend: {
-      colors: {
-        /* ── SHAMEL Brand Palette ── */
-        "primary":               "#C9A227",   /* logo gold — CTAs, accents, active states */
-        "primary-container":     "#A8831A",   /* darker gold for hover */
-        "primary-glow":          "#F0C040",   /* bright gold for dark mode */
-        "navy":                  "#0B2545",   /* deep navy — sidebar bg (light) */
-        "navy-deep":             "#070E1D",   /* darker navy — sidebar bg (dark) */
-        "navy-hover":            "#0d2f5e",   /* navy hover state */
-        /* ── Surfaces ── */
-        "surface":               "#F4F6FB",
-        "surface-container":     "#E8ECF4",
-        "on-surface":            "#0B2545",
-        "on-surface-variant":    "#3D4A6B",
-        /* ── Utility ── */
-        "outline":               "#9BA8C5",
-        "outline-variant":       "#D0D7E8",
-        "error":                 "#ba1a1a",
-        "error-container":       "#ffdad6",
-      },
-      fontFamily: {
-        headline: ["Manrope","Segoe UI","system-ui","sans-serif"],
-        body:     ["Inter","Segoe UI","system-ui","sans-serif"],
+tailwind = {
+  config: {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "primary":            "#C9A227",
+          "primary-container":  "#A8831A",
+          "primary-glow":       "#F0C040",
+          "navy":               "#0B2545",
+          "navy-deep":          "#070E1D",
+          "navy-hover":         "#0d2f5e",
+          "surface":            "#F4F6FB",
+          "surface-container":  "#E8ECF4",
+          "on-surface":         "#0B2545",
+          "on-surface-variant": "#3D4A6B",
+          "outline":            "#9BA8C5",
+          "outline-variant":    "#D0D7E8",
+          "error":              "#ba1a1a",
+          "error-container":    "#ffdad6",
+        },
+        fontFamily: {
+          headline: ["Manrope","Segoe UI","system-ui","sans-serif"],
+          body:     ["Inter","Segoe UI","system-ui","sans-serif"],
+        },
       },
     },
-  },
-}
-// ── Apply saved theme & language BEFORE render (prevents flash) ──
+  }
+};
+// ② Apply theme class before render to prevent flash
 (function(){
   const theme = localStorage.getItem('acdc_theme') || 'light';
   const lang  = localStorage.getItem('acdc_lang')  || 'en';
@@ -48,6 +46,9 @@ tailwind.config = {
   document.documentElement.setAttribute('data-lang', lang);
 })();
 </script>
+<!-- ③ CDN now sees tailwind.config already set -->
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="{% static 'fonts/fonts.css' %}" rel="stylesheet"/>
 
 <style>
   body { font-family:'Inter','Segoe UI',system-ui,sans-serif; }
