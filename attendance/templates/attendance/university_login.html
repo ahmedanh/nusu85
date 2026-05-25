@@ -1,4 +1,4 @@
-﻿{% load static %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,10 +7,16 @@
 <title>Sign In — SHAMEL Portal</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="{% static 'fonts/fonts.css' %}" rel="stylesheet"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0&display=block"/>
 <script>
 tailwind.config = {
   theme: { extend: {
-    colors: { primary:"#4361ee", "primary-dark":"#3a56d4" },
+    colors: {
+      navy:    "#0B2545",
+      "navy-deep": "#070E1D",
+      gold:    "#C9A227",
+      "gold-bright": "#F0C040",
+    },
     fontFamily: {
       headline:["Manrope","Segoe UI","system-ui","sans-serif"],
       body:["Inter","Segoe UI","system-ui","sans-serif"]
@@ -20,160 +26,189 @@ tailwind.config = {
 </script>
 <style>
   body { font-family:'Inter','Segoe UI',system-ui,sans-serif; }
-  h1,h2,h3 { font-family:'Manrope','Segoe UI',system-ui,sans-serif; }
+  h1,h2,h3,.font-headline { font-family:'Manrope','Segoe UI',system-ui,sans-serif; }
+  .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24; line-height:1; }
 
-  /* Left panel gradient */
+  /* ── Left panel — deep navy from logo ── */
   .panel-bg {
-    background: linear-gradient(145deg, #2d3fe0 0%, #4361ee 50%, #5a7af5 100%);
+    background: linear-gradient(150deg, #060D1F 0%, #0B2545 45%, #0d2f5e 100%);
+    position: relative;
+    overflow: hidden;
   }
 
-  /* Subtle dot grid */
-  .dot-grid {
-    background-image: radial-gradient(circle, rgba(255,255,255,0.12) 1px, transparent 1px);
-    background-size: 32px 32px;
+  /* Geometric grid pattern like the logo shield network */
+  .panel-bg::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(circle, rgba(201,162,39,0.08) 1px, transparent 1px),
+      radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 40px 40px, 20px 20px;
+    background-position: 0 0, 10px 10px;
   }
 
-  /* Input styles */
+  /* Gold glow blobs mimicking logo's torch glow */
+  .glow-gold {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    pointer-events: none;
+  }
+
+  /* Input */
   .field {
     width: 100%;
-    background: #f8fafc;
-    border: 2px solid #e2e8f0;
+    background: #F4F6FB;
+    border: 1.5px solid #D0D7E8;
     border-radius: 12px;
     padding: 12px 16px;
     font-size: 14px;
     font-weight: 500;
-    color: #1e293b;
+    color: #0B2545;
     transition: border-color .2s, background .2s, box-shadow .2s;
     outline: none;
   }
   .field:focus {
-    border-color: #4361ee;
+    border-color: #C9A227;
     background: #fff;
-    box-shadow: 0 0 0 4px rgba(67,97,238,0.10);
+    box-shadow: 0 0 0 4px rgba(201,162,39,0.12);
   }
-  .field::placeholder { color: #94a3b8; font-weight: 400; }
+  .field::placeholder { color: #9BA8C5; font-weight: 400; }
 
-  /* Btn primary */
-  .btn-primary {
+  /* Gold CTA button */
+  .btn-gold {
     display: flex; align-items: center; justify-content: center; gap: 10px;
     width: 100%; padding: 14px 20px;
-    background: #4361ee; color: #fff;
+    background: linear-gradient(135deg, #C9A227 0%, #E8C040 100%);
+    color: #0B2545;
     font-weight: 700; font-size: 15px;
     border-radius: 14px; border: none; cursor: pointer;
-    transition: background .2s, transform .12s, box-shadow .2s;
-    box-shadow: 0 4px 16px rgba(67,97,238,0.28);
+    transition: all .2s;
+    box-shadow: 0 4px 18px rgba(201,162,39,0.35);
   }
-  .btn-primary:hover { background: #3a56d4; box-shadow: 0 6px 20px rgba(67,97,238,0.35); }
-  .btn-primary:active { transform: scale(0.98); }
-  .btn-primary:disabled { opacity: .65; cursor: not-allowed; transform: none; }
+  .btn-gold:hover { background: linear-gradient(135deg, #B8950F 0%, #C9A227 100%); box-shadow: 0 6px 22px rgba(201,162,39,0.45); transform: translateY(-1px); }
+  .btn-gold:active { transform: scale(0.98); }
+  .btn-gold:disabled { opacity: .6; cursor: not-allowed; transform: none; }
 
-  /* Btn secondary (outlined) */
-  .btn-secondary {
+  /* Navy outlined button */
+  .btn-navy-outline {
     display: flex; align-items: center; justify-content: center; gap: 10px;
     width: 100%; padding: 13px 20px;
-    background: #fff; color: #4361ee;
+    background: transparent; color: #0B2545;
     font-weight: 700; font-size: 15px;
-    border-radius: 14px; border: 2px solid #c7d2fe; cursor: pointer;
-    transition: background .2s, border-color .2s, transform .12s;
+    border-radius: 14px; border: 2px solid #D0D7E8; cursor: pointer;
+    transition: all .2s;
   }
-  .btn-secondary:hover { background: #eef0fd; border-color: #a5b4fc; }
-  .btn-secondary:active { transform: scale(0.98); }
+  .btn-navy-outline:hover { background: #EEF1F8; border-color: #C9A227; color: #C9A227; }
+  .btn-navy-outline:active { transform: scale(0.98); }
 
   /* Eye toggle */
   .eye-btn {
     position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
-    background: none; border: none; cursor: pointer; color: #94a3b8;
+    background: none; border: none; cursor: pointer; color: #9BA8C5;
     display: flex; align-items: center; transition: color .15s;
   }
-  .eye-btn:hover { color: #64748b; }
+  .eye-btn:hover { color: #C9A227; }
 
-  /* Feature pills on left panel */
-  .pill {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: rgba(255,255,255,0.15);
-    border: 1px solid rgba(255,255,255,0.25);
-    color: rgba(255,255,255,0.92);
-    font-size: 13px; font-weight: 600;
-    padding: 7px 14px; border-radius: 99px;
+  /* Feature card on left panel */
+  .feature-card {
+    display: flex; align-items: flex-start; gap: 12px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px; padding: 14px 16px;
+    transition: background .2s;
   }
+  .feature-card:hover { background: rgba(255,255,255,0.08); }
 
   /* Divider */
   .divider { display: flex; align-items: center; gap: 12px; }
   .divider::before, .divider::after {
-    content: ''; flex: 1; height: 1px; background: #e2e8f0;
+    content: ''; flex: 1; height: 1px; background: #E2E8F0;
   }
 
-  /* Status dot */
-  @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:.4} }
+  /* Status pulse */
+  @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:.35} }
   .status-dot { animation: pulse-dot 2.2s ease-in-out infinite; }
 
-  /* Material icons */
-  .material-symbols-outlined {
-    font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;
-    line-height: 1;
+  /* Gold separator line */
+  .gold-line {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #C9A227, transparent);
+    margin: 6px 0;
+    border-radius: 9999px;
   }
 </style>
-<!-- Material Symbols -->
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0&display=block"/>
 </head>
 
-<body class="min-h-screen bg-slate-100 flex">
+<body class="min-h-screen bg-[#F4F6FB] flex">
 
   <!-- ══════════════════════════════════════════
-       LEFT PANEL — branding hero (lg+ only)
+       LEFT PANEL — SHAMEL branding
   ══════════════════════════════════════════ -->
-  <div class="hidden lg:flex lg:w-[44%] xl:w-[42%] panel-bg relative overflow-hidden flex-col items-center justify-center p-14">
-    <div class="dot-grid absolute inset-0"></div>
+  <div class="hidden lg:flex lg:w-[46%] xl:w-[44%] panel-bg flex-col items-center justify-center p-14">
 
-    <!-- Soft glow blobs -->
-    <div class="absolute top-20 left-10 w-56 h-56 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="absolute bottom-16 right-8 w-40 h-40 bg-indigo-300/10 rounded-full blur-2xl pointer-events-none"></div>
+    <!-- Gold glow blobs (mimicking logo torch glow) -->
+    <div class="glow-gold w-72 h-72 top-16 -left-16" style="background:rgba(201,162,39,0.12);"></div>
+    <div class="glow-gold w-48 h-48 bottom-20 right-4" style="background:rgba(77,170,255,0.08);"></div>
 
-    <div class="relative z-10 text-center max-w-xs">
+    <div class="relative z-10 text-center max-w-sm">
 
-      <!-- Logo mark -->
-      <div class="mb-7 inline-flex w-20 h-20 rounded-3xl bg-white/10 border border-white/20 items-center justify-center shadow-xl">
-        <span class="material-symbols-outlined text-white" style="font-size:42px">school</span>
+      <!-- Full logo with description (login page only) -->
+      <div class="mb-8">
+        <!-- Logo image — dark version for the dark panel -->
+        <img src="{% static 'images/logo_dark.png' %}"
+             class="h-28 mx-auto object-contain mb-6"
+             alt="SHAMEL"
+             onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='block'">
+        <!-- Text fallback -->
+        <div id="logo-fallback" style="display:none;" class="mb-6">
+          <div class="w-24 h-24 mx-auto rounded-3xl flex items-center justify-center mb-4"
+               style="background:rgba(201,162,39,0.15); border:2px solid rgba(201,162,39,0.4);">
+            <span class="material-symbols-outlined text-[#C9A227]" style="font-size:52px">shield</span>
+          </div>
+          <h2 class="text-4xl font-extrabold text-white font-headline tracking-wide">SHAMEL</h2>
+        </div>
+        <!-- System full name below logo -->
+        <p class="text-white/55 text-sm leading-relaxed tracking-wide uppercase" style="font-size:11px; letter-spacing:.12em;">
+          Secure High-dimensional Academic Management<br>&amp; Entry Logic
+        </p>
+        <div class="gold-line w-32 mx-auto mt-4"></div>
       </div>
 
-      <!-- University name -->
-      <h2 class="text-2xl font-extrabold text-white font-headline leading-tight mb-1">
-        SHAMEL<br/>Sudan
-      </h2>
-      <p class="text-white/60 text-sm mb-10">Secure High-dimensional Academic Management & Entry Logic</p>
-
-      <!-- 3 simple benefit cards -->
-      <div class="space-y-3 text-left">
-        <div class="flex items-start gap-3 bg-white/8 border border-white/12 rounded-2xl px-4 py-3">
-          <span class="material-symbols-outlined text-white/70 mt-0.5" style="font-size:20px">face_recognition</span>
+      <!-- 3 feature cards -->
+      <div class="space-y-3 text-left mt-8">
+        <div class="feature-card">
+          <span class="material-symbols-outlined mt-0.5 flex-shrink-0" style="font-size:20px; color:#C9A227;">face_recognition</span>
           <div>
             <p class="text-white text-sm font-bold">Biometric Check-in</p>
-            <p class="text-white/55 text-xs leading-snug">Sub-second face recognition powered by AI embeddings.</p>
+            <p class="text-white/50 text-xs leading-snug mt-0.5">Sub-second face recognition powered by AI embeddings.</p>
           </div>
         </div>
-        <div class="flex items-start gap-3 bg-white/8 border border-white/12 rounded-2xl px-4 py-3">
-          <span class="material-symbols-outlined text-white/70 mt-0.5" style="font-size:20px">bar_chart</span>
+        <div class="feature-card">
+          <span class="material-symbols-outlined mt-0.5 flex-shrink-0" style="font-size:20px; color:#C9A227;">bar_chart</span>
           <div>
             <p class="text-white text-sm font-bold">Live Attendance Reports</p>
-            <p class="text-white/55 text-xs leading-snug">Real-time dashboards for coordinators and instructors.</p>
+            <p class="text-white/50 text-xs leading-snug mt-0.5">Real-time dashboards for coordinators and instructors.</p>
           </div>
         </div>
-        <div class="flex items-start gap-3 bg-white/8 border border-white/12 rounded-2xl px-4 py-3">
-          <span class="material-symbols-outlined text-white/70 mt-0.5" style="font-size:20px">security</span>
+        <div class="feature-card">
+          <span class="material-symbols-outlined mt-0.5 flex-shrink-0" style="font-size:20px; color:#C9A227;">security</span>
           <div>
             <p class="text-white text-sm font-bold">Privacy-First Security</p>
-            <p class="text-white/55 text-xs leading-snug">AES-256 encrypted embeddings. Compliant with university data policy.</p>
+            <p class="text-white/50 text-xs leading-snug mt-0.5">AES-256 encrypted embeddings. University data policy compliant.</p>
           </div>
         </div>
       </div>
+
     </div>
 
     <!-- Bottom version tag -->
     <div class="absolute bottom-6 left-0 right-0 flex justify-center">
-      <span class="pill text-xs">
-        <span class="w-1.5 h-1.5 rounded-full bg-emerald-300 status-dot"></span>
-        SHAMEL v4.2 · System Online
-      </span>
+      <div class="flex items-center gap-2 px-4 py-2 rounded-full"
+           style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12);">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 status-dot"></span>
+        <span class="text-white/60 text-xs font-semibold">SHAMEL v4.2 · System Online</span>
+      </div>
     </div>
   </div>
 
@@ -184,81 +219,78 @@ tailwind.config = {
 
     <div class="w-full max-w-sm">
 
-      <!-- Mobile logo (hidden on desktop) -->
-      <div class="lg:hidden flex items-center gap-3 mb-8">
-        <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-          <span class="material-symbols-outlined text-white text-xl">school</span>
+      <!-- Mobile logo (hidden on desktop) — full logo on mobile too -->
+      <div class="lg:hidden flex flex-col items-center mb-8 text-center">
+        <img src="{% static 'images/logo_light.png' %}" class="h-16 object-contain mb-3" alt="SHAMEL"
+             onerror="this.style.display='none'; document.getElementById('mob-logo-txt').style.display='block'">
+        <div id="mob-logo-txt" style="display:none;" class="flex items-center gap-2 mb-3">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#C9A227,#E8C040);">
+            <span class="material-symbols-outlined text-[#0B2545] text-xl">shield</span>
+          </div>
+          <span class="text-xl font-extrabold font-headline text-[#0B2545]">SHAMEL</span>
         </div>
-        <div>
-          <p class="text-sm font-extrabold text-slate-900 font-headline">SHAMEL</p>
-          <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold">SHAMEL Portal</p>
-        </div>
+        <p class="text-xs text-slate-400 uppercase tracking-widest">Secure Academic Management</p>
       </div>
 
       <!-- Page heading -->
       <div class="mb-8">
-        <h1 class="text-3xl font-extrabold text-slate-900 font-headline">Welcome back</h1>
-        <p class="text-slate-500 text-sm mt-1.5">Sign in to access your academic portal.</p>
+        <h1 class="text-3xl font-extrabold font-headline" style="color:#0B2545;">Welcome back</h1>
+        <p class="text-sm mt-1.5" style="color:#6B7FA3;">Sign in to access your academic portal.</p>
       </div>
 
       <!-- Error alert -->
       {% if error %}
-      <div class="mb-6 flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 text-sm font-medium rounded-2xl px-4 py-3.5">
+      <div class="mb-6 flex items-start gap-3 rounded-2xl px-4 py-3.5 text-sm font-medium"
+           style="background:#FFF5F5; border:1.5px solid #FCA5A5; color:#991B1B;">
         <span class="material-symbols-outlined text-lg flex-shrink-0 mt-0.5">error_outline</span>
         <span>{{ error }}</span>
       </div>
       {% endif %}
 
-      <!-- ── PRIMARY: Face ID ── -->
-      <a href="{% url 'face_login' %}" class="btn-primary mb-4" style="text-decoration:none">
+      <!-- ── PRIMARY: Face ID — Gold CTA ── -->
+      <a href="{% url 'face_login' %}" class="btn-gold mb-4" style="text-decoration:none">
         <span class="material-symbols-outlined" style="font-size:22px">face_recognition</span>
         Sign in with Face ID
       </a>
 
-      <p class="text-center text-xs text-slate-400 mb-5 font-medium">
+      <p class="text-center text-xs mb-5 font-medium" style="color:#9BA8C5;">
         Recommended — use your enrolled face to sign in instantly.
       </p>
 
       <!-- Divider -->
       <div class="divider mb-5">
-        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">or sign in with password</span>
+        <span class="text-xs font-bold uppercase tracking-widest whitespace-nowrap" style="color:#9BA8C5;">or sign in with password</span>
       </div>
 
       <!-- ── SECONDARY: Password form ── -->
       <form method="POST" action="{% url 'login' %}" id="login-form" class="space-y-4">
         {% csrf_token %}
 
-        <!-- Username / Email -->
+        <!-- Username -->
         <div>
-          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+          <label class="block text-xs font-bold uppercase tracking-wider mb-1.5" style="color:#6B7FA3;">
             University ID or Email
           </label>
-          <input
-            name="username" type="text" required
-            autocomplete="username"
-            placeholder="Enter your username or email"
-            class="field"/>
+          <input name="username" type="text" required autocomplete="username"
+            placeholder="Enter your username or email" class="field"/>
         </div>
 
         <!-- Password -->
         <div>
-          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+          <label class="block text-xs font-bold uppercase tracking-wider mb-1.5" style="color:#6B7FA3;">
             Password
           </label>
           <div class="relative">
-            <input
-              name="password" id="pw" type="password" required
-              autocomplete="current-password"
-              placeholder="Enter your password"
-              class="field" style="padding-right:46px"/>
+            <input name="password" id="pw" type="password" required autocomplete="current-password"
+              placeholder="Enter your password" class="field" style="padding-right:46px"/>
             <button type="button" class="eye-btn" onclick="togglePw()" aria-label="Toggle password visibility">
               <span id="eye-icon" class="material-symbols-outlined" style="font-size:20px">visibility</span>
             </button>
           </div>
         </div>
 
-        <!-- Submit -->
-        <button type="submit" id="submit-btn" class="btn-primary" style="margin-top:8px">
+        <!-- Submit — Navy button -->
+        <button type="submit" id="submit-btn" class="btn-navy-outline" style="margin-top:8px; background:#0B2545; color:#fff; border-color:#0B2545;">
           <span class="material-symbols-outlined" style="font-size:20px">login</span>
           Sign In
         </button>
@@ -268,13 +300,13 @@ tailwind.config = {
       <div class="mt-8 flex items-center justify-between">
         <div class="flex items-center gap-2">
           <span class="w-2 h-2 rounded-full bg-emerald-400 status-dot inline-block"></span>
-          <span class="text-xs text-slate-400 font-medium">System Online</span>
+          <span class="text-xs font-medium" style="color:#9BA8C5;">System Online</span>
         </div>
-        <span class="text-xs text-slate-400 font-medium">SHAMEL v4.2</span>
+        <span class="text-xs font-medium" style="color:#9BA8C5;">SHAMEL v4.2</span>
       </div>
 
     </div>
-  </div><!-- /right panel -->
+  </div>
 
 </body>
 
@@ -282,19 +314,15 @@ tailwind.config = {
 function togglePw() {
   const inp = document.getElementById('pw');
   const icon = document.getElementById('eye-icon');
-  if (inp.type === 'password') {
-    inp.type = 'text';
-    icon.textContent = 'visibility_off';
-  } else {
-    inp.type = 'password';
-    icon.textContent = 'visibility';
-  }
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  icon.textContent = inp.type === 'password' ? 'visibility' : 'visibility_off';
 }
 
 document.getElementById('login-form').addEventListener('submit', function () {
   const btn = document.getElementById('submit-btn');
   btn.disabled = true;
-  btn.innerHTML = '<span class="material-symbols-outlined animate-spin" style="font-size:20px">progress_activity</span> Signing in…';
+  btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:20px;animation:spin 1s linear infinite">progress_activity</span> Signing in…';
 });
 </script>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 </html>
