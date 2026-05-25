@@ -182,11 +182,14 @@ tailwind = {
     border-bottom: 1.5px solid #E5EAF2 !important;
     box-shadow: 0 1px 6px rgba(11,37,69,0.07) !important;
   }
-  html:not(.dark) .dark\:bg-slate-800,
-  html:not(.dark) [class*="dark:bg-slate"] {
-    /* ensure no slate bleeds into light mode */
-    background-color: initial;
-  }
+  /* Light mode: slate cards should still render cleanly */
+  html:not(.dark) .bg-slate-800 { background-color: #F8FAFC !important; }
+  html:not(.dark) .bg-slate-900 { background-color: #F1F5F9 !important; }
+  html:not(.dark) .text-white { color: #0B2545 !important; }
+  /* Exception: sidebar is always dark */
+  html:not(.dark) #sidebar { background: #0B2545 !important; }
+  html:not(.dark) #sidebar .text-white { color: #ffffff !important; }
+  html:not(.dark) #sidebar .nav-link:not(.active) { color: rgba(255,255,255,.65) !important; }
   /* Dark mode: deep contrast */
   html.dark body,
   html.dark #main-canvas { background-color: #060C1A !important; }

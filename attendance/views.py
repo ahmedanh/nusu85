@@ -507,6 +507,20 @@ def export_teachers_csv(request):
 @login_required
 def upload_face(request, user_type, user_id):
     """Upload a face image and store embedding."""
+    # Load the person for context
+    person = None
+    if user_type == 'teacher':
+        person = get_object_or_404(Teacher, pk=user_id)
+    elif user_type == 'student':
+        person = get_object_or_404(Student, pk=user_id)
+
+    if request.method == 'GET':
+        return render(request, 'attendance/upload_face.html', {
+            'person': person,
+            'user_type': user_type,
+            'user_id': user_id,
+        })
+
     if request.method == 'POST' and request.FILES.get('face_image'):
         img_file = request.FILES['face_image']
         if user_type == 'student':
@@ -2747,14 +2761,19 @@ def teacher_permissions_view(request):
 @login_required
 @staff_member_required
 def gate_reports(request):
-    logs = GateLog.objects.all().order_by('-timestamp')
     date_filter = request.GET.get('date')
-    if date_filter:
-        logs = logs.filter(timestamp__date=date_filter)
     today = timezone.now().date()
-    total_today = GateLog.objects.filter(timestamp__date=today).count()
+    try:
+        logs = GateLog.objects.all().order_by('-timestamp')
+        if date_filter:
+            logs = logs.filter(timestamp__date=date_filter)
+        total_today = GateLog.objects.filter(timestamp__date=today).count()
+        logs = list(logs[:200])
+    except Exception:
+        logs = []
+        total_today = 0
     return render(request, 'attendance/gate_reports.html', {
-        'logs': logs[:200], 'total_today': total_today,
+        'logs': logs, 'total_today': total_today,
         'date_filter': date_filter,
     })
 
