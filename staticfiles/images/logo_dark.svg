@@ -1,67 +1,71 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 90" fill="none">
-  <!-- Shield glow effect (dark theme) -->
-  <ellipse cx="57" cy="42" rx="26" ry="28" fill="#4AABFF" opacity="0.08" filter="url(#glow)"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 110" fill="none">
   <defs>
-    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="6" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-    <filter id="goldglow">
-      <feGaussianBlur stdDeviation="3" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
+    <clipPath id="lh-d"><rect x="0" y="0" width="50" height="110"/></clipPath>
+    <clipPath id="rh-d"><rect x="50" y="0" width="50" height="110"/></clipPath>
+    <filter id="gg-d"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="bg-d"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <linearGradient id="gG-d" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFD700"/><stop offset="50%" stop-color="#F0C040"/><stop offset="100%" stop-color="#C9A227"/>
+    </linearGradient>
+    <linearGradient id="bG-d" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1A4A8A"/><stop offset="50%" stop-color="#4AABFF"/><stop offset="100%" stop-color="#1A6ABF"/>
+    </linearGradient>
+    <linearGradient id="fG-d" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#FFB020"/><stop offset="50%" stop-color="#FF7800"/><stop offset="100%" stop-color="#FFE040"/>
+    </linearGradient>
   </defs>
 
-  <!-- Shield body (dark blue/steel) -->
-  <path d="M42 8 L72 8 C74 8 76 10 76 12 L76 44 C76 58 58 72 57 73 C56 72 38 58 38 44 L38 12 C38 10 40 8 42 8Z" fill="#1A4A8A" opacity="0.85"/>
-  <!-- Shield inner shine -->
-  <path d="M44 10 L70 10 C71.5 10 73 11.5 73 13 L73 28 C62 24 49 24 41 28 L41 13 C41 11.5 42.5 10 44 10Z" fill="#4AABFF" opacity="0.15"/>
-  <!-- Shield border — gold glow -->
-  <path d="M42 8 L72 8 C74 8 76 10 76 12 L76 44 C76 58 58 72 57 73 C56 72 38 58 38 44 L38 12 C38 10 40 8 42 8Z" fill="none" stroke="#F0C040" stroke-width="2" filter="url(#goldglow)"/>
-  <!-- Shield border sharp -->
-  <path d="M42 8 L72 8 C74 8 76 10 76 12 L76 44 C76 58 58 72 57 73 C56 72 38 58 38 44 L38 12 C38 10 40 8 42 8Z" fill="none" stroke="#F0C040" stroke-width="1.5"/>
+  <!-- Glow backdrop -->
+  <ellipse cx="50" cy="60" rx="36" ry="40" fill="#4AABFF" opacity="0.05"/>
 
-  <!-- Molecular network dots (left) — electric blue -->
-  <circle cx="29" cy="28" r="3" fill="#4AABFF" opacity="0.9"/>
-  <circle cx="20" cy="42" r="2.5" fill="#4AABFF" opacity="0.75"/>
-  <circle cx="31" cy="54" r="2" fill="#4AABFF" opacity="0.65"/>
-  <line x1="29" y1="28" x2="20" y2="42" stroke="#4AABFF" stroke-width="1.2" opacity="0.5"/>
-  <line x1="20" y1="42" x2="31" y2="54" stroke="#4AABFF" stroke-width="1.2" opacity="0.5"/>
-  <line x1="29" y1="28" x2="31" y2="54" stroke="#4AABFF" stroke-width="1" opacity="0.3"/>
+  <!-- Shield left (bright gold) -->
+  <path d="M50 6 L86 18 L86 58 C86 80 68 98 50 106 C32 98 14 80 14 58 L14 18 Z"
+        clip-path="url(#lh-d)" fill="url(#gG-d)" stroke="#FFD700" stroke-width="2" filter="url(#gg-d)"/>
+  <!-- Shield right (electric blue) -->
+  <path d="M50 6 L86 18 L86 58 C86 80 68 98 50 106 C32 98 14 80 14 58 L14 18 Z"
+        clip-path="url(#rh-d)" fill="url(#bG-d)" stroke="#4AABFF" stroke-width="2" filter="url(#bg-d)"/>
 
-  <!-- Molecular network dots (right) — electric blue -->
-  <circle cx="85" cy="28" r="3" fill="#4AABFF" opacity="0.9"/>
-  <circle cx="94" cy="42" r="2.5" fill="#4AABFF" opacity="0.75"/>
-  <circle cx="83" cy="54" r="2" fill="#4AABFF" opacity="0.65"/>
-  <line x1="85" y1="28" x2="94" y2="42" stroke="#4AABFF" stroke-width="1.2" opacity="0.5"/>
-  <line x1="94" y1="42" x2="83" y2="54" stroke="#4AABFF" stroke-width="1.2" opacity="0.5"/>
-  <line x1="85" y1="28" x2="83" y2="54" stroke="#4AABFF" stroke-width="1" opacity="0.3"/>
-  <line x1="29" y1="28" x2="38" y2="22" stroke="#4AABFF" stroke-width="1" opacity="0.4"/>
-  <line x1="85" y1="28" x2="76" y2="22" stroke="#4AABFF" stroke-width="1" opacity="0.4"/>
+  <!-- Molecular left (gold) -->
+  <line x1="22" y1="38" x2="34" y2="54" stroke="#F0C040" stroke-width="1.6"/>
+  <line x1="34" y1="54" x2="22" y2="66" stroke="#F0C040" stroke-width="1.6"/>
+  <line x1="22" y1="38" x2="22" y2="66" stroke="#F0C040" stroke-width="1.6"/>
+  <line x1="22" y1="38" x2="34" y2="30" stroke="#F0C040" stroke-width="1.2"/>
+  <circle cx="22" cy="38" r="3.2" fill="#F0C040" filter="url(#gg-d)"/>
+  <circle cx="34" cy="54" r="2.8" fill="#F0C040"/>
+  <circle cx="22" cy="66" r="2.8" fill="#F0C040"/>
+  <circle cx="34" cy="30" r="2.2" fill="#F0C040"/>
 
-  <!-- Arabic S / calligraphic letter -->
-  <text x="57" y="28" text-anchor="middle" font-family="Georgia, serif" font-size="13" font-weight="900" fill="#F0C040" filter="url(#goldglow)">س</text>
+  <!-- Molecular right (blue) -->
+  <line x1="78" y1="38" x2="66" y2="54" stroke="#4AABFF" stroke-width="1.6"/>
+  <line x1="66" y1="54" x2="78" y2="66" stroke="#4AABFF" stroke-width="1.6"/>
+  <line x1="78" y1="38" x2="78" y2="66" stroke="#4AABFF" stroke-width="1.6"/>
+  <line x1="78" y1="38" x2="66" y2="30" stroke="#4AABFF" stroke-width="1.2"/>
+  <circle cx="78" cy="38" r="3.2" fill="#4AABFF" filter="url(#bg-d)"/>
+  <circle cx="66" cy="54" r="2.8" fill="#4AABFF"/>
+  <circle cx="78" cy="66" r="2.8" fill="#4AABFF"/>
+  <circle cx="66" cy="30" r="2.2" fill="#4AABFF"/>
 
-  <!-- Torch body — bright gold -->
-  <rect x="54" y="38" width="6" height="18" rx="2" fill="#F0C040"/>
-  <!-- Torch flame (bright) -->
-  <path d="M57 38 C55 34 52 32 54 28 C56 30 57 27 57 25 C58 27 59 29 61 28 C63 32 60 34 57 38Z" fill="#FFD700" filter="url(#goldglow)"/>
-  <path d="M57 38 C55 34 52 32 54 28 C56 30 57 27 57 25 C58 27 59 29 61 28 C63 32 60 34 57 38Z" fill="#FFD700"/>
-  <path d="M57 37 C56 34.5 54.5 33 55.5 30 C56.5 31.5 57 30 57 28.5 C57.5 30 58.5 31 59.5 30 C60.5 33 58.5 34.5 57 37Z" fill="#FFF8C0" opacity="0.8"/>
-  <!-- Torch handle -->
-  <rect x="53.5" y="42" width="7" height="1.5" rx="0.75" fill="#C9A227"/>
-  <rect x="53.5" y="45" width="7" height="1.5" rx="0.75" fill="#C9A227"/>
+  <!-- S letter -->
+  <text x="50" y="34" text-anchor="middle" font-family="Georgia, serif" font-size="17" font-weight="900" fill="#F0C040" filter="url(#gg-d)" style="font-style:italic;">S</text>
 
-  <!-- Keyhole — gold -->
-  <circle cx="57" cy="58" r="4" fill="none" stroke="#F0C040" stroke-width="1.5"/>
-  <path d="M55.5 58 L55.5 63 L58.5 63 L58.5 58" fill="#F0C040"/>
+  <!-- Torch -->
+  <rect x="46.5" y="47" width="7" height="23" rx="2.5" fill="#F0C040"/>
+  <rect x="45.5" y="51" width="9" height="1.8" rx="0.9" fill="#C9A227"/>
+  <rect x="45.5" y="55" width="9" height="1.8" rx="0.9" fill="#C9A227"/>
+  <rect x="45.5" y="59" width="9" height="1.8" rx="0.9" fill="#C9A227"/>
+  <!-- Flame -->
+  <path d="M50 47 C47 43 44 40 46 35 C48 37 50 34 50 31 C50 34 52 37 54 35 C56 40 53 43 50 47Z" fill="url(#fG-d)" filter="url(#gg-d)"/>
+  <path d="M50 46 C48.5 43 47 41 48 37.5 C49 39 50 37.5 50 36 C50 37.5 51 39 52 37.5 C53 41 51.5 43 50 46Z" fill="#FFFBAA" opacity="0.9"/>
+  <!-- Keyhole -->
+  <circle cx="50" cy="73" r="4" fill="none" stroke="#fff" stroke-width="1.8" opacity="0.7"/>
+  <path d="M48.5 73 L48.5 79 L51.5 79 L51.5 73" fill="#fff" opacity="0.7"/>
 
-  <!-- Bottom glow under shield -->
-  <ellipse cx="57" cy="74" rx="16" ry="4" fill="#4AABFF" opacity="0.25" filter="url(#glow)"/>
+  <!-- Bottom glow -->
+  <ellipse cx="50" cy="106" rx="18" ry="5" fill="#4AABFF" opacity="0.18"/>
 
-  <!-- SHAMEL text — white for dark bg -->
-  <text x="110" y="38" font-family="Manrope, Segoe UI, system-ui, sans-serif" font-size="30" font-weight="900" fill="#FFFFFF" letter-spacing="2">SHAMEL</text>
+  <!-- SHAMEL wordmark — white for dark bg -->
+  <text x="106" y="52" font-family="Manrope, 'Segoe UI', system-ui, sans-serif"
+        font-size="38" font-weight="900" fill="#FFFFFF" letter-spacing="1.5">SHAMEL</text>
   <!-- Tagline -->
-  <text x="111" y="54" font-family="Inter, Segoe UI, sans-serif" font-size="9.5" fill="#8BA8CC" letter-spacing="0.5">Secure High-dimensional Academic</text>
-  <text x="111" y="66" font-family="Inter, Segoe UI, sans-serif" font-size="9.5" fill="#8BA8CC" letter-spacing="0.5">Management &amp; Entry Logic</text>
+  <text x="108" y="68" font-family="Inter, 'Segoe UI', sans-serif" font-size="10" fill="#8BA8CC" letter-spacing="0.3">Secure High-dimensional Academic Management &amp; Entry Logic</text>
 </svg>
