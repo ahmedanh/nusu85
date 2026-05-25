@@ -119,6 +119,7 @@ urlpatterns = [
 
     # Face enrollment
     path('enroll-face/', views.enroll_face, name='enroll_face'),
+    path('enroll-face/<str:person_type>/<int:person_id>/', views.enroll_face, name='enroll_face_person'),
     path('user/<str:user_type>/<int:user_id>/upload-face/', views.upload_face, name='upload_face'),
 
     # Gate

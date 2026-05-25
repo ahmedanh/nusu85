@@ -2,86 +2,190 @@
 {% block content %}
 <div class="space-y-6">
   <div>
-    <h1 class="text-2xl font-extrabold text-slate-900 font-headline">Course Assignment</h1>
-    <p class="text-sm text-slate-500 mt-1">Assign a teacher to a course in a specific classroom</p>
+    <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">
+      <span data-en="Course Assignment" data-ar="تعيين المقررات">Course Assignment</span>
+    </h1>
+    <p class="text-sm text-slate-500 mt-1">
+      <span data-en="Assign a teacher to a course in a specific classroom" data-ar="تعيين أستاذ لمقرر في قاعة محددة">Assign a teacher to a course in a specific classroom</span>
+    </p>
   </div>
 
+  {% if messages %}
+  <div class="space-y-2">
+    {% for message in messages %}
+    <div class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold border
+      {% if message.tags == 'success' %}bg-emerald-50 dark:bg-emerald-900/20 text-emerald-800 dark:text-emerald-300 border-emerald-100
+      {% elif message.tags == 'error' %}bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 border-red-100
+      {% else %}bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 border-blue-100{% endif %}">
+      <span class="material-symbols-outlined text-xl">
+        {% if message.tags == 'success' %}check_circle{% elif message.tags == 'error' %}error{% else %}info{% endif %}
+      </span>
+      {{ message }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
     <!-- Assignment Form -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-100">
-      <div class="px-6 py-4 border-b border-slate-50 flex items-center gap-2">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
+      <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center gap-2">
         <span class="material-symbols-outlined text-primary">assignment</span>
-        <h2 class="font-bold text-slate-800 font-headline">New Assignment</h2>
+        <h2 class="font-bold text-slate-800 dark:text-white font-headline">
+          <span data-en="New Assignment" data-ar="تعيين جديد">New Assignment</span>
+        </h2>
       </div>
       <form method="post" class="p-6 space-y-4">
         {% csrf_token %}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
           <div>
-            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Teacher</label>
-            <select name="teacher_id" class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none">
-              <option value="">Select Teacher</option>
+            <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1.5">
+              <span data-en="TEACHER" data-ar="الأستاذ">TEACHER</span>
+            </label>
+            <select name="teacher_id" class="w-full rounded-xl px-4 py-3 text-sm font-medium outline-none">
+              <option value=""><span data-en="Select Teacher" data-ar="اختر أستاذاً">Select Teacher</span></option>
               {% for t in teachers %}
               <option value="{{ t.teacher_id }}">{{ t.name }}</option>
               {% endfor %}
             </select>
           </div>
+
           <div>
-            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Course</label>
-            <select name="course_id" class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none">
-              <option value="">Select Course</option>
+            <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1.5">
+              <span data-en="COURSE" data-ar="المقرر">COURSE</span>
+            </label>
+            <select name="course_id" class="w-full rounded-xl px-4 py-3 text-sm font-medium outline-none">
+              <option value=""><span data-en="Select Course" data-ar="اختر مقرراً">Select Course</span></option>
               {% for c in courses %}
               <option value="{{ c.id }}">{{ c.course_code }} – {{ c.title }}</option>
               {% endfor %}
             </select>
           </div>
+
           <div>
-            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Classroom</label>
-            <select name="classroom_id" class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none">
-              <option value="">Select Classroom</option>
+            <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1.5">
+              <span data-en="CLASSROOM" data-ar="القاعة">CLASSROOM</span>
+            </label>
+            <select name="classroom_id" class="w-full rounded-xl px-4 py-3 text-sm font-medium outline-none">
+              <option value=""><span data-en="Select Classroom" data-ar="اختر قاعة">Select Classroom</span></option>
               {% for room in classrooms %}
               <option value="{{ room.id }}">{{ room.name }} ({{ room.location }})</option>
               {% endfor %}
             </select>
           </div>
+
           <div>
-            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Batch</label>
-            <input type="text" name="batch" placeholder="e.g. 2024" value="2024"
-              class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none">
+            <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1.5">
+              <span data-en="BATCH" data-ar="الدفعة">BATCH</span>
+            </label>
+            <input type="text" name="batch" value="2024"
+              data-en-placeholder="e.g. 2024" data-ar-placeholder="مثال: 2024"
+              placeholder="e.g. 2024"
+              class="w-full rounded-xl px-4 py-3 text-sm font-medium outline-none">
           </div>
+
           <div>
-            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Day of Week</label>
-            <select name="day_of_week" class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none">
-              <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
-              <option>Thursday</option><option>Friday</option><option>Saturday</option>
+            <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1.5">
+              <span data-en="DAY OF WEEK" data-ar="يوم الأسبوع">DAY OF WEEK</span>
+            </label>
+            <select name="day_of_week" class="w-full rounded-xl px-4 py-3 text-sm font-medium outline-none">
+              <option data-en="Monday"    data-ar="الاثنين"   >Monday</option>
+              <option data-en="Tuesday"   data-ar="الثلاثاء"  >Tuesday</option>
+              <option data-en="Wednesday" data-ar="الأربعاء"  >Wednesday</option>
+              <option data-en="Thursday"  data-ar="الخميس"    >Thursday</option>
+              <option data-en="Friday"    data-ar="الجمعة"    >Friday</option>
+              <option data-en="Saturday"  data-ar="السبت"     >Saturday</option>
             </select>
           </div>
+
           <div>
-            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Start Time</label>
-            <input type="time" name="start_time" class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none">
+            <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1.5">
+              <span data-en="START TIME" data-ar="وقت البداية">START TIME</span>
+            </label>
+            <input type="time" name="start_time" class="w-full rounded-xl px-4 py-3 text-sm font-medium outline-none">
           </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1.5">End Time</label>
-            <input type="time" name="end_time" class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none">
+
+          <div class="md:col-span-2">
+            <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1.5">
+              <span data-en="END TIME" data-ar="وقت النهاية">END TIME</span>
+            </label>
+            <input type="time" name="end_time" class="w-full rounded-xl px-4 py-3 text-sm font-medium outline-none">
           </div>
+
         </div>
-        <button type="submit" class="inline-flex items-center gap-2 bg-primary text-white font-bold text-sm px-6 py-3 rounded-xl hover:bg-primary/90 transition-all shadow-sm w-full justify-center">
-          <span class="material-symbols-outlined text-base">add_task</span> Assign Course
+        <button type="submit" class="inline-flex items-center gap-2 bg-primary text-white font-bold text-sm px-6 py-3 rounded-xl hover:opacity-90 transition-all shadow-sm w-full justify-center">
+          <span class="material-symbols-outlined text-base">add_task</span>
+          <span data-en="Assign Course" data-ar="تعيين المقرر">Assign Course</span>
         </button>
       </form>
     </div>
 
     <!-- Info Panel -->
-    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 space-y-4">
-      <div class="flex items-center gap-2 text-sm font-bold text-slate-700">
+    <div class="bg-slate-50 dark:bg-slate-700/40 border border-slate-200 dark:border-slate-600 rounded-2xl p-6 space-y-4">
+      <div class="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-200">
         <span class="material-symbols-outlined text-amber-500">info</span>
-        Booking Rules
+        <span data-en="Booking Rules" data-ar="قواعد الحجز">Booking Rules</span>
       </div>
-      <ul class="text-sm text-slate-600 space-y-2">
-        <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-primary shrink-0"></span> A teacher cannot be assigned two courses at the same time.</li>
-        <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-primary shrink-0"></span> A classroom cannot be used by two courses simultaneously.</li>
-        <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-primary shrink-0"></span> Time overlap is detected automatically.</li>
+      <ul class="text-sm text-slate-600 dark:text-slate-300 space-y-3">
+        <li class="flex items-start gap-2">
+          <span class="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0"></span>
+          <span data-en="A teacher cannot be assigned two courses at the same time." data-ar="لا يمكن تعيين أستاذ لمقررين في نفس الوقت.">A teacher cannot be assigned two courses at the same time.</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0"></span>
+          <span data-en="A classroom cannot be used by two courses simultaneously." data-ar="لا يمكن استخدام قاعة لمقررين في نفس الوقت.">A classroom cannot be used by two courses simultaneously.</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0"></span>
+          <span data-en="Time overlap is detected automatically." data-ar="يتم الكشف عن تداخل المواعيد تلقائياً.">Time overlap is detected automatically.</span>
+        </li>
       </ul>
+
+      <!-- Existing assignments summary -->
+      {% if assignments %}
+      <div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-600">
+        <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-3">
+          <span data-en="Current Assignments" data-ar="التعيينات الحالية">Current Assignments</span>
+          <span class="ml-1 bg-primary/10 text-primary px-2 py-0.5 rounded-full">{{ assignments|length }}</span>
+        </p>
+        <div class="space-y-2 max-h-60 overflow-y-auto">
+          {% for a in assignments %}
+          <div class="flex items-center gap-3 bg-white dark:bg-slate-800 rounded-xl px-3 py-2.5 border border-slate-100 dark:border-slate-700">
+            <span class="material-symbols-outlined text-primary text-base">school</span>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-bold text-slate-800 dark:text-white truncate">{{ a.course.title }}</p>
+              <p class="text-[10px] text-slate-400 truncate">{{ a.teacher.name }} · {{ a.classroom.name }} · {{ a.day_of_week }}</p>
+            </div>
+            <form method="post" action="{% url 'delete_assignment' a.id %}" class="shrink-0">
+              {% csrf_token %}
+              <button type="submit" class="p-1 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors" title="Delete">
+                <span class="material-symbols-outlined text-base">delete</span>
+              </button>
+            </form>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
     </div>
+
   </div>
 </div>
+
+<script>
+// Re-apply current language so new page content gets translated immediately
+(function(){
+  const lang = localStorage.getItem('acdc_lang') || 'en';
+  if (lang === 'ar') {
+    document.querySelectorAll('[data-ar]').forEach(el => {
+      if (el.tagName !== 'INPUT' && el.tagName !== 'OPTION') el.textContent = el.dataset.ar;
+    });
+    document.querySelectorAll('[data-ar-placeholder]').forEach(el => {
+      el.placeholder = el.dataset.arPlaceholder;
+    });
+  }
+})();
+</script>
 {% endblock %}

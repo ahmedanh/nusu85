@@ -109,6 +109,40 @@ tailwind.config = {
   ::-webkit-scrollbar-track { background:transparent; }
   ::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:9999px; }
   .dark ::-webkit-scrollbar-thumb { background:#334155; }
+
+  /* ── Form inputs – clear contrast in both modes ── */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  select, textarea {
+    color: #1e293b !important;
+    background-color: #f8fafc !important;
+    border: 1.5px solid #cbd5e1 !important;
+    border-radius: 10px;
+  }
+  input::placeholder, textarea::placeholder { color: #94a3b8 !important; }
+  input:focus:not([type="checkbox"]):not([type="radio"]),
+  select:focus, textarea:focus {
+    border-color: #4361ee !important;
+    background-color: #ffffff !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(67,97,238,0.12) !important;
+  }
+  .dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  .dark select, .dark textarea {
+    color: #e2e8f0 !important;
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+  }
+  .dark input::placeholder, .dark textarea::placeholder { color: #64748b !important; }
+  .dark input:focus:not([type="checkbox"]):not([type="radio"]),
+  .dark select:focus, .dark textarea:focus {
+    border-color: #4361ee !important;
+    background-color: #0f172a !important;
+  }
+
+  /* ── Cards and tables ── */
+  .dark table { color: #e2e8f0; }
+  .dark th { background: #1e293b !important; color: #94a3b8 !important; }
+  .dark td { border-color: #334155 !important; }
 </style>
 </head>
 
@@ -131,9 +165,9 @@ tailwind.config = {
     </div>
     <div class="leading-tight flex-1 min-w-0">
       <p class="text-xs font-extrabold text-slate-900 dark:text-white font-headline truncate"
-         data-en="SHAMEL" data-ar="الجامعة الوطنية">SHAMEL</p>
+         data-en="SHAMEL" data-ar="شامل">SHAMEL</p>
       <p class="text-[10px] text-slate-400 uppercase tracking-wider"
-         data-en="SHAMEL Portal" data-ar="بوابة SHAMEL">SHAMEL Portal</p>
+         data-en="SHAMEL Portal" data-ar="بوابة شامل">SHAMEL Portal</p>
     </div>
     <button onclick="closeSidebar()" class="lg:hidden p-1 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700">
       <span class="material-symbols-outlined text-lg">close</span>
@@ -348,10 +382,10 @@ tailwind.config = {
           {{ request.user.get_full_name|default:request.user.username }}
         </p>
         <p class="text-[10px] text-slate-400 truncate">
-          {% if request.user.is_superuser %}Admin
-          {% elif coordinator_profile %}Coordinator
-          {% elif teacher_profile %}Teacher
-          {% elif student_profile %}Student
+          {% if request.user.is_superuser %}<span data-en="Admin" data-ar="مدير النظام">Admin</span>
+          {% elif coordinator_profile %}<span data-en="Coordinator" data-ar="منسق">Coordinator</span>
+          {% elif teacher_profile %}<span data-en="Teacher" data-ar="أستاذ">Teacher</span>
+          {% elif student_profile %}<span data-en="Student" data-ar="طالب">Student</span>
           {% else %}{{ request.user.email|default:"User" }}{% endif %}
         </p>
       </div>
@@ -420,7 +454,7 @@ tailwind.config = {
           <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200"
               data-en="Notifications" data-ar="الإشعارات">Notifications</h3>
           {% if notifications %}
-          <span class="text-[10px] bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 font-bold px-2 py-0.5 rounded-full">{{ notifications|length }} new</span>
+          <span class="text-[10px] bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 font-bold px-2 py-0.5 rounded-full">{{ notifications|length }} <span data-en="new" data-ar="جديد">new</span></span>
           {% endif %}
         </div>
         <div class="max-h-72 overflow-y-auto">
@@ -463,7 +497,7 @@ tailwind.config = {
           <p class="text-xs font-bold text-slate-800 dark:text-slate-200 leading-tight">
             {{ request.user.get_full_name|default:request.user.username }}</p>
           <p class="text-[10px] text-slate-400">
-            {% if request.user.is_superuser %}Admin{% elif coordinator_profile %}Coordinator{% elif teacher_profile %}Teacher{% elif student_profile %}Student{% else %}User{% endif %}
+            {% if request.user.is_superuser %}<span data-en="Admin" data-ar="مدير النظام">Admin</span>{% elif coordinator_profile %}<span data-en="Coordinator" data-ar="منسق">Coordinator</span>{% elif teacher_profile %}<span data-en="Teacher" data-ar="أستاذ">Teacher</span>{% elif student_profile %}<span data-en="Student" data-ar="طالب">Student</span>{% else %}<span data-en="User" data-ar="مستخدم">User</span>{% endif %}
           </p>
         </div>
         <div class="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-sm flex-shrink-0">
@@ -566,10 +600,10 @@ function applyTheme(theme) {
   localStorage.setItem('acdc_theme', theme);
   if (theme === 'dark') {
     document.documentElement.classList.add('dark');
-    document.getElementById('theme-icon').textContent = 'dark_mode';
+    document.getElementById('theme-icon').textContent = 'light_mode'; // sun = click to go light
   } else {
     document.documentElement.classList.remove('dark');
-    document.getElementById('theme-icon').textContent = 'light_mode';
+    document.getElementById('theme-icon').textContent = 'dark_mode';  // moon = click to go dark
   }
 }
 function toggleTheme() {
@@ -579,7 +613,7 @@ function toggleTheme() {
 // Init icon on load
 (function(){
   const t = localStorage.getItem('acdc_theme') || 'light';
-  document.getElementById('theme-icon').textContent = t === 'dark' ? 'dark_mode' : 'light_mode';
+  document.getElementById('theme-icon').textContent = t === 'dark' ? 'light_mode' : 'dark_mode';
 })();
 
 // ── Language EN / AR ─────────────────────────

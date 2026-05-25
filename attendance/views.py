@@ -724,7 +724,7 @@ def register_teacher(request):
 
 
 @login_required
-def enroll_face(request):
+def enroll_face(request, person_type=None, person_id=None):
     """Enroll a face embedding for the currently logged-in user."""
     if request.method == 'POST':
         b64 = request.POST.get('image_data', '')
