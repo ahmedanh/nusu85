@@ -674,51 +674,26 @@ class Command(BaseCommand):
         total_courses = Course.objects.count()
         self.stdout.write(self.style.SUCCESS(f'  OK {total_courses} courses total'))
 
-        # ── 5. Gate users (gf1–gf15) ───────────────────────────────────────
-        self.stdout.write('Creating gate users gf1–gf15...')
-        for n in range(1, 16):
-            uname = f'gf{n}'
-            if not User.objects.filter(username=uname).exists():
-                u = User.objects.create_user(
-                    username=uname,
-                    email=f'gate{n}@nusu.edu.sd',
-                    password=GATE_PWD,
-                    first_name=f'Gate Staff {n}'
-                )
-        self.stdout.write(self.style.SUCCESS('  OK gf1–gf15 created'))
+        # ── 5. ONE Gate user ───────────────────────────────────────────────
+        # gf1-15, tf1-3, sf1-3 are CLASSROOM/DEPARTMENT devices, not user accounts.
+        # Only the physical gate needs a login.
+        self.stdout.write('Creating gate login user...')
+        if not User.objects.filter(username='gate').exists():
+            User.objects.create_user(
+                username='gate',
+                email='gate@nusu.edu.sd',
+                password=GATE_PWD,
+                first_name='Gate', last_name='Security'
+            )
+        self.stdout.write(self.style.SUCCESS('  OK gate user created (username=gate)'))
 
-        # ── 6. Teachers (399 total, tf1-tf3 with auth) ─────────────────────
+        # ── 6. Teachers (399 total) ─────────────────────────────────────────
         self.stdout.write('Creating 399 teachers...')
         colleges_list = list(college_map.values())
         existing_teachers = Teacher.objects.count()
         needed_teachers   = max(0, 399 - existing_teachers)
 
-        # tf1–tf3 with auth users
-        for n in range(1, 4):
-            uname = f'tf{n}'
-            if not User.objects.filter(username=uname).exists():
-                gender = 'M' if n % 2 == 1 else 'F'
-                u = User.objects.create_user(
-                    username=uname,
-                    email=f'teacher{n}@nusu.edu.sd',
-                    password=TEACHER_PWD
-                )
-                col  = colleges_list[(n - 1) % len(colleges_list)]
-                depts = list(Department.objects.filter(college=col))
-                dept = depts[0] if depts else None
-                Teacher.objects.get_or_create(
-                    auth_user=u,
-                    defaults=dict(
-                        name=rand_name(gender), gender=gender,
-                        academic_degree=random.choice(DEGREES),
-                        college=col, department=dept,
-                        university_email=u.email,
-                        phone_number=rand_phone()
-                    )
-                )
-                needed_teachers = max(0, needed_teachers - 1)
-
-        # Remaining teachers (no auth users)
+        # All teachers are plain records — no linked auth users
         for _ in range(needed_teachers):
             gender = random.choice(['M', 'F'])
             col    = random.choice(colleges_list)
@@ -733,40 +708,12 @@ class Command(BaseCommand):
             )
         self.stdout.write(self.style.SUCCESS(f'  OK {Teacher.objects.count()} teachers total'))
 
-        # ── 7. Students (9889 total, sf1-sf3 with auth) ────────────────────
+        # ── 7. Students (9889 total) ────────────────────────────────────────
         self.stdout.write('Creating 9889 students (this may take a minute)...')
         existing_students = Student.objects.count()
         needed_students   = max(0, 9889 - existing_students)
 
         all_depts = list(Department.objects.all())
-        # sf1–sf3 with auth users
-        for n in range(1, 4):
-            uname = f'sf{n}'
-            if not User.objects.filter(username=uname).exists():
-                gender = 'F' if n == 2 else 'M'
-                u = User.objects.create_user(
-                    username=uname,
-                    email=f'student{n}@nusu.edu.sd',
-                    password=STUDENT_PWD
-                )
-                dept = random.choice(all_depts) if all_depts else None
-                code = f'NU-{random.randint(10000, 99999)}'
-                while Student.objects.filter(student_code=code).exists():
-                    code = f'NU-{random.randint(10000, 99999)}'
-                Student.objects.get_or_create(
-                    auth_user=u,
-                    defaults=dict(
-                        student_code=code,
-                        name=rand_name(gender),
-                        department=dept,
-                        university_email=u.email,
-                        phone_number=rand_phone(),
-                        batch=random.choice(BATCHES),
-                        is_registered=True,
-                        is_allowed_entry=True,
-                    )
-                )
-                needed_students = max(0, needed_students - 1)
 
         # Bulk create remaining students for performance
         CHUNK = 500
@@ -834,8 +781,7 @@ class Command(BaseCommand):
         self.stdout.write(f'  Courses     : {Course.objects.count()}')
         self.stdout.write(f'  Teachers    : {Teacher.objects.count()}')
         self.stdout.write(f'  Students    : {Student.objects.count()}')
-        self.stdout.write(f'  Gate users  : gf1–gf15  | pwd: {GATE_PWD}')
-        self.stdout.write(f'  Teacher auth: tf1–tf3   | pwd: {TEACHER_PWD}')
-        self.stdout.write(f'  Student auth: sf1–sf3   | pwd: {STUDENT_PWD}')
+        self.stdout.write(f'  Gate login  : gate      | pwd: {GATE_PWD}')
+        self.stdout.write(f'  NOTE: gf1-15/tf1-3/sf1-3 are classroom devices, not user accounts')
         self.stdout.write(f'  Coordinators: coord_gen, coord_med … | pwd: {COORD_PWD}')
         self.stdout.write('=' * 50)
