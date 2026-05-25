@@ -13,17 +13,21 @@ tailwind.config = {
   theme: {
     extend: {
       colors: {
-        "primary":               "#051125",
-        "primary-container":     "#1b263b",
-        "on-primary":            "#ffffff",
-        "secondary":             "#5a5e69",
-        "secondary-container":   "#dcdfec",
-        "surface":               "#f8f9fa",
-        "surface-container":     "#edeeef",
-        "on-surface":            "#191c1d",
-        "on-surface-variant":    "#45474d",
-        "outline":               "#75777d",
-        "outline-variant":       "#c5c6cd",
+        /* ── SHAMEL Brand Palette ── */
+        "primary":               "#C9A227",   /* logo gold — CTAs, accents, active states */
+        "primary-container":     "#A8831A",   /* darker gold for hover */
+        "primary-glow":          "#F0C040",   /* bright gold for dark mode */
+        "navy":                  "#0B2545",   /* deep navy — sidebar bg (light) */
+        "navy-deep":             "#070E1D",   /* darker navy — sidebar bg (dark) */
+        "navy-hover":            "#0d2f5e",   /* navy hover state */
+        /* ── Surfaces ── */
+        "surface":               "#F4F6FB",
+        "surface-container":     "#E8ECF4",
+        "on-surface":            "#0B2545",
+        "on-surface-variant":    "#3D4A6B",
+        /* ── Utility ── */
+        "outline":               "#9BA8C5",
+        "outline-variant":       "#D0D7E8",
         "error":                 "#ba1a1a",
         "error-container":       "#ffdad6",
       },
@@ -58,19 +62,29 @@ tailwind.config = {
     font-size:0.8125rem; font-weight:600;
     transition:all .15s ease; cursor:pointer; text-decoration:none;
   }
-  .nav-link:not(.active) { color:#64748b; }
-  .nav-link:not(.active):hover { background:#f1f5f9; color:#1e293b; }
-  .nav-link.active { background:#051125; color:#fff; }
-  .dark .nav-link:not(.active) { color:#94a3b8; }
-  .dark .nav-link:not(.active):hover { background:#1e293b; color:#e2e8f0; }
-  .dark .nav-link.active { background:#1b263b; color:#fff; }
+  /* Light mode: sidebar is dark navy, so text is white/65 */
+  .nav-link:not(.active) { color:rgba(255,255,255,0.65); }
+  .nav-link:not(.active):hover { background:rgba(255,255,255,0.1); color:rgba(255,255,255,0.95); }
+  .nav-link.active {
+    background:rgba(201,162,39,0.18);
+    color:#C9A227;
+    box-shadow: inset 3px 0 0 #C9A227;
+  }
+  /* Dark mode: slightly different shades */
+  .dark .nav-link:not(.active) { color:rgba(255,255,255,0.5); }
+  .dark .nav-link:not(.active):hover { background:rgba(255,255,255,0.07); color:rgba(255,255,255,0.85); }
+  .dark .nav-link.active {
+    background:rgba(240,192,64,0.14);
+    color:#F0C040;
+    box-shadow: inset 3px 0 0 #F0C040;
+  }
 
   .nav-section {
     font-size:.625rem; font-weight:700; letter-spacing:.08em;
-    text-transform:uppercase; color:#94a3b8;
+    text-transform:uppercase; color:rgba(255,255,255,0.35);
     padding:.875rem .875rem .375rem;
   }
-  .dark .nav-section { color:#475569; }
+  .dark .nav-section { color:rgba(255,255,255,0.25); }
 
   /* ── Sidebar positioning ── */
   #sidebar {
@@ -113,40 +127,58 @@ tailwind.config = {
   /* ── Form inputs – clear contrast in both modes ── */
   input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
   select, textarea {
-    color: #1e293b !important;
-    background-color: #f8fafc !important;
-    border: 1.5px solid #cbd5e1 !important;
+    color: #0B2545 !important;
+    background-color: #F4F6FB !important;
+    border: 1.5px solid #D0D7E8 !important;
     border-radius: 10px;
   }
-  input::placeholder, textarea::placeholder { color: #94a3b8 !important; }
+  input::placeholder, textarea::placeholder { color: #9BA8C5 !important; }
   input:focus:not([type="checkbox"]):not([type="radio"]),
   select:focus, textarea:focus {
-    border-color: #4361ee !important;
+    border-color: #C9A227 !important;
     background-color: #ffffff !important;
     outline: none !important;
-    box-shadow: 0 0 0 3px rgba(67,97,238,0.12) !important;
+    box-shadow: 0 0 0 3px rgba(201,162,39,0.15) !important;
   }
   .dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
   .dark select, .dark textarea {
-    color: #e2e8f0 !important;
-    background-color: #1e293b !important;
-    border-color: #334155 !important;
+    color: #E8EDF8 !important;
+    background-color: #0D1A33 !important;
+    border-color: #1A2F50 !important;
   }
-  .dark input::placeholder, .dark textarea::placeholder { color: #64748b !important; }
+  .dark input::placeholder, .dark textarea::placeholder { color: #4A6080 !important; }
   .dark input:focus:not([type="checkbox"]):not([type="radio"]),
   .dark select:focus, .dark textarea:focus {
-    border-color: #4361ee !important;
-    background-color: #0f172a !important;
+    border-color: #F0C040 !important;
+    background-color: #091528 !important;
+    box-shadow: 0 0 0 3px rgba(240,192,64,0.12) !important;
   }
 
   /* ── Cards and tables ── */
-  .dark table { color: #e2e8f0; }
-  .dark th { background: #1e293b !important; color: #94a3b8 !important; }
-  .dark td { border-color: #334155 !important; }
+  .dark table { color: #C8D8F0; }
+  .dark th { background: #0D1A33 !important; color: #7A9ABF !important; border-color: #1A2F50 !important; }
+  .dark td { border-color: #1A2F50 !important; }
+
+  /* ── Gold shimmer on active elements ── */
+  .gold-accent { color: #C9A227; }
+  .dark .gold-accent { color: #F0C040; }
+  .btn-gold {
+    background: linear-gradient(135deg, #C9A227 0%, #E8C040 100%);
+    color: #0B2545; font-weight: 700;
+    box-shadow: 0 4px 16px rgba(201,162,39,0.35);
+    transition: all .2s;
+  }
+  .btn-gold:hover { background: linear-gradient(135deg, #B8950F 0%, #C9A227 100%); box-shadow: 0 6px 20px rgba(201,162,39,0.45); }
+  .btn-navy {
+    background: #0B2545; color: #fff; font-weight: 700;
+    box-shadow: 0 4px 14px rgba(11,37,69,0.3);
+    transition: all .2s;
+  }
+  .btn-navy:hover { background: #0d2f5e; }
 </style>
 </head>
 
-<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 antialiased">
+<body class="bg-[#F4F6FB] dark:bg-[#060C1A] text-[#0B2545] dark:text-[#C8D8F0] antialiased">
 
 <!-- ── Mobile overlay ── -->
 <div id="overlay" onclick="closeSidebar()"
@@ -156,20 +188,37 @@ tailwind.config = {
      SIDEBAR
 ════════════════════════════════════════════ -->
 <aside id="sidebar"
-  class="bg-white dark:bg-slate-800 border-r border-slate-100 dark:border-slate-700">
+  class="bg-navy dark:bg-navy-deep border-r border-white/10 dark:border-white/5"
+  style="background: #0B2545;">
 
   <!-- Logo bar -->
-  <div class="flex items-center gap-3 px-4 h-16 border-b border-slate-100 dark:border-slate-700 flex-shrink-0">
-    <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
-      <span class="material-symbols-outlined text-white text-base">account_balance</span>
-    </div>
-    <div class="leading-tight flex-1 min-w-0">
-      <p class="text-xs font-extrabold text-slate-900 dark:text-white font-headline truncate"
-         data-en="SHAMEL" data-ar="شامل">SHAMEL</p>
-      <p class="text-[10px] text-slate-400 uppercase tracking-wider"
-         data-en="SHAMEL Portal" data-ar="بوابة شامل">SHAMEL Portal</p>
-    </div>
-    <button onclick="closeSidebar()" class="lg:hidden p-1 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700">
+  <div class="flex items-center justify-between px-4 h-16 border-b border-white/10 flex-shrink-0">
+    <a href="/" class="flex items-center gap-0">
+      <!-- Light mode logo (icon only, no description) -->
+      <img src="{% static 'images/logo_light.png' %}"
+           class="h-11 max-w-[150px] object-contain block dark:hidden"
+           alt="SHAMEL"
+           onerror="this.style.display='none'; document.getElementById('logo-txt-l').style.display='flex'">
+      <!-- Dark mode logo -->
+      <img src="{% static 'images/logo_dark.png' %}"
+           class="h-11 max-w-[150px] object-contain hidden dark:block"
+           alt="SHAMEL"
+           onerror="this.style.display='none'; document.getElementById('logo-txt-d').style.display='flex'">
+      <!-- Fallback text logos -->
+      <span id="logo-txt-l" class="hidden dark:hidden items-center gap-2">
+        <span class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background:rgba(201,162,39,0.2);border:1.5px solid #C9A227;">
+          <span class="material-symbols-outlined text-[#C9A227] text-base">shield</span>
+        </span>
+        <span class="text-white font-extrabold text-base font-headline tracking-wide">SHAMEL</span>
+      </span>
+      <span id="logo-txt-d" class="hidden items-center gap-2">
+        <span class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background:rgba(240,192,64,0.15);border:1.5px solid #F0C040;">
+          <span class="material-symbols-outlined text-[#F0C040] text-base">shield</span>
+        </span>
+        <span class="text-white font-extrabold text-base font-headline tracking-wide">SHAMEL</span>
+      </span>
+    </a>
+    <button onclick="closeSidebar()" class="lg:hidden p-1.5 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-colors">
       <span class="material-symbols-outlined text-lg">close</span>
     </button>
   </div>
@@ -372,16 +421,17 @@ tailwind.config = {
   </nav>
 
   <!-- ── User card ── -->
-  <div class="p-2.5 border-t border-slate-100 dark:border-slate-700 flex-shrink-0">
-    <div class="flex items-center gap-2.5 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group">
-      <div class="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-sm flex-shrink-0">
+  <div class="p-2.5 border-t border-white/10 flex-shrink-0">
+    <div class="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/8 transition-colors group" style="--tw-bg-opacity:1">
+      <div class="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-sm flex-shrink-0 text-[#0B2545]"
+           style="background:linear-gradient(135deg,#C9A227,#E8C040);">
         {{ request.user.get_full_name|first|upper|default:request.user.username|first|upper }}
       </div>
       <div class="flex-1 min-w-0">
-        <p class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
+        <p class="text-xs font-bold text-white/90 truncate">
           {{ request.user.get_full_name|default:request.user.username }}
         </p>
-        <p class="text-[10px] text-slate-400 truncate">
+        <p class="text-[10px] text-white/45 truncate">
           {% if request.user.is_superuser %}<span data-en="Admin" data-ar="مدير النظام">Admin</span>
           {% elif coordinator_profile %}<span data-en="Coordinator" data-ar="منسق">Coordinator</span>
           {% elif teacher_profile %}<span data-en="Teacher" data-ar="أستاذ">Teacher</span>
@@ -390,7 +440,7 @@ tailwind.config = {
         </p>
       </div>
       <a href="{% url 'logout' %}" title="Sign out"
-        class="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors opacity-0 group-hover:opacity-100">
+        class="p-1.5 rounded-lg text-white/30 hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100">
         <span class="material-symbols-outlined text-base">logout</span>
       </a>
     </div>
@@ -401,7 +451,7 @@ tailwind.config = {
      TOP BAR
 ════════════════════════════════════════════ -->
 <header id="topbar"
-  class="bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700 flex items-center px-4 gap-3">
+  class="bg-white dark:bg-[#0A1628] border-b border-slate-100 dark:border-[#1A2F50] flex items-center px-4 gap-3">
 
   <!-- Mobile hamburger -->
   <button onclick="openSidebar()" class="lg:hidden p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
@@ -414,9 +464,9 @@ tailwind.config = {
     <input id="main-search" type="text" autocomplete="off"
       data-en-placeholder="Search students, faculty…" data-ar-placeholder="البحث عن طلاب، أساتذة…"
       placeholder="Search students, faculty…"
-      class="w-full pl-9 pr-4 py-2 text-sm bg-slate-100 dark:bg-slate-700 dark:text-slate-200 dark:placeholder-slate-500 rounded-xl border border-transparent focus:border-primary/30 focus:bg-white dark:focus:bg-slate-600 focus:outline-none transition-all"/>
+      class="w-full pl-9 pr-4 py-2 text-sm bg-[#EEF1F8] dark:bg-[#0D1A33] dark:text-[#C8D8F0] dark:placeholder-[#4A6080] rounded-xl border border-transparent focus:border-primary/40 focus:bg-white dark:focus:bg-[#091528] focus:outline-none transition-all"/>
     <div id="search-results"
-      class="absolute top-full mt-2 left-0 w-full bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 hidden z-50 overflow-hidden">
+      class="absolute top-full mt-2 left-0 w-full bg-white dark:bg-[#0D1A33] rounded-2xl shadow-xl border border-slate-100 dark:border-[#1A2F50] hidden z-50 overflow-hidden">
       <div id="results-container" class="max-h-64 overflow-y-auto p-2">
         <p class="text-xs text-slate-400 p-2" data-en="Start typing…" data-ar="ابدأ الكتابة…">Start typing…</p>
       </div>
@@ -500,7 +550,8 @@ tailwind.config = {
             {% if request.user.is_superuser %}<span data-en="Admin" data-ar="مدير النظام">Admin</span>{% elif coordinator_profile %}<span data-en="Coordinator" data-ar="منسق">Coordinator</span>{% elif teacher_profile %}<span data-en="Teacher" data-ar="أستاذ">Teacher</span>{% elif student_profile %}<span data-en="Student" data-ar="طالب">Student</span>{% else %}<span data-en="User" data-ar="مستخدم">User</span>{% endif %}
           </p>
         </div>
-        <div class="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-sm flex-shrink-0">
+        <div class="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-sm flex-shrink-0 text-[#0B2545]"
+             style="background:linear-gradient(135deg,#C9A227,#E8C040);">
           {{ request.user.get_full_name|first|upper|default:request.user.username|first|upper }}
         </div>
         <span class="material-symbols-outlined text-slate-400 text-lg">expand_more</span>
@@ -531,7 +582,7 @@ tailwind.config = {
 <!-- ════════════════════════════════════════════
      MAIN CONTENT
 ════════════════════════════════════════════ -->
-<main id="main-canvas" class="bg-slate-50 dark:bg-slate-900">
+<main id="main-canvas" class="bg-[#F4F6FB] dark:bg-[#060C1A]">
   <div class="p-5 lg:p-8">
 
     <!-- Django messages → inline alerts -->

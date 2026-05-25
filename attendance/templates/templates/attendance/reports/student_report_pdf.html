@@ -1,40 +1,115 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html dir="rtl">
 <head>
 <meta charset="UTF-8"/>
 <style>
-  body { font-family: Arial, sans-serif; font-size: 12px; direction: rtl; margin: 20px; color: #222; }
-  .header { text-align: center; border-bottom: 2px solid #1F3864; padding-bottom: 12px; margin-bottom: 20px; }
-  .header h1 { color: #1F3864; font-size: 20px; margin: 0 0 4px; }
-  .header h2 { color: #2E75B6; font-size: 14px; margin: 0 0 4px; font-weight: normal; }
-  .header p  { color: #666; font-size: 11px; margin: 0; }
+  @page { margin: 18mm 15mm 20mm 15mm; }
+  body { font-family: Arial, sans-serif; font-size: 12px; direction: rtl; color: #0B2545; }
+
+  /* ── PDF Header with logo ── */
+  .pdf-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 12px;
+    border-bottom: 3px solid #C9A227;
+    margin-bottom: 18px;
+  }
+  .pdf-header .logo-area {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo-shield {
+    width: 44px; height: 44px;
+    background: #0B2545;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: #C9A227; font-size: 24px; font-weight: 900;
+    letter-spacing: -1px;
+    flex-shrink: 0;
+  }
+  .logo-text { line-height: 1.15; }
+  .logo-text .name { font-size: 18px; font-weight: 900; color: #0B2545; letter-spacing: 1px; }
+  .logo-text .tagline { font-size: 8px; color: #6B7FA3; letter-spacing: .06em; text-transform: uppercase; }
+  .pdf-header .report-info { text-align: left; }
+  .report-info .title { font-size: 14px; font-weight: 700; color: #0B2545; }
+  .report-info .date { font-size: 10px; color: #6B7FA3; margin-top: 2px; }
+
+  /* ── Gold accent bar ── */
+  .gold-bar {
+    height: 3px;
+    background: linear-gradient(90deg, #0B2545, #C9A227, #E8C040, #C9A227, #0B2545);
+    border-radius: 9999px;
+    margin-bottom: 16px;
+  }
+
+  /* ── Table ── */
   table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-  thead th { background: #1F3864; color: #fff; padding: 8px 10px; text-align: right; font-size: 11px; }
-  tbody td { padding: 6px 10px; border-bottom: 1px solid #e0e0e0; text-align: right; font-size: 11px; }
-  tbody tr:nth-child(even) { background: #f5f7fa; }
-  .badge-present { color: #166534; font-weight: bold; }
-  .badge-absent  { color: #991b1b; font-weight: bold; }
-  .summary { margin-top: 16px; font-size: 11px; color: #555; }
-  .footer { position: fixed; bottom: 0; left: 0; right: 0; font-size: 10px; color: #aaa; text-align: center; padding: 6px; border-top: 1px solid #eee; }
+  thead th {
+    background: #0B2545; color: #fff;
+    padding: 8px 10px; text-align: right;
+    font-size: 11px; font-weight: 700;
+  }
+  thead th:first-child { border-radius: 0 6px 0 0; }
+  thead th:last-child  { border-radius: 6px 0 0 0; }
+  tbody td { padding: 6px 10px; border-bottom: 1px solid #E8ECF4; text-align: right; font-size: 11px; }
+  tbody tr:nth-child(even) { background: #F4F6FB; }
+  tbody tr:hover { background: #EEF1F8; }
+
+  .badge-present { color: #166534; font-weight: 700; }
+  .badge-absent  { color: #991B1B; font-weight: 700; }
+  .badge-excused { color: #92400E; font-weight: 700; }
+
+  /* ── Summary box ── */
+  .summary-box {
+    margin-top: 16px;
+    padding: 10px 14px;
+    background: #F4F6FB;
+    border-left: 3px solid #C9A227;
+    border-radius: 0 8px 8px 0;
+    font-size: 11px;
+    color: #3D4A6B;
+  }
+
+  /* ── Footer ── */
+  .pdf-footer {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    font-size: 9px; color: #9BA8C5;
+    text-align: center; padding: 5px;
+    border-top: 1px solid #E8ECF4;
+    background: #fff;
+  }
 </style>
 </head>
 <body>
 
-<div class="header">
-  <h1>SHAMEL</h1>
-  <h2>SHAMEL System — Student Attendance Report</h2>
-  <p>Generated: {{ generated_at|date:"Y-m-d H:i" }}</p>
+<!-- Logo header -->
+<div class="pdf-header">
+  <div class="logo-area">
+    <div class="logo-shield">S</div>
+    <div class="logo-text">
+      <div class="name">SHAMEL</div>
+      <div class="tagline">Secure Academic Management &amp; Entry Logic</div>
+    </div>
+  </div>
+  <div class="report-info">
+    <div class="title">تقرير حضور الطلاب</div>
+    <div class="date">تاريخ الإنشاء: {{ generated_at|date:"Y-m-d H:i" }}</div>
+  </div>
 </div>
+
+<div class="gold-bar"></div>
 
 <table>
   <thead>
     <tr>
       <th>#</th>
-      <th>Student Name</th>
-      <th>Course</th>
-      <th>Date</th>
-      <th>Time</th>
-      <th>Status</th>
+      <th>اسم الطالب</th>
+      <th>المقرر</th>
+      <th>التاريخ</th>
+      <th>الوقت</th>
+      <th>الحالة</th>
     </tr>
   </thead>
   <tbody>
@@ -45,21 +120,18 @@
       <td>{{ log.schedule.course.title|default:"N/A" }}</td>
       <td>{{ log.timestamp|date:"Y-m-d" }}</td>
       <td>{{ log.timestamp|time:"H:i" }}</td>
-      <td class="{% if log.status == 'Present' %}badge-present{% else %}badge-absent{% endif %}">
-        {{ log.status }}
+      <td class="{% if log.status == 'Present' %}badge-present{% elif log.status == 'Excused' %}badge-excused{% else %}badge-absent{% endif %}">
+        {% if log.status == 'Present' %}حاضر{% elif log.status == 'Excused' %}معذور{% else %}غائب{% endif %}
       </td>
     </tr>
     {% empty %}
-    <tr>
-      <td colspan="6" style="text-align:center; padding:20px; color:#999;">No records found</td>
-    </tr>
+    <tr><td colspan="6" style="text-align:center; padding:20px; color:#9BA8C5;">لا توجد سجلات</td></tr>
     {% endfor %}
   </tbody>
 </table>
 
-<div class="summary">Total records: {{ logs|length }}</div>
+<div class="summary-box">إجمالي السجلات: <strong>{{ logs|length }}</strong></div>
 
-<div class="footer">SHAMEL Academic Central Data Center — Confidential Document</div>
-
+<div class="pdf-footer">SHAMEL — نظام إدارة الحضور الجامعي · سري وللاستخدام الداخلي فقط</div>
 </body>
 </html>

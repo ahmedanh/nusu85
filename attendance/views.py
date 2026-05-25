@@ -457,7 +457,8 @@ def get_chancellor_stats(request):
 def export_teachers_csv(request):
     teachers = Teacher.objects.select_related('department', 'college').order_by('name')
     response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
-    response['Content-Disposition'] = 'attachment; filename="teachers.csv"'
+    from datetime import date
+    response['Content-Disposition'] = f'attachment; filename="SHAMEL_Teachers_Export_{date.today()}.csv"'
     writer = csv.writer(response)
     writer.writerow(['ID', 'Name', 'Degree', 'Major', 'Department', 'College', 'Email', 'Phone', 'Allowed Entry'])
     for t in teachers:
@@ -978,7 +979,9 @@ def export_my_courses_csv(request):
     teacher = get_object_or_404(Teacher, auth_user=request.user)
     schedules = Schedule.objects.filter(teacher=teacher).select_related('course', 'classroom')
     response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
-    response['Content-Disposition'] = 'attachment; filename="my_courses.csv"'
+    from datetime import date
+    tname = teacher.name.replace(' ', '_')[:30]
+    response['Content-Disposition'] = f'attachment; filename="SHAMEL_{tname}_MyCourses_{date.today()}.csv"'
     writer = csv.writer(response)
     writer.writerow(['Course Code', 'Title', 'Day', 'Start', 'End', 'Classroom', 'Batch', 'Semester'])
     for s in schedules:
@@ -1004,7 +1007,8 @@ def teacher_attendance_report(request):
 def export_teacher_report_csv(request):
     teachers = Teacher.objects.select_related('department', 'college').order_by('name')
     response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
-    response['Content-Disposition'] = 'attachment; filename="teacher_report.csv"'
+    from datetime import date
+    response['Content-Disposition'] = f'attachment; filename="SHAMEL_TeacherAttendance_Report_{date.today()}.csv"'
     writer = csv.writer(response)
     writer.writerow(['Name', 'Degree', 'Major', 'College', 'Department', 'Sessions Held'])
     for t in teachers:
@@ -1256,7 +1260,8 @@ def export_student_report_pdf(request):
     html = render(request, 'attendance/reports/student_report_pdf.html', {
         'summary': summary, 'filters': filters, **meta,
     }).content.decode('utf-8')
-    return _pdf_response(html, 'student_attendance_report.pdf')
+    from datetime import date
+    return _pdf_response(html, f'SHAMEL_StudentAttendance_Report_{date.today()}.pdf')
 
 
 @login_required
@@ -1267,7 +1272,8 @@ def export_teacher_report_pdf(request):
         sessions = LectureSession.objects.filter(schedule__teacher=t, is_active=False).count()
         data.append({'teacher': t, 'sessions': sessions})
     html = render(request, 'attendance/reports/teacher_report_pdf.html', {'data': data}).content.decode('utf-8')
-    return _pdf_response(html, 'teacher_report.pdf')
+    from datetime import date
+    return _pdf_response(html, f'SHAMEL_TeacherAttendance_Report_{date.today()}.pdf')
 
 
 @login_required
@@ -1277,7 +1283,9 @@ def export_grades_pdf(request):
     html = render(request, 'attendance/reports/grades_pdf.html', {
         'student': student, 'grades': grades,
     }).content.decode('utf-8')
-    return _pdf_response(html, 'grades.pdf')
+    from datetime import date
+    sname = student.name.replace(' ', '_')[:25] if student.name else 'Student'
+    return _pdf_response(html, f'SHAMEL_{sname}_Grades_{date.today()}.pdf')
 
 
 # ── Medical Excuses ──────────────────────────────────────────────────────────
@@ -1611,7 +1619,9 @@ def export_student_attendance_csv(request):
     summary = _summarise_logs(logs)
 
     response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
-    response['Content-Disposition'] = 'attachment; filename="attendance_report.csv"'
+    from datetime import date
+    college_f = request.GET.get('college', 'All')
+    response['Content-Disposition'] = f'attachment; filename="SHAMEL_StudentAttendance_{college_f}_{date.today()}.csv"'
     writer = csv.writer(response)
     writer.writerow([
         'Student ID', 'Student Name', 'College', 'Department',
@@ -1717,7 +1727,8 @@ def export_attendance_excel(request):
     wb.save(buf)
     buf.seek(0)
     resp = HttpResponse(buf.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    resp['Content-Disposition'] = 'attachment; filename="attendance_report.xlsx"'
+    from datetime import date as _date
+    resp['Content-Disposition'] = f'attachment; filename="SHAMEL_AttendanceReport_{_date.today()}.xlsx"'
     return resp
 
 
@@ -2520,7 +2531,9 @@ def export_coordinator_students_csv(request):
     students = Student.objects.filter(
         department__college=coordinator.college).select_related('department')
     response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
-    response['Content-Disposition'] = 'attachment; filename="coordinator_students.csv"'
+    from datetime import date
+    college_name = coordinator.college.college_name.replace(' ', '_')[:25] if coordinator.college else 'College'
+    response['Content-Disposition'] = f'attachment; filename="SHAMEL_{college_name}_Students_{date.today()}.csv"'
     writer = csv.writer(response)
     writer.writerow(['Student ID', 'Name', 'Batch', 'Registered', 'Phone', 'Email'])
     for s in students:
