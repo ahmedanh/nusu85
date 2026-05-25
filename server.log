@@ -1,0 +1,8 @@
+  = document.getElementById('scan-overlay');
+const toggleBtn     = document.getElementById('toggle-btn');
+const toggleLabel   = document.getElementById('toggle-label');
+const cameraSelect  = document.getElementById('camera-select');
+const idlePanel     = document.getElementById('idle-panel');
+const resultPanel   = document.getElementById('result-panel');
+const accessBanner  = document.getElementById('access-banner');
+const accessIcon    = 

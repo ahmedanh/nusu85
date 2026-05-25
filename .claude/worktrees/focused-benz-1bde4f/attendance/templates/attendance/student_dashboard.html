@@ -1,0 +1,122 @@
+{% extends 'attendance/base.html' %}
+{% block content %}
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-extrabold text-slate-900 font-headline">Student Dashboard</h1>
+      <p class="text-sm text-slate-500 mt-1">Welcome back, <span class="font-semibold text-primary">{{ student.name }}</span></p>
+    </div>
+    <div class="flex gap-2">
+      {% if student.financialstatus.is_paid %}
+        <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-100">
+          <span class="material-symbols-outlined text-sm">verified</span> Fees Paid
+        </span>
+      {% else %}
+        <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-red-50 text-red-700 text-xs font-bold border border-red-100">
+          <span class="material-symbols-outlined text-sm">warning</span> Fees Due
+        </span>
+      {% endif %}
+      {% if student.is_registered %}
+        <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-blue-50 text-blue-700 text-xs font-bold border border-blue-100">
+          <span class="material-symbols-outlined text-sm">badge</span> Registered
+        </span>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+          <span class="material-symbols-outlined text-blue-600">menu_book</span>
+        </div>
+        <span class="text-sm font-semibold text-slate-500">Enrolled Courses</span>
+      </div>
+      <div class="text-3xl font-extrabold text-slate-900 font-headline">{{ enrollments.count }}</div>
+    </div>
+
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
+          <span class="material-symbols-outlined text-emerald-600">how_to_reg</span>
+        </div>
+        <span class="text-sm font-semibold text-slate-500">Overall Attendance</span>
+      </div>
+      <div class="text-3xl font-extrabold font-headline {% if attendance_percentage >= 75 %}text-emerald-600{% elif attendance_percentage >= 60 %}text-amber-600{% else %}text-red-600{% endif %}">
+        {{ attendance_percentage }}%
+      </div>
+      <div class="mt-2 w-full bg-slate-100 rounded-full h-1.5">
+        <div class="h-1.5 rounded-full {% if attendance_percentage >= 75 %}bg-emerald-500{% elif attendance_percentage >= 60 %}bg-amber-500{% else %}bg-red-500{% endif %}" style="width: {{ attendance_percentage }}%"></div>
+      </div>
+      {% if attendance_percentage < 75 %}
+      <p class="text-xs text-red-600 mt-2 font-semibold">⚠ Below 75% threshold — Eligibility at risk!</p>
+      {% endif %}
+    </div>
+
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center">
+          <span class="material-symbols-outlined text-purple-600">fingerprint</span>
+        </div>
+        <span class="text-sm font-semibold text-slate-500">Face ID Status</span>
+      </div>
+      <div class="text-base font-bold {% if student.is_trained %}text-emerald-600{% else %}text-amber-600{% endif %}">
+        {% if student.is_trained %}✓ Face Enrolled{% else %}⚠ Not Enrolled{% endif %}
+      </div>
+      {% if not student.is_trained %}
+      <p class="text-xs text-slate-400 mt-1">Contact your coordinator to enroll your face.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Quick Links -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <a href="{% url 'student_profile' %}" class="bg-white rounded-xl p-4 shadow-sm border border-slate-100 hover:border-primary/30 hover:shadow-md transition-all flex flex-col items-center gap-2 text-center group">
+      <span class="material-symbols-outlined text-2xl text-slate-400 group-hover:text-primary transition-colors">person</span>
+      <span class="text-xs font-bold text-slate-600 group-hover:text-primary">My Profile</span>
+    </a>
+    <a href="{% url 'student_courses' %}" class="bg-white rounded-xl p-4 shadow-sm border border-slate-100 hover:border-primary/30 hover:shadow-md transition-all flex flex-col items-center gap-2 text-center group">
+      <span class="material-symbols-outlined text-2xl text-slate-400 group-hover:text-primary transition-colors">class</span>
+      <span class="text-xs font-bold text-slate-600 group-hover:text-primary">My Courses</span>
+    </a>
+    <a href="{% url 'schedule' %}" class="bg-white rounded-xl p-4 shadow-sm border border-slate-100 hover:border-primary/30 hover:shadow-md transition-all flex flex-col items-center gap-2 text-center group">
+      <span class="material-symbols-outlined text-2xl text-slate-400 group-hover:text-primary transition-colors">calendar_month</span>
+      <span class="text-xs font-bold text-slate-600 group-hover:text-primary">Schedule</span>
+    </a>
+    <a href="{% url 'student_support' %}" class="bg-white rounded-xl p-4 shadow-sm border border-slate-100 hover:border-primary/30 hover:shadow-md transition-all flex flex-col items-center gap-2 text-center group">
+      <span class="material-symbols-outlined text-2xl text-slate-400 group-hover:text-primary transition-colors">support_agent</span>
+      <span class="text-xs font-bold text-slate-600 group-hover:text-primary">Support</span>
+    </a>
+  </div>
+
+  <!-- Weekly Schedule -->
+  {% if weekly_schedule %}
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-100">
+    <div class="px-6 py-4 border-b border-slate-50 flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary">calendar_view_week</span>
+      <h2 class="font-bold text-slate-800 font-headline">This Week's Schedule</h2>
+    </div>
+    <div class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {% for day, sessions in weekly_schedule.items %}
+      <div>
+        <h3 class="text-xs font-extrabold text-slate-400 uppercase tracking-widest mb-3">{{ day }}</h3>
+        <div class="space-y-2">
+          {% for s in sessions %}
+          <div class="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+            <div class="w-1 h-10 rounded-full bg-primary shrink-0"></div>
+            <div>
+              <p class="text-xs font-bold text-slate-800">{{ s.course.title }}</p>
+              <p class="text-[10px] text-slate-500 mt-0.5">{{ s.start_time|time:"H:i" }} – {{ s.end_time|time:"H:i" }} • {{ s.classroom.name }}</p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

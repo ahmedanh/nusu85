@@ -1,0 +1,100 @@
+﻿{% extends 'attendance/base.html' %}
+{% block title %}رفع بلاغ — SHAMEL{% endblock %}
+{% block content %}
+
+<div class="max-w-2xl mx-auto space-y-6">
+
+  <div class="flex items-center gap-4">
+    <a href="{% url 'tickets_list' %}"
+      class="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-slate-500 hover:text-slate-800 transition-all shadow-sm">
+      <span class="material-symbols-outlined text-lg">arrow_back</span>
+    </a>
+    <div>
+      <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">رفع بلاغ جديد</h1>
+      <p class="text-sm text-slate-500 mt-0.5">سيتم إرسال بلاغك إلى فريق الدعم الفوراً</p>
+    </div>
+  </div>
+
+  {% if messages %}
+  {% for msg in messages %}
+  <div class="rounded-2xl p-4 {% if msg.tags == 'error' %}bg-red-50 dark:bg-red-900/20 border border-red-200 text-red-700{% else %}bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 text-emerald-700{% endif %}">
+    {{ msg }}
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  <form method="post" class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+    {% csrf_token %}
+
+    <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary">support_agent</span>
+      <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm">تفاصيل البلاغ</h2>
+    </div>
+
+    <div class="p-6 space-y-5">
+
+      <div>
+        <label class="label-xs">موضوع البلاغ *</label>
+        <input type="text" name="subject" required placeholder="وصف مختصر للمشكلة..." class="inp">
+      </div>
+
+      <!-- Type selector -->
+      <div>
+        <label class="label-xs mb-3 block">نوع البلاغ</label>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {% for val, label in type_choices %}
+          <label class="flex items-center gap-3 p-3 rounded-xl border-2 border-slate-200 dark:border-slate-600 cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition-all">
+            <input type="radio" name="ticket_type" value="{{ val }}" {% if forloop.first %}checked{% endif %}>
+            <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">{{ label }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Priority selector -->
+      <div>
+        <label class="label-xs mb-3 block">الأولوية</label>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {% for val, label in priority_choices %}
+          <label class="flex items-center gap-3 p-3 rounded-xl border-2 border-slate-200 dark:border-slate-600 cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition-all">
+            <input type="radio" name="priority" value="{{ val }}" {% if val == 'medium' %}checked{% endif %}>
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full
+                {% if val == 'urgent' %}bg-red-500
+                {% elif val == 'high' %}bg-orange-400
+                {% elif val == 'medium' %}bg-amber-400
+                {% else %}bg-slate-300{% endif %}"></span>
+              <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">{{ label }}</span>
+            </div>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div>
+        <label class="label-xs">وصف المشكلة التفصيلي *</label>
+        <textarea name="description" required rows="6"
+          placeholder="اشرح المشكلة بالتفصيل: ماذا حدث، متى، وما الذي جربت..."
+          class="inp resize-none"></textarea>
+      </div>
+
+    </div>
+
+    <div class="px-6 pb-6 flex gap-3">
+      <button type="submit"
+        class="inline-flex items-center gap-2 bg-primary hover:bg-primary-container text-white font-bold text-sm px-6 py-3 rounded-xl transition-all shadow-sm">
+        <span class="material-symbols-outlined text-base">send</span> إرسال البلاغ
+      </button>
+      <a href="{% url 'tickets_list' %}"
+        class="inline-flex items-center gap-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-sm px-5 py-3 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-all">
+        إلغاء
+      </a>
+    </div>
+  </form>
+</div>
+
+<style>
+  .label-xs { @apply block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5; }
+  .inp { @apply w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm font-medium dark:text-white focus:ring-2 focus:ring-primary/20 outline-none transition-all; }
+</style>
+{% endblock %}

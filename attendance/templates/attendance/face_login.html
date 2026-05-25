@@ -1,0 +1,171 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>تسجيل الدخول بالوجه — SHAMEL</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<style>
+  body { font-family: 'Inter', sans-serif; }
+  h1,h2 { font-family: 'Manrope', sans-serif; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
+  #video-feed { transform: scaleX(-1); }
+  .scan-ring { animation: pulse-ring 2s cubic-bezier(0.215,0.61,0.355,1) infinite; }
+  @keyframes pulse-ring {
+    0% { box-shadow: 0 0 0 0 rgba(5,17,37,0.3); }
+    70% { box-shadow: 0 0 0 20px rgba(5,17,37,0); }
+    100% { box-shadow: 0 0 0 0 rgba(5,17,37,0); }
+  }
+</style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+
+  <div class="w-full max-w-md">
+
+    <!-- Logo -->
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/10 mb-4">
+        <span class="material-symbols-outlined text-white text-3xl">face_recognition</span>
+      </div>
+      <h1 class="text-2xl font-bold text-white">تسجيل الدخول بالوجه</h1>
+      <p class="text-slate-400 text-sm mt-1">SHAMEL System</p>
+    </div>
+
+    <!-- Card -->
+    <div class="bg-white rounded-3xl shadow-2xl overflow-hidden">
+
+      <!-- Webcam area -->
+      <div class="relative bg-slate-900 aspect-[4/3] flex items-center justify-center">
+        <video id="video-feed" autoplay playsinline
+          class="w-full h-full object-cover rounded-none hidden"></video>
+
+        <!-- Placeholder before camera starts -->
+        <div id="cam-placeholder" class="flex flex-col items-center gap-3 text-slate-500">
+          <span class="material-symbols-outlined text-5xl">videocam_off</span>
+          <p class="text-sm">الكاميرا غير مفعّلة</p>
+        </div>
+
+        <!-- Scanning overlay frame -->
+        <div id="scan-overlay" class="absolute inset-0 pointer-events-none hidden">
+          <div class="absolute inset-8 border-2 border-white/20 rounded-2xl"></div>
+          <!-- Corner brackets -->
+          <div class="absolute top-8 left-8 w-8 h-8 border-t-2 border-l-2 border-emerald-400 rounded-tl-xl"></div>
+          <div class="absolute top-8 right-8 w-8 h-8 border-t-2 border-r-2 border-emerald-400 rounded-tr-xl"></div>
+          <div class="absolute bottom-8 left-8 w-8 h-8 border-b-2 border-l-2 border-emerald-400 rounded-bl-xl"></div>
+          <div class="absolute bottom-8 right-8 w-8 h-8 border-b-2 border-r-2 border-emerald-400 rounded-br-xl"></div>
+        </div>
+
+        <!-- Canvas (hidden, used for capture) -->
+        <canvas id="snap-canvas" class="hidden"></canvas>
+      </div>
+
+      <!-- Controls -->
+      <div class="p-6 space-y-4">
+
+        <!-- Status message -->
+        <div id="status-box" class="hidden rounded-xl px-4 py-3 text-sm font-medium flex items-center gap-2">
+          <span id="status-icon" class="material-symbols-outlined text-lg">info</span>
+          <span id="status-text">جاري المعالجة...</span>
+        </div>
+
+        <!-- Buttons -->
+        <div class="flex gap-3">
+          <button id="start-cam-btn" onclick="startCamera()"
+            class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm py-3 rounded-xl transition-all flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined text-lg">videocam</span>
+            تشغيل الكاميرا
+          </button>
+          <button id="scan-btn" onclick="captureAndScan()" disabled
+            class="flex-1 bg-slate-900 text-white font-bold text-sm py-3 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed scan-ring">
+            <span class="material-symbols-outlined text-lg">face_recognition</span>
+            فحص الوجه
+          </button>
+        </div>
+
+        <div class="text-center">
+          <a href="{% url 'login' %}" class="text-xs text-slate-400 hover:text-slate-600 transition-colors">
+            تسجيل الدخول بكلمة المرور
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const video = document.getElementById('video-feed');
+  const canvas = document.getElementById('snap-canvas');
+  const placeholder = document.getElementById('cam-placeholder');
+  const overlay = document.getElementById('scan-overlay');
+  const scanBtn = document.getElementById('scan-btn');
+  const startBtn = document.getElementById('start-cam-btn');
+  const statusBox = document.getElementById('status-box');
+  const statusIcon = document.getElementById('status-icon');
+  const statusText = document.getElementById('status-text');
+
+  function showStatus(msg, type) {
+    statusBox.classList.remove('hidden', 'bg-blue-50', 'text-blue-700', 'bg-emerald-50', 'text-emerald-700', 'bg-red-50', 'text-red-700', 'bg-amber-50', 'text-amber-700');
+    const map = {
+      info:    ['bg-blue-50',    'text-blue-700',    'info'],
+      success: ['bg-emerald-50', 'text-emerald-700', 'check_circle'],
+      error:   ['bg-red-50',     'text-red-700',     'error'],
+      loading: ['bg-amber-50',   'text-amber-700',   'progress_activity'],
+    };
+    const [bg, tc, icon] = map[type] || map.info;
+    statusBox.classList.add(bg, tc);
+    statusIcon.textContent = icon;
+    statusText.textContent = msg;
+    statusBox.classList.remove('hidden');
+  }
+
+  async function startCamera() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+      video.srcObject = stream;
+      video.classList.remove('hidden');
+      placeholder.classList.add('hidden');
+      overlay.classList.remove('hidden');
+      scanBtn.disabled = false;
+      startBtn.disabled = true;
+      startBtn.classList.add('opacity-50');
+      showStatus('الكاميرا جاهزة — اضغط "فحص الوجه"', 'info');
+    } catch (e) {
+      showStatus('تعذّر الوصول إلى الكاميرا: ' + e.message, 'error');
+    }
+  }
+
+  async function captureAndScan() {
+    if (!video.srcObject) { showStatus('شغّل الكاميرا أولاً', 'error'); return; }
+
+    showStatus('جاري تحليل الوجه...', 'loading');
+    scanBtn.disabled = true;
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    const imageData = canvas.toDataURL('image/jpeg', 0.85);
+
+    const formData = new FormData();
+    formData.append('image_data', imageData);
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+    try {
+      const resp = await fetch('{% url "face_login" %}', { method: 'POST', body: formData });
+      const data = await resp.json();
+
+      if (data.status === 'success') {
+        showStatus('مرحباً ' + data.name + '! جاري التحويل...', 'success');
+        setTimeout(() => { window.location.href = data.redirect; }, 1000);
+      } else {
+        showStatus(data.message || 'لم يتم التعرف على الوجه', 'error');
+        scanBtn.disabled = false;
+      }
+    } catch (e) {
+      showStatus('خطأ في الاتصال بالخادم', 'error');
+      scanBtn.disabled = false;
+    }
+  }
+</script>
+</body>
+</html>

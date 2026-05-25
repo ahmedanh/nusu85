@@ -1,0 +1,689 @@
+﻿{% load static %}
+<!DOCTYPE html>
+<html lang="en" dir="ltr" class="">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>{% block title %}SHAMEL{% endblock %}</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="{% static 'fonts/fonts.css' %}" rel="stylesheet"/>
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "primary":               "#051125",
+        "primary-container":     "#1b263b",
+        "on-primary":            "#ffffff",
+        "secondary":             "#5a5e69",
+        "secondary-container":   "#dcdfec",
+        "surface":               "#f8f9fa",
+        "surface-container":     "#edeeef",
+        "on-surface":            "#191c1d",
+        "on-surface-variant":    "#45474d",
+        "outline":               "#75777d",
+        "outline-variant":       "#c5c6cd",
+        "error":                 "#ba1a1a",
+        "error-container":       "#ffdad6",
+      },
+      fontFamily: {
+        headline: ["Manrope","Segoe UI","system-ui","sans-serif"],
+        body:     ["Inter","Segoe UI","system-ui","sans-serif"],
+      },
+    },
+  },
+}
+// ── Apply saved theme & language BEFORE render (prevents flash) ──
+(function(){
+  const theme = localStorage.getItem('acdc_theme') || 'light';
+  const lang  = localStorage.getItem('acdc_lang')  || 'en';
+  if (theme === 'dark') document.documentElement.classList.add('dark');
+  document.documentElement.lang = lang;
+  document.documentElement.dir  = lang === 'ar' ? 'rtl' : 'ltr';
+  document.documentElement.setAttribute('data-lang', lang);
+})();
+</script>
+
+<style>
+  body { font-family:'Inter','Segoe UI',system-ui,sans-serif; }
+  h1,h2,h3,.font-headline { font-family:'Manrope','Segoe UI',system-ui,sans-serif; }
+  .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24; }
+  .fill-icon { font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
+
+  /* ── Sidebar link styles ── */
+  .nav-link {
+    display:flex; align-items:center; gap:0.625rem;
+    padding:0.5rem 0.875rem; border-radius:0.75rem;
+    font-size:0.8125rem; font-weight:600;
+    transition:all .15s ease; cursor:pointer; text-decoration:none;
+  }
+  .nav-link:not(.active) { color:#64748b; }
+  .nav-link:not(.active):hover { background:#f1f5f9; color:#1e293b; }
+  .nav-link.active { background:#051125; color:#fff; }
+  .dark .nav-link:not(.active) { color:#94a3b8; }
+  .dark .nav-link:not(.active):hover { background:#1e293b; color:#e2e8f0; }
+  .dark .nav-link.active { background:#1b263b; color:#fff; }
+
+  .nav-section {
+    font-size:.625rem; font-weight:700; letter-spacing:.08em;
+    text-transform:uppercase; color:#94a3b8;
+    padding:.875rem .875rem .375rem;
+  }
+  .dark .nav-section { color:#475569; }
+
+  /* ── Sidebar positioning ── */
+  #sidebar {
+    width:15rem; height:100vh;
+    position:fixed; top:0; left:0; z-index:40;
+    transition:transform .25s cubic-bezier(.4,0,.2,1);
+    display:flex; flex-direction:column;
+  }
+  html[dir="rtl"] #sidebar { left:auto; right:0; }
+
+  /* ── Header & main offset ── */
+  #topbar {
+    position:fixed; top:0; left:15rem; right:0; height:4rem; z-index:30;
+  }
+  html[dir="rtl"] #topbar { left:0; right:15rem; }
+
+  #main-canvas { margin-left:15rem; padding-top:4rem; min-height:100vh; }
+  html[dir="rtl"] #main-canvas { margin-left:0; margin-right:15rem; }
+
+  @media(max-width:1023px){
+    #sidebar { transform:translateX(-100%); box-shadow:none; }
+    html[dir="rtl"] #sidebar { transform:translateX(100%); }
+    #sidebar.open { transform:translateX(0); box-shadow:0 25px 50px -12px rgba(0,0,0,.25); }
+    #topbar { left:0 !important; right:0 !important; }
+    #main-canvas { margin-left:0 !important; margin-right:0 !important; }
+  }
+
+  /* ── Toasts ── */
+  #toast-container { pointer-events:none; }
+  .toast { animation:slideIn .3s ease, fadeOut .4s ease 3.6s forwards; pointer-events:auto; }
+  @keyframes slideIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes fadeOut  { to{opacity:0;transform:translateY(-6px)} }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width:4px; height:4px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:9999px; }
+  .dark ::-webkit-scrollbar-thumb { background:#334155; }
+</style>
+</head>
+
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 antialiased">
+
+<!-- ── Mobile overlay ── -->
+<div id="overlay" onclick="closeSidebar()"
+  class="fixed inset-0 bg-black/50 z-30 hidden lg:hidden"></div>
+
+<!-- ════════════════════════════════════════════
+     SIDEBAR
+════════════════════════════════════════════ -->
+<aside id="sidebar"
+  class="bg-white dark:bg-slate-800 border-r border-slate-100 dark:border-slate-700">
+
+  <!-- Logo bar -->
+  <div class="flex items-center gap-3 px-4 h-16 border-b border-slate-100 dark:border-slate-700 flex-shrink-0">
+    <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
+      <span class="material-symbols-outlined text-white text-base">account_balance</span>
+    </div>
+    <div class="leading-tight flex-1 min-w-0">
+      <p class="text-xs font-extrabold text-slate-900 dark:text-white font-headline truncate"
+         data-en="SHAMEL" data-ar="الجامعة الوطنية">SHAMEL</p>
+      <p class="text-[10px] text-slate-400 uppercase tracking-wider"
+         data-en="SHAMEL Portal" data-ar="بوابة SHAMEL">SHAMEL Portal</p>
+    </div>
+    <button onclick="closeSidebar()" class="lg:hidden p-1 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700">
+      <span class="material-symbols-outlined text-lg">close</span>
+    </button>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="flex-1 overflow-y-auto p-2">
+
+    <!-- ══ ADMIN ══ -->
+    {% if request.user.is_staff or request.user.is_superuser %}
+
+    <p class="nav-section" data-en="Main" data-ar="الرئيسية">Main</p>
+    <a href="{% url 'admin_panel' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_panel' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">dashboard</span>
+      <span data-en="Dashboard" data-ar="لوحة التحكم">Dashboard</span>
+    </a>
+    <a href="{% url 'scan_page' %}" class="nav-link {% if request.resolver_match.url_name == 'scan_page' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">center_focus_strong</span>
+      <span data-en="Scan Station" data-ar="محطة المسح">Scan Station</span>
+    </a>
+
+    <p class="nav-section" data-en="Management" data-ar="الإدارة">Management</p>
+    <a href="{% url 'faculty_management' %}" class="nav-link {% if request.resolver_match.url_name == 'faculty_management' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">group</span>
+      <span data-en="Faculty" data-ar="أعضاء هيئة التدريس">Faculty</span>
+    </a>
+    <a href="{% url 'classrooms_status' %}" class="nav-link {% if request.resolver_match.url_name == 'classrooms_status' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">meeting_room</span>
+      <span data-en="Classrooms" data-ar="القاعات">Classrooms</span>
+    </a>
+    <a href="{% url 'schedule' %}" class="nav-link {% if request.resolver_match.url_name == 'schedule' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">calendar_month</span>
+      <span data-en="Schedule" data-ar="الجدول الدراسي">Schedule</span>
+    </a>
+
+    <p class="nav-section" data-en="Reports" data-ar="التقارير">Reports</p>
+    <a href="{% url 'attendance_logs' %}" class="nav-link {% if request.resolver_match.url_name == 'attendance_logs' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">history</span>
+      <span data-en="Attendance Logs" data-ar="سجلات الحضور">Attendance Logs</span>
+    </a>
+    <a href="{% url 'reports_view' %}" class="nav-link {% if request.resolver_match.url_name == 'reports_view' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">assessment</span>
+      <span data-en="Analytics" data-ar="التحليلات">Analytics</span>
+    </a>
+    <a href="{% url 'student_report' %}" class="nav-link {% if request.resolver_match.url_name == 'student_report' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">person_search</span>
+      <span data-en="Student Report" data-ar="تقرير الطلاب">Student Report</span>
+    </a>
+    <a href="{% url 'teacher_report' %}" class="nav-link {% if request.resolver_match.url_name == 'teacher_report' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">school</span>
+      <span data-en="Teacher Report" data-ar="تقرير الأساتذة">Teacher Report</span>
+    </a>
+    <a href="{% url 'gate_reports' %}" class="nav-link {% if request.resolver_match.url_name == 'gate_reports' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">sensor_door</span>
+      <span data-en="Gate Logs" data-ar="سجلات البوابة">Gate Logs</span>
+    </a>
+
+    <p class="nav-section" data-en="System" data-ar="النظام">System</p>
+    <a href="{% url 'admin_notifications' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_notifications' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">notifications</span>
+      <span data-en="Notifications" data-ar="الإشعارات">Notifications</span>
+      {% if notifications %}<span class="ml-auto bg-red-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0">{{ notifications|length }}</span>{% endif %}
+    </a>
+    <a href="{% url 'settings_page' %}" class="nav-link {% if request.resolver_match.url_name == 'settings_page' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">settings</span>
+      <span data-en="Settings" data-ar="الإعدادات">Settings</span>
+    </a>
+
+    <!-- ══ COORDINATOR ══ -->
+    {% elif coordinator_profile %}
+
+    <p class="nav-section" data-en="Main" data-ar="الرئيسية">Main</p>
+    <a href="{% url 'coordinator_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'coordinator_dashboard' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">dashboard</span>
+      <span data-en="Dashboard" data-ar="لوحة التحكم">Dashboard</span>
+    </a>
+
+    <p class="nav-section" data-en="My College" data-ar="كليتي">My College</p>
+    <a href="{% url 'coordinator_students' %}" class="nav-link {% if request.resolver_match.url_name == 'coordinator_students' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">groups</span>
+      <span data-en="Students" data-ar="الطلاب">Students</span>
+    </a>
+    <a href="{% url 'coordinator_faculty' %}" class="nav-link {% if request.resolver_match.url_name == 'coordinator_faculty' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">group</span>
+      <span data-en="Faculty" data-ar="الأساتذة">Faculty</span>
+    </a>
+    <a href="{% url 'coordinator_course_assignment' %}" class="nav-link {% if request.resolver_match.url_name == 'coordinator_course_assignment' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">calendar_month</span>
+      <span data-en="Timetables" data-ar="الجداول الدراسية">Timetables</span>
+    </a>
+    <a href="{% url 'coordinator_grading' %}" class="nav-link {% if request.resolver_match.url_name == 'coordinator_grading' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">grading</span>
+      <span data-en="Grading" data-ar="الدرجات">Grading</span>
+    </a>
+    <a href="{% url 'coordinator_register_user' %}" class="nav-link {% if request.resolver_match.url_name == 'coordinator_register_user' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">person_add</span>
+      <span data-en="Register User" data-ar="تسجيل مستخدم">Register User</span>
+    </a>
+
+    <p class="nav-section" data-en="Reports" data-ar="التقارير">Reports</p>
+    <a href="{% url 'student_report' %}" class="nav-link {% if request.resolver_match.url_name == 'student_report' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">assessment</span>
+      <span data-en="Attendance Report" data-ar="تقرير الحضور">Attendance Report</span>
+    </a>
+    <a href="{% url 'export_coordinator_csv' %}" class="nav-link {% if request.resolver_match.url_name == 'export_coordinator_csv' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">download</span>
+      <span data-en="Export Students" data-ar="تصدير بيانات الطلاب">Export Students</span>
+    </a>
+
+    <!-- ══ TEACHER ══ -->
+    {% elif teacher_profile %}
+
+    <p class="nav-section" data-en="Main" data-ar="الرئيسية">Main</p>
+    <a href="{% url 'professor_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'professor_dashboard' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">dashboard</span>
+      <span data-en="Dashboard" data-ar="لوحة التحكم">Dashboard</span>
+    </a>
+
+    <p class="nav-section" data-en="My Lectures" data-ar="محاضراتي">My Lectures</p>
+    <a href="{% url 'teacher_timeline' %}" class="nav-link {% if request.resolver_match.url_name == 'teacher_timeline' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">timeline</span>
+      <span data-en="Timeline" data-ar="الجدول الزمني">Timeline</span>
+    </a>
+    <a href="{% url 'schedule' %}" class="nav-link {% if request.resolver_match.url_name == 'schedule' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">calendar_month</span>
+      <span data-en="Schedule" data-ar="الجدول">Schedule</span>
+    </a>
+    <a href="{% url 'classrooms_status' %}" class="nav-link {% if request.resolver_match.url_name == 'classrooms_status' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">meeting_room</span>
+      <span data-en="Classrooms" data-ar="القاعات">Classrooms</span>
+    </a>
+
+    <p class="nav-section" data-en="Attendance" data-ar="الحضور">Attendance</p>
+    <a href="{% url 'teacher_attendance_records' %}" class="nav-link {% if request.resolver_match.url_name == 'teacher_attendance_records' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">fact_check</span>
+      <span data-en="Records" data-ar="سجلات الحضور">Records</span>
+    </a>
+    <a href="{% url 'export_my_courses' %}" class="nav-link {% if request.resolver_match.url_name == 'export_my_courses' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">download</span>
+      <span data-en="Export" data-ar="تصدير">Export</span>
+    </a>
+
+    <p class="nav-section" data-en="Profile" data-ar="الملف الشخصي">Profile</p>
+    <a href="{% url 'teacher_profile' %}" class="nav-link {% if request.resolver_match.url_name == 'teacher_profile' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">person</span>
+      <span data-en="My Profile" data-ar="ملفي">My Profile</span>
+    </a>
+    <a href="{% url 'teacher_permissions' %}" class="nav-link {% if request.resolver_match.url_name == 'teacher_permissions' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">lock_open</span>
+      <span data-en="Room Permissions" data-ar="صلاحيات القاعات">Room Permissions</span>
+    </a>
+
+    <!-- ══ STUDENT ══ -->
+    {% elif student_profile %}
+
+    <p class="nav-section" data-en="Main" data-ar="الرئيسية">Main</p>
+    <a href="{% url 'student_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">dashboard</span>
+      <span data-en="Dashboard" data-ar="لوحة التحكم">Dashboard</span>
+    </a>
+
+    <p class="nav-section" data-en="Academic" data-ar="أكاديمي">Academic</p>
+    <a href="{% url 'student_courses' %}" class="nav-link {% if request.resolver_match.url_name == 'student_courses' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">menu_book</span>
+      <span data-en="My Courses" data-ar="موادي">My Courses</span>
+    </a>
+    <a href="{% url 'student_profile' %}" class="nav-link {% if request.resolver_match.url_name == 'student_profile' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">person</span>
+      <span data-en="My Profile" data-ar="ملفي">My Profile</span>
+    </a>
+    <a href="{% url 'schedule' %}" class="nav-link {% if request.resolver_match.url_name == 'schedule' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">calendar_month</span>
+      <span data-en="Schedule" data-ar="الجدول">Schedule</span>
+    </a>
+    <a href="{% url 'classrooms_status' %}" class="nav-link {% if request.resolver_match.url_name == 'classrooms_status' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">meeting_room</span>
+      <span data-en="Classrooms" data-ar="القاعات">Classrooms</span>
+    </a>
+
+    <p class="nav-section" data-en="Support" data-ar="الدعم">Support</p>
+    <a href="{% url 'student_support' %}" class="nav-link {% if request.resolver_match.url_name == 'student_support' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">support_agent</span>
+      <span data-en="Help & Support" data-ar="المساعدة والدعم">Help & Support</span>
+    </a>
+
+    <!-- ══ GATE STAFF ══ -->
+    {% elif request.user.groups.all|length > 0 %}
+
+    <p class="nav-section" data-en="Gate" data-ar="البوابة">Gate</p>
+    <a href="{% url 'gate_page' %}" class="nav-link {% if request.resolver_match.url_name == 'gate_page' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">sensor_door</span>
+      <span data-en="Gate Monitor" data-ar="مراقبة البوابة">Gate Monitor</span>
+    </a>
+    <a href="{% url 'gate_reports' %}" class="nav-link {% if request.resolver_match.url_name == 'gate_reports' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">history</span>
+      <span data-en="Entry Logs" data-ar="سجلات الدخول">Entry Logs</span>
+    </a>
+
+    {% endif %}
+
+  </nav>
+
+  <!-- ── User card ── -->
+  <div class="p-2.5 border-t border-slate-100 dark:border-slate-700 flex-shrink-0">
+    <div class="flex items-center gap-2.5 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group">
+      <div class="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-sm flex-shrink-0">
+        {{ request.user.get_full_name|first|upper|default:request.user.username|first|upper }}
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
+          {{ request.user.get_full_name|default:request.user.username }}
+        </p>
+        <p class="text-[10px] text-slate-400 truncate">
+          {% if request.user.is_superuser %}Admin
+          {% elif coordinator_profile %}Coordinator
+          {% elif teacher_profile %}Teacher
+          {% elif student_profile %}Student
+          {% else %}{{ request.user.email|default:"User" }}{% endif %}
+        </p>
+      </div>
+      <a href="{% url 'logout' %}" title="Sign out"
+        class="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors opacity-0 group-hover:opacity-100">
+        <span class="material-symbols-outlined text-base">logout</span>
+      </a>
+    </div>
+  </div>
+</aside>
+
+<!-- ════════════════════════════════════════════
+     TOP BAR
+════════════════════════════════════════════ -->
+<header id="topbar"
+  class="bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700 flex items-center px-4 gap-3">
+
+  <!-- Mobile hamburger -->
+  <button onclick="openSidebar()" class="lg:hidden p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+    <span class="material-symbols-outlined">menu</span>
+  </button>
+
+  <!-- Search -->
+  <div class="relative flex-1 max-w-sm group">
+    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none">search</span>
+    <input id="main-search" type="text" autocomplete="off"
+      data-en-placeholder="Search students, faculty…" data-ar-placeholder="البحث عن طلاب، أساتذة…"
+      placeholder="Search students, faculty…"
+      class="w-full pl-9 pr-4 py-2 text-sm bg-slate-100 dark:bg-slate-700 dark:text-slate-200 dark:placeholder-slate-500 rounded-xl border border-transparent focus:border-primary/30 focus:bg-white dark:focus:bg-slate-600 focus:outline-none transition-all"/>
+    <div id="search-results"
+      class="absolute top-full mt-2 left-0 w-full bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 hidden z-50 overflow-hidden">
+      <div id="results-container" class="max-h-64 overflow-y-auto p-2">
+        <p class="text-xs text-slate-400 p-2" data-en="Start typing…" data-ar="ابدأ الكتابة…">Start typing…</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-1.5 ml-auto">
+
+    <!-- Language toggle -->
+    <button onclick="toggleLang()" id="lang-btn" title="Switch language"
+      class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-600">
+      <span class="material-symbols-outlined text-base">translate</span>
+      <span id="lang-label">EN</span>
+    </button>
+
+    <!-- Theme toggle -->
+    <button onclick="toggleTheme()" id="theme-btn" title="Toggle theme"
+      class="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+      <span class="material-symbols-outlined text-xl" id="theme-icon">light_mode</span>
+    </button>
+
+    <!-- Notifications -->
+    <div class="relative" id="notif-wrap">
+      <button onclick="toggleNotif()" class="relative p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+        <span class="material-symbols-outlined">notifications</span>
+        {% if notifications %}
+        <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500">
+          <span class="animate-ping absolute inset-0 rounded-full bg-red-400 opacity-75"></span>
+        </span>
+        {% endif %}
+      </button>
+      <div id="notif-menu"
+        class="absolute right-0 top-14 w-80 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 hidden z-50 overflow-hidden">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-slate-50 dark:border-slate-700">
+          <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200"
+              data-en="Notifications" data-ar="الإشعارات">Notifications</h3>
+          {% if notifications %}
+          <span class="text-[10px] bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 font-bold px-2 py-0.5 rounded-full">{{ notifications|length }} new</span>
+          {% endif %}
+        </div>
+        <div class="max-h-72 overflow-y-auto">
+          {% for n in notifications %}
+          <div class="flex gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 border-b border-slate-50 dark:border-slate-700 last:border-0 transition-colors">
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5
+              {% if n.level == 'success' %}bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600
+              {% elif n.level == 'warning' %}bg-amber-100 dark:bg-amber-900/40 text-amber-600
+              {% elif n.level == 'danger' %}bg-red-100 dark:bg-red-900/40 text-red-600
+              {% else %}bg-blue-100 dark:bg-blue-900/40 text-blue-600{% endif %}">
+              <span class="material-symbols-outlined text-sm">
+                {% if n.level == 'success' %}check_circle{% elif n.level == 'warning' %}warning{% elif n.level == 'danger' %}error{% else %}info{% endif %}
+              </span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-medium text-slate-800 dark:text-slate-200 leading-snug">{{ n.title }}</p>
+              <p class="text-[10px] text-slate-400 mt-0.5">{{ n.created_at|timesince }} ago</p>
+            </div>
+          </div>
+          {% empty %}
+          <div class="py-10 text-center">
+            <span class="material-symbols-outlined text-4xl text-slate-200 dark:text-slate-600">notifications_off</span>
+            <p class="text-xs text-slate-400 mt-2" data-en="All caught up!" data-ar="لا توجد إشعارات">All caught up!</p>
+          </div>
+          {% endfor %}
+        </div>
+        {% if request.user.is_staff %}
+        <a href="{% url 'admin_notifications' %}"
+          class="block py-2.5 text-center text-xs font-bold text-primary dark:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-700 border-t border-slate-50 dark:border-slate-700 transition-colors"
+          data-en="View all →" data-ar="← عرض الكل">View all →</a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Profile dropdown -->
+    <div class="relative" id="profile-wrap">
+      <button onclick="toggleProfile()"
+        class="flex items-center gap-2 pl-2 pr-1 py-1 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+        <div class="hidden sm:block text-right">
+          <p class="text-xs font-bold text-slate-800 dark:text-slate-200 leading-tight">
+            {{ request.user.get_full_name|default:request.user.username }}</p>
+          <p class="text-[10px] text-slate-400">
+            {% if request.user.is_superuser %}Admin{% elif coordinator_profile %}Coordinator{% elif teacher_profile %}Teacher{% elif student_profile %}Student{% else %}User{% endif %}
+          </p>
+        </div>
+        <div class="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-sm flex-shrink-0">
+          {{ request.user.get_full_name|first|upper|default:request.user.username|first|upper }}
+        </div>
+        <span class="material-symbols-outlined text-slate-400 text-lg">expand_more</span>
+      </button>
+      <div id="profile-menu"
+        class="absolute right-0 top-14 w-52 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 py-1.5 hidden z-50">
+        <div class="px-4 py-2.5 border-b border-slate-50 dark:border-slate-700 mb-1">
+          <p class="text-xs font-bold text-slate-800 dark:text-slate-200">{{ request.user.get_full_name|default:request.user.username }}</p>
+          <p class="text-[10px] text-slate-400 truncate">{{ request.user.email }}</p>
+        </div>
+        {% if request.user.is_staff %}
+        <a href="/admin/" class="flex items-center gap-2 px-4 py-2 text-xs text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+          <span class="material-symbols-outlined text-base">admin_panel_settings</span>
+          <span data-en="Django Admin" data-ar="لوحة الإدارة">Django Admin</span>
+        </a>
+        {% endif %}
+        <a href="{% url 'logout' %}"
+          class="flex items-center gap-2 px-4 py-2 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+          <span class="material-symbols-outlined text-base">logout</span>
+          <span data-en="Sign Out" data-ar="تسجيل الخروج">Sign Out</span>
+        </a>
+      </div>
+    </div>
+
+  </div>
+</header>
+
+<!-- ════════════════════════════════════════════
+     MAIN CONTENT
+════════════════════════════════════════════ -->
+<main id="main-canvas" class="bg-slate-50 dark:bg-slate-900">
+  <div class="p-5 lg:p-8">
+
+    <!-- Django messages → inline alerts -->
+    {% if messages %}
+    <div class="mb-6 space-y-2">
+      {% for message in messages %}
+      <div class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold shadow-sm border
+        {% if message.tags == 'success' %}bg-emerald-50 dark:bg-emerald-900/20 text-emerald-800 dark:text-emerald-300 border-emerald-100 dark:border-emerald-800
+        {% elif message.tags == 'error' %}bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 border-red-100 dark:border-red-800
+        {% elif message.tags == 'warning' %}bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-300 border-amber-100 dark:border-amber-800
+        {% else %}bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 border-blue-100 dark:border-blue-800{% endif %}">
+        <span class="material-symbols-outlined fill-icon text-xl">
+          {% if message.tags == 'success' %}check_circle{% elif message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}
+        </span>
+        {{ message }}
+        <button onclick="this.parentElement.remove()" class="ml-auto opacity-60 hover:opacity-100">
+          <span class="material-symbols-outlined text-base">close</span>
+        </button>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </div>
+</main>
+
+<!-- Toast container -->
+<div id="toast-container" class="fixed bottom-6 right-6 z-[200] flex flex-col gap-2 items-end"></div>
+
+<!-- ════════════════════════════════════════════
+     SCRIPTS
+════════════════════════════════════════════ -->
+<script>
+// ── Sidebar ──────────────────────────────────
+function openSidebar()  {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('overlay').classList.remove('hidden');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.add('hidden');
+}
+
+// ── Dropdowns ────────────────────────────────
+function toggleNotif() {
+  document.getElementById('notif-menu').classList.toggle('hidden');
+  document.getElementById('profile-menu').classList.add('hidden');
+}
+function toggleProfile() {
+  document.getElementById('profile-menu').classList.toggle('hidden');
+  document.getElementById('notif-menu').classList.add('hidden');
+}
+document.addEventListener('click', function(e) {
+  if (!document.getElementById('notif-wrap').contains(e.target))
+    document.getElementById('notif-menu').classList.add('hidden');
+  if (!document.getElementById('profile-wrap').contains(e.target))
+    document.getElementById('profile-menu').classList.add('hidden');
+  const sr = document.getElementById('search-results');
+  if (sr && !document.getElementById('main-search').contains(e.target))
+    sr.classList.add('hidden');
+});
+
+// ── Dark / Light theme ───────────────────────
+function applyTheme(theme) {
+  localStorage.setItem('acdc_theme', theme);
+  if (theme === 'dark') {
+    document.documentElement.classList.add('dark');
+    document.getElementById('theme-icon').textContent = 'dark_mode';
+  } else {
+    document.documentElement.classList.remove('dark');
+    document.getElementById('theme-icon').textContent = 'light_mode';
+  }
+}
+function toggleTheme() {
+  const isDark = document.documentElement.classList.contains('dark');
+  applyTheme(isDark ? 'light' : 'dark');
+}
+// Init icon on load
+(function(){
+  const t = localStorage.getItem('acdc_theme') || 'light';
+  document.getElementById('theme-icon').textContent = t === 'dark' ? 'dark_mode' : 'light_mode';
+})();
+
+// ── Language EN / AR ─────────────────────────
+function applyLang(lang) {
+  localStorage.setItem('acdc_lang', lang);
+  const html = document.documentElement;
+  html.lang = lang;
+  html.dir  = lang === 'ar' ? 'rtl' : 'ltr';
+  html.setAttribute('data-lang', lang);
+
+  // Switch all [data-en] / [data-ar] TEXT nodes
+  document.querySelectorAll('[data-en]').forEach(el => {
+    if (el.tagName !== 'INPUT') {
+      el.textContent = lang === 'ar' ? (el.dataset.ar || el.dataset.en) : el.dataset.en;
+    }
+  });
+
+  // Switch input placeholders
+  document.querySelectorAll('[data-en-placeholder]').forEach(el => {
+    el.placeholder = lang === 'ar'
+      ? (el.dataset.arPlaceholder || el.dataset.enPlaceholder)
+      : el.dataset.enPlaceholder;
+  });
+
+  // Update lang button label
+  document.getElementById('lang-label').textContent = lang === 'ar' ? 'AR' : 'EN';
+
+  // Notification badge "new" text stays numeric — skip
+}
+function toggleLang() {
+  const cur = localStorage.getItem('acdc_lang') || 'en';
+  applyLang(cur === 'en' ? 'ar' : 'en');
+}
+// Init lang on load
+(function(){
+  const lang = localStorage.getItem('acdc_lang') || 'en';
+  applyLang(lang);
+})();
+
+// ── Global search ─────────────────────────────
+const searchInput = document.getElementById('main-search');
+const searchResults = document.getElementById('search-results');
+const resultsContainer = document.getElementById('results-container');
+if (searchInput) {
+  let timer;
+  searchInput.addEventListener('input', function() {
+    clearTimeout(timer);
+    const q = this.value.trim();
+    if (q.length < 2) { searchResults.classList.add('hidden'); return; }
+    timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/attendance/search/?q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        if (data.results && data.results.length > 0) {
+          resultsContainer.innerHTML = data.results.map(item => `
+            <div class="flex items-center gap-3 p-2.5 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl cursor-pointer transition-colors">
+              <div class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+                <span class="material-symbols-outlined text-sm">${item.icon}</span>
+              </div>
+              <div>
+                <p class="text-xs font-bold text-slate-800 dark:text-slate-200">${item.title}</p>
+                <p class="text-[10px] text-slate-400">${item.sub}</p>
+              </div>
+            </div>`).join('');
+        } else {
+          resultsContainer.innerHTML = '<p class="text-xs text-slate-400 p-3 text-center">No results found</p>';
+        }
+        searchResults.classList.remove('hidden');
+      } catch(e) {}
+    }, 250);
+  });
+  searchInput.addEventListener('focus', function() {
+    if (this.value.length >= 2) searchResults.classList.remove('hidden');
+  });
+}
+
+// ── Toast helper ─────────────────────────────
+function showToast(msg, type = 'info') {
+  const colors = {
+    success:'bg-emerald-600 text-white',
+    error:'bg-red-600 text-white',
+    warning:'bg-amber-500 text-white',
+    info:'bg-slate-800 text-white',
+  };
+  const icons = { success:'check_circle', error:'error', warning:'warning', info:'info' };
+  const el = document.createElement('div');
+  el.className = `toast flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl text-sm font-semibold max-w-xs ${colors[type]||colors.info}`;
+  el.innerHTML = `<span class="material-symbols-outlined text-lg fill-icon">${icons[type]||'info'}</span><span>${msg}</span>`;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => el.remove(), 4200);
+}
+
+// ── Keyboard shortcuts ────────────────────────
+document.addEventListener('keydown', function(e) {
+  if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+    e.preventDefault();
+    searchInput && searchInput.focus();
+  }
+  if (e.key === 'Escape') {
+    closeSidebar();
+    document.getElementById('notif-menu').classList.add('hidden');
+    document.getElementById('profile-menu').classList.add('hidden');
+  }
+});
+</script>
+</body>
+</html>

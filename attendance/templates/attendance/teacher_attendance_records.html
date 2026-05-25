@@ -1,0 +1,142 @@
+{% extends 'attendance/base.html' %}
+{% block title %}سجلات الحضور — SHAMEL{% endblock %}
+{% block content %}
+
+<div class="space-y-6">
+
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">سجلات حضور الطلاب</h1>
+      <p class="text-sm text-slate-500 mt-0.5">
+        {% if below_threshold > 0 %}
+        <span class="text-red-600 font-bold">{{ below_threshold }} طالب</span> دون حد الـ 75%
+        {% else %}جميع الطلاب ضمن الحد المقبول{% endif %}
+      </p>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <form method="get" class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-4">
+    <div class="flex flex-wrap gap-3">
+      <select name="course_id" class="py-2.5 px-3 text-sm rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 dark:text-white outline-none">
+        <option value="">كل المواد</option>
+        {% for c in courses %}
+        <option value="{{ c.id }}" {% if filters.course_id == c.id|stringformat:"s" %}selected{% endif %}>{{ c.title }}</option>
+        {% endfor %}
+      </select>
+      <input type="date" name="date_from" value="{{ filters.date_from }}"
+        class="py-2.5 px-3 text-sm rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 dark:text-white outline-none">
+      <input type="date" name="date_to" value="{{ filters.date_to }}"
+        class="py-2.5 px-3 text-sm rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 dark:text-white outline-none">
+      <input type="text" name="student_q" value="{{ filters.student_q }}" placeholder="بحث باسم الطالب..."
+        class="flex-1 min-w-36 py-2.5 px-3 text-sm rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 dark:text-white outline-none">
+      <button type="submit" class="px-4 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary-container transition-all">بحث</button>
+      {% if filters.course_id or filters.date_from or filters.date_to or filters.student_q %}
+      <a href="{% url 'teacher_attendance_records' %}" class="px-4 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-600 text-sm font-bold rounded-xl flex items-center gap-1">
+        <span class="material-symbols-outlined text-sm">close</span> مسح
+      </a>
+      {% endif %}
+    </div>
+  </form>
+
+  <!-- Summary per student -->
+  {% if summary %}
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700">
+      <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm">ملخص الحضور — {{ summary|length }} طالب</h2>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-slate-50 dark:bg-slate-900/40 text-xs uppercase text-slate-500 dark:text-slate-400">
+            <th class="px-4 py-3 text-right font-bold">#</th>
+            <th class="px-4 py-3 text-right font-bold">اسم الطالب</th>
+            <th class="px-4 py-3 text-center font-bold">حاضر</th>
+            <th class="px-4 py-3 text-center font-bold">غائب</th>
+            <th class="px-4 py-3 text-center font-bold">الإجمالي</th>
+            <th class="px-4 py-3 text-center font-bold">نسبة الحضور</th>
+            <th class="px-4 py-3 text-center font-bold">الحالة</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+          {% for row in summary %}
+          <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/40 {% if row.flag %}bg-red-50/60 dark:bg-red-900/10{% endif %}">
+            <td class="px-4 py-3 text-slate-400 text-xs">{{ forloop.counter }}</td>
+            <td class="px-4 py-3 font-semibold text-slate-800 dark:text-slate-200">
+              {{ row.student.name }}
+              {% if row.flag %}<span class="ms-2 text-[10px] font-bold bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full">تحذير</span>{% endif %}
+            </td>
+            <td class="px-4 py-3 text-center font-bold text-emerald-600">{{ row.present }}</td>
+            <td class="px-4 py-3 text-center font-bold text-red-500">{{ row.absent }}</td>
+            <td class="px-4 py-3 text-center text-slate-600 dark:text-slate-300">{{ row.total }}</td>
+            <td class="px-4 py-3 text-center">
+              <div class="flex items-center justify-center gap-2">
+                <div class="w-20 h-2 rounded-full bg-slate-200 dark:bg-slate-600 overflow-hidden">
+                  <div class="h-full rounded-full {% if row.pct >= 75 %}bg-emerald-500{% elif row.pct >= 65 %}bg-amber-400{% else %}bg-red-500{% endif %}"
+                       style="width: {{ row.pct }}%"></div>
+                </div>
+                <span class="font-bold text-xs {% if row.pct >= 75 %}text-emerald-600{% elif row.pct >= 65 %}text-amber-500{% else %}text-red-600{% endif %}">{{ row.pct }}%</span>
+              </div>
+            </td>
+            <td class="px-4 py-3 text-center">
+              {% if row.flag %}
+              <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400">راسب</span>
+              {% else %}
+              <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">ناجح</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 py-16 text-center">
+    <span class="material-symbols-outlined text-5xl text-slate-200 dark:text-slate-600">person_search</span>
+    <p class="text-slate-400 mt-3 font-semibold">لا توجد بيانات حضور بهذه المعايير</p>
+  </div>
+  {% endif %}
+
+  <!-- Raw log table -->
+  {% if logs %}
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700">
+      <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm">سجل الحضور التفصيلي ({{ logs|length }} إدخال)</h2>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-slate-50 dark:bg-slate-900/40 text-xs uppercase text-slate-500 dark:text-slate-400">
+            <th class="px-4 py-3 text-right font-bold">الطالب</th>
+            <th class="px-4 py-3 text-center font-bold">المادة</th>
+            <th class="px-4 py-3 text-center font-bold">التاريخ</th>
+            <th class="px-4 py-3 text-center font-bold">الحالة</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+          {% for log in logs|slice:":100" %}
+          <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/40">
+            <td class="px-4 py-2.5 font-medium text-slate-800 dark:text-slate-200">{{ log.student.name }}</td>
+            <td class="px-4 py-2.5 text-center text-slate-500 text-xs">{{ log.schedule.course.title|default:"—" }}</td>
+            <td class="px-4 py-2.5 text-center text-slate-500 text-xs">{{ log.timestamp|date:"Y/m/d H:i" }}</td>
+            <td class="px-4 py-2.5 text-center">
+              {% if log.status == 'Present' %}
+              <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700">حاضر</span>
+              {% else %}
+              <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-red-100 text-red-600">غائب</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% if logs|length > 100 %}
+      <p class="px-6 py-3 text-xs text-slate-400 text-center">يُعرض أول 100 إدخال فقط. استخدم الفلاتر لتضييق النتائج.</p>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

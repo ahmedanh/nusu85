@@ -1,0 +1,198 @@
+{% extends 'attendance/base.html' %}
+
+{% block content %}
+<div class="flex flex-row h-[calc(100vh-80px)] overflow-hidden bg-surface">
+
+  <section class="flex-1 flex flex-col justify-start p-6 bg-surface overflow-y-auto relative">
+        
+   <div class="flex gap-4 mb-10 origin-left ml-4">
+    <div class="flex items-center gap-3 bg-white p-3 px-6 rounded-xl border-2 border-primary/10 shadow-md">
+        <span class="material-symbols-outlined text-primary text-xl">book</span>
+        <div class="flex flex-col">
+            <span class="text-[10px] uppercase tracking-tighter text-slate-400 font-bold leading-none mb-1">Current Session</span>
+            <h1 class="font-headline font-black text-slate-900 text-4xl lg:text-5xl tracking-tighter uppercase leading-tight">
+              {% if current_sched and current_sched.course %}
+              {{ current_sched.course.name }}
+            {% else %}
+              <span class="text-slate-300">General Scanning</span>
+           {% endif %}
+            </h1>
+        </div>
+    </div>
+
+    <div class="flex items-center gap-3 bg-emerald-50 p-3 px-6 rounded-xl border-2 border-emerald-100 shadow-sm">
+        <span class="material-symbols-outlined text-emerald-600 text-xl">location_on</span>
+        <div class="flex flex-col">
+            <span class="text-[10px] uppercase tracking-tighter text-emerald-600/60 font-bold leading-none mb-1">Location</span>
+            <span class="font-headline font-black text-slate-900 text-sm leading-none">
+                {{ current_sched.classroom.name|default:"SF1" }}
+            </span>
+        </div>
+    </div>
+  </div>
+
+        <div class="w-full flex flex-col items-center">
+            <div class="relative w-72 h-72 mb-6 flex items-center justify-center">
+                <div id="scanner-border" class="absolute inset-0 rounded-full border-2 border-dashed border-primary/20 animate-[spin_60s_linear_infinite] transition-all duration-500"></div>
+                
+                <div class="scanning-circle w-[280px] h-[280px] rounded-full flex items-center justify-center relative overflow-hidden bg-slate-950 shadow-2xl">
+                    <img id="main-video-stream" src="{% url 'video_feed' %}" class="absolute inset-0 w-full h-full object-cover rounded-full z-0">
+                    <div class="absolute inset-0 z-10 border-4 border-primary/20 rounded-full"></div>
+                    <div class="absolute top-0 left-0 w-full h-[2px] bg-primary opacity-60 animate-[bounce_4s_infinite] z-20 shadow-[0_0_8px_#10b981]"></div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label for="camera-select" class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 block text-center">Camera Source</label>
+                <select id="camera-select" onchange="updateCamera()" class="bg-white border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-primary focus:border-primary block w-48 p-2 text-center shadow-sm">
+                    <option value="0">Default (Index 0)</option>
+                    <option value="1">External (Index 1)</option>
+                    <option value="2">External (Index 2)</option>
+                    <option value="3">External (Index 3)</option>
+                </select>
+            </div>
+
+            <div id="scanner-info" class="text-[10px] font-bold text-primary animate-pulse tracking-[0.4em] uppercase mb-4">
+                Scanning System Active
+            </div>
+
+            <button onclick="window.location.reload()" class="group flex items-center gap-3 bg-slate-900 text-white px-8 py-2.5 rounded-xl shadow-lg hover:bg-primary transition-all active:scale-95">
+                <span class="material-symbols-outlined text-lg">qr_code_scanner</span>
+                <span class="font-headline font-bold text-xs">Scan Now</span>
+            </button>
+        </div>
+
+        <div id="profile-card-container" class="hidden">
+            <h3 id="student-name"></h3>
+            <p id="profile-subtitle"></p>
+            <div id="profile-verified-badge"></div>
+            <div id="profile-progress-bar"></div>
+        </div>
+    </section>
+
+    <aside class="w-96 bg-slate-50 border-l border-slate-200 flex flex-col shadow-inner">
+        <div class="p-8 pb-4">
+            <h2 class="font-headline font-bold text-slate-900 text-xl tracking-tight flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">history</span>
+                Recent Scans
+            </h2>
+        </div>
+
+        <div id="recent-scans-list" class="flex-1 overflow-y-auto px-6 space-y-3 pb-8">
+            <div class="text-sm text-slate-400 px-4 py-3 italic">Waiting for incoming data...</div>
+        </div>
+
+        <div class="p-6 bg-slate-900 text-white m-6 rounded-2xl shadow-2xl border border-white/5 relative overflow-hidden">
+            <div class="absolute -right-4 -bottom-4 opacity-10">
+                <span class="material-symbols-outlined text-8xl">analytics</span>
+            </div>
+
+            <div class="flex justify-between items-center mb-6 relative z-10">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-emerald-400/80">AI Engine Live</span>
+                </div>
+                <span id="total-attendance" class="text-[10px] font-bold bg-white/10 px-2 py-1 rounded-lg border border-white/10">
+                    0 Present
+                </span>
+            </div>
+
+            <div class="space-y-4 relative z-10">
+                <div class="flex justify-between items-center text-sm">
+                    <span class="opacity-60 text-xs font-medium">Match Accuracy</span>
+                    <span class="font-mono font-bold text-emerald-400">99.8%</span>
+                </div>
+                <div class="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 w-[99%] shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
+                </div>
+            </div>
+        </div>
+    </aside>
+</div>
+
+<script>
+    function updateCamera() {
+        const camIdx = document.getElementById('camera-select').value;
+        const videoStream = document.getElementById('main-video-stream');
+        videoStream.src = `/attendance/video_feed/?camera=${camIdx}`;
+    }
+
+    // الدوال الخاصة بـ JavaScript (تأكدي أنها كما هي)
+    function updateProfileCard(data) {
+        const elements = {
+            subtitle: document.getElementById('profile-subtitle'),
+            badge: document.getElementById('profile-verified-badge'),
+            progress: document.getElementById('profile-progress-bar'),
+            mainName: document.getElementById('student-name')
+        };
+        const border = document.getElementById('scanner-border');
+
+        if (data.status && data.name) {
+            if(elements.mainName) elements.mainName.innerText = data.name;
+            if(border) {
+                if (data.is_allowed !== false) {
+                    border.style.borderColor = "#10b981"; 
+                    border.style.boxShadow = "0 0 20px rgba(16, 185, 129, 0.5)";
+                } else {
+                    border.style.borderColor = "#ef4444"; 
+                    border.style.boxShadow = "0 0 20px rgba(239, 68, 68, 0.8)";
+                }
+            }
+        } else {
+            if(elements.mainName) elements.mainName.innerText = 'Waiting...';
+            if(border) {
+                border.style.borderColor = ""; 
+                border.style.boxShadow = "";
+            }
+        }
+    }
+
+    async function updateDashboard() {
+        try {
+            const statusRes = await fetch('/attendance/check-status/');
+            const statusData = await statusRes.json();
+            updateProfileCard(statusData);
+            if (statusData.status) {
+                await Promise.all([fetchLiveStats(), fetchRecentScans()]);
+            }
+        } catch (e) { console.error("Update Error:", e); }
+    }
+
+    async function fetchLiveStats() {
+        try {
+            const res = await fetch('/attendance/live-stats/');
+            const stats = await res.json();
+            const totalAttendanceElem = document.getElementById('total-attendance');
+            if (totalAttendanceElem && stats.total_attendance !== undefined) {
+                totalAttendanceElem.textContent = stats.total_attendance + " Present";
+            }
+        } catch (e) { console.error("Stats Error:", e); }
+    }
+
+    async function fetchRecentScans() {
+        const container = document.getElementById('recent-scans-list');
+        try {
+            const res = await fetch('/attendance/recent-scans/');
+            const scans = await res.json();
+            if (scans.length > 0) {
+                container.innerHTML = scans.map(scan => `
+                    <div class="bg-white p-4 rounded-xl flex items-center gap-4 border border-slate-100 shadow-sm transition-all hover:scale-[1.02]">
+                        <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-primary border border-slate-100">
+                            <span class="material-symbols-outlined text-lg text-slate-400">person</span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-bold text-slate-900 truncate">${scan.name}</p>
+                            <p class="text-[10px] font-medium text-slate-500">${scan.time}</p>
+                        </div>
+                        <span class="material-symbols-outlined text-emerald-500" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                    </div>
+                `).join('');
+            }
+        } catch (e) { console.error("Scans Error:", e); }
+    }
+
+    setInterval(updateDashboard, 3000); 
+    setInterval(fetchLiveStats, 10000);
+</script>
+{% endblock %}
+</body></html>

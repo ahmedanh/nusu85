@@ -1,0 +1,146 @@
+﻿{% extends 'attendance/base.html' %}
+{% block title %}جدولة الامتحانات — SHAMEL{% endblock %}
+{% block content %}
+<div class="max-w-5xl mx-auto space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">جدولة الامتحانات</h1>
+      <p class="text-sm text-slate-500">إنشاء الامتحانات وتوزيع مقاعد الطلاب عشوائياً</p>
+    </div>
+    <button onclick="document.getElementById('createModal').classList.remove('hidden')"
+      class="inline-flex items-center gap-2 bg-primary text-white font-bold text-sm px-5 py-2.5 rounded-xl hover:bg-primary-container transition-all shadow-sm">
+      <span class="material-symbols-outlined text-base">add</span> امتحان جديد
+    </button>
+  </div>
+
+  {% if messages %}{% for msg in messages %}
+  <div class="px-4 py-3 rounded-xl text-sm font-semibold {% if msg.tags == 'success' %}bg-emerald-50 text-emerald-700 border border-emerald-200{% else %}bg-red-50 text-red-700 border border-red-200{% endif %}">{{ msg }}</div>
+  {% endfor %}{% endif %}
+
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-slate-50 dark:bg-slate-900/40 border-b border-slate-100 dark:border-slate-700">
+        <tr>
+          <th class="text-right px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">المادة</th>
+          <th class="text-right px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">النوع</th>
+          <th class="text-right px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">التاريخ والوقت</th>
+          <th class="text-right px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">القاعة</th>
+          <th class="text-right px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">المقاعد</th>
+          <th class="px-5 py-3"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+        {% for exam in exams %}
+        <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+          <td class="px-5 py-4 font-semibold text-slate-900 dark:text-white">{{ exam.course.title }}</td>
+          <td class="px-5 py-4">
+            <span class="text-xs font-bold px-2 py-1 rounded-full
+              {% if exam.exam_type == 'final' %}bg-red-100 text-red-700
+              {% elif exam.exam_type == 'midterm' %}bg-blue-100 text-blue-700
+              {% else %}bg-slate-100 text-slate-600{% endif %}">
+              {{ exam.get_exam_type_display }}
+            </span>
+          </td>
+          <td class="px-5 py-4 text-slate-600 dark:text-slate-300">{{ exam.exam_date }} | {{ exam.start_time|time:"H:i" }}–{{ exam.end_time|time:"H:i" }}</td>
+          <td class="px-5 py-4 text-slate-600 dark:text-slate-300">{{ exam.classroom.name }}</td>
+          <td class="px-5 py-4">
+            <span class="text-xs font-bold text-slate-500">{{ exam.seats.count }} مقعد</span>
+          </td>
+          <td class="px-5 py-4">
+            <div class="flex items-center gap-2 justify-end">
+              <form method="post" class="inline">{% csrf_token %}
+                <input type="hidden" name="action" value="assign_seats">
+                <input type="hidden" name="exam_id" value="{{ exam.id }}">
+                <button type="submit" class="text-xs font-bold text-primary hover:text-primary-container transition-colors" title="توزيع المقاعد عشوائياً">
+                  <span class="material-symbols-outlined text-lg">shuffle</span>
+                </button>
+              </form>
+              <a href="{% url 'exam_seating_chart' exam.id %}" class="text-xs font-bold text-slate-500 hover:text-slate-700" title="خريطة المقاعد">
+                <span class="material-symbols-outlined text-lg">grid_view</span>
+              </a>
+              <a href="{% url 'exam_gate_verify' exam.id %}" class="text-xs font-bold text-emerald-600 hover:text-emerald-700" title="بوابة التحقق">
+                <span class="material-symbols-outlined text-lg">how_to_reg</span>
+              </a>
+              <form method="post" class="inline" onsubmit="return confirm('حذف هذا الامتحان؟')">{% csrf_token %}
+                <input type="hidden" name="action" value="delete_exam">
+                <input type="hidden" name="exam_id" value="{{ exam.id }}">
+                <button type="submit" class="text-red-400 hover:text-red-600 transition-colors">
+                  <span class="material-symbols-outlined text-lg">delete</span>
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="py-14 text-center text-slate-400">
+          <span class="material-symbols-outlined text-4xl block mb-2">event_busy</span>
+          لا توجد امتحانات مجدولة
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Create Exam Modal -->
+<div id="createModal" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg">
+    <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+      <h3 class="font-bold text-slate-800 dark:text-white">إضافة امتحان جديد</h3>
+      <button onclick="document.getElementById('createModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <form method="post" class="p-6 space-y-4">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="create_exam">
+      <div class="grid grid-cols-2 gap-4">
+        <div class="col-span-2">
+          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">المادة *</label>
+          <select name="course_id" required class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm dark:text-white outline-none">
+            <option value="">— اختر —</option>
+            {% for c in courses %}<option value="{{ c.id }}">{{ c.course_code }} — {{ c.title }}</option>{% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">القاعة *</label>
+          <select name="classroom_id" required class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm dark:text-white outline-none">
+            <option value="">— اختر —</option>
+            {% for r in classrooms %}<option value="{{ r.id }}">{{ r.name }}</option>{% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">نوع الامتحان</label>
+          <select name="exam_type" class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm dark:text-white outline-none">
+            <option value="final">نهائي</option>
+            <option value="midterm">منتصف الفصل</option>
+            <option value="makeup">تعويضي</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">التاريخ *</label>
+          <input type="date" name="exam_date" required class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm dark:text-white outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">الفصل</label>
+          <select name="semester" class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm dark:text-white outline-none">
+            {% for s in semester_choices %}<option value="{{ s }}">الفصل {{ s }}</option>{% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">وقت البدء *</label>
+          <input type="time" name="start_time" required class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm dark:text-white outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">وقت الانتهاء *</label>
+          <input type="time" name="end_time" required class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm dark:text-white outline-none">
+        </div>
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button type="submit" class="flex-1 bg-primary text-white font-bold py-3 rounded-xl hover:bg-primary-container transition-all">إنشاء الامتحان</button>
+        <button type="button" onclick="document.getElementById('createModal').classList.add('hidden')" class="px-5 py-3 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold hover:bg-slate-200 transition-all">إلغاء</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

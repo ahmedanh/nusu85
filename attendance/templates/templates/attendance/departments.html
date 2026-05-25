@@ -1,0 +1,185 @@
+﻿{% extends 'attendance/base.html' %}
+{% block title %}الأقسام والكليات — SHAMEL{% endblock %}
+{% block content %}
+<div class="space-y-6">
+
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">الأقسام والكليات</h1>
+      <p class="text-sm text-slate-500 mt-0.5">إدارة هيكل الكليات والأقسام الأكاديمية</p>
+    </div>
+    {% if is_admin %}
+    <div class="flex gap-2">
+      <button onclick="openModal('college-modal')" class="inline-flex items-center gap-2 bg-primary hover:bg-primary-container text-white font-bold text-sm px-4 py-2.5 rounded-xl transition-all shadow-sm">
+        <span class="material-symbols-outlined text-base">add</span> إضافة كلية
+      </button>
+      <button onclick="openModal('dept-modal')" class="inline-flex items-center gap-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-sm px-4 py-2.5 rounded-xl hover:bg-slate-200 transition-all">
+        <span class="material-symbols-outlined text-base">add</span> إضافة قسم
+      </button>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Messages -->
+  {% if messages %}
+  {% for msg in messages %}
+  <div class="px-4 py-3 rounded-xl text-sm font-semibold {% if msg.tags == 'success' %}bg-emerald-50 text-emerald-700 border border-emerald-200{% else %}bg-red-50 text-red-700 border border-red-200{% endif %}">
+    {{ msg }}
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  <!-- Colleges List -->
+  <div class="space-y-4">
+    {% for college in colleges %}
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+      <div class="px-5 py-4 bg-slate-50 dark:bg-slate-900/40 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+            <span class="material-symbols-outlined text-primary text-lg">school</span>
+          </div>
+          <div>
+            <h2 class="font-bold text-slate-800 dark:text-slate-200">{{ college.college_name }}</h2>
+            <p class="text-xs text-slate-400">{{ college.college_code|default:"" }} — {{ college.departments.count }} أقسام</p>
+          </div>
+        </div>
+        {% if is_admin %}
+        <div class="flex gap-2">
+          <button onclick="openEditCollege('{{ college.college_id }}', '{{ college.college_name|escapejs }}', '{{ college.college_code|default:''|escapejs }}')"
+            class="p-2 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-500 hover:text-primary transition-all text-sm">
+            <span class="material-symbols-outlined text-sm">edit</span>
+          </button>
+          <form method="post" action="{% url 'departments_view' %}" onsubmit="return confirm('هل أنت متأكد من حذف هذه الكلية؟')">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="delete_college">
+            <input type="hidden" name="college_id" value="{{ college.college_id }}">
+            <button type="submit" class="p-2 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-500 hover:text-red-500 transition-all text-sm">
+              <span class="material-symbols-outlined text-sm">delete</span>
+            </button>
+          </form>
+        </div>
+        {% endif %}
+      </div>
+      <div class="divide-y divide-slate-50 dark:divide-slate-700">
+        {% for dept in college.departments.all %}
+        <div class="px-5 py-3 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-slate-300 text-sm">subdirectory_arrow_right</span>
+            <div>
+              <p class="text-sm font-semibold text-slate-700 dark:text-slate-300">{{ dept.name }}</p>
+              <p class="text-xs text-slate-400">{{ dept.students.count }} طالب · {{ dept.teachers.count }} أستاذ</p>
+            </div>
+          </div>
+          {% if is_admin %}
+          <div class="flex gap-2">
+            <button onclick="openEditDept('{{ dept.id }}', '{{ dept.name|escapejs }}', '{{ college.college_id }}')"
+              class="p-1.5 rounded-lg text-slate-400 hover:text-primary transition-all">
+              <span class="material-symbols-outlined text-sm">edit</span>
+            </button>
+            <form method="post" action="{% url 'departments_view' %}" onsubmit="return confirm('هل أنت متأكد من حذف هذا القسم؟')">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="delete_dept">
+              <input type="hidden" name="dept_id" value="{{ dept.id }}">
+              <button type="submit" class="p-1.5 rounded-lg text-slate-400 hover:text-red-500 transition-all">
+                <span class="material-symbols-outlined text-sm">delete</span>
+              </button>
+            </form>
+          </div>
+          {% endif %}
+        </div>
+        {% empty %}
+        <div class="px-5 py-4 text-sm text-slate-400 text-center">لا توجد أقسام في هذه الكلية</div>
+        {% endfor %}
+      </div>
+    </div>
+    {% empty %}
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 p-16 text-center text-slate-400">
+      <span class="material-symbols-outlined text-4xl mb-2 block">school</span>
+      لا توجد كليات مسجّلة
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+
+{% if is_admin %}
+<!-- Add College Modal -->
+<div id="college-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-md shadow-xl">
+    <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+      <h3 class="font-bold text-slate-800 dark:text-slate-200" id="college-modal-title">إضافة كلية</h3>
+      <button onclick="closeModal('college-modal')" class="text-slate-400 hover:text-slate-600"><span class="material-symbols-outlined">close</span></button>
+    </div>
+    <form method="post" action="{% url 'departments_view' %}" class="p-6 space-y-4">
+      {% csrf_token %}
+      <input type="hidden" name="action" id="college-action" value="add_college">
+      <input type="hidden" name="college_id" id="edit-college-id" value="">
+      <div>
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">اسم الكلية *</label>
+        <input type="text" name="college_name" id="college-name-inp" required class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm dark:text-white focus:ring-2 focus:ring-primary/20 outline-none">
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">رمز الكلية</label>
+        <input type="text" name="college_code" id="college-code-inp" class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm dark:text-white focus:ring-2 focus:ring-primary/20 outline-none">
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button type="submit" class="flex-1 bg-primary text-white font-bold py-3 rounded-xl hover:bg-primary-container transition-all text-sm">حفظ</button>
+        <button type="button" onclick="closeModal('college-modal')" class="flex-1 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold py-3 rounded-xl text-sm">إلغاء</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Add Dept Modal -->
+<div id="dept-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-md shadow-xl">
+    <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+      <h3 class="font-bold text-slate-800 dark:text-slate-200" id="dept-modal-title">إضافة قسم</h3>
+      <button onclick="closeModal('dept-modal')" class="text-slate-400 hover:text-slate-600"><span class="material-symbols-outlined">close</span></button>
+    </div>
+    <form method="post" action="{% url 'departments_view' %}" class="p-6 space-y-4">
+      {% csrf_token %}
+      <input type="hidden" name="action" id="dept-action" value="add_dept">
+      <input type="hidden" name="dept_id" id="edit-dept-id" value="">
+      <div>
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">اسم القسم *</label>
+        <input type="text" name="dept_name" id="dept-name-inp" required class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm dark:text-white focus:ring-2 focus:ring-primary/20 outline-none">
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">الكلية *</label>
+        <select name="college_id" id="dept-college-sel" required class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm dark:text-white focus:ring-2 focus:ring-primary/20 outline-none">
+          {% for c in colleges %}
+          <option value="{{ c.college_id }}">{{ c.college_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button type="submit" class="flex-1 bg-primary text-white font-bold py-3 rounded-xl hover:bg-primary-container transition-all text-sm">حفظ</button>
+        <button type="button" onclick="closeModal('dept-modal')" class="flex-1 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold py-3 rounded-xl text-sm">إلغاء</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+function openEditCollege(id, name, code) {
+  document.getElementById('college-modal-title').textContent = 'تعديل الكلية';
+  document.getElementById('college-action').value = 'edit_college';
+  document.getElementById('edit-college-id').value = id;
+  document.getElementById('college-name-inp').value = name;
+  document.getElementById('college-code-inp').value = code;
+  openModal('college-modal');
+}
+function openEditDept(id, name, collegeId) {
+  document.getElementById('dept-modal-title').textContent = 'تعديل القسم';
+  document.getElementById('dept-action').value = 'edit_dept';
+  document.getElementById('edit-dept-id').value = id;
+  document.getElementById('dept-name-inp').value = name;
+  document.getElementById('dept-college-sel').value = collegeId;
+  openModal('dept-modal');
+}
+</script>
+{% endif %}
+{% endblock %}

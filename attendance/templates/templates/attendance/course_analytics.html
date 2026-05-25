@@ -1,0 +1,98 @@
+﻿{% extends 'attendance/base.html' %}
+{% block title %}تحليل الدرجات — SHAMEL{% endblock %}
+{% block content %}
+<div class="max-w-5xl mx-auto space-y-6">
+  <div class="flex items-center justify-between flex-wrap gap-4">
+    <div>
+      <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">التحليل الإحصائي للمادة</h1>
+      <p class="text-sm text-slate-500">توزيع الدرجات والانحراف المعياري</p>
+    </div>
+    <form method="get" class="flex gap-3 flex-wrap">
+      <select name="course_id" onchange="this.form.submit()" class="rounded-xl bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-2.5 text-sm dark:text-white outline-none">
+        <option value="">— اختر المادة —</option>
+        {% for c in courses %}<option value="{{ c.id }}" {% if selected_course == c.id|stringformat:'s' %}selected{% endif %}>{{ c.title }}</option>{% endfor %}
+      </select>
+      <select name="semester" onchange="this.form.submit()" class="rounded-xl bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-2.5 text-sm dark:text-white outline-none">
+        {% for s in semester_choices %}<option value="{{ s }}" {% if semester == s|stringformat:'s' %}selected{% endif %}>الفصل {{ s }}</option>{% endfor %}
+      </select>
+    </form>
+  </div>
+
+  {% if analytics %}
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+    {% for label,val,color in stats_cards|default:"" %}{% endfor %}
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-5 text-center">
+      <p class="text-2xl font-extrabold text-slate-900 dark:text-white">{{ analytics.mean }}</p>
+      <p class="text-xs text-slate-400 mt-1 font-semibold uppercase tracking-wide">المتوسط</p>
+    </div>
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-5 text-center">
+      <p class="text-2xl font-extrabold text-slate-900 dark:text-white">{{ analytics.stdev }}</p>
+      <p class="text-xs text-slate-400 mt-1 font-semibold uppercase tracking-wide">الانحراف المعياري</p>
+    </div>
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-5 text-center">
+      <p class="text-2xl font-extrabold text-emerald-600">{{ analytics.pass_rate }}%</p>
+      <p class="text-xs text-slate-400 mt-1 font-semibold uppercase tracking-wide">نسبة النجاح</p>
+    </div>
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-5 text-center">
+      <p class="text-2xl font-extrabold text-slate-900 dark:text-white">{{ analytics.max }}</p>
+      <p class="text-xs text-slate-400 mt-1 font-semibold uppercase tracking-wide">أعلى درجة</p>
+    </div>
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-5 text-center">
+      <p class="text-2xl font-extrabold text-slate-900 dark:text-white">{{ analytics.count }}</p>
+      <p class="text-xs text-slate-400 mt-1 font-semibold uppercase tracking-wide">عدد الطلاب</p>
+    </div>
+  </div>
+
+  <!-- Chart -->
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-6">
+    <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm mb-6">توزيع الدرجات</h2>
+    <canvas id="gradeChart" height="120"></canvas>
+    {% if analytics.stdev > 0 and analytics.stdev < 5 %}
+    <div class="mt-4 flex items-center gap-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3">
+      <span class="material-symbols-outlined text-amber-500 text-lg">warning</span>
+      <p class="text-sm text-amber-700 dark:text-amber-400 font-medium">الانحراف المعياري منخفض جداً ({{ analytics.stdev }}) — قد تكون الدرجات متقاربة بشكل غير طبيعي.</p>
+    </div>
+    {% elif analytics.pass_rate < 50 %}
+    <div class="mt-4 flex items-center gap-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl px-4 py-3">
+      <span class="material-symbols-outlined text-red-500 text-lg">trending_down</span>
+      <p class="text-sm text-red-700 dark:text-red-400 font-medium">نسبة النجاح أقل من 50% — يُوصى بمراجعة المادة أو رفع منحنى الدرجات.</p>
+    </div>
+    {% endif %}
+  </div>
+  {% elif selected_course %}
+  <div class="py-16 text-center text-slate-400 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700">
+    <span class="material-symbols-outlined text-4xl block mb-2">bar_chart</span>
+    لا توجد درجات مدخلة لهذه المادة حتى الآن
+  </div>
+  {% else %}
+  <div class="py-16 text-center text-slate-400 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700">
+    <span class="material-symbols-outlined text-4xl block mb-2">analytics</span>
+    اختر مادة لعرض التحليل الإحصائي
+  </div>
+  {% endif %}
+</div>
+
+{% if analytics %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script>
+new Chart(document.getElementById('gradeChart'), {
+  type: 'bar',
+  data: {
+    labels: {{ analytics.chart_labels|safe }},
+    datasets: [{
+      label: 'عدد الطلاب',
+      data: {{ analytics.chart_data|safe }},
+      backgroundColor: ['#ef4444','#f97316','#eab308','#22c55e','#3b82f6','#8b5cf6'],
+      borderRadius: 8,
+    }],
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+  },
+});
+</script>
+{% endif %}
+{% endblock %}

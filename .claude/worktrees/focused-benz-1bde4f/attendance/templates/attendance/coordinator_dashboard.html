@@ -1,0 +1,129 @@
+{% extends 'attendance/base.html' %}
+{% block content %}
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-extrabold text-slate-900 font-headline">Coordinator Dashboard</h1>
+      <p class="text-sm text-slate-500 mt-1">College-wide academic overview</p>
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+          <span class="material-symbols-outlined text-blue-600">person</span>
+        </div>
+        <span class="text-xs font-semibold text-slate-500 uppercase">Total Students</span>
+      </div>
+      <div class="text-3xl font-extrabold text-slate-900 font-headline">{{ total_students }}</div>
+    </div>
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center">
+          <span class="material-symbols-outlined text-purple-600">school</span>
+        </div>
+        <span class="text-xs font-semibold text-slate-500 uppercase">Total Faculty</span>
+      </div>
+      <div class="text-3xl font-extrabold text-slate-900 font-headline">{{ total_teachers }}</div>
+    </div>
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
+          <span class="material-symbols-outlined text-emerald-600">how_to_reg</span>
+        </div>
+        <span class="text-xs font-semibold text-slate-500 uppercase">College Attendance</span>
+      </div>
+      <div class="text-3xl font-extrabold {% if college_attendance_pct >= 75 %}text-emerald-600{% else %}text-red-600{% endif %} font-headline">{{ college_attendance_pct }}%</div>
+    </div>
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
+          <span class="material-symbols-outlined text-red-600">warning</span>
+        </div>
+        <span class="text-xs font-semibold text-slate-500 uppercase">At-Risk Students</span>
+      </div>
+      <div class="text-3xl font-extrabold text-red-600 font-headline">{{ low_attendance_students|length }}</div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <a href="{% url 'coordinator_students' %}" class="bg-white rounded-xl p-4 shadow-sm border border-slate-100 hover:border-primary/30 hover:shadow-md transition-all flex flex-col items-center gap-2 text-center group">
+      <span class="material-symbols-outlined text-2xl text-slate-400 group-hover:text-primary transition-colors">manage_accounts</span>
+      <span class="text-xs font-bold text-slate-600 group-hover:text-primary">Students</span>
+    </a>
+    <a href="{% url 'coordinator_faculty' %}" class="bg-white rounded-xl p-4 shadow-sm border border-slate-100 hover:border-primary/30 hover:shadow-md transition-all flex flex-col items-center gap-2 text-center group">
+      <span class="material-symbols-outlined text-2xl text-slate-400 group-hover:text-primary transition-colors">groups</span>
+      <span class="text-xs font-bold text-slate-600 group-hover:text-primary">Faculty</span>
+    </a>
+    <a href="{% url 'coordinator_course_assignment' %}" class="bg-white rounded-xl p-4 shadow-sm border border-slate-100 hover:border-primary/30 hover:shadow-md transition-all flex flex-col items-center gap-2 text-center group">
+      <span class="material-symbols-outlined text-2xl text-slate-400 group-hover:text-primary transition-colors">assignment</span>
+      <span class="text-xs font-bold text-slate-600 group-hover:text-primary">Assign Courses</span>
+    </a>
+    <a href="{% url 'coordinator_register_user' %}" class="bg-white rounded-xl p-4 shadow-sm border border-slate-100 hover:border-primary/30 hover:shadow-md transition-all flex flex-col items-center gap-2 text-center group">
+      <span class="material-symbols-outlined text-2xl text-slate-400 group-hover:text-primary transition-colors">person_add</span>
+      <span class="text-xs font-bold text-slate-600 group-hover:text-primary">Register User</span>
+    </a>
+  </div>
+
+  <!-- Low Attendance Warning Table -->
+  {% if low_attendance_students %}
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-100">
+    <div class="px-6 py-4 border-b border-slate-50 flex items-center gap-2">
+      <span class="material-symbols-outlined text-red-500">warning</span>
+      <h2 class="font-bold text-slate-800 font-headline">Low Attendance Warnings</h2>
+      <span class="ml-auto text-xs font-bold bg-red-50 text-red-600 px-2 py-0.5 rounded-full">{{ low_attendance_students|length }} Students</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead>
+          <tr class="bg-slate-50 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">
+            <th class="px-6 py-3">Student Name</th>
+            <th class="px-6 py-3">Attendance Rate</th>
+            <th class="px-6 py-3">Risk Level</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50">
+          {% for item in low_attendance_students %}
+          <tr class="hover:bg-slate-50 transition-colors">
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-red-50 text-red-600 flex items-center justify-center font-bold text-sm">{{ item.student.name|first|upper }}</div>
+                <div>
+                  <p class="text-sm font-bold text-slate-800">{{ item.student.name }}</p>
+                  <p class="text-xs text-slate-400">{{ item.student.student_code }}</p>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <div class="flex-1 bg-slate-100 rounded-full h-2 max-w-[120px]">
+                  <div class="h-2 rounded-full bg-red-500" style="width: {{ item.rate }}%"></div>
+                </div>
+                <span class="text-sm font-bold text-red-600">{{ item.rate }}%</span>
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold {% if item.rate < 30 %}bg-red-100 text-red-700{% else %}bg-amber-50 text-amber-700{% endif %}">
+                {% if item.rate < 30 %}Critical{% else %}Warning{% endif %}
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="bg-emerald-50 border border-emerald-100 rounded-2xl p-6 flex items-center gap-3">
+    <span class="material-symbols-outlined text-emerald-600 text-3xl">check_circle</span>
+    <div>
+      <p class="font-bold text-emerald-800">All students are within compliance thresholds.</p>
+      <p class="text-xs text-emerald-600 mt-0.5">No students have attendance below 50%.</p>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

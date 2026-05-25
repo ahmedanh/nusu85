@@ -1,0 +1,66 @@
+﻿{% extends 'attendance/base.html' %}
+{% block title %}التزام الأساتذة — SHAMEL{% endblock %}
+{% block content %}
+<div class="max-w-5xl mx-auto space-y-6">
+  <div class="flex items-center justify-between flex-wrap gap-4">
+    <div>
+      <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">الجدول الزمني للأساتذة</h1>
+      <p class="text-sm text-slate-500">مقارنة وقت الدخول الفعلي بالجدول الرسمي</p>
+    </div>
+    <form method="get">
+      <select name="teacher_id" onchange="this.form.submit()" class="rounded-xl bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-2.5 text-sm dark:text-white outline-none">
+        <option value="">— اختر الأستاذ —</option>
+        {% for t in teachers %}<option value="{{ t.pk }}" {% if teacher_id == t.pk %}selected{% endif %}>{{ t.name }}</option>{% endfor %}
+      </select>
+    </form>
+  </div>
+
+  {% if teacher_id and data %}
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-slate-50 dark:bg-slate-900/40 border-b border-slate-100 dark:border-slate-700">
+        <tr>
+          <th class="text-right px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">المادة</th>
+          <th class="text-right px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">وقت الجدول</th>
+          <th class="text-right px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">وقت الدخول الفعلي</th>
+          <th class="text-right px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">التأخر (دقيقة)</th>
+          <th class="text-right px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">المدة (دقيقة)</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+        {% for item in data %}
+        <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30">
+          <td class="px-5 py-4 font-semibold text-slate-900 dark:text-white">{{ item.session.schedule.course.title }}</td>
+          <td class="px-5 py-4 text-slate-600 dark:text-slate-300 font-mono">{{ item.session.schedule.start_time|time:"H:i" }}</td>
+          <td class="px-5 py-4 text-slate-600 dark:text-slate-300 font-mono">
+            {% if item.session.actual_start_time %}{{ item.session.actual_start_time|time:"H:i" }}{% else %}—{% endif %}
+          </td>
+          <td class="px-5 py-4">
+            {% if item.late_mins is not None %}
+            <span class="text-xs font-bold px-2.5 py-1 rounded-full
+              {% if item.late_mins <= 0 %}bg-emerald-100 text-emerald-700
+              {% elif item.late_mins <= 5 %}bg-amber-100 text-amber-700
+              {% else %}bg-red-100 text-red-700{% endif %}">
+              {% if item.late_mins <= 0 %}في الوقت{% else %}+{{ item.late_mins }}{% endif %}
+            </span>
+            {% else %}—{% endif %}
+          </td>
+          <td class="px-5 py-4 text-slate-600 dark:text-slate-300">{{ item.session.duration_minutes|default:"—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% elif teacher_id %}
+  <div class="py-16 text-center text-slate-400 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700">
+    <span class="material-symbols-outlined text-4xl block mb-2">schedule</span>
+    لا توجد جلسات مسجلة لهذا الأستاذ
+  </div>
+  {% else %}
+  <div class="py-16 text-center text-slate-400 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700">
+    <span class="material-symbols-outlined text-4xl block mb-2">person_search</span>
+    اختر أستاذاً لعرض سجل التزامه
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

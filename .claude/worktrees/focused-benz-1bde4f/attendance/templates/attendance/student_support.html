@@ -1,0 +1,76 @@
+{% extends 'attendance/base.html' %}
+{% block content %}
+<div class="space-y-6">
+  <div>
+    <h1 class="text-2xl font-extrabold text-slate-900 font-headline">Support Center</h1>
+    <p class="text-sm text-slate-500 mt-1">Submit a request and our team will assist you.</p>
+  </div>
+
+  <!-- Submit Form -->
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-100">
+    <div class="px-6 py-4 border-b border-slate-50 flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary">support_agent</span>
+      <h2 class="font-bold text-slate-800 font-headline">New Support Ticket</h2>
+    </div>
+    <form method="post" class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+      {% csrf_token %}
+      <div class="md:col-span-2">
+        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Subject</label>
+        <input type="text" name="subject" required placeholder="e.g. Need to update my ID number"
+          class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Request Type</label>
+        <select name="request_type" class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none transition-all">
+          <option value="Email">Change Email</option>
+          <option value="Password">Change Password</option>
+          <option value="ID">Change Student ID</option>
+        </select>
+      </div>
+      <div class="md:col-span-2">
+        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Description</label>
+        <textarea name="description" rows="4" required placeholder="Describe your issue in detail..."
+          class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-none"></textarea>
+      </div>
+      <div class="md:col-span-2">
+        <button type="submit" class="inline-flex items-center gap-2 bg-primary text-white font-bold text-sm px-6 py-3 rounded-xl hover:bg-primary/90 transition-all shadow-sm">
+          <span class="material-symbols-outlined text-base">send</span> Submit Ticket
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Previous Tickets -->
+  {% if tickets %}
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-100">
+    <div class="px-6 py-4 border-b border-slate-50">
+      <h2 class="font-bold text-slate-800 font-headline">My Tickets</h2>
+    </div>
+    <div class="divide-y divide-slate-50">
+      {% for ticket in tickets %}
+      <div class="px-6 py-4 flex items-start gap-4">
+        <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0
+          {% if ticket.status == 'resolved' %}bg-emerald-50 text-emerald-600
+          {% elif ticket.status == 'in_progress' %}bg-amber-50 text-amber-600
+          {% else %}bg-blue-50 text-blue-600{% endif %}">
+          <span class="material-symbols-outlined text-sm">
+            {% if ticket.status == 'resolved' %}check_circle{% elif ticket.status == 'in_progress' %}autorenew{% else %}pending{% endif %}
+          </span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-bold text-slate-800 truncate">{{ ticket.subject }}</p>
+          <p class="text-xs text-slate-500 mt-0.5">{{ ticket.request_type }} • {{ ticket.created_at|date:"M d, Y" }}</p>
+        </div>
+        <span class="shrink-0 text-[10px] font-bold px-2.5 py-1 rounded-full
+          {% if ticket.status == 'resolved' %}bg-emerald-50 text-emerald-700
+          {% elif ticket.status == 'in_progress' %}bg-amber-50 text-amber-700
+          {% else %}bg-blue-50 text-blue-700{% endif %}">
+          {{ ticket.get_status_display }}
+        </span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,130 @@
+﻿{% extends 'attendance/base.html' %}
+{% block content %}
+<div class="space-y-6" dir="rtl">
+
+  <div>
+    <h1 class="text-2xl font-bold font-headline text-slate-900">الملف الشخصي</h1>
+    <p class="text-sm text-on-surface-variant mt-1">بياناتك الأكاديمية والجدول الدراسي</p>
+  </div>
+
+  <!-- Profile Card -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+    <div class="flex flex-col md:flex-row gap-6 items-start">
+      <div class="flex-shrink-0">
+        {% if teacher.profile_photo %}
+          <img src="{{ teacher.profile_photo.url }}" alt="{{ teacher.name }}"
+            class="w-28 h-28 rounded-2xl object-cover border-4 border-slate-100 shadow"/>
+        {% else %}
+          <div class="w-28 h-28 rounded-2xl bg-primary-container text-on-primary-container flex items-center justify-center text-4xl font-bold font-headline shadow">
+            {{ teacher.name|first }}
+          </div>
+        {% endif %}
+      </div>
+      <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider">الاسم</p>
+          <p class="text-base font-bold text-slate-800 mt-0.5">{{ teacher.name }}</p>
+        </div>
+        <div>
+          <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider">الدرجة الأكاديمية</p>
+          <p class="text-base font-medium text-slate-700 mt-0.5">{{ teacher.academic_degree|default:"—" }}</p>
+        </div>
+        <div>
+          <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider">التخصص</p>
+          <p class="text-base font-medium text-slate-700 mt-0.5">{{ teacher.specialization_type|default:teacher.major }}</p>
+        </div>
+        <div>
+          <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider">رقم الهاتف</p>
+          <p class="text-base font-medium text-slate-700 mt-0.5">{{ teacher.phone_number|default:"—" }}</p>
+        </div>
+        <div>
+          <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider">البريد الجامعي</p>
+          <p class="text-base font-medium text-slate-700 mt-0.5">{{ teacher.university_email|default:"—" }}</p>
+        </div>
+        <div>
+          <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider">فصيلة الدم</p>
+          <p class="text-base font-medium text-slate-700 mt-0.5">{{ teacher.blood_type|default:"—" }}</p>
+        </div>
+      </div>
+      <div class="flex-shrink-0">
+        <div class="bg-emerald-50 border border-emerald-100 rounded-xl px-5 py-3 text-center">
+          <p class="text-2xl font-bold text-emerald-700">{{ sessions_completed }}</p>
+          <p class="text-xs text-emerald-600 font-semibold mt-0.5">محاضرة مكتملة</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Schedule -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-50 flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary">calendar_month</span>
+      <h2 class="text-base font-bold text-slate-800">الجدول الدراسي</h2>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50 text-xs text-slate-500 uppercase tracking-wider">
+          <tr>
+            <th class="px-6 py-3 text-right font-semibold">اليوم</th>
+            <th class="px-6 py-3 text-right font-semibold">المادة</th>
+            <th class="px-6 py-3 text-right font-semibold">القاعة</th>
+            <th class="px-6 py-3 text-right font-semibold">الوقت</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50">
+          {% for s in schedules %}
+          <tr class="hover:bg-slate-50 transition-colors">
+            <td class="px-6 py-3 font-medium text-slate-800">{{ s.day_of_week }}</td>
+            <td class="px-6 py-3 text-slate-700">{{ s.course.title }}</td>
+            <td class="px-6 py-3 text-slate-600">{{ s.classroom.name }}</td>
+            <td class="px-6 py-3 text-slate-600 font-mono text-xs">{{ s.start_time|time:"H:i" }} – {{ s.end_time|time:"H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" class="px-6 py-10 text-center text-slate-400 text-sm">
+              <span class="material-symbols-outlined text-3xl block mb-1 opacity-30">event_busy</span>
+              لا يوجد جدول مُعيّن
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Permissions -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-50 flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary">lock_open</span>
+      <h2 class="text-base font-bold text-slate-800">صلاحيات القاعات</h2>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50 text-xs text-slate-500 uppercase tracking-wider">
+          <tr>
+            <th class="px-6 py-3 text-right font-semibold">القاعة</th>
+            <th class="px-6 py-3 text-right font-semibold">الدفعة</th>
+            <th class="px-6 py-3 text-right font-semibold">من</th>
+            <th class="px-6 py-3 text-right font-semibold">حتى</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50">
+          {% for p in permissions %}
+          <tr class="hover:bg-slate-50 transition-colors">
+            <td class="px-6 py-3 font-medium text-slate-800">{{ p.classroom.name }}</td>
+            <td class="px-6 py-3 text-slate-600">{{ p.batch }}</td>
+            <td class="px-6 py-3 text-slate-600 font-mono text-xs">{{ p.allowed_from|time:"H:i" }}</td>
+            <td class="px-6 py-3 text-slate-600 font-mono text-xs">{{ p.allowed_until|time:"H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" class="px-6 py-8 text-center text-slate-400 text-sm">لا توجد صلاحيات مُعيّنة</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

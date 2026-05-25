@@ -1,0 +1,140 @@
+﻿{% extends 'attendance/base.html' %}
+{% block title %}إدخال الدرجات — SHAMEL{% endblock %}
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-6">
+  <div class="flex items-center justify-between flex-wrap gap-4">
+    <div>
+      <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">إدخال الدرجات</h1>
+      <p class="text-sm text-slate-500">إدخال درجات الطلاب بالجملة — يُحفظ تلقائياً</p>
+    </div>
+    <form method="get" class="flex gap-3 flex-wrap">
+      <select name="course_id" onchange="this.form.submit()" class="rounded-xl bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-2.5 text-sm dark:text-white outline-none">
+        <option value="">— اختر المادة —</option>
+        {% for c in courses %}<option value="{{ c.id }}" {% if selected_course == c.id|stringformat:'s' %}selected{% endif %}>{{ c.title }}</option>{% endfor %}
+      </select>
+      <select name="semester" onchange="this.form.submit()" class="rounded-xl bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-2.5 text-sm dark:text-white outline-none">
+        {% for s in semester_choices %}<option value="{{ s }}" {% if semester == s|stringformat:'s' %}selected{% endif %}>الفصل {{ s }}</option>{% endfor %}
+      </select>
+    </form>
+  </div>
+
+  {% if students %}
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+    <div class="px-5 py-3 bg-slate-50 dark:bg-slate-900/40 border-b border-slate-100 dark:border-slate-700 flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary text-lg">table_chart</span>
+      <p class="text-sm font-bold text-slate-700 dark:text-slate-200">{{ students|length }} طالب — الحد الأقصى: منتصف 60 | نهائي 100 | حضور 40</p>
+      <div id="saveIndicator" class="mr-auto text-xs font-semibold text-slate-400 hidden">
+        <span class="material-symbols-outlined text-sm align-middle animate-spin">progress_activity</span> جارٍ الحفظ...
+      </div>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50 dark:bg-slate-900/30 border-b border-slate-100 dark:border-slate-700">
+          <tr>
+            <th class="text-right px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider w-8">#</th>
+            <th class="text-right px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">الطالب</th>
+            <th class="text-right px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">منتصف الفصل /60</th>
+            <th class="text-right px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">نهائي /100</th>
+            <th class="text-right px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">حضور /40</th>
+            <th class="text-right px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">المجموع</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+          {% for student in students %}
+          {% with g=student.course_grades.0 %}
+          <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/20 transition-colors">
+            <td class="px-5 py-3 text-slate-400 text-xs">{{ forloop.counter }}</td>
+            <td class="px-5 py-3">
+              <p class="font-semibold text-slate-900 dark:text-white">{{ student.name }}</p>
+              <p class="text-xs text-slate-400">{{ student.student_code }}</p>
+            </td>
+            <td class="px-5 py-3">
+              <input type="number" min="0" max="60" step="0.5"
+                class="grade-input w-20 rounded-lg bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-3 py-2 text-sm dark:text-white outline-none focus:border-primary transition-all text-center"
+                value="{{ g.midterm_grade|default:'' }}"
+                data-field="midterm_grade" data-student="{{ student.id }}"
+                data-course="{{ selected_course }}" data-semester="{{ semester }}"
+                placeholder="—">
+            </td>
+            <td class="px-5 py-3">
+              <input type="number" min="0" max="100" step="0.5"
+                class="grade-input w-20 rounded-lg bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-3 py-2 text-sm dark:text-white outline-none focus:border-primary transition-all text-center"
+                value="{{ g.final_grade|default:'' }}"
+                data-field="final_grade" data-student="{{ student.id }}"
+                data-course="{{ selected_course }}" data-semester="{{ semester }}"
+                placeholder="—">
+            </td>
+            <td class="px-5 py-3">
+              <input type="number" min="0" max="40" step="0.5"
+                class="grade-input w-20 rounded-lg bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-3 py-2 text-sm dark:text-white outline-none focus:border-primary transition-all text-center"
+                value="{{ g.attendance_grade|default:'' }}"
+                data-field="attendance_grade" data-student="{{ student.id }}"
+                data-course="{{ selected_course }}" data-semester="{{ semester }}"
+                placeholder="—">
+            </td>
+            <td class="px-5 py-3 font-bold text-slate-900 dark:text-white total-cell" id="total_{{ student.id }}">
+              {{ g.total_grade|default:"—" }}
+            </td>
+          </tr>
+          {% endwith %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% elif selected_course %}
+  <div class="py-16 text-center text-slate-400 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700">
+    <span class="material-symbols-outlined text-4xl block mb-2">group</span>
+    لا يوجد طلاب مسجلون في هذه المادة
+  </div>
+  {% else %}
+  <div class="py-16 text-center text-slate-400 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700">
+    <span class="material-symbols-outlined text-4xl block mb-2">school</span>
+    اختر مادة لبدء إدخال الدرجات
+  </div>
+  {% endif %}
+</div>
+
+<script>
+let saveTimer;
+document.querySelectorAll('.grade-input').forEach(inp => {
+  inp.addEventListener('change', function() {
+    const val = parseFloat(this.value);
+    const max = parseFloat(this.max);
+    if (isNaN(val) || val < 0 || val > max) {
+      this.classList.add('border-red-400'); return;
+    }
+    this.classList.remove('border-red-400');
+    this.classList.add('border-emerald-400');
+    const si = document.getElementById('saveIndicator');
+    si.classList.remove('hidden');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      fetch(window.location.pathname, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}', 'X-Requested-With': 'XMLHttpRequest' },
+        body: JSON.stringify({
+          student_id: this.dataset.student,
+          course_id: this.dataset.course,
+          semester: this.dataset.semester,
+          field: this.dataset.field,
+          value: val,
+        }),
+      })
+      .then(r => r.json())
+      .then(d => {
+        si.classList.add('hidden');
+        if (d.ok) {
+          const tc = document.getElementById('total_' + this.dataset.student);
+          if (tc) tc.textContent = d.total;
+          this.classList.remove('border-emerald-400');
+        } else {
+          this.classList.add('border-red-400');
+          alert(d.error || 'خطأ في الحفظ');
+        }
+      });
+    }, 800);
+  });
+});
+</script>
+{% endblock %}

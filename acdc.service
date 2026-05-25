@@ -1,0 +1,34 @@
+[Unit]
+Description=SHAMEL University System — Daphne ASGI Server
+After=network.target postgresql.service
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/nusu85_new
+EnvironmentFile=/home/ubuntu/nusu85_new/.env
+
+# ── Daphne (ASGI) — handles HTTP + WebSocket correctly ────────────────────
+# Previous config used gunicorn/WSGI which broke Django Channels WebSockets
+# and started the background scheduler in ALL workers simultaneously,
+# causing 4x unnecessary DB load every minute.
+#
+# Daphne runs a single async process — no duplicate scheduler problem,
+# WebSockets work correctly, and memory footprint is much smaller.
+ExecStart=/home/ubuntu/venv/bin/daphne \
+    -b 127.0.0.1 \
+    -p 8000 \
+    --ping-interval 20 \
+    --ping-timeout  30 \
+    acdc_config.asgi:application
+
+Restart=on-failure
+RestartSec=5s
+StandardOutput=journal
+StandardError=journal
+
+# Increase open file limit for WebSocket connections
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

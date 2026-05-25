@@ -1,0 +1,188 @@
+﻿{% extends 'attendance/base.html' %}
+{% block title %}لوحة تقييم الأساتذة — SHAMEL{% endblock %}
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-6">
+  <div class="flex items-center justify-between flex-wrap gap-4">
+    <div>
+      <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">لوحة تقييم أداء الأساتذة</h1>
+      <p class="text-sm text-slate-500">تقارير سرية مجمعة — مخصصة لعمادة الكلية والإدارة العليا</p>
+    </div>
+    <form method="get">
+      <select name="semester" onchange="this.form.submit()" class="rounded-xl bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-2.5 text-sm dark:text-white outline-none">
+        {% for s in semester_choices %}<option value="{{ s }}" {% if semester == s|stringformat:'s' %}selected{% endif %}>الفصل {{ s }}</option>{% endfor %}
+      </select>
+    </form>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-5 text-center">
+      <p class="text-2xl font-extrabold text-slate-900 dark:text-white">{{ teacher_stats|length }}</p>
+      <p class="text-xs text-slate-400 mt-1 font-semibold uppercase tracking-wide">أساتذة مُقيَّمون</p>
+    </div>
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-5 text-center">
+      <p class="text-2xl font-extrabold text-primary">{{ total_evaluations }}</p>
+      <p class="text-xs text-slate-400 mt-1 font-semibold uppercase tracking-wide">إجمالي التقييمات</p>
+    </div>
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-5 text-center">
+      <p class="text-2xl font-extrabold text-emerald-600">{{ top_teacher.name|default:"—" }}</p>
+      <p class="text-xs text-slate-400 mt-1 font-semibold uppercase tracking-wide">الأستاذ الأعلى تقييماً</p>
+    </div>
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-5 text-center">
+      <p class="text-2xl font-extrabold text-amber-600">{{ needs_attention_count }}</p>
+      <p class="text-xs text-slate-400 mt-1 font-semibold uppercase tracking-wide">يستحق المتابعة</p>
+    </div>
+  </div>
+
+  <!-- Chart Row -->
+  {% if teacher_stats %}
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-6">
+      <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm mb-4">متوسط التقييم العام لكل أستاذ</h2>
+      <canvas id="overallChart" height="220"></canvas>
+    </div>
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-6">
+      <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm mb-4">مقارنة الأبعاد التقييمية</h2>
+      <canvas id="radarChart" height="220"></canvas>
+    </div>
+  </div>
+
+  <!-- Detailed Table -->
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary text-lg">analytics</span>
+      <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm">التقرير التفصيلي</h2>
+      <span class="text-xs text-slate-400 mr-auto">البيانات سرية — للاستخدام الإداري فقط</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50 dark:bg-slate-900/30 border-b border-slate-100 dark:border-slate-700">
+          <tr>
+            <th class="text-right px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">الأستاذ</th>
+            <th class="text-right px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">عدد التقييمات</th>
+            <th class="text-right px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">وضوح الشرح</th>
+            <th class="text-right px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">التفاعل</th>
+            <th class="text-right px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">العدالة</th>
+            <th class="text-right px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">الالتزام</th>
+            <th class="text-right px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">التقييم العام</th>
+            <th class="text-right px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">نسبة الحضور</th>
+            <th class="text-right px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">التوصية</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+          {% for t in teacher_stats %}
+          <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/20 transition-colors">
+            <td class="px-5 py-4">
+              <p class="font-semibold text-slate-900 dark:text-white">{{ t.name }}</p>
+              <p class="text-xs text-slate-400">{{ t.department|default:"—" }}</p>
+            </td>
+            <td class="px-5 py-4 text-slate-600 dark:text-slate-300 text-center">{{ t.eval_count }}</td>
+            <td class="px-5 py-4 text-center">
+              <span class="text-sm font-bold {% if t.avg_clarity >= 4 %}text-emerald-600{% elif t.avg_clarity >= 3 %}text-amber-600{% else %}text-red-600{% endif %}">
+                {{ t.avg_clarity|floatformat:1 }}
+              </span>
+            </td>
+            <td class="px-5 py-4 text-center">
+              <span class="text-sm font-bold {% if t.avg_engagement >= 4 %}text-emerald-600{% elif t.avg_engagement >= 3 %}text-amber-600{% else %}text-red-600{% endif %}">
+                {{ t.avg_engagement|floatformat:1 }}
+              </span>
+            </td>
+            <td class="px-5 py-4 text-center">
+              <span class="text-sm font-bold {% if t.avg_fairness >= 4 %}text-emerald-600{% elif t.avg_fairness >= 3 %}text-amber-600{% else %}text-red-600{% endif %}">
+                {{ t.avg_fairness|floatformat:1 }}
+              </span>
+            </td>
+            <td class="px-5 py-4 text-center">
+              <span class="text-sm font-bold {% if t.avg_punctuality >= 4 %}text-emerald-600{% elif t.avg_punctuality >= 3 %}text-amber-600{% else %}text-red-600{% endif %}">
+                {{ t.avg_punctuality|floatformat:1 }}
+              </span>
+            </td>
+            <td class="px-5 py-4 text-center">
+              <div class="inline-flex items-center gap-1.5">
+                <span class="text-lg font-extrabold {% if t.avg_overall >= 4 %}text-emerald-600{% elif t.avg_overall >= 3 %}text-amber-600{% else %}text-red-600{% endif %}">
+                  {{ t.avg_overall|floatformat:1 }}
+                </span>
+                <span class="text-xs text-slate-400">/5</span>
+              </div>
+            </td>
+            <td class="px-5 py-4 text-center">
+              {% if t.attendance_rate is not None %}
+              <div class="flex items-center gap-1.5">
+                <div class="flex-1 bg-slate-200 dark:bg-slate-600 rounded-full h-1.5 min-w-[60px]">
+                  <div class="h-1.5 rounded-full {% if t.attendance_rate >= 80 %}bg-emerald-500{% elif t.attendance_rate >= 60 %}bg-amber-500{% else %}bg-red-500{% endif %}" style="width: {{ t.attendance_rate }}%"></div>
+                </div>
+                <span class="text-xs font-semibold text-slate-600 dark:text-slate-300">{{ t.attendance_rate }}%</span>
+              </div>
+              {% else %}—{% endif %}
+            </td>
+            <td class="px-5 py-4">
+              {% if t.avg_overall >= 4 %}
+              <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">ممتاز — ترقية</span>
+              {% elif t.avg_overall >= 3 %}
+              <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700">جيد — متابعة</span>
+              {% else %}
+              <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-red-100 text-red-700">يحتاج تدخل</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {% else %}
+  <div class="py-16 text-center text-slate-400 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700">
+    <span class="material-symbols-outlined text-4xl block mb-2">assessment</span>
+    لا توجد تقييمات مسجلة لهذا الفصل الدراسي
+  </div>
+  {% endif %}
+</div>
+
+{% if teacher_stats %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script>
+const labels = [{% for t in teacher_stats %}"{{ t.name }}"{% if not forloop.last %},{% endif %}{% endfor %}];
+const overallData = [{% for t in teacher_stats %}{{ t.avg_overall|floatformat:2 }}{% if not forloop.last %},{% endif %}{% endfor %}];
+const clarityData = [{% for t in teacher_stats %}{{ t.avg_clarity|floatformat:2 }}{% if not forloop.last %},{% endif %}{% endfor %}];
+const engageData = [{% for t in teacher_stats %}{{ t.avg_engagement|floatformat:2 }}{% if not forloop.last %},{% endif %}{% endfor %}];
+const punctualData = [{% for t in teacher_stats %}{{ t.avg_punctuality|floatformat:2 }}{% if not forloop.last %},{% endif %}{% endfor %}];
+
+new Chart(document.getElementById('overallChart'), {
+  type: 'bar',
+  data: {
+    labels,
+    datasets: [{
+      label: 'التقييم العام',
+      data: overallData,
+      backgroundColor: overallData.map(v => v >= 4 ? '#22c55e' : v >= 3 ? '#f59e0b' : '#ef4444'),
+      borderRadius: 8,
+    }],
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: { y: { min: 0, max: 5, ticks: { stepSize: 1 } } },
+  },
+});
+
+new Chart(document.getElementById('radarChart'), {
+  type: 'radar',
+  data: {
+    labels: ['وضوح الشرح', 'التفاعل', 'العدالة', 'الالتزام بالوقت', 'التقييم العام'],
+    datasets: labels.map((name, i) => ({
+      label: name,
+      data: [clarityData[i], engageData[i], {{ teacher_stats.0.avg_fairness|floatformat:2|default:0 }}, punctualData[i], overallData[i]],
+      fill: true,
+      borderWidth: 2,
+    })),
+  },
+  options: {
+    responsive: true,
+    scales: { r: { min: 0, max: 5, ticks: { stepSize: 1 } } },
+    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } },
+  },
+});
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,168 @@
+﻿{% extends 'attendance/base.html' %}
+{% block title %}تعديل بيانات الأستاذ — SHAMEL{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6">
+  <div class="flex items-center gap-4">
+    <a href="javascript:history.back()" class="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-slate-500 hover:text-slate-800 transition-all shadow-sm">
+      <span class="material-symbols-outlined text-lg">arrow_back</span>
+    </a>
+    <div>
+      <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">تعديل بيانات الأستاذ</h1>
+      <p class="text-sm text-slate-500 mt-0.5">{{ teacher.academic_degree }} {{ teacher.name }}</p>
+    </div>
+  </div>
+
+  {% if messages %}
+  {% for msg in messages %}
+  <div class="px-4 py-3 rounded-xl text-sm font-semibold {% if msg.tags == 'success' %}bg-emerald-50 text-emerald-700 border border-emerald-200{% else %}bg-red-50 text-red-700 border border-red-200{% endif %}">{{ msg }}</div>
+  {% endfor %}
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data" class="space-y-5">
+    {% csrf_token %}
+
+    <!-- Personal Info -->
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary">person</span>
+        <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm">البيانات الشخصية</h2>
+      </div>
+      <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div class="md:col-span-2">
+          <label class="label-xs">الاسم الكامل *</label>
+          <input type="text" name="name" value="{{ teacher.name }}" required class="inp">
+        </div>
+        <div>
+          <label class="label-xs">الدرجة العلمية</label>
+          <select name="academic_degree" class="inp">
+            {% for deg in degrees %}
+            <option value="{{ deg }}" {% if teacher.academic_degree == deg %}selected{% endif %}>{{ deg }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="label-xs">الجنس</label>
+          <select name="gender" class="inp">
+            <option value="Male" {% if teacher.gender == 'Male' %}selected{% endif %}>ذكر</option>
+            <option value="Female" {% if teacher.gender == 'Female' %}selected{% endif %}>أنثى</option>
+          </select>
+        </div>
+        <div>
+          <label class="label-xs">تاريخ الميلاد</label>
+          <input type="date" name="date_of_birth" value="{{ teacher.date_of_birth|date:'Y-m-d'|default:'' }}" class="inp">
+        </div>
+        <div>
+          <label class="label-xs">فصيلة الدم</label>
+          <select name="blood_type" class="inp">
+            <option value="">—</option>
+            {% for bt in blood_types %}
+            <option value="{{ bt }}" {% if teacher.blood_type == bt %}selected{% endif %}>{{ bt }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="label-xs">صورة شخصية</label>
+          <input type="file" name="profile_photo" accept="image/*" class="inp">
+          {% if teacher.profile_photo %}
+          <p class="text-xs text-slate-400 mt-1">الحالية: <a href="{{ teacher.profile_photo.url }}" target="_blank" class="text-primary underline">عرض</a></p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Academic Info -->
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary">school</span>
+        <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm">البيانات الأكاديمية</h2>
+      </div>
+      <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div>
+          <label class="label-xs">التخصص</label>
+          <input type="text" name="major" value="{{ teacher.major|default:'' }}" class="inp">
+        </div>
+        <div>
+          <label class="label-xs">نوع التخصص</label>
+          <select name="specialization_type" class="inp">
+            <option value="">—</option>
+            <option value="Core" {% if teacher.specialization_type == 'Core' %}selected{% endif %}>أساسي</option>
+            <option value="Elective" {% if teacher.specialization_type == 'Elective' %}selected{% endif %}>اختياري</option>
+          </select>
+        </div>
+        {% if is_admin %}
+        <div>
+          <label class="label-xs">الكلية</label>
+          <select name="college_id" class="inp" id="college-sel" onchange="loadDepts()">
+            <option value="">— اختر الكلية —</option>
+            {% for c in colleges %}
+            <option value="{{ c.college_id }}" {% if teacher.college_id == c.college_id %}selected{% endif %}>{{ c.college_name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="label-xs">القسم</label>
+          <select name="department_id" class="inp" id="dept-sel">
+            <option value="">— اختر القسم —</option>
+            {% for d in departments %}
+            <option value="{{ d.id }}" {% if teacher.department_id == d.id %}selected{% endif %}>{{ d.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endif %}
+        <div>
+          <label class="label-xs">البريد الجامعي</label>
+          <input type="email" name="university_email" value="{{ teacher.university_email|default:'' }}" class="inp">
+        </div>
+        <div>
+          <label class="label-xs">رقم الهاتف</label>
+          <input type="text" name="phone_number" value="{{ teacher.phone_number|default:'' }}" class="inp">
+        </div>
+      </div>
+    </div>
+
+    <!-- Status -->
+    {% if is_admin %}
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary">verified_user</span>
+        <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm">الصلاحيات</h2>
+      </div>
+      <div class="p-6">
+        <label class="flex items-center gap-3 p-4 rounded-xl border-2 border-slate-200 dark:border-slate-600 cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition-all max-w-xs">
+          <input type="checkbox" name="is_allowed_entry" {% if teacher.is_allowed_entry %}checked{% endif %}>
+          <div>
+            <p class="text-sm font-bold dark:text-slate-200">مسموح بالدخول</p>
+            <p class="text-xs text-slate-400">يمكن للأستاذ دخول الحرم الجامعي</p>
+          </div>
+        </label>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="flex gap-3">
+      <button type="submit" class="inline-flex items-center gap-2 bg-primary hover:bg-primary-container text-white font-bold text-sm px-6 py-3 rounded-xl transition-all shadow-sm">
+        <span class="material-symbols-outlined text-base">save</span> حفظ التعديلات
+      </button>
+      <a href="javascript:history.back()" class="inline-flex items-center gap-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-sm px-5 py-3 rounded-xl hover:bg-slate-200 transition-all">إلغاء</a>
+    </div>
+  </form>
+</div>
+<style>
+  .label-xs { @apply block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5; }
+  .inp { @apply w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm font-medium dark:text-white focus:ring-2 focus:ring-primary/20 outline-none transition-all; }
+</style>
+<script>
+function loadDepts() {
+  const cid = document.getElementById('college-sel').value;
+  if (!cid) return;
+  fetch('/attendance/api/departments/?college_id=' + cid)
+    .then(r => r.json()).then(data => {
+      const sel = document.getElementById('dept-sel');
+      sel.innerHTML = '<option value="">— اختر القسم —</option>';
+      data.departments.forEach(d => {
+        sel.innerHTML += '<option value="' + d.id + '">' + d.name + '</option>';
+      });
+    });
+}
+</script>
+{% endblock %}

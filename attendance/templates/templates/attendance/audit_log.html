@@ -1,0 +1,99 @@
+﻿{% extends 'attendance/base.html' %}
+{% block title %}سجل التدقيق — SHAMEL{% endblock %}
+{% block content %}
+<div class="space-y-6">
+
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">سجل التدقيق</h1>
+      <p class="text-sm text-slate-500 mt-0.5">جميع العمليات الحساسة المسجّلة في النظام</p>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <form method="get" class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-5">
+    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+      <div>
+        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">الإجراء</label>
+        <select name="action" class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-2.5 text-sm dark:text-white focus:ring-2 focus:ring-primary/20 outline-none">
+          <option value="">— الكل —</option>
+          {% for val, label in actions %}
+          <option value="{{ val }}" {% if filters.action == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">النموذج</label>
+        <input type="text" name="model" value="{{ filters.model }}" placeholder="مثال: Student" class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-2.5 text-sm dark:text-white focus:ring-2 focus:ring-primary/20 outline-none">
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">المستخدم</label>
+        <input type="text" name="user" value="{{ filters.user }}" placeholder="اسم المستخدم..." class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-2.5 text-sm dark:text-white focus:ring-2 focus:ring-primary/20 outline-none">
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">التاريخ</label>
+        <input type="date" name="date" value="{{ filters.date }}" class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-2.5 text-sm dark:text-white focus:ring-2 focus:ring-primary/20 outline-none">
+      </div>
+    </div>
+    <div class="mt-4 flex gap-3">
+      <button type="submit" class="inline-flex items-center gap-2 bg-primary hover:bg-primary-container text-white font-bold text-sm px-5 py-2.5 rounded-xl transition-all shadow-sm">
+        <span class="material-symbols-outlined text-base">search</span> بحث
+      </button>
+      <a href="{% url 'audit_log' %}" class="inline-flex items-center gap-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-sm px-5 py-2.5 rounded-xl hover:bg-slate-200 transition-all">إعادة تعيين</a>
+    </div>
+  </form>
+
+  <!-- Table -->
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+    <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40">
+      <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm">السجلات ({{ logs|length }})</h2>
+    </div>
+    {% if logs %}
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-slate-50 dark:bg-slate-900/40 text-xs text-slate-400 uppercase">
+            <th class="px-4 py-3 text-right font-bold">الوقت</th>
+            <th class="px-4 py-3 text-right font-bold">المستخدم</th>
+            <th class="px-4 py-3 text-right font-bold">الإجراء</th>
+            <th class="px-4 py-3 text-right font-bold">النموذج</th>
+            <th class="px-4 py-3 text-right font-bold">الوصف</th>
+            <th class="px-4 py-3 text-right font-bold">IP</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50 dark:divide-slate-700">
+          {% for log in logs %}
+          <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/40">
+            <td class="px-4 py-3 text-xs text-slate-400 whitespace-nowrap">{{ log.timestamp|date:"Y/m/d H:i" }}</td>
+            <td class="px-4 py-3">
+              <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs">{{ log.actor.username|default:"—" }}</span>
+            </td>
+            <td class="px-4 py-3">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold
+                {% if log.action == 'CREATE' %}bg-emerald-100 text-emerald-700
+                {% elif log.action == 'UPDATE' %}bg-blue-100 text-blue-700
+                {% elif log.action == 'DELETE' %}bg-red-100 text-red-600
+                {% elif log.action == 'LOGIN' %}bg-purple-100 text-purple-700
+                {% elif log.action == 'TOGGLE_ACCESS' %}bg-orange-100 text-orange-700
+                {% else %}bg-slate-100 text-slate-600{% endif %}">
+                {{ log.action }}
+              </span>
+            </td>
+            <td class="px-4 py-3 text-xs text-slate-500">{{ log.target_model|default:"—" }} {% if log.target_id %}#{{ log.target_id }}{% endif %}</td>
+            <td class="px-4 py-3 text-xs text-slate-500 max-w-xs truncate">{{ log.description|default:"—" }}</td>
+            <td class="px-4 py-3 text-xs text-slate-400 font-mono">{{ log.ip_address|default:"—" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="py-16 text-center text-slate-400">
+      <span class="material-symbols-outlined text-4xl mb-2 block">history</span>
+      لا توجد سجلات مطابقة
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

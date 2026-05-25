@@ -1,0 +1,127 @@
+﻿{% extends 'attendance/base.html' %}
+{% block title %}البلاغات — SHAMEL{% endblock %}
+{% block content %}
+
+<div class="space-y-6">
+
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">البلاغات والدعم الفني</h1>
+      <p class="text-sm text-slate-500 mt-0.5">متابعة وإدارة البلاغات المقدمة</p>
+    </div>
+    <div class="flex gap-2">
+      {% if is_admin %}
+      <a href="{% url 'admin_tickets' %}"
+         class="inline-flex items-center gap-2 bg-slate-700 hover:bg-slate-800 text-white font-bold text-sm px-4 py-2.5 rounded-xl transition-all">
+        <span class="material-symbols-outlined text-base">admin_panel_settings</span> لوحة الإدارة
+      </a>
+      {% endif %}
+      <a href="{% url 'create_ticket' %}"
+         class="inline-flex items-center gap-2 bg-primary hover:bg-primary-container text-white font-bold text-sm px-5 py-2.5 rounded-xl transition-all shadow-sm">
+        <span class="material-symbols-outlined text-base">add</span> رفع بلاغ
+      </a>
+    </div>
+  </div>
+
+  <!-- Status counters -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+    {% with items="open:مفتوح:amber,investigating:قيد التحقيق:blue,resolved:محلول:emerald,closed:مغلق:slate" %}
+    <a href="?status=open"
+       class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 p-4 text-center hover:shadow-md transition-shadow {% if selected_status == 'open' %}ring-2 ring-amber-400{% endif %}">
+      <p class="text-3xl font-extrabold text-amber-500">{{ counts.open }}</p>
+      <p class="text-xs text-slate-500 mt-1 font-semibold">مفتوح</p>
+    </a>
+    <a href="?status=investigating"
+       class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 p-4 text-center hover:shadow-md transition-shadow {% if selected_status == 'investigating' %}ring-2 ring-blue-400{% endif %}">
+      <p class="text-3xl font-extrabold text-blue-500">{{ counts.investigating }}</p>
+      <p class="text-xs text-slate-500 mt-1 font-semibold">قيد التحقيق</p>
+    </a>
+    <a href="?status=resolved"
+       class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 p-4 text-center hover:shadow-md transition-shadow {% if selected_status == 'resolved' %}ring-2 ring-emerald-400{% endif %}">
+      <p class="text-3xl font-extrabold text-emerald-500">{{ counts.resolved }}</p>
+      <p class="text-xs text-slate-500 mt-1 font-semibold">محلول</p>
+    </a>
+    <a href="?status=closed"
+       class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 p-4 text-center hover:shadow-md transition-shadow {% if selected_status == 'closed' %}ring-2 ring-slate-400{% endif %}">
+      <p class="text-3xl font-extrabold text-slate-400">{{ counts.closed }}</p>
+      <p class="text-xs text-slate-500 mt-1 font-semibold">مغلق</p>
+    </a>
+    {% endwith %}
+  </div>
+
+  <!-- Filter bar -->
+  <div class="flex gap-2 flex-wrap">
+    <a href="?" class="px-4 py-2 rounded-xl text-sm font-bold {% if not selected_status %}bg-primary text-white{% else %}bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600{% endif %} transition-all">الكل</a>
+    {% for val, label in status_choices %}
+    <a href="?status={{ val }}"
+       class="px-4 py-2 rounded-xl text-sm font-bold {% if selected_status == val %}bg-primary text-white{% else %}bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600{% endif %} transition-all">{{ label }}</a>
+    {% endfor %}
+  </div>
+
+  <!-- Tickets list -->
+  {% if tickets %}
+  <div class="space-y-3">
+    {% for ticket in tickets %}
+    <a href="{% url 'ticket_detail' ticket.id %}"
+       class="block bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 p-5 hover:shadow-md transition-all group">
+      <div class="flex items-start justify-between gap-4">
+        <div class="flex items-start gap-3 min-w-0">
+          <!-- Priority dot -->
+          <div class="mt-1 flex-shrink-0 w-2.5 h-2.5 rounded-full
+            {% if ticket.priority == 'urgent' %}bg-red-500 animate-pulse
+            {% elif ticket.priority == 'high' %}bg-orange-400
+            {% elif ticket.priority == 'medium' %}bg-amber-400
+            {% else %}bg-slate-300{% endif %}"></div>
+          <div class="min-w-0">
+            <p class="font-bold text-slate-800 dark:text-slate-200 group-hover:text-primary transition-colors truncate">
+              #{{ ticket.id }} — {{ ticket.subject }}
+            </p>
+            <p class="text-xs text-slate-400 mt-0.5 line-clamp-1">{{ ticket.description|truncatechars:100 }}</p>
+            <div class="flex items-center gap-3 mt-2 text-[11px] text-slate-400">
+              <span class="flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">person</span>
+                {{ ticket.requester.get_full_name|default:ticket.requester.username }}
+              </span>
+              <span class="flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">schedule</span>
+                {{ ticket.created_at|timesince }} مضت
+              </span>
+              {% if ticket.college %}
+              <span class="flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">school</span>
+                {{ ticket.college.college_name }}
+              </span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        <div class="flex flex-col items-end gap-2 flex-shrink-0">
+          <!-- Status badge -->
+          <span class="px-2.5 py-1 rounded-full text-[11px] font-bold
+            {% if ticket.status == 'open' %}bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400
+            {% elif ticket.status == 'investigating' %}bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400
+            {% elif ticket.status == 'resolved' %}bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400
+            {% else %}bg-slate-100 dark:bg-slate-700 text-slate-500{% endif %}">
+            {{ ticket.get_status_display }}
+          </span>
+          <!-- Priority badge -->
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-700 text-slate-500">
+            {{ ticket.get_priority_display }}
+          </span>
+        </div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 py-20 text-center">
+    <span class="material-symbols-outlined text-6xl text-slate-200 dark:text-slate-600">support_agent</span>
+    <p class="text-slate-400 mt-4 font-semibold text-lg">لا توجد بلاغات</p>
+    <a href="{% url 'create_ticket' %}" class="mt-4 inline-flex items-center gap-2 text-primary font-bold text-sm">
+      <span class="material-symbols-outlined text-base">add_circle</span> رفع بلاغ جديد
+    </a>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

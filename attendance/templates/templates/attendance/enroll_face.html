@@ -1,0 +1,269 @@
+﻿{% extends 'attendance/base.html' %}
+{% load static %}
+{% block title %}تسجيل بصمة الوجه — {{ person.name }}{% endblock %}
+{% block content %}
+
+<div class="max-w-2xl mx-auto space-y-6">
+
+  <!-- Header -->
+  <div class="flex items-center gap-4">
+    <a href="javascript:history.back()"
+       class="p-2 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-all shadow-sm">
+      <span class="material-symbols-outlined text-lg">arrow_back</span>
+    </a>
+    <div>
+      <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">تسجيل بصمة الوجه</h1>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+        {% if user_type == 'student' %}طالب{% else %}أستاذ{% endif %}:
+        <span class="font-bold text-primary">{{ person.name }}</span>
+      </p>
+    </div>
+  </div>
+
+  <!-- Status card -->
+  {% if has_face %}
+  <div class="flex items-center gap-3 p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300">
+    <span class="material-symbols-outlined text-2xl fill-icon">verified</span>
+    <div>
+      <p class="font-bold text-sm">بصمة الوجه مسجّلة ✓</p>
+      <p class="text-xs opacity-80 mt-0.5">يمكنك تحديثها بالتقاط صورة جديدة أدناه</p>
+    </div>
+  </div>
+  {% else %}
+  <div class="flex items-center gap-3 p-4 rounded-2xl bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 text-amber-700 dark:text-amber-300">
+    <span class="material-symbols-outlined text-2xl">face_retouching_off</span>
+    <div>
+      <p class="font-bold text-sm">لم يتم تسجيل بصمة الوجه بعد</p>
+      <p class="text-xs opacity-80 mt-0.5">قم بالتقاط صورة واضحة للوجه أدناه</p>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Camera panel -->
+  <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+
+    <!-- Webcam -->
+    <div class="relative bg-slate-950 aspect-video flex items-center justify-center">
+      <video id="webcam" autoplay playsinline class="w-full h-full object-cover hidden"></video>
+
+      <!-- Placeholder -->
+      <div id="cam-placeholder" class="absolute inset-0 flex flex-col items-center justify-center gap-3">
+        <div class="w-24 h-24 rounded-full bg-slate-800 flex items-center justify-center">
+          <span class="material-symbols-outlined text-slate-600 text-5xl">face_recognition</span>
+        </div>
+        <p class="text-slate-500 text-sm font-semibold">الكاميرا غير مفعّلة</p>
+      </div>
+
+      <!-- Preview captured frame -->
+      <img id="preview-img" class="hidden absolute inset-0 w-full h-full object-cover" alt="Captured"/>
+
+      <!-- Corner brackets overlay -->
+      <div id="scan-overlay" class="absolute inset-0 pointer-events-none hidden">
+        <div class="absolute inset-12 border border-white/10 rounded-2xl"></div>
+        <div class="absolute top-12 left-12 w-10 h-10 border-t-2 border-l-2 border-emerald-400 rounded-tl-xl"></div>
+        <div class="absolute top-12 right-12 w-10 h-10 border-t-2 border-r-2 border-emerald-400 rounded-tr-xl"></div>
+        <div class="absolute bottom-12 left-12 w-10 h-10 border-b-2 border-l-2 border-emerald-400 rounded-bl-xl"></div>
+        <div class="absolute bottom-12 right-12 w-10 h-10 border-b-2 border-r-2 border-emerald-400 rounded-br-xl"></div>
+      </div>
+
+      <!-- Hidden canvas for capture -->
+      <canvas id="snap-canvas" class="hidden"></canvas>
+    </div>
+
+    <!-- Controls -->
+    <div class="p-5 space-y-4">
+
+      <!-- Status message -->
+      <div id="msg-box" class="hidden rounded-xl px-4 py-3 text-sm font-semibold flex items-center gap-2">
+        <span id="msg-icon" class="material-symbols-outlined text-lg">info</span>
+        <span id="msg-text"></span>
+      </div>
+
+      <!-- Progress bar -->
+      <div id="progress-wrap" class="hidden">
+        <div class="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+          <div id="progress-bar" class="h-full bg-primary rounded-full transition-all duration-700" style="width:0%"></div>
+        </div>
+        <p class="text-[10px] text-slate-400 mt-1 text-center" id="progress-label">جاري المعالجة...</p>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="flex gap-3">
+        <button id="start-btn" onclick="startCamera()"
+          class="flex-1 flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold text-sm py-3 rounded-xl transition-all">
+          <span class="material-symbols-outlined text-lg">videocam</span>
+          تشغيل الكاميرا
+        </button>
+        <button id="capture-btn" onclick="captureAndEnroll()" disabled
+          class="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary-container text-white font-bold text-sm py-3 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+          <span class="material-symbols-outlined text-lg">face_recognition</span>
+          التقاط وتسجيل
+        </button>
+      </div>
+
+      {% if has_face %}
+      <button onclick="retake()"
+        class="w-full flex items-center justify-center gap-2 text-xs text-slate-500 hover:text-red-600 transition-colors py-1">
+        <span class="material-symbols-outlined text-sm">refresh</span>
+        إعادة التسجيل (تحديث البصمة)
+      </button>
+      {% endif %}
+
+    </div>
+  </div>
+
+  <!-- Tips -->
+  <div class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-5 border border-slate-100 dark:border-slate-700">
+    <h3 class="font-bold text-slate-700 dark:text-slate-300 text-sm mb-3 flex items-center gap-2">
+      <span class="material-symbols-outlined text-base">tips_and_updates</span>
+      نصائح للحصول على أفضل بصمة
+    </h3>
+    <div class="grid grid-cols-2 gap-2 text-xs text-slate-500 dark:text-slate-400">
+      <div class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">light_mode</span> إضاءة جيدة ومتساوية</div>
+      <div class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">center_focus_strong</span> وجه الكاميرا مباشرة</div>
+      <div class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">masks</span> إزالة الكمامة</div>
+      <div class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">mood</span> تعبير طبيعي محايد</div>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <div class="flex items-center justify-between">
+    <a href="javascript:history.back()"
+      class="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-800 font-semibold transition-colors">
+      <span class="material-symbols-outlined text-base">arrow_back</span>
+      العودة
+    </a>
+    {% if user_type == 'student' %}
+    <a href="{% url 'coordinator_students' %}"
+      class="inline-flex items-center gap-2 text-sm font-bold text-primary hover:text-primary-container transition-colors">
+      الانتقال لقائمة الطلاب
+      <span class="material-symbols-outlined text-base">arrow_forward</span>
+    </a>
+    {% else %}
+    <a href="{% url 'coordinator_faculty' %}"
+      class="inline-flex items-center gap-2 text-sm font-bold text-primary hover:text-primary-container transition-colors">
+      الانتقال لقائمة الأساتذة
+      <span class="material-symbols-outlined text-base">arrow_forward</span>
+    </a>
+    {% endif %}
+  </div>
+
+</div>
+
+<script>
+const video      = document.getElementById('webcam');
+const canvas     = document.getElementById('snap-canvas');
+const preview    = document.getElementById('preview-img');
+const placeholder= document.getElementById('cam-placeholder');
+const overlay    = document.getElementById('scan-overlay');
+const startBtn   = document.getElementById('start-btn');
+const captureBtn = document.getElementById('capture-btn');
+const msgBox     = document.getElementById('msg-box');
+const msgIcon    = document.getElementById('msg-icon');
+const msgText    = document.getElementById('msg-text');
+const progressWrap= document.getElementById('progress-wrap');
+const progressBar = document.getElementById('progress-bar');
+const progressLbl = document.getElementById('progress-label');
+
+const UPLOAD_URL = '{{ upload_url }}';
+const CSRF_TOKEN = '{{ csrf_token }}';
+
+function showMsg(text, type) {
+  const map = {
+    info:    ['bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300',    'info'],
+    success: ['bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300', 'check_circle'],
+    error:   ['bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300',       'error'],
+    loading: ['bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300','progress_activity'],
+  };
+  const [cls, icon] = map[type] || map.info;
+  msgBox.className = `rounded-xl px-4 py-3 text-sm font-semibold flex items-center gap-2 ${cls}`;
+  msgIcon.textContent = icon;
+  msgText.textContent = text;
+  msgBox.classList.remove('hidden');
+}
+
+function setProgress(pct, label) {
+  progressWrap.classList.remove('hidden');
+  progressBar.style.width = pct + '%';
+  progressLbl.textContent = label;
+  if (pct >= 100) setTimeout(() => progressWrap.classList.add('hidden'), 1000);
+}
+
+async function startCamera() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 640, height: 480 } });
+    video.srcObject = stream;
+    video.classList.remove('hidden');
+    placeholder.classList.add('hidden');
+    overlay.classList.remove('hidden');
+    preview.classList.add('hidden');
+    captureBtn.disabled = false;
+    startBtn.disabled   = true;
+    startBtn.classList.add('opacity-50');
+    showMsg('الكاميرا جاهزة — قم بمحاذاة وجهك ثم اضغط التقاط', 'info');
+  } catch(e) {
+    showMsg('تعذّر الوصول إلى الكاميرا: ' + e.message, 'error');
+  }
+}
+
+async function captureAndEnroll() {
+  if (!video.srcObject) { showMsg('شغّل الكاميرا أولاً', 'error'); return; }
+  captureBtn.disabled = true;
+  showMsg('جاري التقاط الصورة وتحليل الوجه...', 'loading');
+  setProgress(20, 'التقاط الصورة...');
+
+  canvas.width  = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  const imageData = canvas.toDataURL('image/jpeg', 0.9);
+
+  // Show preview
+  preview.src = imageData;
+  preview.classList.remove('hidden');
+  video.classList.add('hidden');
+  overlay.classList.add('hidden');
+
+  setProgress(50, 'إرسال البيانات للخادم...');
+
+  const formData = new FormData();
+  formData.append('image_data', imageData);
+  formData.append('user_type', '{{ user_type }}');
+  formData.append('user_id',   '{{ user_id }}');
+  formData.append('csrfmiddlewaretoken', CSRF_TOKEN);
+
+  try {
+    setProgress(70, 'معالجة بصمة الوجه...');
+    const resp = await fetch(UPLOAD_URL, { method: 'POST', body: formData });
+    const data = await resp.json();
+    setProgress(100, 'اكتمل');
+    if (data.status === 'success') {
+      showMsg('تم تسجيل بصمة الوجه بنجاح ✓', 'success');
+      captureBtn.innerHTML = '<span class="material-symbols-outlined text-lg">check_circle</span> تم التسجيل';
+      captureBtn.className = captureBtn.className.replace('bg-primary hover:bg-primary-container', 'bg-emerald-600 hover:bg-emerald-700');
+      captureBtn.disabled = false;
+    } else {
+      showMsg(data.message || 'فشل تسجيل البصمة — حاول مجدداً', 'error');
+      retake();
+    }
+  } catch(e) {
+    setProgress(0, '');
+    showMsg('خطأ في الاتصال بالخادم', 'error');
+    retake();
+  }
+}
+
+function retake() {
+  preview.classList.add('hidden');
+  if (video.srcObject) {
+    video.classList.remove('hidden');
+    overlay.classList.remove('hidden');
+  } else {
+    placeholder.classList.remove('hidden');
+  }
+  captureBtn.disabled = false;
+  captureBtn.innerHTML = '<span class="material-symbols-outlined text-lg">face_recognition</span> التقاط وتسجيل';
+  captureBtn.className = captureBtn.className
+    .replace('bg-emerald-600 hover:bg-emerald-700', 'bg-primary hover:bg-primary-container');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,166 @@
+{% extends 'attendance/base.html' %}
+{% block title %}Register User — {{ college }}{% endblock %}
+{% block content %}
+<div class="space-y-6">
+  <div>
+    <h1 class="text-2xl font-extrabold text-slate-900 font-headline">Register New User</h1>
+    <p class="text-sm text-slate-500 mt-1">
+      Creating account for <span class="font-bold text-primary">{{ college }}</span>
+    </p>
+  </div>
+
+  <div class="max-w-2xl">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100">
+      <div class="px-6 py-4 border-b border-slate-50 flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary">person_add</span>
+        <h2 class="font-bold text-slate-800 font-headline">Registration Form</h2>
+      </div>
+      <form method="post" class="p-6 space-y-5" id="reg-form">
+        {% csrf_token %}
+
+        <!-- User Type -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 uppercase mb-1.5">User Type</label>
+          <div class="flex gap-3">
+            <label class="flex-1 flex items-center gap-2 p-3 rounded-xl border-2 border-slate-200 cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition-all">
+              <input type="radio" name="user_type" value="student" checked onchange="toggleFields()">
+              <span class="material-symbols-outlined text-base">school</span>
+              <span class="text-sm font-semibold">Student</span>
+            </label>
+            <label class="flex-1 flex items-center gap-2 p-3 rounded-xl border-2 border-slate-200 cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition-all">
+              <input type="radio" name="user_type" value="teacher" onchange="toggleFields()">
+              <span class="material-symbols-outlined text-base">person_book</span>
+              <span class="text-sm font-semibold">Teacher</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Common fields -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="md:col-span-2">
+            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Full Name</label>
+            <input type="text" name="name" required placeholder="e.g. Ahmed Ibrahim Al-Rashid"
+              class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1.5">University Email</label>
+            <input type="email" name="email" required placeholder="user@university.edu"
+              class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Phone Number</label>
+            <input type="text" name="phone" placeholder="+249912345678"
+              class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Initial Password</label>
+            <input type="password" name="password" required placeholder="Min 8 characters"
+              class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none">
+          </div>
+          <!-- Department (shared) -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Department / Specialization</label>
+            <select name="department" class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none">
+              <option value="">— Select Department —</option>
+              {% for dept in departments %}
+              <option value="{{ dept.id }}">{{ dept.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <!-- ── Student-only fields ── -->
+        <div id="student-fields" class="space-y-4">
+          <div class="border-t border-slate-100 pt-4">
+            <p class="text-xs font-bold text-slate-400 uppercase mb-3">Student Details</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="flex items-center gap-1 text-xs font-semibold text-slate-500 uppercase mb-1.5">Student Code
+                  <span class="help-tooltip">
+                    <span class="material-symbols-outlined text-slate-400 text-sm cursor-help">help</span>
+                    <span class="tip">رمز فريد للطالب مثل CS-2024-001</span>
+                  </span>
+                </label>
+                <input type="text" name="code" placeholder="e.g. CS-2024-042"
+                  class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Nationality</label>
+                <input type="text" name="nationality" placeholder="e.g. Sudanese"
+                  class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Entry Year (Batch)</label>
+                <select name="batch" class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none">
+                  {% for yr in batch_years %}
+                  <option value="{{ yr }}" {% if forloop.first %}selected{% endif %}>{{ yr }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Current Semester</label>
+                <select name="semester" class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none">
+                  {% for s in semester_choices %}
+                  <option value="{{ s }}">Semester {{ s }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Teacher-only fields ── -->
+        <div id="teacher-fields" class="hidden space-y-4">
+          <div class="border-t border-slate-100 pt-4">
+            <p class="text-xs font-bold text-slate-400 uppercase mb-3">Academic Details</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Gender</label>
+                <select name="gender" class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none">
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Academic Degree</label>
+                <select name="academic_degree" class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none">
+                  <option value="BSc">BSc</option>
+                  <option value="MSc" selected>MSc</option>
+                  <option value="PhD">PhD</option>
+                  <option value="Professor">Professor</option>
+                  <option value="Associate Professor">Associate Professor</option>
+                </select>
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Major / Specialization</label>
+                <input type="text" name="major" placeholder="e.g. Software Engineering"
+                  class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-2 flex items-center gap-3">
+          <button type="submit"
+            class="inline-flex items-center gap-2 bg-primary text-white font-bold text-sm px-6 py-3 rounded-xl hover:bg-primary-container transition-all shadow-sm">
+            <span class="material-symbols-outlined text-base">save</span> Create Account
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="mt-4 bg-blue-50 border border-blue-100 rounded-xl p-4 text-xs text-blue-700">
+      <span class="font-bold">Note:</span> The created account will be linked to
+      <span class="font-bold">{{ college }}</span> automatically.
+      After registration the user can log in and set up Face ID from their dashboard.
+    </div>
+  </div>
+</div>
+<script>
+function toggleFields() {
+  const isTeacher = document.querySelector('input[name="user_type"]:checked').value === 'teacher';
+  document.getElementById('student-fields').classList.toggle('hidden', isTeacher);
+  document.getElementById('teacher-fields').classList.toggle('hidden', !isTeacher);
+}
+</script>
+{% endblock %}

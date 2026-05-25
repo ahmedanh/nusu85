@@ -1,0 +1,143 @@
+﻿{% extends 'attendance/base.html' %}
+{% block title %}المواد الدراسية — SHAMEL{% endblock %}
+{% block content %}
+
+<div class="space-y-6">
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">المواد الدراسية</h1>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">إجمالي: {{ courses|length }} مادة</p>
+    </div>
+    {% if is_admin or coordinator %}
+    <a href="{% url 'add_course' %}"
+      class="inline-flex items-center gap-2 bg-primary hover:bg-primary-container text-white font-bold text-sm px-5 py-2.5 rounded-xl transition-all shadow-sm">
+      <span class="material-symbols-outlined text-base">add</span>
+      إضافة مادة جديدة
+    </a>
+    {% endif %}
+  </div>
+
+  <!-- Filters -->
+  <form method="get" class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+
+      <div class="relative">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-base pointer-events-none">search</span>
+        <input type="text" name="q" value="{{ search }}" placeholder="البحث بالاسم أو الكود..."
+          class="w-full pl-9 pr-4 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 dark:text-white outline-none focus:ring-2 focus:ring-primary/20">
+      </div>
+
+      {% if is_admin %}
+      <select name="college_id" onchange="this.form.submit()"
+        class="py-2.5 px-3 text-sm rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 dark:text-white outline-none focus:ring-2 focus:ring-primary/20">
+        <option value="">كل الكليات</option>
+        {% for c in colleges %}
+        <option value="{{ c.college_id }}" {% if selected_college == c.college_id|stringformat:"s" %}selected{% endif %}>{{ c.college_name }}</option>
+        {% endfor %}
+      </select>
+      {% endif %}
+
+      <select name="department_id" onchange="this.form.submit()"
+        class="py-2.5 px-3 text-sm rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 dark:text-white outline-none focus:ring-2 focus:ring-primary/20">
+        <option value="">كل الأقسام</option>
+        {% for d in departments %}
+        <option value="{{ d.id }}" {% if selected_dept == d.id|stringformat:"s" %}selected{% endif %}>{{ d.name }}</option>
+        {% endfor %}
+      </select>
+
+      <select name="year_level" onchange="this.form.submit()"
+        class="py-2.5 px-3 text-sm rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 dark:text-white outline-none focus:ring-2 focus:ring-primary/20">
+        <option value="">كل السنوات</option>
+        {% for yr in year_choices %}
+        <option value="{{ yr }}" {% if selected_year == yr|stringformat:"s" %}selected{% endif %}>السنة {{ yr }}</option>
+        {% endfor %}
+      </select>
+
+    </div>
+    {% if search or selected_college or selected_dept or selected_year %}
+    <div class="mt-3 flex justify-end">
+      <a href="{% url 'courses_list' %}" class="text-xs text-slate-500 hover:text-red-500 flex items-center gap-1 transition-colors">
+        <span class="material-symbols-outlined text-sm">close</span> مسح الفلاتر
+      </a>
+    </div>
+    {% endif %}
+  </form>
+
+  <!-- Table -->
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+    {% if courses %}
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50 dark:bg-slate-900/40 border-b border-slate-100 dark:border-slate-700">
+          <tr>
+            <th class="text-right text-[10px] font-bold text-slate-400 uppercase tracking-wider px-5 py-3">الكود</th>
+            <th class="text-right text-[10px] font-bold text-slate-400 uppercase tracking-wider px-4 py-3">عنوان المادة</th>
+            <th class="text-right text-[10px] font-bold text-slate-400 uppercase tracking-wider px-4 py-3 hidden md:table-cell">الكلية / القسم</th>
+            <th class="text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider px-4 py-3">السنة</th>
+            <th class="text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider px-4 py-3 hidden sm:table-cell">الساعات</th>
+            <th class="text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider px-4 py-3 hidden lg:table-cell">النوع</th>
+            {% if is_admin %}<th class="text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider px-4 py-3">إجراءات</th>{% endif %}
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50 dark:divide-slate-700">
+          {% for course in courses %}
+          <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors">
+            <td class="px-5 py-3.5">
+              <span class="font-mono text-xs font-bold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2 py-1 rounded-lg">{{ course.course_code }}</span>
+            </td>
+            <td class="px-4 py-3.5">
+              <p class="font-semibold text-slate-800 dark:text-slate-200">{{ course.title }}</p>
+            </td>
+            <td class="px-4 py-3.5 hidden md:table-cell">
+              <p class="text-xs text-slate-600 dark:text-slate-400">{{ course.college.college_name|default:"—" }}</p>
+              <p class="text-[10px] text-slate-400">{{ course.department.name|default:"—" }}</p>
+            </td>
+            <td class="px-4 py-3.5 text-center">
+              <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10 text-primary dark:text-blue-300 text-xs font-extrabold">
+                {{ course.year_level }}
+              </span>
+            </td>
+            <td class="px-4 py-3.5 text-center hidden sm:table-cell">
+              <span class="text-sm font-bold text-slate-700 dark:text-slate-300">{{ course.total_hours }}h</span>
+            </td>
+            <td class="px-4 py-3.5 text-center hidden lg:table-cell">
+              <span class="text-xs font-bold px-2.5 py-1 rounded-full
+                {% if course.course_type == 'Mandatory' %}bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300
+                {% elif course.course_type == 'Optional' %}bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300
+                {% else %}bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300{% endif %}">
+                {% if course.course_type == 'Mandatory' %}إلزامي{% elif course.course_type == 'Optional' %}اختياري{% else %}حر{% endif %}
+              </span>
+            </td>
+            {% if is_admin %}
+            <td class="px-4 py-3.5 text-center">
+              <form method="post" action="{% url 'delete_course' course.id %}"
+                onsubmit="return confirm('حذف {{ course.title }}؟')">
+                {% csrf_token %}
+                <button type="submit" class="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                  <span class="material-symbols-outlined text-base">delete</span>
+                </button>
+              </form>
+            </td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="py-16 text-center">
+      <span class="material-symbols-outlined text-5xl text-slate-200 dark:text-slate-600">menu_book</span>
+      <p class="text-slate-400 dark:text-slate-500 mt-3 font-semibold">لا توجد مواد تطابق البحث</p>
+      {% if is_admin or coordinator %}
+      <a href="{% url 'add_course' %}" class="mt-4 inline-flex items-center gap-1.5 text-sm text-primary font-bold">
+        <span class="material-symbols-outlined text-base">add_circle</span> إضافة مادة جديدة
+      </a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

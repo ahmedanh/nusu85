@@ -1,0 +1,62 @@
+﻿{% extends 'attendance/base.html' %}
+{% load custom_filters %}
+{% block title %}خريطة مقاعد — {{ exam.course.title }}{% endblock %}
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-6">
+  <div class="flex items-center gap-4">
+    <a href="{% url 'exam_planner' %}" class="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-slate-500 hover:text-slate-800 transition-all shadow-sm">
+      <span class="material-symbols-outlined text-lg">arrow_back</span>
+    </a>
+    <div>
+      <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">خريطة المقاعد</h1>
+      <p class="text-sm text-slate-500">{{ exam.course.title }} — {{ exam.get_exam_type_display }} — {{ exam.exam_date }}</p>
+    </div>
+    <div class="mr-auto flex gap-3">
+      <span class="flex items-center gap-1.5 text-xs font-semibold"><span class="w-3 h-3 rounded bg-emerald-400 inline-block"></span> تم التحقق</span>
+      <span class="flex items-center gap-1.5 text-xs font-semibold"><span class="w-3 h-3 rounded bg-slate-200 inline-block"></span> لم يُتحقق</span>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-6 overflow-auto">
+    <div class="mb-6 flex items-center justify-center gap-3">
+      <div class="bg-slate-800 dark:bg-slate-600 text-white text-xs font-bold px-12 py-2 rounded-lg">منصة الأستاذ</div>
+    </div>
+    <div class="grid gap-2" style="grid-template-columns: repeat({{ cols|length }}, minmax(80px,1fr));">
+      {% for r in rows %}
+        {% for c in cols %}
+          {% with seat=grid|get_item:r|default_if_none:"" %}
+          {% comment %}Django template can't subscript tuples, so we use a workaround{% endcomment %}
+          {% endwith %}
+        {% endfor %}
+      {% endfor %}
+    </div>
+    <!-- Flat list fallback (always works) -->
+    <div class="space-y-2">
+      {% for r in rows %}
+      <div class="flex gap-2 justify-center flex-wrap">
+        {% for c in cols %}
+          {% for seat in seats %}
+            {% if seat.row == r and seat.col == c %}
+            <div class="w-20 h-14 rounded-xl flex flex-col items-center justify-center text-center border-2 transition-all cursor-default
+              {% if seat.verified %}bg-emerald-50 border-emerald-300 dark:bg-emerald-900/20 dark:border-emerald-600
+              {% else %}bg-slate-50 border-slate-200 dark:bg-slate-700 dark:border-slate-600{% endif %}">
+              <p class="text-[9px] font-bold text-slate-500">{{ seat.seat_number }}</p>
+              <p class="text-[10px] font-semibold text-slate-800 dark:text-white leading-tight px-1 truncate w-full text-center">{{ seat.student.name|truncatechars:12 }}</p>
+              {% if seat.verified %}<span class="material-symbols-outlined text-emerald-500 text-xs">check_circle</span>{% endif %}
+            </div>
+            {% endif %}
+          {% endfor %}
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="flex items-center justify-between text-sm text-slate-500">
+    <span>إجمالي المقاعد: <strong class="text-slate-900 dark:text-white">{{ seats|length }}</strong></span>
+    <a href="{% url 'exam_gate_verify' exam.id %}" class="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-5 py-2.5 rounded-xl transition-all">
+      <span class="material-symbols-outlined text-base">how_to_reg</span> فتح بوابة التحقق
+    </a>
+  </div>
+</div>
+{% endblock %}

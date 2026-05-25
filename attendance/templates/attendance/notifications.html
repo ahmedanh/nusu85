@@ -1,0 +1,122 @@
+﻿{% extends 'attendance/base.html' %}
+{% block title %}الإشعارات — SHAMEL{% endblock %}
+{% block content %}
+
+<div class="max-w-2xl mx-auto space-y-6">
+
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">الإشعارات</h1>
+      {% if unread > 0 %}
+      <p class="text-sm text-slate-500 mt-0.5"><span class="text-primary font-bold">{{ unread }}</span> غير مقروء</p>
+      {% else %}
+      <p class="text-sm text-slate-500 mt-0.5">جميع الإشعارات مقروءة</p>
+      {% endif %}
+    </div>
+    <div class="flex gap-2">
+      {% if unread > 0 %}
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="mark_all_read">
+        <button type="submit"
+          class="inline-flex items-center gap-1.5 text-sm font-bold px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-xl transition-all">
+          <span class="material-symbols-outlined text-sm">done_all</span> تحديد الكل كمقروء
+        </button>
+      </form>
+      {% endif %}
+      {% if notifications %}
+      <form method="post" onsubmit="return confirm('حذف جميع الإشعارات؟')">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="delete_all">
+        <button type="submit"
+          class="inline-flex items-center gap-1.5 text-sm font-bold px-4 py-2 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 text-red-600 rounded-xl transition-all">
+          <span class="material-symbols-outlined text-sm">delete_sweep</span> مسح الكل
+        </button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if messages %}
+  {% for msg in messages %}
+  <div class="rounded-2xl p-4 {% if msg.tags == 'error' %}bg-red-50 border border-red-200 text-red-700{% else %}bg-emerald-50 border border-emerald-200 text-emerald-700{% endif %} text-sm font-semibold">{{ msg }}</div>
+  {% endfor %}
+  {% endif %}
+
+  {% if notifications %}
+  <div class="space-y-2">
+    {% for n in notifications %}
+    <div class="flex items-start gap-3 bg-white dark:bg-slate-800 rounded-2xl border {% if not n.is_read %}border-primary/30 bg-primary/5 dark:bg-primary/10{% else %}border-slate-100 dark:border-slate-700{% endif %} px-5 py-4 shadow-sm transition-all">
+
+      <!-- Icon -->
+      <div class="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center mt-0.5
+        {% if n.level == 'success' %}bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600
+        {% elif n.level == 'warning' %}bg-amber-100 dark:bg-amber-900/40 text-amber-600
+        {% elif n.level == 'danger' %}bg-red-100 dark:bg-red-900/40 text-red-600
+        {% else %}bg-blue-100 dark:bg-blue-900/40 text-blue-600{% endif %}">
+        <span class="material-symbols-outlined text-base">
+          {% if n.level == 'success' %}check_circle
+          {% elif n.level == 'warning' %}warning
+          {% elif n.level == 'danger' %}error
+          {% else %}info{% endif %}
+        </span>
+      </div>
+
+      <!-- Content -->
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-{% if not n.is_read %}bold{% else %}medium{% endif %} text-slate-800 dark:text-slate-200 leading-relaxed">
+          {{ n.title }}{% if n.body %}<span class="text-slate-500 font-normal"> — {{ n.body }}</span>{% endif %}
+        </p>
+        <p class="text-xs text-slate-400 mt-1">{{ n.created_at|timesince }} مضت</p>
+      </div>
+
+      <!-- Unread dot -->
+      {% if not n.is_read %}
+      <div class="flex-shrink-0 w-2 h-2 rounded-full bg-primary mt-2"></div>
+      {% endif %}
+
+      <!-- Actions -->
+      <div class="flex-shrink-0 flex gap-1">
+        {% if n.link %}
+        <form method="post" action="{% url 'mark_notification_read' %}">
+          {% csrf_token %}
+          <input type="hidden" name="notif_id" value="{{ n.id }}">
+          <button type="submit" title="فتح"
+            class="p-1.5 rounded-lg text-slate-400 hover:text-primary hover:bg-primary/10 transition-colors">
+            <span class="material-symbols-outlined text-sm">open_in_new</span>
+          </button>
+        </form>
+        {% endif %}
+        {% if not n.is_read %}
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="mark_read">
+          <input type="hidden" name="notif_id" value="{{ n.id }}">
+          <button type="submit" title="تحديد كمقروء"
+            class="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors">
+            <span class="material-symbols-outlined text-sm">done</span>
+          </button>
+        </form>
+        {% endif %}
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="delete">
+          <input type="hidden" name="notif_id" value="{{ n.id }}">
+          <button type="submit" title="حذف"
+            class="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+            <span class="material-symbols-outlined text-sm">close</span>
+          </button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 py-20 text-center">
+    <span class="material-symbols-outlined text-6xl text-slate-200 dark:text-slate-600">notifications_none</span>
+    <p class="text-slate-400 mt-4 font-semibold text-lg">لا توجد إشعارات</p>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

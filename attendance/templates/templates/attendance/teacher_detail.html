@@ -1,0 +1,111 @@
+﻿{% extends 'attendance/base.html' %}
+{% block title %}{{ teacher.name }} — SHAMEL{% endblock %}
+{% block content %}
+<div class="space-y-6">
+
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div class="flex items-center gap-4">
+      <a href="javascript:history.back()" class="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-slate-500 hover:text-slate-800 transition-all shadow-sm">
+        <span class="material-symbols-outlined text-lg">arrow_back</span>
+      </a>
+      <div class="flex items-center gap-4">
+        {% if teacher.profile_photo %}
+        <img src="{{ teacher.profile_photo.url }}" class="w-14 h-14 rounded-2xl object-cover">
+        {% else %}
+        <div class="w-14 h-14 rounded-2xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center">
+          <span class="material-symbols-outlined text-blue-600 text-3xl">person</span>
+        </div>
+        {% endif %}
+        <div>
+          <h1 class="text-xl font-extrabold text-slate-900 dark:text-white">{{ teacher.academic_degree }} {{ teacher.name }}</h1>
+          <p class="text-sm text-slate-500">{{ teacher.major }} — {{ teacher.college.college_name|default:"—" }}</p>
+        </div>
+      </div>
+    </div>
+    {% if is_admin or coordinator %}
+    <div class="flex gap-2">
+      <a href="{% url 'edit_teacher' teacher.teacher_id %}" class="inline-flex items-center gap-2 bg-primary hover:bg-primary-container text-white font-bold text-sm px-4 py-2.5 rounded-xl transition-all shadow-sm">
+        <span class="material-symbols-outlined text-base">edit</span> تعديل
+      </a>
+      <a href="{% url 'enroll_face' 'teacher' teacher.teacher_id %}" class="inline-flex items-center gap-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-sm px-4 py-2.5 rounded-xl hover:bg-slate-200 transition-all">
+        <span class="material-symbols-outlined text-base">face</span> بصمة الوجه
+      </a>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Stats -->
+  <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 p-4 text-center">
+      <p class="text-3xl font-extrabold text-primary">{{ schedules|length }}</p>
+      <p class="text-xs text-slate-400 mt-1 font-semibold">المحاضرات المجدولة</p>
+    </div>
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 p-4 text-center">
+      <p class="text-3xl font-extrabold text-blue-600">{{ total_students_served }}</p>
+      <p class="text-xs text-slate-400 mt-1 font-semibold">طلاب تم تسجيل حضورهم</p>
+    </div>
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 p-4 text-center">
+      <p class="text-3xl font-extrabold {% if teacher.is_allowed_entry %}text-emerald-600{% else %}text-red-600{% endif %}">
+        {% if teacher.is_allowed_entry %}مسموح{% else %}محظور{% endif %}
+      </p>
+      <p class="text-xs text-slate-400 mt-1 font-semibold">صلاحية الدخول</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- Info -->
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40">
+        <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm">البيانات الشخصية</h2>
+      </div>
+      <div class="p-5 space-y-3 text-sm">
+        <div class="flex justify-between"><span class="text-slate-400 font-medium">الجنس</span><span class="font-semibold dark:text-slate-200">{{ teacher.gender }}</span></div>
+        <div class="flex justify-between"><span class="text-slate-400 font-medium">الدرجة العلمية</span><span class="font-semibold dark:text-slate-200">{{ teacher.academic_degree }}</span></div>
+        <div class="flex justify-between"><span class="text-slate-400 font-medium">التخصص</span><span class="font-semibold dark:text-slate-200">{{ teacher.major }}</span></div>
+        <div class="flex justify-between"><span class="text-slate-400 font-medium">نوع التخصص</span><span class="font-semibold dark:text-slate-200">{{ teacher.specialization_type|default:"—" }}</span></div>
+        <div class="flex justify-between"><span class="text-slate-400 font-medium">القسم</span><span class="font-semibold dark:text-slate-200">{{ teacher.department.name|default:"—" }}</span></div>
+        <div class="flex justify-between"><span class="text-slate-400 font-medium">الكلية</span><span class="font-semibold dark:text-slate-200">{{ teacher.college.college_name|default:"—" }}</span></div>
+        <hr class="border-slate-100 dark:border-slate-700">
+        <div class="flex justify-between"><span class="text-slate-400 font-medium">البريد</span><span class="font-semibold dark:text-slate-200 text-xs">{{ teacher.university_email|default:"—" }}</span></div>
+        <div class="flex justify-between"><span class="text-slate-400 font-medium">الهاتف</span><span class="font-semibold dark:text-slate-200">{{ teacher.phone_number|default:"—" }}</span></div>
+        <div class="flex justify-between"><span class="text-slate-400 font-medium">فصيلة الدم</span><span class="font-semibold dark:text-slate-200">{{ teacher.blood_type|default:"—" }}</span></div>
+      </div>
+    </div>
+
+    <!-- Schedule table -->
+    <div class="lg:col-span-2 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40">
+        <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm">الجدول الدراسي</h2>
+      </div>
+      {% if schedules %}
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-slate-50 dark:bg-slate-900/40 text-xs text-slate-400 uppercase">
+              <th class="px-4 py-3 text-right font-bold">المادة</th>
+              <th class="px-4 py-3 text-center font-bold">اليوم</th>
+              <th class="px-4 py-3 text-center font-bold">الوقت</th>
+              <th class="px-4 py-3 text-center font-bold">القاعة</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-50 dark:divide-slate-700">
+            {% for s in schedules %}
+            <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/40">
+              <td class="px-4 py-3 font-semibold text-slate-800 dark:text-slate-200">{{ s.course.title }}</td>
+              <td class="px-4 py-3 text-center text-slate-500 text-xs">{{ s.day_of_week }}</td>
+              <td class="px-4 py-3 text-center text-slate-500 text-xs">{{ s.start_time|time:"H:i" }} — {{ s.end_time|time:"H:i" }}</td>
+              <td class="px-4 py-3 text-center text-slate-500 text-xs">{{ s.classroom.name }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="py-12 text-center text-slate-400">لا توجد محاضرات مجدولة</div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

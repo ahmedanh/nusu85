@@ -1,0 +1,81 @@
+﻿{% extends 'attendance/base.html' %}
+{% block title %}بوابة الامتحان — SHAMEL{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto space-y-6">
+  <div class="text-center">
+    <div class="inline-flex w-16 h-16 rounded-2xl bg-primary items-center justify-center mb-4">
+      <span class="material-symbols-outlined text-white text-3xl">how_to_reg</span>
+    </div>
+    <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">بوابة الامتحان</h1>
+    <p class="text-slate-500 text-sm mt-1">{{ exam.course.title }} — {{ exam.get_exam_type_display }} — {{ exam.exam_date }}</p>
+  </div>
+
+  <!-- Search by student code -->
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-6 space-y-4">
+    <div>
+      <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">رقم الطالب أو الاسم</label>
+      <input type="text" id="searchInput" placeholder="ابحث عن الطالب..."
+        class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm dark:text-white outline-none focus:border-primary transition-all">
+    </div>
+    <div id="searchResults" class="space-y-2 max-h-64 overflow-y-auto"></div>
+  </div>
+
+  <!-- Verification Result -->
+  <div id="verifyResult" class="hidden bg-white dark:bg-slate-800 rounded-2xl border-2 shadow-lg p-6 text-center transition-all"></div>
+</div>
+
+<script>
+const examId = {{ exam.id }};
+let searchTimer;
+
+document.getElementById('searchInput').addEventListener('input', function() {
+  clearTimeout(searchTimer);
+  const q = this.value.trim();
+  if (q.length < 2) { document.getElementById('searchResults').innerHTML = ''; return; }
+  searchTimer = setTimeout(() => fetchStudents(q), 300);
+});
+
+function fetchStudents(q) {
+  fetch('/attendance/api/student-search/?q=' + encodeURIComponent(q))
+    .then(r => r.json())
+    .then(data => {
+      const el = document.getElementById('searchResults');
+      el.innerHTML = '';
+      (data.students || []).forEach(s => {
+        const div = document.createElement('div');
+        div.className = 'flex items-center justify-between px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 cursor-pointer transition-all border border-slate-200 dark:border-slate-600';
+        div.innerHTML = '<div><p class="text-sm font-bold text-slate-900 dark:text-white">' + s.name + '</p><p class="text-xs text-slate-400">' + s.student_code + '</p></div><span class="material-symbols-outlined text-primary">arrow_forward</span>';
+        div.onclick = () => verifyStudent(s.id);
+        el.appendChild(div);
+      });
+      if (!data.students || !data.students.length) {
+        el.innerHTML = '<p class="text-sm text-slate-400 text-center py-3">لا نتائج</p>';
+      }
+    });
+}
+
+function verifyStudent(studentId) {
+  const formData = new FormData();
+  formData.append('student_id', studentId);
+  formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+  fetch('/attendance/exams/' + examId + '/gate/', { method: 'POST', body: formData })
+    .then(r => r.json())
+    .then(d => {
+      const el = document.getElementById('verifyResult');
+      el.classList.remove('hidden');
+      const ok = d.status === 'ok';
+      el.className = 'bg-white dark:bg-slate-800 rounded-2xl border-2 shadow-lg p-6 text-center transition-all ' + (ok ? 'border-emerald-400' : 'border-red-400');
+      el.innerHTML = '<span class="material-symbols-outlined text-5xl mb-3 block ' + (ok ? 'text-emerald-500' : 'text-red-500') + '">' + (ok ? 'verified' : 'cancel') + '</span>' +
+        '<h2 class="text-xl font-extrabold ' + (ok ? 'text-emerald-700' : 'text-red-700') + ' mb-2">' + d.student_name + '</h2>' +
+        '<p class="text-sm text-slate-500 mb-4">' + d.student_code + '</p>' +
+        '<div class="grid grid-cols-2 gap-3 max-w-xs mx-auto text-sm">' +
+          '<div class="bg-slate-50 dark:bg-slate-700 rounded-xl p-3"><p class="text-xs text-slate-400">مسجل في المادة</p><p class="font-bold ' + (d.is_enrolled ? 'text-emerald-600' : 'text-red-600') + '">' + (d.is_enrolled ? 'نعم ✓' : 'لا ✗') + '</p></div>' +
+          '<div class="bg-slate-50 dark:bg-slate-700 rounded-xl p-3"><p class="text-xs text-slate-400">مؤهل للدخول</p><p class="font-bold ' + (d.is_eligible ? 'text-emerald-600' : 'text-red-600') + '">' + (d.is_eligible ? 'نعم ✓' : 'لا ✗') + '</p></div>' +
+          '<div class="col-span-2 bg-slate-50 dark:bg-slate-700 rounded-xl p-3"><p class="text-xs text-slate-400">رقم المقعد</p><p class="font-extrabold text-lg text-slate-900 dark:text-white">' + d.seat_number + '</p></div>' +
+        '</div>';
+      document.getElementById('searchInput').value = '';
+      document.getElementById('searchResults').innerHTML = '';
+    });
+}
+</script>
+{% endblock %}

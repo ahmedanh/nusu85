@@ -1,0 +1,122 @@
+﻿{% extends 'attendance/base.html' %}
+{% block title %}Recognition Failed — SHAMEL{% endblock %}
+{% block content %}
+
+<div class="max-w-4xl mx-auto">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+
+    <!-- Left: Error visual -->
+    <div class="space-y-6">
+      <div>
+        <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-50 text-red-700 text-xs font-bold border border-red-100 mb-4">
+          <span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL' 1">error</span>
+          Authentication Interrupted
+        </span>
+        <h1 class="text-3xl font-extrabold text-slate-900 font-headline">Recognition Failure</h1>
+        <p class="text-slate-500 mt-2 leading-relaxed">We couldn't verify your identity. Our biometric system requires high precision to maintain campus security.</p>
+      </div>
+
+      <!-- Scan frame graphic -->
+      <div class="relative aspect-video rounded-2xl overflow-hidden bg-slate-900 flex items-center justify-center">
+        <span class="material-symbols-outlined text-slate-700 text-[120px]" style="font-variation-settings:'wght' 100">face_retouching_off</span>
+        <!-- Corner brackets -->
+        <div class="absolute inset-8 pointer-events-none">
+          <div class="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-red-500 rounded-tl-lg"></div>
+          <div class="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-red-500 rounded-tr-lg"></div>
+          <div class="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-red-500 rounded-bl-lg"></div>
+          <div class="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-red-500 rounded-br-lg"></div>
+          <div class="absolute inset-0 bg-red-500/5 animate-pulse rounded-xl"></div>
+        </div>
+        <div class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full flex items-center gap-2 shadow-lg text-sm font-bold text-slate-800">
+          <span class="material-symbols-outlined text-red-600 text-base">face_retouching_off</span>
+          Face Not Recognized
+        </div>
+      </div>
+
+      <!-- Checklist -->
+      <div class="bg-slate-50 rounded-2xl p-5 border border-slate-100">
+        <h3 class="font-bold text-slate-800 text-sm mb-4">Quick Troubleshooting</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {% for tip, icon in "Ensure well-lit environment,light_mode|Remove masks or face coverings,masks|Remove tinted glasses,eyeglasses|Center your face in the frame,center_focus_strong"|split:"|" %}
+          {% endfor %}
+          <div class="flex items-start gap-2.5 text-sm text-slate-600">
+            <span class="material-symbols-outlined text-slate-400 text-base mt-0.5">light_mode</span>
+            Ensure your environment is well-lit
+          </div>
+          <div class="flex items-start gap-2.5 text-sm text-slate-600">
+            <span class="material-symbols-outlined text-slate-400 text-base mt-0.5">masks</span>
+            Remove masks or face coverings
+          </div>
+          <div class="flex items-start gap-2.5 text-sm text-slate-600">
+            <span class="material-symbols-outlined text-slate-400 text-base mt-0.5">eyeglasses</span>
+            Remove tinted or heavy glasses
+          </div>
+          <div class="flex items-start gap-2.5 text-sm text-slate-600">
+            <span class="material-symbols-outlined text-slate-400 text-base mt-0.5">center_focus_strong</span>
+            Align your face in the center frame
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex flex-col sm:flex-row gap-3">
+        <a href="{% url 'gate_page' %}"
+          class="flex-1 flex items-center justify-center gap-2 bg-primary text-white font-bold py-3 rounded-xl hover:bg-primary-container transition-all text-sm">
+          <span class="material-symbols-outlined text-lg">refresh</span> Try Again
+        </a>
+        <a href="{% url 'login' %}"
+          class="flex-1 flex items-center justify-center gap-2 bg-slate-100 text-slate-700 font-bold py-3 rounded-xl hover:bg-slate-200 transition-all text-sm">
+          <span class="material-symbols-outlined text-lg">keyboard</span> Manual Login
+        </a>
+      </div>
+    </div>
+
+    <!-- Right: Alerts & support -->
+    <div class="space-y-5">
+
+      <!-- Financial alert (if applicable) -->
+      <div class="bg-amber-50 border-l-4 border-amber-400 rounded-2xl p-5 space-y-3">
+        <div class="flex items-center gap-2 text-amber-800 font-bold">
+          <span class="material-symbols-outlined text-lg" style="font-variation-settings:'FILL' 1">account_balance_wallet</span>
+          Financial Issue Detected
+        </div>
+        <p class="text-sm text-amber-700 leading-relaxed">A pending financial requirement may be restricting biometric check-in access. Please visit Student Affairs to resolve.</p>
+        <div class="bg-white rounded-xl p-3 flex items-center gap-3">
+          <div class="w-9 h-9 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center flex-shrink-0">
+            <span class="material-symbols-outlined text-base">info</span>
+          </div>
+          <p class="text-xs text-slate-600 font-medium">Visit Student Affairs — Building A, Ground Floor</p>
+        </div>
+      </div>
+
+      <!-- Support card -->
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-4">
+        <h3 class="font-bold text-slate-800 text-sm">Need Immediate Assistance?</h3>
+        <div class="space-y-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
+              <span class="material-symbols-outlined text-lg">support_agent</span>
+            </div>
+            <div>
+              <p class="font-semibold text-slate-800 text-sm">IT Support Desk</p>
+              <p class="text-xs text-slate-400">Main Library, 1st Floor</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center flex-shrink-0">
+              <span class="material-symbols-outlined text-lg">phone_in_talk</span>
+            </div>
+            <div>
+              <p class="font-semibold text-slate-800 text-sm">24/7 Security Hotline</p>
+              <p class="text-xs text-slate-400">Ext. 9988 for biometric overrides</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p class="text-xs text-slate-400 text-center">© SHAMEL Academic Central Data Center — System Online</p>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

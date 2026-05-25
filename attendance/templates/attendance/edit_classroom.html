@@ -1,0 +1,65 @@
+﻿{% extends 'attendance/base.html' %}
+{% block title %}تعديل القاعة — SHAMEL{% endblock %}
+{% block content %}
+<div class="max-w-xl mx-auto space-y-6">
+  <div class="flex items-center gap-4">
+    <a href="{% url 'classrooms_list' %}" class="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-slate-500 hover:text-slate-800 transition-all shadow-sm">
+      <span class="material-symbols-outlined text-lg">arrow_back</span>
+    </a>
+    <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">تعديل القاعة</h1>
+  </div>
+
+  <form method="post" class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+    {% csrf_token %}
+    <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary">meeting_room</span>
+      <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm">بيانات القاعة</h2>
+    </div>
+    <div class="p-6 space-y-5">
+      <div>
+        <label class="label-xs">اسم القاعة *</label>
+        <input type="text" name="name" value="{{ classroom.name }}" required class="inp">
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="label-xs">المبنى</label>
+          <input type="text" name="building" value="{{ classroom.building|default:'' }}" class="inp">
+        </div>
+        <div>
+          <label class="label-xs">الطابق</label>
+          <input type="text" name="floor" value="{{ classroom.floor|default:'' }}" class="inp">
+        </div>
+      </div>
+      <div>
+        <label class="label-xs">الموقع</label>
+        <input type="text" name="location" value="{{ classroom.location }}" class="inp">
+      </div>
+      <div>
+        <label class="label-xs">الطاقة الاستيعابية</label>
+        <input type="number" name="capacity" value="{{ classroom.capacity }}" min="1" max="500" class="inp">
+      </div>
+      <div>
+        <label class="label-xs mb-3 block">نوع القاعة</label>
+        <div class="grid grid-cols-2 gap-3">
+          {% for val, label in types %}
+          <label class="flex items-center gap-3 p-3 rounded-xl border-2 border-slate-200 dark:border-slate-600 cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition-all">
+            <input type="radio" name="classroom_type" value="{{ val }}" {% if classroom.classroom_type == val %}checked{% endif %}>
+            <span class="text-sm font-semibold dark:text-slate-200">{{ label }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <div class="px-6 pb-6 flex gap-3">
+      <button type="submit" class="inline-flex items-center gap-2 bg-primary hover:bg-primary-container text-white font-bold text-sm px-6 py-3 rounded-xl transition-all shadow-sm">
+        <span class="material-symbols-outlined text-base">save</span> حفظ التعديلات
+      </button>
+      <a href="{% url 'classrooms_list' %}" class="inline-flex items-center gap-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-sm px-5 py-3 rounded-xl hover:bg-slate-200 transition-all">إلغاء</a>
+    </div>
+  </form>
+</div>
+<style>
+  .label-xs { @apply block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5; }
+  .inp { @apply w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm font-medium dark:text-white focus:ring-2 focus:ring-primary/20 outline-none transition-all; }
+</style>
+{% endblock %}

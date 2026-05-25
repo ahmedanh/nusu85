@@ -1,0 +1,127 @@
+﻿{% extends 'attendance/base.html' %}
+{% block title %}إضافة مادة دراسية — SHAMEL{% endblock %}
+{% block content %}
+
+<div class="max-w-2xl mx-auto space-y-6">
+
+  <div class="flex items-center gap-4">
+    <a href="{% url 'courses_list' %}"
+      class="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-all shadow-sm">
+      <span class="material-symbols-outlined text-lg">arrow_back</span>
+    </a>
+    <div>
+      <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">إضافة مادة دراسية</h1>
+      {% if coordinator %}<p class="text-sm text-slate-500 mt-0.5">كلية: <span class="font-bold text-primary">{{ coordinator.college }}</span></p>{% endif %}
+    </div>
+  </div>
+
+  <form method="post" class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+    {% csrf_token %}
+
+    <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary">menu_book</span>
+      <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm">بيانات المادة</h2>
+    </div>
+
+    <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+
+      <div class="md:col-span-2">
+        <label class="label-xs">عنوان المادة *</label>
+        <input type="text" name="title" required placeholder="مثال: الرياضيات التطبيقية"
+          class="inp">
+      </div>
+
+      <div>
+        <label class="label-xs">كود المادة *</label>
+        <input type="text" name="course_code" required placeholder="مثال: MATH301"
+          class="inp font-mono">
+      </div>
+
+      <div>
+        <label class="label-xs">عدد الساعات المعتمدة</label>
+        <input type="number" name="credits" value="3" min="1" max="6" class="inp">
+      </div>
+
+      <div>
+        <label class="label-xs">ساعات المادة الأسبوعية</label>
+        <input type="number" name="total_hours" value="3" min="1" max="10" class="inp">
+      </div>
+
+      <!-- Year level -->
+      <div>
+        <label class="label-xs">السنة الدراسية</label>
+        <select name="year_level" class="inp">
+          {% for yr in year_choices %}
+          <option value="{{ yr }}">السنة {{ yr }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- College -->
+      {% if is_admin %}
+      <div>
+        <label class="label-xs">الكلية</label>
+        <select name="college_id" id="college-sel" onchange="loadDepts(this.value)" class="inp">
+          <option value="">— اختر الكلية —</option>
+          {% for c in colleges %}<option value="{{ c.college_id }}">{{ c.college_name }}</option>{% endfor %}
+        </select>
+      </div>
+      {% else %}
+      <input type="hidden" name="college_id" value="{{ coordinator.college_id }}">
+      {% endif %}
+
+      <div>
+        <label class="label-xs">القسم</label>
+        <select name="department_id" id="dept-sel" class="inp">
+          <option value="">— اختر القسم —</option>
+          {% for d in departments %}<option value="{{ d.id }}">{{ d.name }}</option>{% endfor %}
+        </select>
+      </div>
+
+    </div>
+
+    <!-- Course type -->
+    <div class="px-6 pb-6">
+      <label class="label-xs mb-3 block">نوع المادة</label>
+      <div class="flex flex-wrap gap-3">
+        {% for val, label in course_types %}
+        <label class="flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-slate-200 dark:border-slate-600 cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition-all">
+          <input type="radio" name="course_type" value="{{ val }}" {% if forloop.first %}checked{% endif %}>
+          <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">{{ label }}</span>
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="px-6 pb-6 flex gap-3">
+      <button type="submit"
+        class="inline-flex items-center gap-2 bg-primary hover:bg-primary-container text-white font-bold text-sm px-6 py-3 rounded-xl transition-all shadow-sm">
+        <span class="material-symbols-outlined text-base">save</span> حفظ المادة
+      </button>
+      <a href="{% url 'courses_list' %}"
+        class="inline-flex items-center gap-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-sm px-5 py-3 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-all">
+        إلغاء
+      </a>
+    </div>
+  </form>
+</div>
+
+<style>
+  .label-xs { @apply block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5; }
+  .inp { @apply w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm font-medium dark:text-white focus:ring-2 focus:ring-primary/20 outline-none transition-all; }
+</style>
+
+<script>
+async function loadDepts(cid) {
+  const sel = document.getElementById('dept-sel');
+  if (!cid) { sel.innerHTML = '<option value="">— اختر القسم —</option>'; return; }
+  sel.innerHTML = '<option>جاري التحميل...</option>';
+  const data = await fetch('/attendance/api/departments/?college_id=' + cid).then(r => r.json());
+  sel.innerHTML = '<option value="">— اختر القسم —</option>' +
+    data.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+}
+{% if coordinator and not is_admin %}
+loadDepts('{{ coordinator.college_id }}');
+{% endif %}
+</script>
+{% endblock %}

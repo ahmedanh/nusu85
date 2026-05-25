@@ -1,0 +1,141 @@
+{% extends 'attendance/base.html' %}
+{% block title %}لوحة الطالب — SHAMEL{% endblock %}
+{% block content %}
+<div class="space-y-6">
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">
+        أهلاً، {{ student.name }}
+      </h1>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">{{ student.student_code }} · {{ student.department }}</p>
+    </div>
+    <a href="{% url 'student_profile' %}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:opacity-90 transition-all">
+      <span class="material-symbols-outlined text-base">person</span> الملف الشخصي
+    </a>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+        <span class="material-symbols-outlined text-blue-600 dark:text-blue-400">event</span>
+      </div>
+      <div>
+        <p class="text-2xl font-extrabold text-slate-900 dark:text-white">{{ total }}</p>
+        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">إجمالي الجلسات</p>
+      </div>
+    </div>
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+        <span class="material-symbols-outlined text-green-600 dark:text-green-400">check_circle</span>
+      </div>
+      <div>
+        <p class="text-2xl font-extrabold text-slate-900 dark:text-white">{{ present }}</p>
+        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">جلسات الحضور</p>
+      </div>
+    </div>
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl {% if pct >= 75 %}bg-green-100 dark:bg-green-900/30{% else %}bg-red-100 dark:bg-red-900/30{% endif %} flex items-center justify-center">
+        <span class="material-symbols-outlined {% if pct >= 75 %}text-green-600 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %}">percent</span>
+      </div>
+      <div>
+        <p class="text-2xl font-extrabold {% if pct >= 75 %}text-green-700 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %}">{{ pct }}%</p>
+        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">نسبة الحضور الكلية</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Attendance Bar -->
+  {% if total %}
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-5">
+    <div class="flex justify-between items-center mb-2">
+      <span class="text-sm font-bold text-slate-700 dark:text-slate-200">نسبة الحضور الكلية</span>
+      <span class="text-sm font-bold {% if pct >= 75 %}text-green-600{% else %}text-red-600{% endif %}">{{ pct }}%</span>
+    </div>
+    <div class="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-3">
+      <div class="h-3 rounded-full {% if pct >= 75 %}bg-green-500{% elif pct >= 65 %}bg-yellow-400{% else %}bg-red-500{% endif %} transition-all duration-700"
+           style="width: {{ pct }}%"></div>
+    </div>
+    {% if pct < 75 %}
+    <p class="text-xs text-red-500 mt-2 font-medium">⚠ نسبة حضورك أقل من الحد المطلوب (75%)</p>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- Recent Logs -->
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+        <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm">آخر سجلات الحضور</h2>
+        <a href="{% url 'student_courses' %}" class="text-xs text-primary font-bold hover:underline">عرض المواد</a>
+      </div>
+      <div class="divide-y divide-slate-50 dark:divide-slate-700">
+        {% for log in recent_logs %}
+        <div class="px-6 py-3.5 flex items-center justify-between">
+          <div>
+            <p class="text-sm font-semibold text-slate-800 dark:text-slate-100">
+              {{ log.schedule.course.title|default:"—" }}
+            </p>
+            <p class="text-xs text-slate-400 mt-0.5">{{ log.timestamp|date:"Y-m-d H:i" }}</p>
+          </div>
+          <span class="px-3 py-1 rounded-full text-xs font-bold
+            {% if log.status == 'Present' %}bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400
+            {% elif log.status == 'Late' %}bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400
+            {% else %}bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400{% endif %}">
+            {{ log.status }}
+          </span>
+        </div>
+        {% empty %}
+        <div class="px-6 py-8 text-center text-sm text-slate-400">لا توجد سجلات بعد</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Enrolled Courses -->
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700">
+        <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm">المواد المسجّلة ({{ enrollments|length }})</h2>
+      </div>
+      <div class="divide-y divide-slate-50 dark:divide-slate-700">
+        {% for e in enrollments %}
+        <div class="px-6 py-3.5 flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-primary text-sm">menu_book</span>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-slate-800 dark:text-slate-100">{{ e.course.title }}</p>
+            <p class="text-xs text-slate-400">{{ e.course.course_code }}</p>
+          </div>
+        </div>
+        {% empty %}
+        <div class="px-6 py-8 text-center text-sm text-slate-400">لا توجد مواد مسجّلة</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Notifications -->
+  {% if notifications %}
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700">
+      <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm">الإشعارات غير المقروءة</h2>
+    </div>
+    <div class="divide-y divide-slate-50 dark:divide-slate-700">
+      {% for n in notifications %}
+      <div class="px-6 py-3.5 flex gap-3 items-start">
+        <span class="material-symbols-outlined text-blue-500 mt-0.5 text-base">notifications</span>
+        <div>
+          <p class="text-sm font-semibold text-slate-800 dark:text-slate-100">{{ n.title }}</p>
+          <p class="text-xs text-slate-400 mt-0.5">{{ n.body }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

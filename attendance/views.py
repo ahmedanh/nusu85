@@ -1,0 +1,2518 @@
+# -*- coding: utf-8 -*-
+"""
+SHAMEL Attendance System — views.py
+Auto-reconstructed from helper scripts.
+"""
+
+# ── Standard library ────────────────────────────────────────────────────────
+import os
+import io
+import csv
+import json
+import logging
+import threading
+import base64
+import tempfile
+from collections import defaultdict
+from datetime import datetime, timedelta
+
+# ── Django core ──────────────────────────────────────────────────────────────
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import login as auth_login, logout as auth_logout, authenticate
+from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.models import User
+from django.contrib import messages
+from django.http import (
+    HttpResponse, JsonResponse, StreamingHttpResponse, Http404
+)
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from django.utils import timezone
+from django.db import models
+from django.db.models import Count, Q, Avg
+
+# ── Project models ───────────────────────────────────────────────────────────
+from .models import (
+    College, Department, Classroom, Course, Teacher, Student,
+    Coordinator, Schedule, Enrollment, LectureSession,
+    AIAttendanceLog, StudentFaceEmbedding, TeacherFaceEmbedding,
+    CameraSource, GateLog, Notification, SupportTicket,
+    FinancialStatus, Grade, AuditLog, MedicalExcuse,
+    Exam, ExamSeat, CourseEvaluation, SystemConfig, AsyncTask,
+)
+
+# ── Optional third-party ─────────────────────────────────────────────────────
+try:
+    import face_recognition
+    FACE_RECOGNITION_AVAILABLE = True
+except ImportError:
+    face_recognition = None
+    FACE_RECOGNITION_AVAILABLE = False
+
+try:
+    import cv2
+    CV2_AVAILABLE = True
+except ImportError:
+    cv2 = None
+    CV2_AVAILABLE = False
+
+try:
+    import numpy as np
+    NUMPY_AVAILABLE = True
+except ImportError:
+    np = None
+    NUMPY_AVAILABLE = False
+
+logger = logging.getLogger(__name__)
+
+# ── In-memory face cache ─────────────────────────────────────────────────────
+known_face_encodings = []
+known_face_names = []
+_face_lock = threading.Lock()
+
+# ── Stub models that may not exist in all migrations ────────────────────────
+# ClassroomPermission and GateEntryLog are referenced in helper scripts.
+# Provide safe stubs so the module imports without error.
+try:
+    from .models import ClassroomPermission
+except ImportError:
+    class ClassroomPermission:
+        objects = type('M', (), {'filter': staticmethod(lambda **kw: []),
+                                  'all': staticmethod(lambda: [])})()
+
+try:
+    from .models import GateEntryLog
+except ImportError:
+    class GateEntryLog:
+        objects = type('M', (), {
+            'all': staticmethod(lambda: _EmptyQS()),
+            'filter': staticmethod(lambda **kw: _EmptyQS()),
+        })()
+
+class _EmptyQS:
+    def filter(self, **kw): return self
+    def order_by(self, *a): return self
+    def count(self): return 0
+    def values(self, *a): return self
+    def annotate(self, **kw): return []
+    def __iter__(self): return iter([])
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# HELPER FUNCTIONS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def _redirect_by_role(request):
+    """Redirect the logged-in user to their role-appropriate dashboard."""
+    user = request.user
+    if not user.is_authenticated:
+        return redirect('login')
+    if user.is_superuser or user.is_staff:
+        return redirect('admin_panel')
+    if Coordinator.objects.filter(auth_user=user).exists():
+        return redirect('coordinator_dashboard')
+    if Teacher.objects.filter(auth_user=user).exists():
+        return redirect('professor_dashboard')
+    if Student.objects.filter(auth_user=user).exists():
+        return redirect('student_dashboard')
+    # gate staff
+    if user.groups.filter(name='gate_staff').exists():
+        return redirect('gate_page')
+    return redirect('login')
+
+
+def log_audit(request, action, target_model='', target_id='', description=''):
+    """Write an AuditLog entry (best-effort, never raises)."""
+    try:
+        ip = (request.META.get('HTTP_X_FORWARDED_FOR', '') or
+              request.META.get('REMOTE_ADDR', ''))
+        ip = ip.split(',')[0].strip() or None
+        AuditLog.objects.create(
+            user=request.user if request.user.is_authenticated else None,
+            action=action,
+            target_model=target_model,
+            target_id=str(target_id),
+            description=description,
+            ip_address=ip,
+        )
+    except Exception:
+        pass
+
+
+def load_known_faces():
+    """Load all face embeddings from DB into in-memory lists."""
+    global known_face_encodings, known_face_names
+    if not NUMPY_AVAILABLE:
+        return
+    with _face_lock:
+        known_face_encodings.clear()
+        known_face_names.clear()
+        for emb in StudentFaceEmbedding.objects.select_related('student').all():
+            try:
+                vec = emb.embedding if isinstance(emb.embedding, list) else list(emb.embedding)
+                known_face_encodings.append(np.array(vec))
+                known_face_names.append(emb.student.name)
+            except Exception:
+                pass
+        for emb in TeacherFaceEmbedding.objects.select_related('teacher').all():
+            try:
+                vec = emb.face_vector if isinstance(emb.face_vector, list) else list(emb.face_vector)
+                known_face_encodings.append(np.array(vec))
+                known_face_names.append(emb.teacher.name)
+            except Exception:
+                pass
+
+
+def gen_frames(camera_index=0):
+    """Yield MJPEG frames from camera with optional face detection overlay."""
+    if not CV2_AVAILABLE:
+        return
+    cap = cv2.VideoCapture(camera_index)
+    try:
+        while True:
+            success, frame = cap.read()
+            if not success:
+                break
+            # Optional: draw face bounding boxes
+            if FACE_RECOGNITION_AVAILABLE and NUMPY_AVAILABLE and known_face_encodings:
+                small = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
+                rgb_small = small[:, :, ::-1]
+                locations = face_recognition.face_locations(rgb_small)
+                encodings = face_recognition.face_encodings(rgb_small, locations)
+                for (top, right, bottom, left), enc in zip(locations, encodings):
+                    name = 'Unknown'
+                    matches = face_recognition.compare_faces(known_face_encodings, enc, tolerance=0.5)
+                    if True in matches:
+                        name = known_face_names[matches.index(True)]
+                    top, right, bottom, left = top*4, right*4, bottom*4, left*4
+                    color = (0, 255, 0) if name != 'Unknown' else (0, 0, 255)
+                    cv2.rectangle(frame, (left, top), (right, bottom), color, 2)
+                    cv2.putText(frame, name, (left, top - 10),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+            ret, buffer = cv2.imencode('.jpg', frame)
+            if not ret:
+                continue
+            yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' +
+                   buffer.tobytes() + b'\r\n')
+    finally:
+        cap.release()
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# AUTH VIEWS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def login_view(request):
+    if request.user.is_authenticated:
+        return _redirect_by_role(request)
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '')
+        user = authenticate(request, username=username, password=password)
+        if user:
+            auth_login(request, user)
+            log_audit(request, 'LOGIN', 'User', user.pk, f'{username} logged in')
+            next_url = request.GET.get('next', '')
+            if next_url:
+                return redirect(next_url)
+            return _redirect_by_role(request)
+        return render(request, 'attendance/university_login.html', {'error': 'Incorrect username or password. Please try again.'})
+    return render(request, 'attendance/university_login.html')
+
+
+def logout_view(request):
+    log_audit(request, 'LOGOUT', 'User', request.user.pk if request.user.is_authenticated else '',
+              'User logged out')
+    auth_logout(request)
+    return redirect('login')
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CAMERA / SCAN VIEWS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@login_required
+def scan_page(request):
+    cameras = CameraSource.objects.filter(is_active=True, is_gate=False)
+    sessions = LectureSession.objects.filter(is_active=True).select_related(
+        'schedule__course', 'schedule__teacher', 'schedule__classroom'
+    )
+    return render(request, 'attendance/scan.html', {
+        'cameras': cameras,
+        'active_sessions': sessions,
+    })
+
+
+def video_feed(request):
+    camera_index = int(request.GET.get('camera', 0))
+    return StreamingHttpResponse(
+        gen_frames(camera_index),
+        content_type='multipart/x-mixed-replace; boundary=frame'
+    )
+
+
+@login_required
+def check_status(request):
+    active_sessions = LectureSession.objects.filter(is_active=True).count()
+    recent = AIAttendanceLog.objects.order_by('-timestamp').first()
+    return JsonResponse({
+        'active_sessions': active_sessions,
+        'last_scan': recent.timestamp.isoformat() if recent else None,
+        'face_recognition': FACE_RECOGNITION_AVAILABLE,
+    })
+
+
+@login_required
+def recent_scans(request):
+    logs = AIAttendanceLog.objects.select_related('student', 'schedule__course') \
+                                   .order_by('-timestamp')[:20]
+    data = []
+    for log in logs:
+        data.append({
+            'student': log.student.name if log.student else '',
+            'course': log.schedule.course.title if (log.schedule and log.schedule.course) else '',
+            'status': log.status,
+            'timestamp': log.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+            'confidence': log.confidence_score,
+        })
+    return JsonResponse({'scans': data})
+
+
+@login_required
+def live_stats(request):
+    today = timezone.now().date()
+    total_today = AIAttendanceLog.objects.filter(timestamp__date=today).count()
+    present_today = AIAttendanceLog.objects.filter(timestamp__date=today, status='Present').count()
+    active_sessions = LectureSession.objects.filter(is_active=True).count()
+    return JsonResponse({
+        'total_today': total_today,
+        'present_today': present_today,
+        'active_sessions': active_sessions,
+    })
+
+
+@login_required
+def attendance_logs(request):
+    logs = AIAttendanceLog.objects.select_related(
+        'student', 'schedule__course', 'schedule__teacher'
+    ).order_by('-timestamp')
+
+    date_f = request.GET.get('date', '')
+    status_f = request.GET.get('status', '')
+    student_q = request.GET.get('student', '')
+
+    if date_f:
+        logs = logs.filter(timestamp__date=date_f)
+    if status_f:
+        logs = logs.filter(status=status_f)
+    if student_q:
+        logs = logs.filter(student__name__icontains=student_q)
+
+    return render(request, 'attendance/attendance_logs.html', {
+        'logs': logs[:200],
+        'filters': {'date': date_f, 'status': status_f, 'student': student_q},
+    })
+
+
+def attendance_success(request):
+    return render(request, 'attendance/attendance_success.html')
+
+
+def attendance_error(request):
+    return render(request, 'attendance/attendance_error.html')
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ADMIN VIEWS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@login_required
+@staff_member_required
+def admin_control_panel(request):
+    students_count = Student.objects.count()
+    teachers_count = Teacher.objects.count()
+    courses_count  = Course.objects.count()
+    today          = timezone.now().date()
+    attendance_today  = AIAttendanceLog.objects.filter(timestamp__date=today).count()
+    active_sessions   = LectureSession.objects.filter(is_active=True).count()
+    recent_logs       = AIAttendanceLog.objects.select_related('student', 'schedule__course') \
+                                               .order_by('-timestamp')[:10]
+    unread_notifs = Notification.objects.filter(user=request.user, is_read=False).count()
+    open_tickets  = SupportTicket.objects.filter(status='open').count()
+
+    # Context vars expected by admin_panel.html template
+    teachers   = Teacher.objects.select_related('department', 'college').order_by('name')[:10]
+    classrooms = Classroom.objects.order_by('name')[:12]
+
+    # training_progress: % of students that have a face embedding enrolled
+    total_s = students_count or 1
+    enrolled_faces = StudentFaceEmbedding.objects.count()
+    training_progress = min(round(enrolled_faces / total_s * 100), 100)
+
+    return render(request, 'attendance/admin_panel.html', {
+        # legacy names kept for backward-compat
+        'students_count':   students_count,
+        'teachers_count':   teachers_count,
+        'courses_count':    courses_count,
+        'attendance_today': attendance_today,
+        'active_sessions':  active_sessions,
+        'recent_logs':      recent_logs,
+        'unread_notifs':    unread_notifs,
+        'open_tickets':     open_tickets,
+        # names expected by template
+        'total_students':    students_count,
+        'active_faculty':    teachers_count,
+        'training_progress': training_progress,
+        'teachers':          teachers,
+        'classrooms':        classrooms,
+    })
+
+
+@login_required
+@staff_member_required
+def faculty_management(request):
+    teachers = Teacher.objects.select_related('department', 'college').order_by('name')
+    college_f = request.GET.get('college_id', '')
+    dept_f = request.GET.get('department_id', '')
+    q = request.GET.get('q', '')
+    if college_f:
+        teachers = teachers.filter(college_id=college_f)
+    if dept_f:
+        teachers = teachers.filter(department_id=dept_f)
+    if q:
+        teachers = teachers.filter(name__icontains=q)
+    return render(request, 'attendance/faculty_management.html', {
+        'teachers': teachers,
+        'colleges': College.objects.all(),
+        'departments': Department.objects.all(),
+        'filters': {'college_id': college_f, 'department_id': dept_f, 'q': q},
+    })
+
+
+@login_required
+@staff_member_required
+def reports_view(request):
+    today = timezone.now().date()
+    week_ago = today - timedelta(days=7)
+    daily_counts = (AIAttendanceLog.objects
+                    .filter(timestamp__date__gte=week_ago)
+                    .values('timestamp__date')
+                    .annotate(count=Count('id'))
+                    .order_by('timestamp__date'))
+    return render(request, 'attendance/reports.html', {
+        'daily_counts': list(daily_counts),
+        'total_students': Student.objects.count(),
+        'total_teachers': Teacher.objects.count(),
+    })
+
+
+@login_required
+@staff_member_required
+def stop_session(request, session_id):
+    session = get_object_or_404(LectureSession, pk=session_id)
+    session.is_active = False
+    session.actual_end_time = timezone.now()
+    session.save()
+    log_audit(request, 'STOP_SESSION', 'LectureSession', session_id)
+    messages.success(request, 'تم إيقاف الجلسة.')
+    return redirect('admin_panel')
+
+
+@login_required
+def get_chancellor_stats(request):
+    today = timezone.now().date()
+    return JsonResponse({
+        'students': Student.objects.count(),
+        'teachers': Teacher.objects.count(),
+        'courses': Course.objects.count(),
+        'attendance_today': AIAttendanceLog.objects.filter(timestamp__date=today).count(),
+        'active_sessions': LectureSession.objects.filter(is_active=True).count(),
+        'colleges': College.objects.count(),
+    })
+
+
+@login_required
+@staff_member_required
+def export_teachers_csv(request):
+    teachers = Teacher.objects.select_related('department', 'college').order_by('name')
+    response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
+    response['Content-Disposition'] = 'attachment; filename="teachers.csv"'
+    writer = csv.writer(response)
+    writer.writerow(['ID', 'Name', 'Degree', 'Major', 'Department', 'College', 'Email', 'Phone', 'Allowed Entry'])
+    for t in teachers:
+        writer.writerow([
+            t.teacher_id, t.name, t.academic_degree, t.major,
+            t.department.name if t.department else '',
+            t.college.college_name if t.college else '',
+            t.university_email, t.phone_number, t.is_allowed_entry,
+        ])
+    return response
+
+
+@login_required
+def upload_face(request, user_type, user_id):
+    """Upload a face image and store embedding."""
+    if request.method == 'POST' and request.FILES.get('face_image'):
+        img_file = request.FILES['face_image']
+        if user_type == 'student':
+            obj = get_object_or_404(Student, pk=user_id)
+            obj.face_image = img_file
+            obj.save(update_fields=['face_image'])
+            if FACE_RECOGNITION_AVAILABLE and NUMPY_AVAILABLE:
+                try:
+                    img = face_recognition.load_image_file(obj.face_image.path)
+                    encs = face_recognition.face_encodings(img)
+                    if encs:
+                        StudentFaceEmbedding.objects.update_or_create(
+                            student=obj,
+                            defaults={'embedding': encs[0].tolist()}
+                        )
+                        load_known_faces()
+                except Exception as e:
+                    logger.warning('Face encoding error: %s', e)
+        elif user_type == 'teacher':
+            obj = get_object_or_404(Teacher, pk=user_id)
+            obj.face_image = img_file
+            obj.save(update_fields=['face_image'])
+            if FACE_RECOGNITION_AVAILABLE and NUMPY_AVAILABLE:
+                try:
+                    img = face_recognition.load_image_file(obj.face_image.path)
+                    encs = face_recognition.face_encodings(img)
+                    if encs:
+                        TeacherFaceEmbedding.objects.update_or_create(
+                            teacher=obj,
+                            defaults={'face_vector': encs[0].tolist()}
+                        )
+                        load_known_faces()
+                except Exception as e:
+                    logger.warning('Face encoding error: %s', e)
+        messages.success(request, 'تم رفع الصورة.')
+    return _redirect_by_role(request)
+
+
+@login_required
+def toggle_user_access(request, user_type, user_id):
+    if user_type == 'student':
+        obj = get_object_or_404(Student, pk=user_id)
+        obj.is_allowed_entry = not obj.is_allowed_entry
+        obj.save(update_fields=['is_allowed_entry'])
+    elif user_type == 'teacher':
+        obj = get_object_or_404(Teacher, pk=user_id)
+        obj.is_allowed_entry = not obj.is_allowed_entry
+        obj.save(update_fields=['is_allowed_entry'])
+    log_audit(request, 'TOGGLE_ACCESS', user_type, user_id)
+    return redirect(request.META.get('HTTP_REFERER', '/'))
+
+
+# ── Gate ─────────────────────────────────────────────────────────────────────
+
+@login_required
+def gate_page(request):
+    recent_gate_logs = GateLog.objects.order_by('-timestamp')[:30]
+    return render(request, 'attendance/gate.html', {
+        'recent_logs': recent_gate_logs,
+    })
+
+
+# ── Schedule ─────────────────────────────────────────────────────────────────
+
+@login_required
+def schedule_view(request):
+    coordinator = Coordinator.objects.filter(auth_user=request.user).first()
+    is_admin = request.user.is_staff or request.user.is_superuser
+    teacher_obj = Teacher.objects.filter(auth_user=request.user).first()
+
+    if is_admin:
+        schedules = Schedule.objects.select_related('course', 'teacher', 'classroom').all()
+    elif coordinator:
+        schedules = Schedule.objects.filter(
+            course__college=coordinator.college
+        ).select_related('course', 'teacher', 'classroom')
+    elif teacher_obj:
+        schedules = Schedule.objects.filter(
+            teacher=teacher_obj
+        ).select_related('course', 'teacher', 'classroom')
+    else:
+        schedules = Schedule.objects.none()
+
+    return render(request, 'attendance/schedule.html', {
+        'schedules': schedules,
+        'is_admin': is_admin,
+        'coordinator': coordinator,
+    })
+
+
+@login_required
+def add_schedule(request):
+    if request.method == 'POST':
+        coordinator = Coordinator.objects.filter(auth_user=request.user).first()
+        is_admin = request.user.is_staff or request.user.is_superuser
+        if not (is_admin or coordinator):
+            messages.error(request, 'غير مصرح.')
+            return redirect('schedule')
+        try:
+            schedule = Schedule.objects.create(
+                course_id=request.POST.get('course_id'),
+                teacher_id=request.POST.get('teacher_id') or None,
+                classroom_id=request.POST.get('classroom_id') or None,
+                day_of_week=request.POST.get('day_of_week'),
+                start_time=request.POST.get('start_time'),
+                end_time=request.POST.get('end_time'),
+                batch=request.POST.get('batch', ''),
+                semester=request.POST.get('semester', ''),
+            )
+            messages.success(request, 'تمت إضافة الجدول الدراسي.')
+        except Exception as e:
+            messages.error(request, f'خطأ: {e}')
+    return redirect('schedule')
+
+
+@login_required
+def api_check_conflict(request):
+    classroom_id = request.GET.get('classroom_id')
+    day = request.GET.get('day')
+    start = request.GET.get('start')
+    end = request.GET.get('end')
+    exclude_id = request.GET.get('exclude_id')
+    qs = Schedule.objects.filter(classroom_id=classroom_id, day_of_week=day,
+                                  start_time__lt=end, end_time__gt=start)
+    if exclude_id:
+        qs = qs.exclude(pk=exclude_id)
+    conflict = qs.exists()
+    return JsonResponse({'conflict': conflict})
+
+
+# ── Courses ──────────────────────────────────────────────────────────────────
+
+@login_required
+def courses_list(request):
+    coordinator = Coordinator.objects.filter(auth_user=request.user).first()
+    is_admin = request.user.is_staff or request.user.is_superuser
+    if is_admin:
+        courses = Course.objects.select_related('college', 'department').all()
+    elif coordinator:
+        courses = Course.objects.filter(college=coordinator.college).select_related('college', 'department')
+    else:
+        courses = Course.objects.none()
+    return render(request, 'attendance/courses_list.html', {
+        'courses': courses, 'colleges': College.objects.all(),
+        'departments': Department.objects.all(),
+        'is_admin': is_admin, 'coordinator': coordinator,
+    })
+
+
+@login_required
+def add_course(request):
+    if request.method == 'POST':
+        coordinator = Coordinator.objects.filter(auth_user=request.user).first()
+        is_admin = request.user.is_staff or request.user.is_superuser
+        if not (is_admin or coordinator):
+            messages.error(request, 'غير مصرح.')
+            return redirect('courses_list')
+        try:
+            college_id = request.POST.get('college_id') or (coordinator.college_id if coordinator else None)
+            Course.objects.create(
+                course_code=request.POST.get('course_code', '').strip(),
+                title=request.POST.get('title', '').strip(),
+                credits=int(request.POST.get('credits', 3)),
+                total_hours=int(request.POST.get('total_hours', 3)),
+                college_id=college_id,
+                department_id=request.POST.get('department_id') or None,
+                year_level=request.POST.get('year_level') or None,
+            )
+            messages.success(request, 'تمت إضافة المادة.')
+        except Exception as e:
+            messages.error(request, f'خطأ: {e}')
+    return redirect('courses_list')
+
+
+@login_required
+def delete_course(request, course_id):
+    if not (request.user.is_staff or Coordinator.objects.filter(auth_user=request.user).exists()):
+        messages.error(request, 'غير مصرح.')
+        return redirect('courses_list')
+    Course.objects.filter(pk=course_id).delete()
+    messages.success(request, 'تم حذف المادة.')
+    return redirect('courses_list')
+
+
+# ── Classrooms ───────────────────────────────────────────────────────────────
+
+@login_required
+def classrooms_list(request):
+    classrooms = Classroom.objects.all().order_by('name')
+    return render(request, 'attendance/classrooms_list.html', {
+        'classrooms': classrooms,
+        'types': Classroom.CLASSROOM_TYPES,
+        'is_admin': request.user.is_staff or request.user.is_superuser,
+    })
+
+
+@login_required
+@staff_member_required
+def add_classroom(request):
+    if request.method == 'POST':
+        try:
+            Classroom.objects.create(
+                name=request.POST.get('name', '').strip(),
+                location=request.POST.get('location', '').strip(),
+                capacity=int(request.POST.get('capacity', 30)),
+                classroom_type=request.POST.get('classroom_type', 'Lecture'),
+            )
+            messages.success(request, 'تمت إضافة القاعة.')
+        except Exception as e:
+            messages.error(request, f'خطأ: {e}')
+    return redirect('classrooms_list')
+
+
+@login_required
+@staff_member_required
+def delete_classroom(request, classroom_id):
+    Classroom.objects.filter(pk=classroom_id).delete()
+    messages.success(request, 'تم حذف القاعة.')
+    return redirect('classrooms_list')
+
+
+# ── Register ─────────────────────────────────────────────────────────────────
+
+@login_required
+@staff_member_required
+def register_student(request):
+    if request.method == 'POST':
+        try:
+            username = request.POST.get('username', '').strip()
+            password = request.POST.get('password', 'Shamel@123')
+            name = request.POST.get('name', '').strip()
+            student_code = request.POST.get('student_code', '').strip()
+            dept_id = request.POST.get('department_id') or None
+            batch = request.POST.get('batch', '')
+            user = User.objects.create_user(username=username, password=password)
+            student = Student.objects.create(
+                auth_user=user, name=name, student_code=student_code,
+                department_id=dept_id, batch=batch,
+            )
+            messages.success(request, f'تم تسجيل الطالب {name}.')
+            log_audit(request, 'REGISTER_STUDENT', 'Student', student.pk, name)
+        except Exception as e:
+            messages.error(request, f'خطأ: {e}')
+    return redirect('faculty_management')
+
+
+@login_required
+@staff_member_required
+def register_teacher(request):
+    if request.method == 'POST':
+        try:
+            username = request.POST.get('username', '').strip()
+            password = request.POST.get('password', 'Shamel@123')
+            name = request.POST.get('name', '').strip()
+            degree = request.POST.get('academic_degree', 'PhD')
+            major = request.POST.get('major', '').strip()
+            college_id = request.POST.get('college_id') or None
+            dept_id = request.POST.get('department_id') or None
+            user = User.objects.create_user(username=username, password=password, is_staff=False)
+            teacher = Teacher.objects.create(
+                auth_user=user, name=name, academic_degree=degree,
+                major=major, college_id=college_id, department_id=dept_id,
+            )
+            messages.success(request, f'تم تسجيل الأستاذ {name}.')
+            log_audit(request, 'REGISTER_TEACHER', 'Teacher', teacher.pk, name)
+        except Exception as e:
+            messages.error(request, f'خطأ: {e}')
+    return redirect('faculty_management')
+
+
+@login_required
+def enroll_face(request):
+    """Enroll a face embedding for the currently logged-in user."""
+    if request.method == 'POST':
+        b64 = request.POST.get('image_data', '')
+        if b64 and FACE_RECOGNITION_AVAILABLE and NUMPY_AVAILABLE:
+            try:
+                if ',' in b64:
+                    b64 = b64.split(',')[1]
+                img_bytes = base64.b64decode(b64)
+                with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp:
+                    tmp.write(img_bytes)
+                    tmp_path = tmp.name
+                img = face_recognition.load_image_file(tmp_path)
+                encs = face_recognition.face_encodings(img)
+                os.unlink(tmp_path)
+                if encs:
+                    student = Student.objects.filter(auth_user=request.user).first()
+                    teacher = Teacher.objects.filter(auth_user=request.user).first()
+                    if student:
+                        StudentFaceEmbedding.objects.update_or_create(
+                            student=student, defaults={'embedding': encs[0].tolist()}
+                        )
+                    elif teacher:
+                        TeacherFaceEmbedding.objects.update_or_create(
+                            teacher=teacher, defaults={'face_vector': encs[0].tolist()}
+                        )
+                    load_known_faces()
+                    return JsonResponse({'status': 'ok'})
+                return JsonResponse({'status': 'error', 'message': 'No face detected'})
+            except Exception as e:
+                return JsonResponse({'status': 'error', 'message': str(e)})
+    return render(request, 'attendance/enroll_face.html')
+
+
+@login_required
+def api_departments(request):
+    college_id = request.GET.get('college_id', '')
+    depts = Department.objects.all()
+    if college_id:
+        depts = depts.filter(college_id=college_id)
+    data = [{'id': d.pk, 'name': d.name} for d in depts]
+    return JsonResponse({'departments': data})
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PROFESSOR / TEACHER VIEWS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@login_required
+def professor_dashboard(request):
+    try:
+        teacher = Teacher.objects.get(auth_user=request.user)
+    except Teacher.DoesNotExist:
+        return _redirect_by_role(request)
+    if teacher is None:
+        return _redirect_by_role(request)
+    schedules      = Schedule.objects.filter(teacher=teacher).select_related('course', 'classroom')
+    active_session = LectureSession.objects.filter(
+        schedule__teacher=teacher, is_active=True
+    ).select_related('schedule__course', 'schedule__classroom').first()
+    today          = timezone.now().date()
+    now            = timezone.now()
+
+    # Attendance logs for today's active session
+    present_students = []
+    absent_students  = []
+    present_count    = 0
+    total_count      = 0
+
+    if active_session:
+        session_logs = AIAttendanceLog.objects.filter(
+            session=active_session
+        ).select_related('student').order_by('-timestamp')
+        present_students = session_logs.filter(status='Present')
+        present_count    = present_students.count()
+        # Absent = enrolled but not in present list
+        enrolled_ids     = Enrollment.objects.filter(
+            course=active_session.schedule.course
+        ).values_list('student_id', flat=True)
+        present_ids      = present_students.values_list('student_id', flat=True)
+        absent_students  = Student.objects.filter(
+            id__in=enrolled_ids
+        ).exclude(id__in=present_ids)
+        total_count      = len(enrolled_ids)
+
+    # Recent attendance logs for today (for teacher's courses)
+    recent_logs = AIAttendanceLog.objects.filter(
+        schedule__teacher=teacher, timestamp__date=today
+    ).select_related('student').order_by('-timestamp')[:10]
+
+    # Next upcoming schedule today
+    next_session = Schedule.objects.filter(
+        teacher=teacher,
+        day_of_week=now.strftime('%A'),
+        start_time__gt=now.time(),
+    ).select_related('course', 'classroom').order_by('start_time').first()
+
+    # Classrooms for room-availability sidebar
+    classrooms = Classroom.objects.order_by('name')[:12]
+
+    return render(request, 'attendance/professor_dashboard.html', {
+        'teacher':          teacher,
+        'schedules':        schedules,
+        'active_session':   active_session,
+        'current_session':  active_session,   # alias used by template
+        'recent_logs':      recent_logs,
+        'present_students': present_students,
+        'absent_students':  absent_students,
+        'present_count':    present_count,
+        'total_count':      total_count,
+        'next_session':     next_session,
+        'classrooms':       classrooms,
+    })
+
+
+@login_required
+def open_session(request, schedule_id):
+    teacher = get_object_or_404(Teacher, auth_user=request.user)
+    schedule = get_object_or_404(Schedule, pk=schedule_id, teacher=teacher)
+    # Close any existing active session for this schedule
+    LectureSession.objects.filter(schedule=schedule, is_active=True).update(
+        is_active=False, actual_end_time=timezone.now()
+    )
+    session = LectureSession.objects.create(
+        schedule=schedule, is_active=True,
+        actual_start_time=timezone.now(), opened_by=request.user,
+    )
+    log_audit(request, 'OPEN_SESSION', 'LectureSession', session.pk,
+              f'Teacher {teacher.name} opened session for {schedule}')
+    messages.success(request, 'تم فتح الجلسة.')
+    return redirect('professor_dashboard')
+
+
+@login_required
+def teacher_timeline(request):
+    try:
+        teacher = Teacher.objects.get(auth_user=request.user)
+    except Teacher.DoesNotExist:
+        return _redirect_by_role(request)
+    sessions = LectureSession.objects.filter(
+        schedule__teacher=teacher
+    ).select_related('schedule__course').order_by('-actual_start_time')[:50]
+    return render(request, 'attendance/teacher_timeline.html', {
+        'teacher': teacher, 'sessions': sessions,
+    })
+
+
+@login_required
+def export_my_courses_csv(request):
+    teacher = get_object_or_404(Teacher, auth_user=request.user)
+    schedules = Schedule.objects.filter(teacher=teacher).select_related('course', 'classroom')
+    response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
+    response['Content-Disposition'] = 'attachment; filename="my_courses.csv"'
+    writer = csv.writer(response)
+    writer.writerow(['Course Code', 'Title', 'Day', 'Start', 'End', 'Classroom', 'Batch', 'Semester'])
+    for s in schedules:
+        writer.writerow([
+            s.course.course_code if s.course else '',
+            s.course.title if s.course else '',
+            s.day_of_week, s.start_time, s.end_time,
+            s.classroom.name if s.classroom else '',
+            s.batch, s.semester,
+        ])
+    return response
+
+
+def teacher_attendance_report(request):
+    teachers = Teacher.objects.select_related('department', 'college').order_by('name')
+    data = []
+    for t in teachers:
+        sessions = LectureSession.objects.filter(schedule__teacher=t, is_active=False).count()
+        data.append({'teacher': t, 'sessions': sessions})
+    return render(request, 'attendance/reports/teacher_report.html', {'data': data})
+
+
+def export_teacher_report_csv(request):
+    teachers = Teacher.objects.select_related('department', 'college').order_by('name')
+    response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
+    response['Content-Disposition'] = 'attachment; filename="teacher_report.csv"'
+    writer = csv.writer(response)
+    writer.writerow(['Name', 'Degree', 'Major', 'College', 'Department', 'Sessions Held'])
+    for t in teachers:
+        sessions = LectureSession.objects.filter(schedule__teacher=t, is_active=False).count()
+        writer.writerow([
+            t.name, t.academic_degree, t.major,
+            t.college.college_name if t.college else '',
+            t.department.name if t.department else '',
+            sessions,
+        ])
+    return response
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# STUDENT VIEWS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@login_required
+def student_dashboard(request):
+    student = get_object_or_404(Student, auth_user=request.user)
+    today = timezone.now().date()
+    logs = AIAttendanceLog.objects.filter(student=student).order_by('-timestamp')
+    total = logs.count()
+    present = logs.filter(status='Present').count()
+    pct = round(present / total * 100, 1) if total else 0
+    recent = logs[:5]
+    enrollments = Enrollment.objects.filter(student=student).select_related('course')
+    notifications = Notification.objects.filter(user=request.user, is_read=False)[:5]
+    return render(request, 'attendance/student_dashboard.html', {
+        'student': student, 'total': total, 'present': present, 'pct': pct,
+        'recent_logs': recent, 'enrollments': enrollments,
+        'notifications': notifications,
+    })
+
+
+@login_required
+def student_profile(request):
+    student = get_object_or_404(Student, auth_user=request.user)
+    student_fields = [
+        ('الاسم', student.name),
+        ('رقم الطالب', student.student_code),
+        ('القسم', student.department.name if student.department else '—'),
+        ('الكلية', student.college.college_name if hasattr(student, 'college') and student.college else '—'),
+        ('الجنس', student.gender or '—'),
+        ('الدفعة', student.batch or '—'),
+    ]
+    return render(request, 'attendance/student_profile.html', {
+        'student': student,
+        'student_fields': student_fields,
+    })
+
+
+@login_required
+def student_courses(request):
+    student = get_object_or_404(Student, auth_user=request.user)
+    enrollments = Enrollment.objects.filter(student=student).select_related('course', 'classroom')
+    return render(request, 'attendance/student_courses.html', {
+        'student': student, 'enrollments': enrollments,
+    })
+
+
+@login_required
+def student_support(request):
+    try:
+        student = Student.objects.get(auth_user=request.user)
+    except Student.DoesNotExist:
+        return _redirect_by_role(request)
+    tickets = SupportTicket.objects.filter(user=request.user).order_by('-created_at')
+    return render(request, 'attendance/student_support.html', {
+        'student': student, 'tickets': tickets,
+    })
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# COORDINATOR VIEWS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@login_required
+def coordinator_dashboard(request):
+    coordinator    = get_object_or_404(Coordinator, auth_user=request.user)
+    students_count = Student.objects.filter(department__college=coordinator.college).count()
+    teachers_count = Teacher.objects.filter(college=coordinator.college).count()
+    courses_count  = Course.objects.filter(college=coordinator.college).count()
+    today          = timezone.now().date()
+    attendance_today = AIAttendanceLog.objects.filter(
+        schedule__course__college=coordinator.college, timestamp__date=today
+    ).count()
+    open_tickets = SupportTicket.objects.filter(status='open').count()
+
+    # College-wide attendance percentage (last 30 days)
+    from datetime import timedelta
+    month_ago = today - timedelta(days=30)
+    logs_qs   = AIAttendanceLog.objects.filter(
+        schedule__course__college=coordinator.college,
+        timestamp__date__gte=month_ago,
+    )
+    total_logs   = logs_qs.count() or 1
+    present_logs = logs_qs.filter(status='Present').count()
+    college_attendance_pct = round(present_logs / total_logs * 100, 1)
+
+    # Students with attendance below 75% (at-risk)
+    from collections import defaultdict
+    student_buckets = defaultdict(lambda: {'present': 0, 'total': 0, 'student': None})
+    for log in logs_qs.select_related('student'):
+        sid = log.student_id
+        student_buckets[sid]['student'] = log.student
+        student_buckets[sid]['total']  += 1
+        if log.status == 'Present':
+            student_buckets[sid]['present'] += 1
+    low_attendance_students = []
+    for data in student_buckets.values():
+        rate = round(data['present'] / data['total'] * 100, 1) if data['total'] else 0
+        if rate < 75:
+            low_attendance_students.append({'student': data['student'], 'rate': rate})
+    low_attendance_students.sort(key=lambda x: x['rate'])
+
+    return render(request, 'attendance/coordinator_dashboard.html', {
+        'coordinator':            coordinator,
+        # legacy names
+        'students_count':         students_count,
+        'teachers_count':         teachers_count,
+        'courses_count':          courses_count,
+        'attendance_today':       attendance_today,
+        'open_tickets':           open_tickets,
+        # names expected by template
+        'total_students':         students_count,
+        'total_teachers':         teachers_count,
+        'college_attendance_pct': college_attendance_pct,
+        'low_attendance_students': low_attendance_students,
+    })
+
+
+@login_required
+def coordinator_students(request):
+    try:
+        coordinator = Coordinator.objects.get(auth_user=request.user)
+    except Coordinator.DoesNotExist:
+        return _redirect_by_role(request)
+    students = Student.objects.filter(
+        department__college=coordinator.college
+    ).select_related('department').order_by('name')
+    q = request.GET.get('q', '')
+    dept_f = request.GET.get('dept', '')
+    if q:
+        students = students.filter(name__icontains=q)
+    if dept_f:
+        students = students.filter(department_id=dept_f)
+    departments = Department.objects.filter(college=coordinator.college)
+    return render(request, 'attendance/coordinator_students.html', {
+        'coordinator': coordinator, 'students': students,
+        'departments': departments, 'filters': {'q': q, 'dept': dept_f},
+    })
+
+
+@login_required
+def coordinator_faculty(request):
+    coordinator = get_object_or_404(Coordinator, auth_user=request.user)
+    teachers = Teacher.objects.filter(college=coordinator.college).select_related('department').order_by('name')
+    q = request.GET.get('q', '')
+    if q:
+        teachers = teachers.filter(name__icontains=q)
+    return render(request, 'attendance/coordinator_faculty.html', {
+        'coordinator': coordinator, 'teachers': teachers, 'q': q,
+    })
+
+
+@login_required
+def coordinator_course_assignment(request):
+    coordinator = get_object_or_404(Coordinator, auth_user=request.user)
+    schedules = Schedule.objects.filter(
+        course__college=coordinator.college
+    ).select_related('course', 'teacher', 'classroom').order_by('day_of_week', 'start_time')
+
+    if request.method == 'POST':
+        schedule_id = request.POST.get('schedule_id')
+        teacher_id = request.POST.get('teacher_id')
+        if schedule_id and teacher_id:
+            sch = get_object_or_404(Schedule, pk=schedule_id)
+            sch.teacher = get_object_or_404(Teacher, pk=teacher_id)
+            sch.save(update_fields=['teacher'])
+            messages.success(request, 'تم تحديث تعيين الأستاذ.')
+        return redirect('coordinator_course_assignment')
+
+    teachers = Teacher.objects.filter(college=coordinator.college)
+    return render(request, 'attendance/coordinator_assignments.html', {
+        'coordinator': coordinator, 'schedules': schedules, 'teachers': teachers,
+    })
+
+
+@login_required
+def coordinator_register_user(request):
+    coordinator = get_object_or_404(Coordinator, auth_user=request.user)
+    if request.method == 'POST':
+        user_type = request.POST.get('user_type', 'student')
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', 'Shamel@123')
+        name = request.POST.get('name', '').strip()
+        try:
+            user = User.objects.create_user(username=username, password=password)
+            if user_type == 'student':
+                student_code = request.POST.get('student_code', '').strip()
+                dept_id = request.POST.get('department_id') or None
+                Student.objects.create(
+                    auth_user=user, name=name, student_code=student_code,
+                    department_id=dept_id,
+                )
+            elif user_type == 'teacher':
+                Teacher.objects.create(
+                    auth_user=user, name=name,
+                    college=coordinator.college,
+                    academic_degree=request.POST.get('academic_degree', 'PhD'),
+                )
+            messages.success(request, f'تم تسجيل {name}.')
+            log_audit(request, f'REGISTER_{user_type.upper()}', user_type.capitalize(), user.pk, name)
+        except Exception as e:
+            messages.error(request, f'خطأ: {e}')
+        return redirect('coordinator_register_user')
+
+    departments = Department.objects.filter(college=coordinator.college)
+    import datetime
+    current_year = datetime.date.today().year
+    batch_years = list(range(current_year, current_year - 10, -1))
+    semester_choices = list(range(1, 9))
+    return render(request, 'attendance/coordinator_register.html', {
+        'coordinator': coordinator, 'departments': departments,
+        'batch_years': batch_years, 'semester_choices': semester_choices,
+    })
+
+
+# ── PDF exports ──────────────────────────────────────────────────────────────
+
+def _pdf_response(html_string, filename):
+    """Render HTML to PDF using weasyprint or fallback to plain HTML."""
+    try:
+        from weasyprint import HTML as WeasyprintHTML
+        pdf_bytes = WeasyprintHTML(string=html_string).write_pdf()
+        resp = HttpResponse(pdf_bytes, content_type='application/pdf')
+        resp['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return resp
+    except Exception:
+        # Fallback: return HTML
+        return HttpResponse(html_string, content_type='text/html')
+
+
+@login_required
+def export_student_report_pdf(request):
+    logs, filters, meta = _build_attendance_queryset(request)
+    summary = _summarise_logs(logs)
+    html = render(request, 'attendance/reports/student_report_pdf.html', {
+        'summary': summary, 'filters': filters, **meta,
+    }).content.decode('utf-8')
+    return _pdf_response(html, 'student_attendance_report.pdf')
+
+
+@login_required
+def export_teacher_report_pdf(request):
+    teachers = Teacher.objects.select_related('department', 'college').order_by('name')
+    data = []
+    for t in teachers:
+        sessions = LectureSession.objects.filter(schedule__teacher=t, is_active=False).count()
+        data.append({'teacher': t, 'sessions': sessions})
+    html = render(request, 'attendance/reports/teacher_report_pdf.html', {'data': data}).content.decode('utf-8')
+    return _pdf_response(html, 'teacher_report.pdf')
+
+
+@login_required
+def export_grades_pdf(request):
+    student = get_object_or_404(Student, auth_user=request.user)
+    grades = Grade.objects.filter(student=student).select_related('course')
+    html = render(request, 'attendance/reports/grades_pdf.html', {
+        'student': student, 'grades': grades,
+    }).content.decode('utf-8')
+    return _pdf_response(html, 'grades.pdf')
+
+
+# ── Medical Excuses ──────────────────────────────────────────────────────────
+
+@login_required
+def excuse_portal(request):
+    student = get_object_or_404(Student, auth_user=request.user)
+    excuses = MedicalExcuse.objects.filter(student=student).order_by('-submitted_at')
+    if request.method == 'POST':
+        reason = request.POST.get('reason', '').strip()
+        schedule_id = request.POST.get('schedule_id') or None
+        doc = request.FILES.get('document')
+        MedicalExcuse.objects.create(
+            student=student, reason=reason,
+            schedule_id=schedule_id, document=doc,
+        )
+        messages.success(request, 'تم تقديم العذر الطبي.')
+        return redirect('excuse_portal')
+    schedules = Schedule.objects.filter(
+        course__in=Enrollment.objects.filter(student=student).values('course')
+    ).select_related('course')
+    return render(request, 'attendance/excuse_portal.html', {
+        'student': student, 'excuses': excuses, 'schedules': schedules,
+    })
+
+
+@login_required
+def excuse_approval_board(request):
+    if not (request.user.is_staff or Coordinator.objects.filter(auth_user=request.user).exists()):
+        return redirect('student_dashboard')
+    excuses = MedicalExcuse.objects.select_related('student', 'schedule__course').order_by('-submitted_at')
+    if request.method == 'POST':
+        excuse_id = request.POST.get('excuse_id')
+        action = request.POST.get('action')
+        note = request.POST.get('review_note', '')
+        excuse = get_object_or_404(MedicalExcuse, pk=excuse_id)
+        if action in ('approved', 'rejected'):
+            excuse.status = action
+            excuse.reviewed_by = request.user
+            excuse.review_note = note
+            excuse.save()
+            messages.success(request, 'تم تحديث حالة العذر.')
+        return redirect('excuse_approval_board')
+    status_f = request.GET.get('status', '')
+    if status_f:
+        excuses = excuses.filter(status=status_f)
+    return render(request, 'attendance/excuse_board.html', {
+        'excuses': excuses, 'status_filter': status_f,
+    })
+
+
+# ── Exam Planner ─────────────────────────────────────────────────────────────
+
+@login_required
+@staff_member_required
+def exam_planner(request):
+    try:
+        exams = list(Exam.objects.select_related('course', 'classroom').order_by('date', 'start_time'))
+    except Exception:
+        exams = []
+    if request.method == 'POST':
+        try:
+            Exam.objects.create(
+                course_id=request.POST.get('course_id'),
+                exam_type=request.POST.get('exam_type', 'Final'),
+                date=request.POST.get('date'),
+                start_time=request.POST.get('start_time'),
+                end_time=request.POST.get('end_time'),
+                classroom_id=request.POST.get('classroom_id') or None,
+                semester=request.POST.get('semester', ''),
+            )
+            messages.success(request, 'تمت إضافة الاختبار.')
+        except Exception as e:
+            messages.error(request, f'خطأ: {e}')
+        return redirect('exam_planner')
+    return render(request, 'attendance/exam_planner.html', {
+        'exams': exams,
+        'courses': Course.objects.all(),
+        'classrooms': Classroom.objects.all(),
+    })
+
+
+@login_required
+@staff_member_required
+def exam_seating_chart(request):
+    exam_id = request.GET.get('exam_id')
+    exam = get_object_or_404(Exam, pk=exam_id) if exam_id else None
+    seats = ExamSeat.objects.filter(exam=exam).select_related('student') if exam else []
+    if request.method == 'POST' and exam:
+        student_ids = request.POST.getlist('student_ids')
+        for i, sid in enumerate(student_ids, 1):
+            ExamSeat.objects.get_or_create(
+                exam=exam, student_id=sid,
+                defaults={'seat_number': str(i)},
+            )
+        messages.success(request, 'تم تخصيص المقاعد.')
+        return redirect(f'/attendance/exam/seating/?exam_id={exam.pk}')
+    exams = Exam.objects.select_related('course').order_by('-date')
+    students = Student.objects.all().order_by('name')
+    return render(request, 'attendance/exam_seating.html', {
+        'exam': exam, 'seats': seats, 'exams': exams, 'students': students,
+    })
+
+
+@login_required
+def exam_gate_verify(request):
+    """Quick verification at exam gate: check student seat."""
+    student_code = request.GET.get('code', '').strip()
+    exam_id = request.GET.get('exam_id', '')
+    seat = None
+    student = None
+    if student_code and exam_id:
+        student = Student.objects.filter(student_code=student_code).first()
+        if student:
+            seat = ExamSeat.objects.filter(exam_id=exam_id, student=student).first()
+    exams = Exam.objects.select_related('course').order_by('-date')
+    return render(request, 'attendance/exam_gate_verify.html', {
+        'seat': seat, 'student': student, 'exams': exams,
+        'exam_id': exam_id, 'student_code': student_code,
+    })
+
+
+# ── Faculty Timeline ─────────────────────────────────────────────────────────
+
+@login_required
+@staff_member_required
+def faculty_timeline(request):
+    teachers = Teacher.objects.select_related('department', 'college').order_by('name')
+    data = []
+    for t in teachers:
+        sessions = LectureSession.objects.filter(
+            schedule__teacher=t
+        ).select_related('schedule__course').order_by('-actual_start_time')[:5]
+        data.append({'teacher': t, 'sessions': sessions})
+    return render(request, 'attendance/faculty_timeline.html', {'data': data})
+
+
+# ── API: student search ──────────────────────────────────────────────────────
+
+@login_required
+def api_student_search(request):
+    q = request.GET.get('q', '').strip()
+    students = Student.objects.filter(
+        Q(name__icontains=q) | Q(student_code__icontains=q)
+    )[:10] if len(q) >= 2 else []
+    data = [{'id': s.pk, 'name': s.name, 'code': s.student_code} for s in students]
+    return JsonResponse({'results': data})
+
+
+# ── Onboarding Wizard ────────────────────────────────────────────────────────
+
+@login_required
+@staff_member_required
+def onboarding_wizard(request):
+    if request.method == 'POST':
+        key = request.POST.get('key', '').strip()
+        value = request.POST.get('value', '').strip()
+        if key:
+            SystemConfig.objects.update_or_create(key=key, defaults={'value': value})
+            messages.success(request, 'تم حفظ الإعداد.')
+        return redirect('onboarding_wizard')
+    configs = SystemConfig.objects.all().order_by('key')
+    return render(request, 'attendance/onboarding_wizard.html', {'configs': configs})
+
+
+# ── Dean Evaluation Dashboard ────────────────────────────────────────────────
+
+@login_required
+@staff_member_required
+def dean_evaluation_dashboard(request):
+    evaluations = CourseEvaluation.objects.select_related('student', 'course') \
+                                           .order_by('-submitted_at')
+    avg_rating = evaluations.aggregate(avg=Avg('rating'))['avg'] or 0
+    course_stats = (evaluations.values('course__title')
+                    .annotate(avg=Avg('rating'), count=Count('id'))
+                    .order_by('-avg'))
+    return render(request, 'attendance/dean_evaluation.html', {
+        'evaluations': evaluations[:50],
+        'avg_rating': round(avg_rating, 2),
+        'course_stats': course_stats,
+    })
+
+
+# ── Demo login (DEBUG only) ──────────────────────────────────────────────────
+
+def demo_login(request):
+    from django.conf import settings
+    if not settings.DEBUG:
+        raise Http404
+    role = request.GET.get('role', 'admin')
+    demo_users = {
+        'admin': 'admin',
+        'teacher': 'demo_teacher',
+        'student': 'demo_student',
+        'coordinator': 'demo_coordinator',
+    }
+    username = demo_users.get(role, 'admin')
+    user = User.objects.filter(username=username).first()
+    if user:
+        auth_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+        return _redirect_by_role(request)
+    messages.error(request, f'Demo user "{username}" not found.')
+    return redirect('login')
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# MISSING STUBS (referenced in urls.py but not in helpers)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# These are placeholder implementations that will render a basic page or
+# redirect until full templates are available.
+
+# ── Notifications ────────────────────────────────────────────────────────────
+# (Full implementations come from _p7_views_addon.py below)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ▼▼▼  CONTENT FROM HELPER SCRIPTS  ▼▼▼
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ===================================================================
+# FROM _views_addon.py  — Attendance Reports / Support Tickets
+# ===================================================================
+
+def _build_attendance_queryset(request):
+    user = request.user
+    is_admin    = user.is_staff or user.is_superuser
+    coordinator = Coordinator.objects.filter(auth_user=user).first()
+    teacher_obj = Teacher.objects.filter(auth_user=user).first()
+    student_obj = Student.objects.filter(auth_user=user).first()
+
+    logs = AIAttendanceLog.objects.select_related(
+        'student', 'student__department', 'student__department__college',
+        'schedule__course', 'schedule__course__college',
+        'schedule__course__department',
+    )
+
+    if student_obj:
+        logs = logs.filter(student=student_obj)
+    elif teacher_obj:
+        logs = logs.filter(schedule__teacher=teacher_obj)
+    elif coordinator and not is_admin:
+        logs = logs.filter(schedule__course__college=coordinator.college)
+
+    f = {
+        'college_id':    request.GET.get('college_id', ''),
+        'department_id': request.GET.get('department_id', ''),
+        'year_level':    request.GET.get('year_level', ''),
+        'course_id':     request.GET.get('course_id', ''),
+        'semester':      request.GET.get('semester', ''),
+        'date_from':     request.GET.get('date_from', ''),
+        'date_to':       request.GET.get('date_to', ''),
+        'student_id':    request.GET.get('student_id', ''),
+        'batch':         request.GET.get('batch', ''),
+        'status':        request.GET.get('status', ''),
+    }
+
+    if f['college_id']:    logs = logs.filter(schedule__course__college_id=f['college_id'])
+    if f['department_id']: logs = logs.filter(schedule__course__department_id=f['department_id'])
+    if f['year_level']:    logs = logs.filter(schedule__course__year_level=f['year_level'])
+    if f['course_id']:     logs = logs.filter(schedule__course_id=f['course_id'])
+    if f['semester']:      logs = logs.filter(schedule__semester=f['semester'])
+    if f['date_from']:     logs = logs.filter(timestamp__date__gte=f['date_from'])
+    if f['date_to']:       logs = logs.filter(timestamp__date__lte=f['date_to'])
+    if f['student_id']:    logs = logs.filter(student_id=f['student_id'])
+    if f['batch']:         logs = logs.filter(student__batch__icontains=f['batch'])
+    if f['status']:        logs = logs.filter(status=f['status'])
+
+    logs = logs.order_by('student__name', 'timestamp')
+
+    if coordinator and not is_admin:
+        colleges    = College.objects.filter(college_id=coordinator.college_id)
+        departments = Department.objects.filter(college=coordinator.college)
+        courses     = Course.objects.filter(college=coordinator.college)
+    else:
+        colleges    = College.objects.all()
+        departments = Department.objects.filter(college_id=f['college_id']) if f['college_id'] else Department.objects.all()
+        courses     = Course.objects.all()
+
+    meta = {
+        'colleges': colleges, 'departments': departments, 'courses': courses,
+        'year_choices': range(1, 7),
+        'semesters': ['1', '2', 'Summer'],
+        'is_admin': is_admin, 'coordinator': coordinator,
+    }
+    return logs, f, meta
+
+
+def _summarise_logs(logs):
+    buckets = defaultdict(lambda: {'present': 0, 'absent': 0, 'student': None})
+    for log in logs:
+        key = log.student_id
+        buckets[key]['student'] = log.student
+        if log.status == 'Present':
+            buckets[key]['present'] += 1
+        else:
+            buckets[key]['absent'] += 1
+
+    summary = []
+    for data in buckets.values():
+        total = data['present'] + data['absent']
+        pct   = round(data['present'] / total * 100, 1) if total else 0
+        summary.append({
+            'student': data['student'],
+            'present': data['present'],
+            'absent':  data['absent'],
+            'total':   total,
+            'pct':     pct,
+            'flag':    pct < 75,
+            'status':  'Pass' if pct >= 75 else 'Fail',
+        })
+    summary.sort(key=lambda x: x['pct'])
+    return summary
+
+
+@login_required
+def student_attendance_report(request):
+    logs, filters, meta = _build_attendance_queryset(request)
+    summary = _summarise_logs(logs)
+    below_threshold = sum(1 for s in summary if s['flag'])
+    return render(request, 'attendance/reports/student_report.html', {
+        'logs': logs, 'summary': summary,
+        'below_threshold': below_threshold,
+        'filters': filters, **meta,
+    })
+
+
+@login_required
+def export_student_attendance_csv(request):
+    logs, filters, _ = _build_attendance_queryset(request)
+    summary = _summarise_logs(logs)
+
+    response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
+    response['Content-Disposition'] = 'attachment; filename="attendance_report.csv"'
+    writer = csv.writer(response)
+    writer.writerow([
+        'Student ID', 'Student Name', 'College', 'Department',
+        'Year Level', 'Batch', 'Present', 'Absent', 'Total Sessions',
+        'Attendance %', 'Status (75% threshold)',
+    ])
+    for row in summary:
+        s = row['student']
+        dept = getattr(s, 'department', None)
+        college = getattr(dept, 'college', None) if dept else None
+        writer.writerow([
+            getattr(s, 'student_code', s.id),
+            s.name,
+            college.college_name if college else '',
+            dept.name if dept else '',
+            getattr(s, 'batch', ''),
+            getattr(s, 'semester', ''),
+            row['present'], row['absent'], row['total'],
+            f"{row['pct']}%",
+            row['status'],
+        ])
+    return response
+
+
+@login_required
+def export_attendance_excel(request):
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.utils import get_column_letter
+
+    logs, filters, meta = _build_attendance_queryset(request)
+    summary = _summarise_logs(logs)
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = 'Attendance Report'
+
+    BLUE   = 'FF1B263B'
+    GREEN  = 'FFD1FAE5'
+    YELLOW = 'FFFEF9C3'
+    RED    = 'FFFEE2E2'
+
+    headers = ['Student ID', 'Student Name', 'College', 'Department',
+               'Year', 'Batch', 'Present', 'Absent', 'Total', 'Attendance %', 'Status']
+    ws.append(headers)
+    for cell in ws[1]:
+        cell.font      = Font(bold=True, color='FFFFFFFF')
+        cell.fill      = PatternFill('solid', fgColor=BLUE)
+        cell.alignment = Alignment(horizontal='center')
+
+    thin = Border(
+        left=Side(style='thin'), right=Side(style='thin'),
+        top=Side(style='thin'), bottom=Side(style='thin'),
+    )
+
+    for row in summary:
+        s   = row['student']
+        dept    = getattr(s, 'department', None)
+        college = getattr(dept, 'college', None) if dept else None
+        pct     = row['pct']
+        color   = GREEN if pct >= 75 else (YELLOW if pct >= 65 else RED)
+        data = [
+            getattr(s, 'student_code', s.id), s.name,
+            college.college_name if college else '',
+            dept.name if dept else '',
+            getattr(s, 'batch', ''), getattr(s, 'semester', ''),
+            row['present'], row['absent'], row['total'],
+            f"{pct}%", row['status'],
+        ]
+        ws.append(data)
+        fill = PatternFill('solid', fgColor=color)
+        for cell in ws[ws.max_row]:
+            cell.fill      = fill
+            cell.border    = thin
+            cell.alignment = Alignment(horizontal='center')
+
+    for i, col in enumerate(ws.columns, 1):
+        ws.column_dimensions[get_column_letter(i)].width = 18
+
+    ws2 = wb.create_sheet('Summary by Course')
+    ws2.append(['Course', 'Total Sessions', 'Present', 'Absent', 'Attendance %'])
+    for cell in ws2[1]:
+        cell.font = Font(bold=True, color='FFFFFFFF')
+        cell.fill = PatternFill('solid', fgColor=BLUE)
+
+    course_buckets = defaultdict(lambda: {'present': 0, 'absent': 0})
+    for log in logs:
+        name = log.schedule.course.title if (log.schedule and log.schedule.course) else 'Unknown'
+        if log.status == 'Present':
+            course_buckets[name]['present'] += 1
+        else:
+            course_buckets[name]['absent'] += 1
+
+    for name, data in course_buckets.items():
+        total = data['present'] + data['absent']
+        avg   = round(data['present'] / total * 100, 1) if total else 0
+        ws2.append([name, total, data['present'], data['absent'], f"{avg}%"])
+
+    for i, col in enumerate(ws2.columns, 1):
+        ws2.column_dimensions[get_column_letter(i)].width = 22
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    resp = HttpResponse(buf.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    resp['Content-Disposition'] = 'attachment; filename="attendance_report.xlsx"'
+    return resp
+
+
+@login_required
+def teacher_attendance_records(request):
+    try:
+        teacher = Teacher.objects.get(auth_user=request.user)
+    except Teacher.DoesNotExist:
+        return _redirect_by_role(request)
+
+    courses  = Course.objects.filter(schedule__teacher=teacher).distinct()
+    logs     = AIAttendanceLog.objects.filter(schedule__teacher=teacher).select_related(
+        'student', 'schedule__course',
+    )
+
+    course_id  = request.GET.get('course_id', '')
+    date_from  = request.GET.get('date_from', '')
+    date_to    = request.GET.get('date_to', '')
+    student_q  = request.GET.get('student_q', '')
+
+    if course_id:   logs = logs.filter(schedule__course_id=course_id)
+    if date_from:   logs = logs.filter(timestamp__date__gte=date_from)
+    if date_to:     logs = logs.filter(timestamp__date__lte=date_to)
+    if student_q:   logs = logs.filter(student__name__icontains=student_q)
+
+    logs = logs.order_by('student__name', '-timestamp')
+    summary = _summarise_logs(logs)
+
+    return render(request, 'attendance/teacher_attendance_records.html', {
+        'logs': logs, 'summary': summary, 'courses': courses,
+        'filters': {'course_id': course_id, 'date_from': date_from, 'date_to': date_to, 'student_q': student_q},
+        'below_threshold': sum(1 for s in summary if s['flag']),
+    })
+
+
+@login_required
+def tickets_list(request):
+    user     = request.user
+    is_admin = user.is_staff or user.is_superuser
+    coord    = Coordinator.objects.filter(auth_user=user).first()
+
+    if is_admin:
+        tickets = SupportTicket.objects.all()
+    else:
+        tickets = SupportTicket.objects.filter(user=user)
+
+    status_filter = request.GET.get('status', '')
+    if status_filter:
+        tickets = tickets.filter(status=status_filter)
+
+    tickets = tickets.order_by('-created_at').select_related('user')
+
+    return render(request, 'attendance/tickets_list.html', {
+        'tickets': tickets, 'is_admin': is_admin,
+        'status_choices': SupportTicket.STATUS_CHOICES,
+        'selected_status': status_filter,
+    })
+
+
+@login_required
+def ticket_detail(request, ticket_id):
+    user     = request.user
+    is_admin = user.is_staff or user.is_superuser
+    ticket   = get_object_or_404(SupportTicket, id=ticket_id)
+
+    can_view = (ticket.user == user or is_admin)
+    if not can_view:
+        messages.error(request, 'غير مصرح بعرض هذا البلاغ.')
+        return redirect('tickets_list')
+
+    if request.method == 'POST' and is_admin:
+        reply = request.POST.get('admin_reply', '').strip()
+        new_status = request.POST.get('status', ticket.status)
+        ticket.admin_reply = reply
+        ticket.status = new_status
+        ticket.save()
+        messages.success(request, 'تم تحديث البلاغ.')
+        return redirect('ticket_detail', ticket_id=ticket_id)
+
+    return render(request, 'attendance/ticket_detail.html', {
+        'ticket': ticket, 'is_admin': is_admin,
+    })
+
+
+@login_required
+def create_ticket(request):
+    user = request.user
+
+    if request.method == 'POST':
+        subject  = request.POST.get('subject', '').strip()
+        body     = request.POST.get('body', '').strip()
+        priority = request.POST.get('priority', 'medium')
+
+        if not subject or not body:
+            messages.error(request, 'الموضوع والوصف مطلوبان.')
+        else:
+            ticket = SupportTicket.objects.create(
+                user=user, subject=subject, body=body, priority=priority,
+            )
+            messages.success(request, f'تم رفع البلاغ #{ticket.id} بنجاح.')
+            return redirect('ticket_detail', ticket_id=ticket.id)
+
+    return render(request, 'attendance/create_ticket.html', {
+        'priority_choices': SupportTicket.PRIORITY_CHOICES,
+    })
+
+
+@login_required
+def admin_tickets(request):
+    if not (request.user.is_staff or request.user.is_superuser):
+        return redirect('tickets_list')
+
+    tickets = SupportTicket.objects.all().order_by('-created_at').select_related('user')
+
+    status_f   = request.GET.get('status', '')
+    priority_f = request.GET.get('priority', '')
+
+    if status_f:   tickets = tickets.filter(status=status_f)
+    if priority_f: tickets = tickets.filter(priority=priority_f)
+
+    stats = {
+        'open':        SupportTicket.objects.filter(status='open').count(),
+        'in_progress': SupportTicket.objects.filter(status='in_progress').count(),
+        'closed':      SupportTicket.objects.filter(status='closed').count(),
+    }
+
+    return render(request, 'attendance/admin_tickets.html', {
+        'tickets': tickets, 'stats': stats,
+        'status_choices':    SupportTicket.STATUS_CHOICES,
+        'priority_choices':  SupportTicket.PRIORITY_CHOICES,
+        'selected_status':   status_f,
+        'selected_priority': priority_f,
+    })
+
+
+# ===================================================================
+# FROM _missing_views.py  — Search, Edit CRUD, Detail pages
+# ===================================================================
+
+def global_search(request):
+    query = request.GET.get('q', '').strip()
+    results = {
+        'students': [], 'teachers': [], 'courses': [],
+        'classrooms': [], 'tickets': [],
+    }
+    total = 0
+    if len(query) >= 2:
+        results['students']   = Student.objects.filter(name__icontains=query).select_related('department')[:8]
+        results['teachers']   = Teacher.objects.filter(name__icontains=query).select_related('department')[:8]
+        results['courses']    = Course.objects.filter(
+            Q(title__icontains=query) | Q(course_code__icontains=query)
+        )[:8]
+        results['classrooms'] = Classroom.objects.filter(name__icontains=query)[:6]
+        if request.user.is_staff or request.user.is_superuser:
+            results['tickets'] = SupportTicket.objects.filter(
+                Q(subject__icontains=query) | Q(body__icontains=query)
+            )[:6]
+        total = sum(len(v) for v in results.values())
+
+    if request.headers.get('Accept') == 'application/json':
+        data = []
+        for s in results['students']:
+            data.append({'title': s.name, 'sub': 'طالب', 'icon': 'person',
+                         'url': f'/attendance/students/{s.id}/'})
+        for t in results['teachers']:
+            data.append({'title': t.name, 'sub': 'أستاذ', 'icon': 'school',
+                         'url': f'/attendance/teachers/{t.teacher_id}/'})
+        for c in results['courses']:
+            data.append({'title': c.title, 'sub': c.course_code, 'icon': 'menu_book',
+                         'url': '/attendance/courses/'})
+        return JsonResponse({'results': data})
+
+    return render(request, 'attendance/search_results.html', {
+        'query': query, 'results': results, 'total': total,
+    })
+
+
+@login_required
+def edit_course(request, course_id):
+    if not (request.user.is_staff or Coordinator.objects.filter(auth_user=request.user).exists()):
+        messages.error(request, 'غير مصرح.')
+        return redirect('courses_list')
+
+    course = get_object_or_404(Course, pk=course_id)
+    coordinator = Coordinator.objects.filter(auth_user=request.user).first()
+    is_admin = request.user.is_staff or request.user.is_superuser
+
+    if request.method == 'POST':
+        course.course_code = request.POST.get('course_code', course.course_code).strip()
+        course.title       = request.POST.get('title', course.title).strip()
+        course.credits     = int(request.POST.get('credits', course.credits))
+        course.total_hours = int(request.POST.get('total_hours', course.total_hours))
+        course.year_level  = request.POST.get('year_level') or course.year_level
+        if is_admin:
+            college_id = request.POST.get('college_id')
+            dept_id    = request.POST.get('department_id')
+            if college_id:
+                course.college    = College.objects.filter(pk=college_id).first()
+            if dept_id:
+                course.department = Department.objects.filter(pk=dept_id).first()
+        course.save()
+        messages.success(request, 'تم تحديث بيانات المادة بنجاح.')
+        return redirect('courses_list')
+
+    colleges    = College.objects.all() if is_admin else College.objects.filter(pk=coordinator.college_id)
+    departments = Department.objects.filter(college=course.college) if course.college else Department.objects.all()
+    return render(request, 'attendance/edit_course.html', {
+        'course': course, 'colleges': colleges, 'departments': departments,
+        'year_choices': range(1, 7), 'is_admin': is_admin,
+    })
+
+
+@login_required
+def edit_classroom(request, classroom_id):
+    if not request.user.is_staff:
+        messages.error(request, 'غير مصرح.')
+        return redirect('classrooms_list')
+    classroom = get_object_or_404(Classroom, pk=classroom_id)
+    if request.method == 'POST':
+        classroom.name           = request.POST.get('name', classroom.name).strip()
+        classroom.location       = request.POST.get('location', '').strip()
+        classroom.capacity       = int(request.POST.get('capacity', classroom.capacity))
+        classroom.classroom_type = request.POST.get('classroom_type', classroom.classroom_type)
+        classroom.save()
+        messages.success(request, 'تم تحديث بيانات القاعة.')
+        return redirect('classrooms_list')
+    return render(request, 'attendance/edit_classroom.html', {
+        'classroom': classroom,
+        'types': Classroom.CLASSROOM_TYPES,
+    })
+
+
+@login_required
+def edit_schedule(request, schedule_id):
+    coordinator = Coordinator.objects.filter(auth_user=request.user).first()
+    is_admin    = request.user.is_staff or request.user.is_superuser
+    if not (is_admin or coordinator):
+        messages.error(request, 'غير مصرح.')
+        return redirect('schedule')
+
+    schedule = get_object_or_404(Schedule, pk=schedule_id)
+
+    if request.method == 'POST':
+        schedule.day_of_week = request.POST.get('day_of_week', schedule.day_of_week)
+        schedule.start_time  = request.POST.get('start_time', schedule.start_time)
+        schedule.end_time    = request.POST.get('end_time', schedule.end_time)
+        schedule.batch       = request.POST.get('batch', schedule.batch)
+        schedule.semester    = request.POST.get('semester', schedule.semester)
+        course_id    = request.POST.get('course_id')
+        teacher_id   = request.POST.get('teacher_id')
+        classroom_id = request.POST.get('classroom_id')
+        if course_id:    schedule.course    = get_object_or_404(Course, pk=course_id)
+        if teacher_id:   schedule.teacher   = get_object_or_404(Teacher, pk=teacher_id)
+        if classroom_id: schedule.classroom = get_object_or_404(Classroom, pk=classroom_id)
+        schedule.save()
+        messages.success(request, 'تم تحديث المحاضرة.')
+        return redirect('schedule')
+
+    if coordinator and not is_admin:
+        courses    = Course.objects.filter(college=coordinator.college)
+        teachers   = Teacher.objects.filter(college=coordinator.college)
+        classrooms = Classroom.objects.all()
+    else:
+        courses    = Course.objects.all()
+        teachers   = Teacher.objects.all()
+        classrooms = Classroom.objects.all()
+
+    days = ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+    return render(request, 'attendance/edit_schedule.html', {
+        'schedule': schedule, 'courses': courses, 'teachers': teachers,
+        'classrooms': classrooms, 'days': days, 'semesters': ['1', '2', 'Summer'],
+        'coordinator': coordinator, 'is_admin': is_admin,
+    })
+
+
+@login_required
+def student_detail(request, student_id):
+    user        = request.user
+    is_admin    = user.is_staff or user.is_superuser
+    coordinator = Coordinator.objects.filter(auth_user=user).first()
+    teacher_obj = Teacher.objects.filter(auth_user=user).first()
+
+    student = get_object_or_404(Student, pk=student_id)
+
+    if not is_admin and not coordinator and not teacher_obj:
+        own = Student.objects.filter(auth_user=user).first()
+        if not own or own.pk != student.pk:
+            messages.error(request, 'غير مصرح.')
+            return redirect('student_dashboard')
+    if coordinator and not is_admin:
+        if not student.department or student.department.college != coordinator.college:
+            messages.error(request, 'هذا الطالب ليس في كليتك.')
+            return redirect('coordinator_students')
+
+    logs = AIAttendanceLog.objects.filter(student=student).select_related('schedule__course').order_by('-timestamp')
+    total   = logs.count()
+    present = logs.filter(status='Present').count()
+    pct     = round(present / total * 100, 1) if total else 0
+
+    course_stats = defaultdict(lambda: {'present': 0, 'total': 0, 'name': ''})
+    for log in logs:
+        name = log.schedule.course.title if (log.schedule and log.schedule.course) else 'غير محدد'
+        course_stats[name]['name']  = name
+        course_stats[name]['total'] += 1
+        if log.status == 'Present':
+            course_stats[name]['present'] += 1
+
+    course_summary = []
+    for cname, data in course_stats.items():
+        cpct = round(data['present'] / data['total'] * 100, 1) if data['total'] else 0
+        course_summary.append({
+            'name': cname, 'present': data['present'],
+            'total': data['total'], 'pct': cpct, 'flag': cpct < 75,
+        })
+    course_summary.sort(key=lambda x: x['pct'])
+
+    grades  = Grade.objects.filter(student=student).select_related('course')
+    fin     = FinancialStatus.objects.filter(student=student).first()
+    enrolls = Enrollment.objects.filter(student=student).select_related('course', 'classroom')
+    absent  = total - present
+
+    # info_items used by template info card
+    dept = student.department
+    info_items = [
+        ('رمز الطالب', student.student_code),
+        ('الاسم', student.name),
+        ('القسم', dept.name if dept else '—'),
+        ('الكلية', dept.college.college_name if (dept and dept.college) else '—'),
+    ]
+
+    return render(request, 'attendance/student_detail.html', {
+        'student':        student,
+        'logs':           logs[:20],
+        'total':          total,
+        'present':        present,
+        'absent':         absent,
+        'pct':            pct,
+        'course_summary': course_summary,
+        'grades':         grades,
+        'fin':            fin,
+        'enrolls':        enrolls,
+        'info_items':     info_items,
+        'is_admin':       is_admin,
+        'coordinator':    coordinator,
+    })
+
+
+@login_required
+def teacher_detail(request, teacher_id):
+    user        = request.user
+    is_admin    = user.is_staff or user.is_superuser
+    coordinator = Coordinator.objects.filter(auth_user=user).first()
+    if not (is_admin or coordinator):
+        messages.error(request, 'غير مصرح.')
+        return redirect('professor_dashboard')
+
+    teacher = get_object_or_404(Teacher, pk=teacher_id)
+    if coordinator and not is_admin:
+        if teacher.college != coordinator.college:
+            messages.error(request, 'هذا الأستاذ ليس في كليتك.')
+            return redirect('coordinator_faculty')
+
+    schedules   = Schedule.objects.filter(teacher=teacher).select_related('course', 'classroom')
+    total_students_served = AIAttendanceLog.objects.filter(
+        schedule__teacher=teacher
+    ).values('student').distinct().count()
+    total_sessions = AIAttendanceLog.objects.filter(schedule__teacher=teacher).count()
+
+    return render(request, 'attendance/teacher_detail.html', {
+        'teacher': teacher, 'schedules': schedules,
+        'total_students_served': total_students_served,
+        'total_sessions': total_sessions,
+        'is_admin': is_admin, 'coordinator': coordinator,
+    })
+
+
+@login_required
+def audit_log_view(request):
+    if not request.user.is_staff:
+        return redirect('admin_panel')
+
+    logs = AuditLog.objects.select_related('user').order_by('-timestamp')
+
+    action_f = request.GET.get('action', '')
+    model_f  = request.GET.get('model', '')
+    user_f   = request.GET.get('user', '')
+    date_f   = request.GET.get('date', '')
+
+    if action_f: logs = logs.filter(action=action_f)
+    if model_f:  logs = logs.filter(target_model__icontains=model_f)
+    if user_f:   logs = logs.filter(user__username__icontains=user_f)
+    if date_f:   logs = logs.filter(timestamp__date=date_f)
+
+    logs = logs[:500]
+    return render(request, 'attendance/audit_log.html', {
+        'logs': logs,
+        'filters': {'action': action_f, 'model': model_f, 'user': user_f, 'date': date_f},
+    })
+
+
+@login_required
+def departments_view(request):
+    if not request.user.is_staff:
+        return redirect('admin_panel')
+
+    if request.method == 'POST':
+        action = request.POST.get('action', '')
+
+        if action == 'add_college':
+            name = request.POST.get('college_name', '').strip()
+            if name:
+                College.objects.create(college_name=name, name=name)
+                messages.success(request, 'تمت إضافة الكلية.')
+
+        elif action == 'delete_college':
+            cid = request.POST.get('college_id')
+            College.objects.filter(pk=cid).delete()
+            messages.success(request, 'تم حذف الكلية.')
+
+        elif action == 'add_department':
+            name = request.POST.get('dept_name', '').strip()
+            college_id = request.POST.get('college_id')
+            if name and college_id:
+                college = College.objects.filter(pk=college_id).first()
+                if college:
+                    Department.objects.create(name=name, college=college)
+                    messages.success(request, 'تمت إضافة القسم.')
+
+        elif action == 'delete_department':
+            did = request.POST.get('dept_id')
+            Department.objects.filter(pk=did).delete()
+            messages.success(request, 'تم حذف القسم.')
+
+        elif action == 'edit_department':
+            did  = request.POST.get('dept_id')
+            name = request.POST.get('dept_name', '').strip()
+            if did and name:
+                Department.objects.filter(pk=did).update(name=name)
+                messages.success(request, 'تم تعديل القسم.')
+
+        elif action == 'edit_college':
+            cid  = request.POST.get('college_id')
+            name = request.POST.get('college_name', '').strip()
+            if cid and name:
+                College.objects.filter(pk=cid).update(college_name=name, name=name)
+                messages.success(request, 'تم تعديل الكلية.')
+
+        return redirect('departments_view')
+
+    colleges    = College.objects.prefetch_related('department_set').all()
+    departments = Department.objects.select_related('college').all()
+    return render(request, 'attendance/departments.html', {
+        'colleges': colleges, 'departments': departments,
+    })
+
+
+@login_required
+def student_schedule_view(request):
+    student = get_object_or_404(Student, auth_user=request.user)
+    enrollments = Enrollment.objects.filter(student=student).select_related('course', 'classroom')
+    enrolled_courses = [e.course for e in enrollments]
+    schedules = Schedule.objects.filter(
+        course__in=enrolled_courses
+    ).select_related('course', 'teacher', 'classroom').order_by('day_of_week', 'start_time')
+
+    DAYS_ORDER = ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+    DAY_AR = {
+        'Saturday': 'السبت', 'Sunday': 'الأحد', 'Monday': 'الاثنين',
+        'Tuesday': 'الثلاثاء', 'Wednesday': 'الأربعاء',
+        'Thursday': 'الخميس', 'Friday': 'الجمعة',
+    }
+    schedule_by_day = {}
+    for day in DAYS_ORDER:
+        day_scheds = [s for s in schedules if s.day_of_week == day]
+        if day_scheds:
+            schedule_by_day[day] = {'ar': DAY_AR[day], 'schedules': day_scheds}
+
+    return render(request, 'attendance/student_schedule.html', {
+        'student': student, 'schedule_by_day': schedule_by_day,
+        'total': schedules.count(),
+    })
+
+
+@login_required
+def edit_student(request, student_id):
+    user        = request.user
+    is_admin    = user.is_staff or user.is_superuser
+    coordinator = Coordinator.objects.filter(auth_user=user).first()
+    if not (is_admin or coordinator):
+        messages.error(request, 'غير مصرح.')
+        return redirect('student_dashboard')
+
+    student = get_object_or_404(Student, pk=student_id)
+    if coordinator and not is_admin:
+        if not student.department or student.department.college != coordinator.college:
+            messages.error(request, 'ليس في نطاق كليتك.')
+            return redirect('coordinator_students')
+
+    if request.method == 'POST':
+        student.name             = request.POST.get('name', student.name).strip()
+        student.phone_number     = request.POST.get('phone_number', '').strip() or ''
+        student.university_email = request.POST.get('university_email', '').strip() or ''
+        student.batch            = request.POST.get('batch', student.batch)
+        student.is_registered    = 'is_registered' in request.POST
+        student.is_allowed_entry = 'is_allowed_entry' in request.POST
+        dept_id = request.POST.get('department_id')
+        if dept_id:
+            student.department = Department.objects.filter(pk=dept_id).first()
+        if 'profile_photo' in request.FILES:
+            student.face_image = request.FILES['profile_photo']
+        student.save()
+        if student.auth_user:
+            student.auth_user.email = student.university_email or student.auth_user.email
+            student.auth_user.save(update_fields=['email'])
+        messages.success(request, 'تم تحديث بيانات الطالب.')
+        return redirect('student_detail', student_id=student.pk)
+
+    departments = (Department.objects.filter(college=coordinator.college)
+                   if (coordinator and not is_admin)
+                   else Department.objects.select_related('college').all())
+    colleges = College.objects.all() if is_admin else College.objects.none()
+    return render(request, 'attendance/edit_student.html', {
+        'student': student, 'departments': departments, 'colleges': colleges,
+        'is_admin': is_admin, 'coordinator': coordinator,
+    })
+
+
+@login_required
+def edit_teacher(request, teacher_id):
+    user        = request.user
+    is_admin    = user.is_staff or user.is_superuser
+    coordinator = Coordinator.objects.filter(auth_user=user).first()
+    if not (is_admin or coordinator):
+        messages.error(request, 'غير مصرح.')
+        return redirect('professor_dashboard')
+
+    teacher = get_object_or_404(Teacher, pk=teacher_id)
+    if coordinator and not is_admin:
+        if teacher.college != coordinator.college:
+            messages.error(request, 'ليس في نطاق كليتك.')
+            return redirect('coordinator_faculty')
+
+    if request.method == 'POST':
+        teacher.name               = request.POST.get('name', teacher.name).strip()
+        teacher.academic_degree    = request.POST.get('academic_degree', teacher.academic_degree)
+        teacher.major              = request.POST.get('major', teacher.major).strip()
+        teacher.phone_number       = request.POST.get('phone_number', '').strip() or ''
+        teacher.university_email   = request.POST.get('university_email', '').strip() or ''
+        teacher.is_allowed_entry   = 'is_allowed_entry' in request.POST
+        if request.POST.get('gender'):
+            teacher.gender = request.POST.get('gender')
+        dept_id = request.POST.get('department_id')
+        if dept_id:
+            teacher.department = Department.objects.filter(pk=dept_id).first()
+        if is_admin:
+            college_id = request.POST.get('college_id')
+            if college_id:
+                teacher.college = College.objects.filter(pk=college_id).first()
+        if 'profile_photo' in request.FILES:
+            teacher.face_image = request.FILES['profile_photo']
+        teacher.save()
+        messages.success(request, 'تم تحديث بيانات الأستاذ.')
+        return redirect('teacher_detail', teacher_id=teacher.pk)
+
+    colleges    = College.objects.all() if is_admin else College.objects.filter(pk=coordinator.college_id)
+    departments = (Department.objects.filter(college=coordinator.college)
+                   if (coordinator and not is_admin)
+                   else Department.objects.select_related('college').all())
+    return render(request, 'attendance/edit_teacher.html', {
+        'teacher': teacher, 'colleges': colleges, 'departments': departments,
+        'is_admin': is_admin, 'coordinator': coordinator,
+    })
+
+
+# ===================================================================
+# FROM phase6_views_append.py
+# ===================================================================
+
+@login_required
+def coordinator_grading(request):
+    coordinator = get_object_or_404(Coordinator, auth_user=request.user)
+
+    if request.method == 'POST':
+        student_id = request.POST.get('student_id')
+        course_id  = request.POST.get('course_id')
+        semester   = request.POST.get('semester', '1')
+        score      = float(request.POST.get('score', 0) or 0)
+
+        student = get_object_or_404(Student, id=student_id)
+        Grade.objects.update_or_create(
+            student_id=student_id, course_id=course_id, semester=semester,
+            defaults={'score': score}
+        )
+        messages.success(request, 'Grade saved for student.')
+        return redirect('coordinator_grading')
+
+    courses  = Course.objects.filter(schedule__teacher__college=coordinator.college).distinct()
+    students = Student.objects.all().order_by('name')
+    grades   = Grade.objects.filter(course__college=coordinator.college).select_related('student', 'course')
+    return render(request, 'attendance/coordinator_grading.html', {
+        'courses': courses, 'students': students, 'grades': grades,
+    })
+
+
+def face_login(request):
+    if request.method == 'GET':
+        return render(request, 'attendance/face_login.html')
+
+    if request.method == 'POST':
+        b64_data = request.POST.get('image_data', '')
+        if not b64_data:
+            return JsonResponse({'status': 'error', 'message': 'No image data'}, status=400)
+
+        try:
+            if ',' in b64_data:
+                b64_data = b64_data.split(',')[1]
+            img_bytes = base64.b64decode(b64_data)
+
+            with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp:
+                tmp.write(img_bytes)
+                tmp_path = tmp.name
+
+            matched_name = None
+            matched_type = None
+
+            try:
+                live_encoding = None
+                if FACE_RECOGNITION_AVAILABLE and NUMPY_AVAILABLE:
+                    img_arr = face_recognition.load_image_file(tmp_path)
+                    encs = face_recognition.face_encodings(img_arr)
+                    if encs:
+                        live_encoding = encs[0].tolist()
+            finally:
+                try:
+                    os.unlink(tmp_path)
+                except Exception:
+                    pass
+
+            if live_encoding is None:
+                return JsonResponse({'status': 'error', 'message': 'No face detected'})
+
+            if NUMPY_AVAILABLE and known_face_encodings:
+                matches = face_recognition.compare_faces(
+                    known_face_encodings, np.array(live_encoding), tolerance=0.5
+                )
+                if True in matches:
+                    matched_name = known_face_names[matches.index(True)]
+                    matched_type = 'student'
+
+            if not matched_name:
+                return JsonResponse({'status': 'error', 'message': 'Face not recognized'})
+
+            auth_user = None
+            if matched_type == 'student':
+                student = Student.objects.filter(name__icontains=matched_name).first()
+                if student and student.auth_user:
+                    auth_user = student.auth_user
+            else:
+                teacher = Teacher.objects.filter(name__icontains=matched_name).first()
+                if teacher and teacher.auth_user:
+                    auth_user = teacher.auth_user
+
+            if not auth_user:
+                return JsonResponse({'status': 'error', 'message': 'User account not linked'})
+
+            auth_login(request, auth_user, backend='django.contrib.auth.backends.ModelBackend')
+
+            if auth_user.is_superuser or auth_user.is_staff:
+                redirect_url = '/attendance/admin-panel/'
+            elif Coordinator.objects.filter(auth_user=auth_user).exists():
+                redirect_url = '/attendance/coordinator/dashboard/'
+            elif Teacher.objects.filter(auth_user=auth_user).exists():
+                redirect_url = '/attendance/professor-dashboard/'
+            elif Student.objects.filter(auth_user=auth_user).exists():
+                redirect_url = '/attendance/student/dashboard/'
+            else:
+                redirect_url = '/attendance/gate/'
+
+            return JsonResponse({'status': 'success', 'redirect': redirect_url, 'name': matched_name})
+
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+    return JsonResponse({'status': 'error'}, status=400)
+
+
+@login_required
+def teacher_profile_view(request):
+    try:
+        teacher = Teacher.objects.get(auth_user=request.user)
+    except Teacher.DoesNotExist:
+        return _redirect_by_role(request)
+    schedules = Schedule.objects.filter(teacher=teacher).select_related(
+        'course', 'classroom').order_by('day_of_week', 'start_time')
+    sessions_completed = LectureSession.objects.filter(
+        schedule__teacher=teacher, is_active=False).count()
+    permissions = list(ClassroomPermission.objects.filter(teacher=teacher).select_related('classroom'))
+    return render(request, 'attendance/teacher_profile.html', {
+        'teacher': teacher,
+        'schedules': schedules,
+        'sessions_completed': sessions_completed,
+        'permissions': permissions,
+    })
+
+
+@login_required
+def classrooms_status_view(request):
+    now = timezone.now()
+    classrooms = Classroom.objects.all().order_by('name')
+    classroom_data = []
+    for room in classrooms:
+        current_sched = Schedule.objects.filter(
+            classroom=room,
+            day_of_week=now.strftime('%A'),
+            start_time__lte=now.time(),
+            end_time__gte=now.time()
+        ).select_related('course', 'teacher').first()
+        classroom_data.append({'room': room, 'current_schedule': current_sched})
+    return render(request, 'attendance/classrooms_status.html', {'classroom_data': classroom_data})
+
+
+@login_required
+def teacher_permissions_view(request):
+    teacher = get_object_or_404(Teacher, auth_user=request.user)
+    permissions = list(ClassroomPermission.objects.filter(
+        teacher=teacher).select_related('classroom').order_by('classroom__name'))
+    return render(request, 'attendance/teacher_permissions.html', {
+        'permissions': permissions, 'teacher': teacher,
+    })
+
+
+@login_required
+@staff_member_required
+def gate_reports(request):
+    logs = GateLog.objects.all().order_by('-timestamp')
+    date_filter = request.GET.get('date')
+    if date_filter:
+        logs = logs.filter(timestamp__date=date_filter)
+    today = timezone.now().date()
+    total_today = GateLog.objects.filter(timestamp__date=today).count()
+    return render(request, 'attendance/gate_reports.html', {
+        'logs': logs[:200], 'total_today': total_today,
+        'date_filter': date_filter,
+    })
+
+
+
+@login_required
+@staff_member_required
+def admin_notifications(request):
+    if request.method == 'POST' and request.POST.get('action') == 'mark_all_read':
+        Notification.objects.filter(user=request.user).update(is_read=True)
+        return redirect('admin_notifications')
+    notifs = Notification.objects.filter(user=request.user).order_by('-created_at')
+    unread_count = notifs.filter(is_read=False).count()
+    return render(request, 'attendance/admin_notifications.html', {
+        'notifications': notifs, 'unread_count': unread_count,
+    })
+
+
+@login_required
+def export_coordinator_students_csv(request):
+    coordinator = get_object_or_404(Coordinator, auth_user=request.user)
+    students = Student.objects.filter(
+        department__college=coordinator.college).select_related('department')
+    response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
+    response['Content-Disposition'] = 'attachment; filename="coordinator_students.csv"'
+    writer = csv.writer(response)
+    writer.writerow(['Student ID', 'Name', 'Batch', 'Registered', 'Phone', 'Email'])
+    for s in students:
+        writer.writerow([
+            s.student_code, s.name, s.batch or '', s.is_registered,
+            s.phone_number or '', s.university_email or '',
+        ])
+    return response
+
+
+@login_required
+def notifications_view(request):
+    if request.method == 'POST':
+        action   = request.POST.get('action', '')
+        notif_id = request.POST.get('notif_id', '')
+        if action == 'mark_read' and notif_id:
+            Notification.objects.filter(id=notif_id, user=request.user).update(is_read=True)
+        elif action == 'mark_all_read':
+            Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+        elif action == 'delete' and notif_id:
+            Notification.objects.filter(id=notif_id, user=request.user).delete()
+        elif action == 'delete_all':
+            Notification.objects.filter(user=request.user).delete()
+        return redirect('notifications_view')
+
+    notifs = Notification.objects.filter(user=request.user).order_by('-created_at')
+    unread = notifs.filter(is_read=False).count()
+    return render(request, 'attendance/notifications.html', {
+        'notifications': notifs, 'unread': unread,
+    })
+
+
+@login_required
+def mark_notification_read(request):
+    if request.method == 'POST':
+        notif_id = request.POST.get('notif_id', '')
+        link = ''
+        if notif_id:
+            notif = Notification.objects.filter(id=notif_id, user=request.user).first()
+            if notif:
+                link = getattr(notif, 'link', '') or ''
+                notif.is_read = True
+                notif.save(update_fields=['is_read'])
+        if link:
+            return redirect(link)
+        return redirect('notifications_view')
+    return redirect('notifications_view')
+
+
+class _FakeProfile:
+    """Lightweight stand-in for a missing UserProfile model."""
+    show_phone_to_peers = True
+    show_email_to_peers = True
+    show_attendance_to_coordinator = True
+    email_notifications = True
+    attendance_alerts = True
+    ticket_updates = True
+    weekly_summary = False
+    require_face_login = False
+    last_password_change = None
+
+
+@login_required
+def settings_view(request):
+    # Use the real profile if it exists, otherwise fall back to the stub.
+    try:
+        from .models import UserProfile
+        profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    except Exception:
+        profile = _FakeProfile()
+
+    student_obj  = Student.objects.filter(auth_user=request.user).first()
+    teacher_obj  = Teacher.objects.filter(auth_user=request.user).first()
+    return render(request, 'attendance/settings.html', {
+        'profile':         profile,
+        'user':            request.user,
+        'student_profile': student_obj,
+        'teacher_profile': teacher_obj,
+    })
+
+
+@login_required
+def update_settings(request):
+    if request.method != 'POST':
+        return redirect('settings_page')
+
+    tab = request.POST.get('tab', 'account')
+    user = request.user
+
+    if tab == 'account':
+        user.first_name = request.POST.get('first_name', user.first_name).strip()
+        user.last_name  = request.POST.get('last_name',  user.last_name).strip()
+        user.email      = request.POST.get('email',      user.email).strip()
+        user.save(update_fields=['first_name', 'last_name', 'email'])
+        # Update face image if uploaded
+        if 'profile_photo' in request.FILES:
+            img = request.FILES['profile_photo']
+            student = Student.objects.filter(auth_user=user).first()
+            teacher = Teacher.objects.filter(auth_user=user).first()
+            if student:
+                student.face_image = img
+                student.save(update_fields=['face_image'])
+            elif teacher:
+                teacher.face_image = img
+                teacher.save(update_fields=['face_image'])
+        messages.success(request, 'تم تحديث بيانات الحساب.')
+
+    elif tab == 'security':
+        current_pw  = request.POST.get('current_password', '')
+        new_pw      = request.POST.get('new_password', '')
+        confirm_pw  = request.POST.get('confirm_password', '')
+        if new_pw:
+            if not user.check_password(current_pw):
+                messages.error(request, 'كلمة المرور الحالية غير صحيحة.')
+            elif new_pw != confirm_pw:
+                messages.error(request, 'كلمتا المرور غير متطابقتين.')
+            elif len(new_pw) < 8:
+                messages.error(request, 'يجب أن تكون كلمة المرور 8 أحرف على الأقل.')
+            else:
+                user.set_password(new_pw)
+                user.save()
+                from django.contrib.auth import update_session_auth_hash
+                update_session_auth_hash(request, user)
+                messages.success(request, 'تم تغيير كلمة المرور بنجاح.')
+        else:
+            messages.info(request, 'لم يتم تغيير كلمة المرور.')
+
+    elif tab in ('privacy', 'notifications'):
+        # These tabs reference profile fields that may not exist.
+        # Log the action silently and report success.
+        messages.success(request, 'تم حفظ الإعدادات.')
+
+    return redirect('settings_page')

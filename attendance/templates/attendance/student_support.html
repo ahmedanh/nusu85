@@ -1,0 +1,74 @@
+{% extends 'attendance/base.html' %}
+{% block title %}الدعم الفني — SHAMEL{% endblock %}
+{% block content %}
+<div class="space-y-6">
+
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">الدعم الفني</h1>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">تقديم البلاغات ومتابعة حالتها</p>
+    </div>
+    <a href="{% url 'create_ticket' %}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:opacity-90 transition-all">
+      <span class="material-symbols-outlined text-base">add</span> بلاغ جديد
+    </a>
+  </div>
+
+  <!-- My Tickets -->
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700">
+      <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm">بلاغاتي ({{ tickets|length }})</h2>
+    </div>
+    {% if tickets %}
+    <div class="divide-y divide-slate-50 dark:divide-slate-700/50">
+      {% for ticket in tickets %}
+      <a href="{% url 'ticket_detail' ticket.id %}" class="flex items-center justify-between px-6 py-4 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors block">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0
+            {% if ticket.status == 'open' %}bg-blue-100 dark:bg-blue-900/30
+            {% elif ticket.status == 'in_progress' %}bg-yellow-100 dark:bg-yellow-900/30
+            {% else %}bg-green-100 dark:bg-green-900/30{% endif %}">
+            <span class="material-symbols-outlined text-sm
+              {% if ticket.status == 'open' %}text-blue-600 dark:text-blue-400
+              {% elif ticket.status == 'in_progress' %}text-yellow-600 dark:text-yellow-400
+              {% else %}text-green-600 dark:text-green-400{% endif %}">
+              {% if ticket.status == 'open' %}inbox{% elif ticket.status == 'in_progress' %}pending{% else %}check_circle{% endif %}
+            </span>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-slate-800 dark:text-slate-100">{{ ticket.subject }}</p>
+            <p class="text-xs text-slate-400 mt-0.5">{{ ticket.created_at|date:"Y-m-d" }} · أولوية: {{ ticket.get_priority_display }}</p>
+          </div>
+        </div>
+        <span class="px-2.5 py-1 rounded-full text-xs font-bold shrink-0
+          {% if ticket.status == 'open' %}bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400
+          {% elif ticket.status == 'in_progress' %}bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400
+          {% else %}bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400{% endif %}">
+          {{ ticket.get_status_display }}
+        </span>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="px-6 py-16 text-center">
+      <span class="material-symbols-outlined text-4xl block mb-2 text-slate-300">support_agent</span>
+      <p class="text-slate-400 text-sm">لا توجد بلاغات بعد</p>
+      <a href="{% url 'create_ticket' %}" class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-bold rounded-xl hover:opacity-90">
+        <span class="material-symbols-outlined text-sm">add</span> إنشاء بلاغ
+      </a>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Help Info -->
+  <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-2xl p-5">
+    <div class="flex gap-3">
+      <span class="material-symbols-outlined text-blue-500 shrink-0 mt-0.5">info</span>
+      <div>
+        <p class="text-sm font-bold text-blue-800 dark:text-blue-300 mb-1">كيفية التواصل</p>
+        <p class="text-sm text-blue-700 dark:text-blue-400">يمكنك رفع بلاغ لأي مشكلة تقنية أو إدارية. سيتم الرد خلال 24–48 ساعة عمل. تتبع حالة بلاغك من هذه الصفحة.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

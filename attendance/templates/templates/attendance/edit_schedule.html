@@ -1,0 +1,95 @@
+﻿{% extends 'attendance/base.html' %}
+{% block title %}تعديل المحاضرة — SHAMEL{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto space-y-6">
+  <div class="flex items-center gap-4">
+    <a href="{% url 'schedule' %}" class="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-slate-500 hover:text-slate-800 transition-all shadow-sm">
+      <span class="material-symbols-outlined text-lg">arrow_back</span>
+    </a>
+    <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">تعديل المحاضرة</h1>
+  </div>
+
+  <form method="post" class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+    {% csrf_token %}
+    <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary">calendar_month</span>
+      <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm">بيانات المحاضرة</h2>
+    </div>
+    <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+
+      <div class="md:col-span-2">
+        <label class="label-xs">المادة الدراسية *</label>
+        <select name="course_id" required class="inp">
+          {% for c in courses %}
+          <option value="{{ c.id }}" {% if schedule.course_id == c.id %}selected{% endif %}>{{ c.course_code }} — {{ c.title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="label-xs">الأستاذ *</label>
+        <select name="teacher_id" required class="inp">
+          {% for t in teachers %}
+          <option value="{{ t.teacher_id }}" {% if schedule.teacher_id == t.teacher_id %}selected{% endif %}>{{ t.academic_degree }} {{ t.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="label-xs">القاعة *</label>
+        <select name="classroom_id" required class="inp">
+          {% for r in classrooms %}
+          <option value="{{ r.id }}" {% if schedule.classroom_id == r.id %}selected{% endif %}>{{ r.name }} ({{ r.capacity }} مقعد)</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="label-xs">اليوم *</label>
+        <select name="day_of_week" required class="inp">
+          {% for d in days %}
+          <option value="{{ d }}" {% if schedule.day_of_week == d %}selected{% endif %}>
+            {% if d == 'Saturday' %}السبت{% elif d == 'Sunday' %}الأحد{% elif d == 'Monday' %}الاثنين
+            {% elif d == 'Tuesday' %}الثلاثاء{% elif d == 'Wednesday' %}الأربعاء{% elif d == 'Thursday' %}الخميس
+            {% else %}الجمعة{% endif %}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="label-xs">من</label>
+          <input type="time" name="start_time" value="{{ schedule.start_time|time:'H:i' }}" required class="inp">
+        </div>
+        <div>
+          <label class="label-xs">إلى</label>
+          <input type="time" name="end_time" value="{{ schedule.end_time|time:'H:i' }}" required class="inp">
+        </div>
+      </div>
+      <div>
+        <label class="label-xs">الدفعة</label>
+        <input type="text" name="batch" value="{{ schedule.batch }}" class="inp">
+      </div>
+      <div>
+        <label class="label-xs">الفصل الدراسي</label>
+        <select name="semester" class="inp">
+          {% for s in semesters %}
+          <option value="{{ s }}" {% if schedule.semester == s %}selected{% endif %}>الفصل {{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="label-xs">عدد المحاضرات المطلوبة</label>
+        <input type="number" name="total_lectures_required" value="{{ schedule.total_lectures_required }}" min="1" max="30" class="inp">
+      </div>
+    </div>
+    <div class="px-6 pb-6 flex gap-3">
+      <button type="submit" class="inline-flex items-center gap-2 bg-primary hover:bg-primary-container text-white font-bold text-sm px-6 py-3 rounded-xl transition-all shadow-sm">
+        <span class="material-symbols-outlined text-base">save</span> حفظ التعديلات
+      </button>
+      <a href="{% url 'schedule' %}" class="inline-flex items-center gap-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-sm px-5 py-3 rounded-xl hover:bg-slate-200 transition-all">إلغاء</a>
+    </div>
+  </form>
+</div>
+<style>
+  .label-xs { @apply block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5; }
+  .inp { @apply w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm font-medium dark:text-white focus:ring-2 focus:ring-primary/20 outline-none transition-all; }
+</style>
+{% endblock %}

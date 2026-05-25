@@ -1,0 +1,104 @@
+﻿{% extends 'attendance/base.html' %}
+{% block title %}تقييم المواد — SHAMEL{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6">
+  <div>
+    <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">تقييم المواد والأساتذة</html>
+    <p class="text-sm text-slate-500 mt-1">تقييمك سري ومجهول الهوية — يُستخدم لتحسين جودة التدريس</p>
+  </div>
+
+  {% if messages %}{% for msg in messages %}
+  <div class="px-4 py-3 rounded-xl text-sm font-semibold {% if msg.tags == 'success' %}bg-emerald-50 text-emerald-700 border border-emerald-200{% else %}bg-red-50 text-red-700 border border-red-200{% endif %}">{{ msg }}</div>
+  {% endfor %}{% endif %}
+
+  <!-- Semester selector -->
+  <form method="get" class="flex items-center gap-3">
+    <label class="text-sm font-semibold text-slate-600 dark:text-slate-300">الفصل الدراسي:</label>
+    <select name="semester" onchange="this.form.submit()" class="rounded-xl bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-2 text-sm dark:text-white outline-none">
+      {% for s in semester_choices %}<option value="{{ s }}" {% if semester == s|stringformat:'s' %}selected{% endif %}>الفصل {{ s }}</option>{% endfor %}
+    </select>
+  </form>
+
+  {% if pending_courses %}
+  {% for course in pending_courses %}
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary text-lg">rate_review</span>
+      <h2 class="font-bold text-slate-700 dark:text-slate-200">{{ course.title }}</h2>
+      <span class="text-xs text-slate-400 ml-2">{{ course.course_code }}</span>
+    </div>
+    <form method="post" class="p-6 space-y-5">
+      {% csrf_token %}
+      <input type="hidden" name="semester" value="{{ semester }}">
+      <input type="hidden" name="course_id" value="{{ course.id }}">
+      <input type="hidden" name="teacher_id" value="{{ course.schedule_set.first.teacher.pk|default:'' }}">
+
+      {% for dim,label in dimensions|default:"" %}{% endfor %}
+      {% for dim,label in "clarity:وضوح الشرح,engagement:التفاعل مع الطلاب,fairness:عدالة التقييم,punctuality:الالتزام بالوقت,overall:التقييم العام"|split:"," %}{% endfor %}
+
+      {% for item in "clarity:وضوح الشرح|engagement:التفاعل مع الطلاب|fairness:عدالة التقييم|punctuality:الالتزام بالوقت|overall:التقييم العام"|split:"|" %}
+      <div>
+        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+          {{ item|slice:"8:" }}
+        </label>
+        <div class="flex gap-2">
+          {% for r in ratings %}
+          <label class="flex-1 cursor-pointer">
+            <input type="radio" name="{{ item|slice:":7"|cut:":" }}" value="{{ r }}" class="sr-only peer" {% if r == 3 %}checked{% endif %}>
+            <div class="w-full py-2 rounded-xl border-2 border-slate-200 dark:border-slate-600 text-center text-sm font-bold text-slate-500 peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:text-primary hover:border-primary/40 transition-all">{{ r }}</div>
+          </label>
+          {% endfor %}
+        </div>
+        <div class="flex justify-between text-xs text-slate-400 mt-1 px-1">
+          <span>ضعيف</span><span>ممتاز</span>
+        </div>
+      </div>
+      {% endfor %}
+
+      <!-- Simpler approach without complex template tags -->
+      <div class="space-y-4">
+        {% for fieldname, label in "clarity:وضوح الشرح,engagement:التفاعل,fairness:العدالة,punctuality:الالتزام بالوقت,overall:التقييم العام"|cut:" "|split:"," %}{% endfor %}
+      </div>
+
+      <!-- Direct rating inputs -->
+      <div class="grid grid-cols-1 gap-4">
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">وضوح الشرح</label>
+          <div class="flex gap-2">{% for r in ratings %}<label class="flex-1"><input type="radio" name="clarity" value="{{ r }}" class="sr-only peer" {% if r == 3 %}checked{% endif %}><div class="py-2 rounded-xl border-2 border-slate-200 dark:border-slate-600 text-center text-sm font-bold text-slate-500 peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:text-primary cursor-pointer transition-all">{{ r }}</div></label>{% endfor %}</div>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">التفاعل مع الطلاب</label>
+          <div class="flex gap-2">{% for r in ratings %}<label class="flex-1"><input type="radio" name="engagement" value="{{ r }}" class="sr-only peer" {% if r == 3 %}checked{% endif %}><div class="py-2 rounded-xl border-2 border-slate-200 dark:border-slate-600 text-center text-sm font-bold text-slate-500 peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:text-primary cursor-pointer transition-all">{{ r }}</div></label>{% endfor %}</div>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">عدالة التقييم</label>
+          <div class="flex gap-2">{% for r in ratings %}<label class="flex-1"><input type="radio" name="fairness" value="{{ r }}" class="sr-only peer" {% if r == 3 %}checked{% endif %}><div class="py-2 rounded-xl border-2 border-slate-200 dark:border-slate-600 text-center text-sm font-bold text-slate-500 peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:text-primary cursor-pointer transition-all">{{ r }}</div></label>{% endfor %}</div>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">الالتزام بالوقت</label>
+          <div class="flex gap-2">{% for r in ratings %}<label class="flex-1"><input type="radio" name="punctuality" value="{{ r }}" class="sr-only peer" {% if r == 3 %}checked{% endif %}><div class="py-2 rounded-xl border-2 border-slate-200 dark:border-slate-600 text-center text-sm font-bold text-slate-500 peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:text-primary cursor-pointer transition-all">{{ r }}</div></label>{% endfor %}</div>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">التقييم العام</label>
+          <div class="flex gap-2">{% for r in ratings %}<label class="flex-1"><input type="radio" name="overall" value="{{ r }}" class="sr-only peer" {% if r == 3 %}checked{% endif %}><div class="py-2 rounded-xl border-2 border-slate-200 dark:border-slate-600 text-center text-sm font-bold text-slate-500 peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:text-primary cursor-pointer transition-all">{{ r }}</div></label>{% endfor %}</div>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">تعليقات إضافية (اختياري)</label>
+        <textarea name="comments" rows="2" placeholder="ملاحظاتك..." class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm dark:text-white outline-none resize-none"></textarea>
+      </div>
+      <button type="submit" class="inline-flex items-center gap-2 bg-primary hover:bg-primary-container text-white font-bold text-sm px-6 py-3 rounded-xl transition-all shadow-sm">
+        <span class="material-symbols-outlined text-base">send</span> إرسال التقييم
+      </button>
+    </form>
+  </div>
+  {% endfor %}
+  {% else %}
+  <div class="py-16 text-center text-slate-400 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700">
+    <span class="material-symbols-outlined text-4xl block mb-2">check_circle</span>
+    لقد أتممت تقييم جميع موادك في هذا الفصل
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

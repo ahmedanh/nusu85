@@ -1,0 +1,179 @@
+﻿{% extends 'attendance/base.html' %}
+{% block title %}تسجيل طالب جديد — SHAMEL{% endblock %}
+{% block content %}
+
+<div class="max-w-3xl mx-auto space-y-6">
+
+  <!-- Header -->
+  <div class="flex items-center gap-4">
+    <a href="javascript:history.back()"
+       class="p-2 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-all shadow-sm">
+      <span class="material-symbols-outlined text-lg">arrow_back</span>
+    </a>
+    <div>
+      <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">تسجيل طالب جديد</h1>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+        {% if coordinator %}كلية: <span class="font-bold text-primary">{{ coordinator.college }}</span>
+        {% else %}الادارة العامة{% endif %}
+      </p>
+    </div>
+  </div>
+
+  <form method="post" class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+    {% csrf_token %}
+
+    <!-- Section: البيانات الأساسية -->
+    <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary text-lg">person</span>
+      <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm">البيانات الأساسية</h2>
+    </div>
+    <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+
+      <div class="md:col-span-2">
+        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">الاسم الكامل *</label>
+        <input type="text" name="name" required placeholder="مثال: أحمد محمد عبدالله"
+          class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm font-medium dark:text-white focus:ring-2 focus:ring-primary/20 outline-none transition-all">
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">رقم القيد *</label>
+        <input type="text" name="student_code" required placeholder="مثال: CS-2024-042"
+          class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm font-medium dark:text-white focus:ring-2 focus:ring-primary/20 outline-none transition-all">
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">البريد الإلكتروني</label>
+        <input type="email" name="email" placeholder="student@university.edu"
+          class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm font-medium dark:text-white focus:ring-2 focus:ring-primary/20 outline-none transition-all">
+      </div>
+
+      <!-- College -->
+      <div>
+        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">الكلية</label>
+        {% if coordinator and not is_admin %}
+          <input type="hidden" name="college_id" value="{{ coordinator.college_id }}">
+          <div class="w-full rounded-xl bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm font-semibold text-slate-600 dark:text-slate-300">
+            {{ coordinator.college }}
+          </div>
+        {% else %}
+          <select name="college_id" id="college-select" onchange="loadDepartments(this.value)"
+            class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm font-medium dark:text-white focus:ring-2 focus:ring-primary/20 outline-none">
+            <option value="">— اختر الكلية —</option>
+            {% for c in colleges %}
+            <option value="{{ c.college_id }}">{{ c.college_name }}</option>
+            {% endfor %}
+          </select>
+        {% endif %}
+      </div>
+
+      <!-- Department -->
+      <div>
+        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">القسم / التخصص</label>
+        <select name="department_id" id="dept-select"
+          class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm font-medium dark:text-white focus:ring-2 focus:ring-primary/20 outline-none">
+          <option value="">— اختر القسم —</option>
+          {% for d in departments %}
+          <option value="{{ d.id }}">{{ d.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Batch -->
+      <div>
+        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">سنة الدفعة (Batch)</label>
+        <select name="batch"
+          class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm font-medium dark:text-white focus:ring-2 focus:ring-primary/20 outline-none">
+          {% for yr in batch_years %}
+          <option value="{{ yr }}" {% if forloop.counter == 2 %}selected{% endif %}>{{ yr }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Semester -->
+      <div>
+        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">الفصل الدراسي الحالي</label>
+        <select name="semester"
+          class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm font-medium dark:text-white focus:ring-2 focus:ring-primary/20 outline-none">
+          {% for s in semester_choices %}
+          <option value="{{ s }}">الفصل {{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+    </div>
+
+    <!-- Section: البيانات الشخصية -->
+    <div class="px-6 py-4 border-t border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary text-lg">badge</span>
+      <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm">البيانات الشخصية</h2>
+    </div>
+    <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-5">
+
+      <div>
+        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">رقم الهاتف</label>
+        <input type="text" name="phone_number" placeholder="+249912345678"
+          class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm font-medium dark:text-white focus:ring-2 focus:ring-primary/20 outline-none">
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">الجنسية</label>
+        <input type="text" name="nationality" placeholder="سوداني"
+          class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm font-medium dark:text-white focus:ring-2 focus:ring-primary/20 outline-none">
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">فصيلة الدم</label>
+        <select name="blood_type"
+          class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm font-medium dark:text-white focus:ring-2 focus:ring-primary/20 outline-none">
+          <option value="">— غير محدد —</option>
+          {% for bt in "A+ A- B+ B- AB+ AB- O+ O-"|split:" " %}
+          <option value="{{ bt }}">{{ bt }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+    </div>
+
+    <!-- Info note -->
+    <div class="mx-6 mb-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl p-4 text-xs text-blue-700 dark:text-blue-300 flex items-start gap-2">
+      <span class="material-symbols-outlined text-base mt-0.5">info</span>
+      <span>سيتم إنشاء حساب تلقائياً. كلمة المرور الافتراضية: <strong>ACDC@{رقم القيد}</strong>. بعد التسجيل ستنتقل لصفحة تسجيل بصمة الوجه.</span>
+    </div>
+
+    <!-- Actions -->
+    <div class="px-6 pb-6 flex items-center gap-3">
+      <button type="submit"
+        class="inline-flex items-center gap-2 bg-primary hover:bg-primary-container text-white font-bold text-sm px-6 py-3 rounded-xl transition-all shadow-sm">
+        <span class="material-symbols-outlined text-base">how_to_reg</span>
+        تسجيل الطالب والانتقال لبصمة الوجه
+      </button>
+      <a href="javascript:history.back()"
+        class="inline-flex items-center gap-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-sm px-5 py-3 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-all">
+        إلغاء
+      </a>
+    </div>
+
+  </form>
+</div>
+
+<script>
+async function loadDepartments(collegeId) {
+  const sel = document.getElementById('dept-select');
+  if (!collegeId) { sel.innerHTML = '<option value="">— اختر القسم —</option>'; return; }
+  sel.innerHTML = '<option value="">جاري التحميل...</option>';
+  try {
+    const res  = await fetch(`/attendance/api/departments/?college_id=${collegeId}`);
+    const data = await res.json();
+    sel.innerHTML = '<option value="">— اختر القسم —</option>' +
+      data.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+  } catch(e) {
+    sel.innerHTML = '<option value="">خطأ في التحميل</option>';
+  }
+}
+
+// Auto-load departments for coordinator's college
+{% if coordinator and not is_admin %}
+loadDepartments('{{ coordinator.college_id }}');
+{% endif %}
+</script>
+{% endblock %}

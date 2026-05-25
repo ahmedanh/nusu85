@@ -1,0 +1,374 @@
+﻿{% extends 'attendance/base.html' %}
+{% load custom_filters %}
+{% block title %}الإعدادات — SHAMEL{% endblock %}
+{% block content %}
+
+<div class="max-w-3xl mx-auto space-y-6">
+
+  <div>
+    <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">الإعدادات</h1>
+    <p class="text-sm text-slate-500 mt-0.5">إدارة حسابك وخصوصيتك وإشعاراتك وأمانك</p>
+  </div>
+
+  {% if messages %}
+  {% for msg in messages %}
+  <div class="rounded-2xl p-4 text-sm font-semibold {% if msg.tags == 'error' %}bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400{% else %}bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400{% endif %}">
+    {{ msg }}
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  <!-- Tabs -->
+  <div class="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-2xl p-1">
+    <button onclick="switchTab('account')" id="tab-account"
+      class="tab-btn flex items-center gap-2 flex-1 justify-center py-2.5 px-4 text-sm font-bold rounded-xl transition-all">
+      <span class="material-symbols-outlined text-sm">person</span>
+      <span class="hidden sm:inline">الحساب</span>
+    </button>
+    <button onclick="switchTab('privacy')" id="tab-privacy"
+      class="tab-btn flex items-center gap-2 flex-1 justify-center py-2.5 px-4 text-sm font-bold rounded-xl transition-all">
+      <span class="material-symbols-outlined text-sm">visibility</span>
+      <span class="hidden sm:inline">الخصوصية</span>
+    </button>
+    <button onclick="switchTab('notifications')" id="tab-notifications"
+      class="tab-btn flex items-center gap-2 flex-1 justify-center py-2.5 px-4 text-sm font-bold rounded-xl transition-all">
+      <span class="material-symbols-outlined text-sm">notifications</span>
+      <span class="hidden sm:inline">الإشعارات</span>
+    </button>
+    <button onclick="switchTab('security')" id="tab-security"
+      class="tab-btn flex items-center gap-2 flex-1 justify-center py-2.5 px-4 text-sm font-bold rounded-xl transition-all">
+      <span class="material-symbols-outlined text-sm">security</span>
+      <span class="hidden sm:inline">الأمان</span>
+    </button>
+  </div>
+
+  <!-- Tab: Account -->
+  <div id="panel-account" class="tab-panel space-y-4">
+    <form method="post" action="{% url 'update_settings' %}" enctype="multipart/form-data"
+          class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+      {% csrf_token %}
+      <input type="hidden" name="tab" value="account">
+
+      <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary">manage_accounts</span>
+        <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm">بيانات الحساب</h2>
+      </div>
+
+      <div class="p-6 space-y-5">
+        <!-- Profile photo -->
+        <div class="flex items-center gap-4">
+          <div class="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary overflow-hidden">
+            {% if student_profile and student_profile.profile_photo %}
+            <img src="{{ student_profile.profile_photo.url }}" class="w-full h-full object-cover">
+            {% elif teacher_profile and teacher_profile.profile_photo %}
+            <img src="{{ teacher_profile.profile_photo.url }}" class="w-full h-full object-cover">
+            {% else %}
+            <span class="material-symbols-outlined text-3xl">person</span>
+            {% endif %}
+          </div>
+          <div>
+            <label class="label-xs mb-2 block">الصورة الشخصية</label>
+            <input type="file" name="profile_photo" accept="image/*"
+              class="text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-primary file:text-white hover:file:bg-primary-container cursor-pointer">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="label-xs">الاسم الأول</label>
+            <input type="text" name="first_name" value="{{ user.first_name }}" class="inp">
+          </div>
+          <div>
+            <label class="label-xs">الاسم الأخير</label>
+            <input type="text" name="last_name" value="{{ user.last_name }}" class="inp">
+          </div>
+        </div>
+
+        <div>
+          <label class="label-xs">البريد الإلكتروني</label>
+          <input type="email" name="email" value="{{ user.email }}" class="inp">
+        </div>
+
+        <div class="bg-slate-50 dark:bg-slate-700/40 rounded-xl p-4 text-sm text-slate-500 space-y-1">
+          <p><span class="font-bold text-slate-700 dark:text-slate-300">اسم المستخدم:</span> {{ user.username }}</p>
+          <p><span class="font-bold text-slate-700 dark:text-slate-300">آخر تسجيل دخول:</span> {{ user.last_login|date:"Y/m/d H:i"|default:"—" }}</p>
+          {% if profile.last_password_change %}
+          <p><span class="font-bold text-slate-700 dark:text-slate-300">آخر تغيير كلمة مرور:</span> {{ profile.last_password_change|date:"Y/m/d" }}</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="px-6 pb-6">
+        <button type="submit" class="inline-flex items-center gap-2 bg-primary hover:bg-primary-container text-white font-bold text-sm px-6 py-3 rounded-xl transition-all shadow-sm">
+          <span class="material-symbols-outlined text-base">save</span> حفظ بيانات الحساب
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Tab: Privacy -->
+  <div id="panel-privacy" class="tab-panel hidden space-y-4">
+    <form method="post" action="{% url 'update_settings' %}"
+          class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+      {% csrf_token %}
+      <input type="hidden" name="tab" value="privacy">
+
+      <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary">shield</span>
+        <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm">إعدادات الخصوصية</h2>
+      </div>
+
+      <div class="p-6 space-y-4">
+        {% with settings_items="show_phone,show_phone_to_peers,إظهار رقم الهاتف للمستخدمين الآخرين,phone|show_email,show_email_to_peers,إظهار البريد الإلكتروني للمستخدمين الآخرين,email|show_attendance,show_attendance_to_coordinator,السماح للمنسق برؤية سجل حضورك,bar_chart" %}
+        {% endwith %}
+
+        <label class="flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700/40 cursor-pointer transition-all">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-slate-400">phone</span>
+            <div>
+              <p class="text-sm font-semibold text-slate-800 dark:text-slate-200">إظهار رقم الهاتف</p>
+              <p class="text-xs text-slate-400">إظهار رقم هاتفك للمستخدمين الآخرين في النظام</p>
+            </div>
+          </div>
+          <input type="checkbox" name="show_phone" {% if profile.show_phone_to_peers %}checked{% endif %}
+            class="w-4 h-4 accent-primary rounded">
+        </label>
+
+        <label class="flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700/40 cursor-pointer transition-all">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-slate-400">email</span>
+            <div>
+              <p class="text-sm font-semibold text-slate-800 dark:text-slate-200">إظهار البريد الإلكتروني</p>
+              <p class="text-xs text-slate-400">إظهار بريدك الإلكتروني للمستخدمين الآخرين</p>
+            </div>
+          </div>
+          <input type="checkbox" name="show_email" {% if profile.show_email_to_peers %}checked{% endif %}
+            class="w-4 h-4 accent-primary rounded">
+        </label>
+
+        <label class="flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700/40 cursor-pointer transition-all">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-slate-400">bar_chart</span>
+            <div>
+              <p class="text-sm font-semibold text-slate-800 dark:text-slate-200">السماح للمنسق برؤية الحضور</p>
+              <p class="text-xs text-slate-400">يسمح لمنسق الكلية برؤية سجل حضورك التفصيلي</p>
+            </div>
+          </div>
+          <input type="checkbox" name="show_attendance" {% if profile.show_attendance_to_coordinator %}checked{% endif %}
+            class="w-4 h-4 accent-primary rounded">
+        </label>
+      </div>
+
+      <div class="px-6 pb-6">
+        <button type="submit" class="inline-flex items-center gap-2 bg-primary hover:bg-primary-container text-white font-bold text-sm px-6 py-3 rounded-xl transition-all shadow-sm">
+          <span class="material-symbols-outlined text-base">save</span> حفظ إعدادات الخصوصية
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Tab: Notifications -->
+  <div id="panel-notifications" class="tab-panel hidden space-y-4">
+    <form method="post" action="{% url 'update_settings' %}"
+          class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+      {% csrf_token %}
+      <input type="hidden" name="tab" value="notifications">
+
+      <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary">notifications_active</span>
+        <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm">إعدادات الإشعارات</h2>
+      </div>
+
+      <div class="p-6 space-y-4">
+
+        <label class="flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700/40 cursor-pointer transition-all">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-slate-400">email</span>
+            <div>
+              <p class="text-sm font-semibold text-slate-800 dark:text-slate-200">إشعارات البريد الإلكتروني</p>
+              <p class="text-xs text-slate-400">استلام تنبيهات الحضور عبر البريد الإلكتروني</p>
+            </div>
+          </div>
+          <input type="checkbox" name="email_notif" {% if profile.email_notifications %}checked{% endif %}
+            class="w-4 h-4 accent-primary rounded">
+        </label>
+
+        <label class="flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700/40 cursor-pointer transition-all">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-slate-400">warning</span>
+            <div>
+              <p class="text-sm font-semibold text-slate-800 dark:text-slate-200">تنبيهات الحضور</p>
+              <p class="text-xs text-slate-400">تلقي تحذير عند انخفاض نسبة حضورك عن 75%</p>
+            </div>
+          </div>
+          <input type="checkbox" name="att_alerts" {% if profile.attendance_alerts %}checked{% endif %}
+            class="w-4 h-4 accent-primary rounded">
+        </label>
+
+        <label class="flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700/40 cursor-pointer transition-all">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-slate-400">support_agent</span>
+            <div>
+              <p class="text-sm font-semibold text-slate-800 dark:text-slate-200">تحديثات البلاغات</p>
+              <p class="text-xs text-slate-400">إشعار عند الرد على بلاغاتك أو تغيير حالتها</p>
+            </div>
+          </div>
+          <input type="checkbox" name="ticket_updates" {% if profile.ticket_updates %}checked{% endif %}
+            class="w-4 h-4 accent-primary rounded">
+        </label>
+
+        <label class="flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700/40 cursor-pointer transition-all">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-slate-400">summarize</span>
+            <div>
+              <p class="text-sm font-semibold text-slate-800 dark:text-slate-200">الملخص الأسبوعي</p>
+              <p class="text-xs text-slate-400">تلقي ملخص أسبوعي لإحصاءات الحضور والنشاط</p>
+            </div>
+          </div>
+          <input type="checkbox" name="weekly_summary" {% if profile.weekly_summary %}checked{% endif %}
+            class="w-4 h-4 accent-primary rounded">
+        </label>
+
+      </div>
+
+      <div class="px-6 pb-6">
+        <button type="submit" class="inline-flex items-center gap-2 bg-primary hover:bg-primary-container text-white font-bold text-sm px-6 py-3 rounded-xl transition-all shadow-sm">
+          <span class="material-symbols-outlined text-base">save</span> حفظ إعدادات الإشعارات
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Tab: Security -->
+  <div id="panel-security" class="tab-panel hidden space-y-4">
+    <form method="post" action="{% url 'update_settings' %}"
+          class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+      {% csrf_token %}
+      <input type="hidden" name="tab" value="security">
+
+      <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary">lock</span>
+        <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm">إعدادات الأمان</h2>
+      </div>
+
+      <div class="p-6 space-y-6">
+
+        <!-- Password change -->
+        <div class="space-y-4">
+          <h3 class="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+            <span class="material-symbols-outlined text-sm">key</span> تغيير كلمة المرور
+          </h3>
+          <div>
+            <label class="label-xs">كلمة المرور الحالية</label>
+            <input type="password" name="current_password" autocomplete="current-password" class="inp">
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="label-xs">كلمة المرور الجديدة</label>
+              <input type="password" name="new_password" id="new-pass" autocomplete="new-password" class="inp"
+                     oninput="checkStrength(this.value)">
+              <div id="strength-bar" class="mt-2 h-1.5 rounded-full bg-slate-200 overflow-hidden hidden">
+                <div id="strength-fill" class="h-full rounded-full transition-all duration-300"></div>
+              </div>
+              <p id="strength-label" class="text-xs mt-1 hidden"></p>
+            </div>
+            <div>
+              <label class="label-xs">تأكيد كلمة المرور</label>
+              <input type="password" name="confirm_password" autocomplete="new-password" class="inp">
+            </div>
+          </div>
+          <p class="text-xs text-slate-400">اتركها فارغة إذا لم ترد تغيير كلمة المرور. يجب أن تكون 8 أحرف على الأقل.</p>
+        </div>
+
+        <hr class="border-slate-100 dark:border-slate-700">
+
+        <!-- Face login toggle -->
+        <div>
+          <h3 class="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2 mb-3">
+            <span class="material-symbols-outlined text-sm">face</span> خيارات تسجيل الدخول
+          </h3>
+          <label class="flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700/40 cursor-pointer transition-all">
+            <div>
+              <p class="text-sm font-semibold text-slate-800 dark:text-slate-200">تسجيل دخول بالوجه</p>
+              <p class="text-xs text-slate-400">تطلب التحقق بالوجه عند كل تسجيل دخول</p>
+            </div>
+            <input type="checkbox" name="require_face" {% if profile.require_face_login %}checked{% endif %}
+              class="w-4 h-4 accent-primary rounded">
+          </label>
+        </div>
+
+        <!-- Security info -->
+        <div class="bg-slate-50 dark:bg-slate-700/40 rounded-xl p-4 text-sm text-slate-500 space-y-1.5">
+          <p class="font-bold text-slate-700 dark:text-slate-300 mb-2">معلومات الحساب</p>
+          <p><span class="font-medium">آخر تغيير لكلمة المرور:</span>
+            {% if profile.last_password_change %}{{ profile.last_password_change|date:"Y/m/d" }}{% else %}غير محدد{% endif %}
+          </p>
+          <p><span class="font-medium">نوع المصادقة:</span>
+            {% if profile.require_face_login %}مرور + وجه{% else %}كلمة مرور فقط{% endif %}
+          </p>
+        </div>
+
+      </div>
+
+      <div class="px-6 pb-6">
+        <button type="submit" class="inline-flex items-center gap-2 bg-primary hover:bg-primary-container text-white font-bold text-sm px-6 py-3 rounded-xl transition-all shadow-sm">
+          <span class="material-symbols-outlined text-base">save</span> حفظ إعدادات الأمان
+        </button>
+      </div>
+    </form>
+  </div>
+
+</div>
+
+<style>
+  .label-xs { @apply block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5; }
+  .inp { @apply w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm font-medium dark:text-white focus:ring-2 focus:ring-primary/20 outline-none transition-all; }
+  .tab-btn { @apply text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white; }
+  .tab-btn.active { @apply bg-white dark:bg-slate-700 text-primary shadow-sm; }
+</style>
+
+<script>
+const TABS = ['account', 'privacy', 'notifications', 'security'];
+
+function switchTab(tab) {
+  TABS.forEach(t => {
+    document.getElementById('panel-' + t).classList.toggle('hidden', t !== tab);
+    document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+  });
+  sessionStorage.setItem('settings_tab', tab);
+}
+
+// Restore last tab
+const saved = sessionStorage.getItem('settings_tab') || 'account';
+switchTab(saved);
+
+// Password strength meter
+function checkStrength(pw) {
+  const bar   = document.getElementById('strength-bar');
+  const fill  = document.getElementById('strength-fill');
+  const label = document.getElementById('strength-label');
+  if (!pw) { bar.classList.add('hidden'); label.classList.add('hidden'); return; }
+  bar.classList.remove('hidden'); label.classList.remove('hidden');
+
+  let score = 0;
+  if (pw.length >= 8)  score++;
+  if (pw.length >= 12) score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+
+  const levels = [
+    { pct: '20%', color: 'bg-red-500',    text: 'ضعيفة جداً', cls: 'text-red-500' },
+    { pct: '40%', color: 'bg-orange-400', text: 'ضعيفة',      cls: 'text-orange-500' },
+    { pct: '60%', color: 'bg-amber-400',  text: 'متوسطة',     cls: 'text-amber-500' },
+    { pct: '80%', color: 'bg-lime-500',   text: 'جيدة',       cls: 'text-lime-600' },
+    { pct: '100%',color: 'bg-emerald-500',text: 'ممتازة',     cls: 'text-emerald-600' },
+  ];
+  const lvl = levels[Math.min(score, 4)];
+  fill.className  = 'h-full rounded-full transition-all duration-300 ' + lvl.color;
+  fill.style.width = lvl.pct;
+  label.textContent = 'قوة كلمة المرور: ' + lvl.text;
+  label.className = 'text-xs mt-1 font-semibold ' + lvl.cls;
+}
+</script>
+{% endblock %}

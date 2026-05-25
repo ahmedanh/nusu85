@@ -1,0 +1,159 @@
+﻿{% extends 'attendance/base.html' %}
+{% block title %}نتائج البحث — SHAMEL{% endblock %}
+{% block content %}
+<div class="space-y-6">
+
+  <div>
+    <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">نتائج البحث</h1>
+    {% if query %}
+    <p class="text-sm text-slate-500 mt-0.5">
+      بحث عن: <span class="font-bold text-primary">"{{ query }}"</span>
+      {% if total > 0 %} — {{ total }} نتيجة{% else %} — لا توجد نتائج{% endif %}
+    </p>
+    {% endif %}
+  </div>
+
+  <!-- Search bar -->
+  <form method="get" class="flex gap-3">
+    <input type="text" name="q" value="{{ query }}"
+      placeholder="ابحث عن طالب، أستاذ، مادة، قاعة..."
+      class="flex-1 py-3 px-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-sm dark:text-white shadow-sm focus:ring-2 focus:ring-primary/20 outline-none">
+    <button type="submit" class="px-6 py-3 bg-primary text-white font-bold text-sm rounded-2xl hover:bg-primary-container transition-all shadow-sm">
+      <span class="material-symbols-outlined align-middle text-base">search</span> بحث
+    </button>
+  </form>
+
+  {% if query and total == 0 %}
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 py-20 text-center">
+    <span class="material-symbols-outlined text-6xl text-slate-200 dark:text-slate-600">search_off</span>
+    <p class="text-slate-400 mt-4 font-semibold text-lg">لا توجد نتائج لـ "{{ query }}"</p>
+    <p class="text-slate-400 text-sm mt-1">جرّب كلمة مختلفة أو تحقق من الإملاء</p>
+  </div>
+  {% endif %}
+
+  {% if results.students %}
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary">person</span>
+      <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm">الطلاب ({{ results.students|length }})</h2>
+    </div>
+    <div class="divide-y divide-slate-50 dark:divide-slate-700">
+      {% for s in results.students %}
+      <a href="{% url 'student_detail' s.id %}" class="flex items-center gap-4 px-6 py-4 hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors group">
+        <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center font-bold text-primary flex-shrink-0">
+          {{ s.name|first|upper }}
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="font-bold text-slate-800 dark:text-slate-200 group-hover:text-primary transition-colors">{{ s.name }}</p>
+          <p class="text-xs text-slate-400">{{ s.student_code }} — {{ s.department.name|default:"—" }}</p>
+        </div>
+        <div class="flex items-center gap-2">
+          {% if s.is_allowed_entry %}
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">مؤهل</span>
+          {% else %}
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-600">غير مؤهل</span>
+          {% endif %}
+          <span class="material-symbols-outlined text-slate-300 group-hover:text-primary text-sm transition-colors">arrow_forward_ios</span>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if results.teachers %}
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary">school</span>
+      <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm">أعضاء هيئة التدريس ({{ results.teachers|length }})</h2>
+    </div>
+    <div class="divide-y divide-slate-50 dark:divide-slate-700">
+      {% for t in results.teachers %}
+      <a href="{% url 'teacher_detail' t.teacher_id %}" class="flex items-center gap-4 px-6 py-4 hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors group">
+        <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
+          <span class="material-symbols-outlined text-blue-600 text-xl">person</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="font-bold text-slate-800 dark:text-slate-200 group-hover:text-primary transition-colors">{{ t.academic_degree }} {{ t.name }}</p>
+          <p class="text-xs text-slate-400">{{ t.department.name|default:"—" }} — {{ t.college.college_name|default:"—" }}</p>
+        </div>
+        <span class="material-symbols-outlined text-slate-300 group-hover:text-primary text-sm transition-colors">arrow_forward_ios</span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if results.courses %}
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary">menu_book</span>
+      <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm">المواد الدراسية ({{ results.courses|length }})</h2>
+    </div>
+    <div class="divide-y divide-slate-50 dark:divide-slate-700">
+      {% for c in results.courses %}
+      <a href="{% url 'courses_list' %}" class="flex items-center gap-4 px-6 py-4 hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors group">
+        <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0">
+          <span class="material-symbols-outlined text-amber-600 text-xl">auto_stories</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="font-bold text-slate-800 dark:text-slate-200 group-hover:text-primary transition-colors">{{ c.title }}</p>
+          <p class="text-xs text-slate-400">{{ c.course_code }} — {{ c.college.college_name|default:"—" }}</p>
+        </div>
+        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-700 text-slate-500">السنة {{ c.year_level }}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if results.classrooms %}
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary">meeting_room</span>
+      <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm">القاعات ({{ results.classrooms|length }})</h2>
+    </div>
+    <div class="divide-y divide-slate-50 dark:divide-slate-700">
+      {% for r in results.classrooms %}
+      <a href="{% url 'classrooms_list' %}" class="flex items-center gap-4 px-6 py-4 hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors group">
+        <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0">
+          <span class="material-symbols-outlined text-purple-600 text-xl">meeting_room</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="font-bold text-slate-800 dark:text-slate-200 group-hover:text-primary transition-colors">{{ r.name }}</p>
+          <p class="text-xs text-slate-400">{{ r.building|default:"—" }} — {{ r.capacity }} مقعد</p>
+        </div>
+        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {% if r.is_busy %}bg-red-100 text-red-600{% else %}bg-emerald-100 text-emerald-600{% endif %}">
+          {% if r.is_busy %}مشغولة{% else %}متاحة{% endif %}
+        </span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if results.tickets %}
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary">support_agent</span>
+      <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm">البلاغات ({{ results.tickets|length }})</h2>
+    </div>
+    <div class="divide-y divide-slate-50 dark:divide-slate-700">
+      {% for t in results.tickets %}
+      <a href="{% url 'ticket_detail' t.id %}" class="flex items-center gap-4 px-6 py-4 hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors group">
+        <div class="flex-1 min-w-0">
+          <p class="font-bold text-slate-800 dark:text-slate-200 group-hover:text-primary transition-colors">#{{ t.id }} — {{ t.subject }}</p>
+          <p class="text-xs text-slate-400">{{ t.requester.get_full_name|default:t.requester.username }} — {{ t.created_at|date:"Y/m/d" }}</p>
+        </div>
+        <span class="px-2.5 py-1 rounded-full text-[11px] font-bold
+          {% if t.status == 'open' %}bg-amber-100 text-amber-700
+          {% elif t.status == 'resolved' %}bg-emerald-100 text-emerald-700
+          {% else %}bg-slate-100 text-slate-500{% endif %}">{{ t.get_status_display }}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

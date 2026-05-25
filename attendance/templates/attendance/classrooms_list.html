@@ -1,0 +1,108 @@
+﻿{% extends 'attendance/base.html' %}
+{% block title %}القاعات — SHAMEL{% endblock %}
+{% block content %}
+
+<div class="space-y-6">
+
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">القاعات والمختبرات</h1>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">إجمالي: {{ classrooms|length }} قاعة</p>
+    </div>
+    {% if is_admin %}
+    <a href="{% url 'add_classroom' %}"
+      class="inline-flex items-center gap-2 bg-primary hover:bg-primary-container text-white font-bold text-sm px-5 py-2.5 rounded-xl transition-all shadow-sm">
+      <span class="material-symbols-outlined text-base">add</span> إضافة قاعة
+    </a>
+    {% endif %}
+  </div>
+
+  <!-- Filters -->
+  <form method="get" class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-4">
+    <div class="flex flex-wrap gap-3">
+      <input type="text" name="building" value="{{ selected_building }}" placeholder="البحث بالمبنى..."
+        class="flex-1 min-w-40 py-2.5 px-4 text-sm rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 dark:text-white outline-none focus:ring-2 focus:ring-primary/20">
+      <select name="type" onchange="this.form.submit()"
+        class="py-2.5 px-3 text-sm rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 dark:text-white outline-none focus:ring-2 focus:ring-primary/20">
+        <option value="">كل الأنواع</option>
+        {% for t in types %}
+        <option value="{{ t }}" {% if selected_type == t %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="px-4 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary-container transition-all">بحث</button>
+      {% if selected_building or selected_type %}
+      <a href="{% url 'classrooms_list' %}" class="px-4 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-sm font-bold rounded-xl hover:bg-slate-200 transition-all flex items-center gap-1">
+        <span class="material-symbols-outlined text-sm">close</span> مسح
+      </a>
+      {% endif %}
+    </div>
+  </form>
+
+  <!-- Grid -->
+  {% if classrooms %}
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {% for room in classrooms %}
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+      <div class="px-5 py-4 flex items-start justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0
+            {% if room.classroom_type == 'Lab' %}bg-purple-100 dark:bg-purple-900/30 text-purple-600
+            {% elif room.classroom_type == 'Exam' %}bg-red-100 dark:bg-red-900/30 text-red-600
+            {% else %}bg-blue-100 dark:bg-blue-900/30 text-blue-600{% endif %}">
+            <span class="material-symbols-outlined text-xl">
+              {% if room.classroom_type == 'Lab' %}science{% elif room.classroom_type == 'Exam' %}quiz{% else %}meeting_room{% endif %}
+            </span>
+          </div>
+          <div>
+            <p class="font-bold text-slate-800 dark:text-slate-200 text-sm">{{ room.name }}</p>
+            <p class="text-[10px] text-slate-400">{{ room.building|default:"—" }}{% if room.floor %} · Floor {{ room.floor }}{% endif %}</p>
+          </div>
+        </div>
+
+        <!-- Status badge -->
+        {% if room.is_busy %}
+        <span class="flex items-center gap-1 text-[10px] font-bold bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-2.5 py-1 rounded-full border border-red-100 dark:border-red-800">
+          <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span> مشغولة
+        </span>
+        {% else %}
+        <span class="flex items-center gap-1 text-[10px] font-bold bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-2.5 py-1 rounded-full border border-emerald-100 dark:border-emerald-800">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> متاحة
+        </span>
+        {% endif %}
+      </div>
+
+      <div class="px-5 pb-4 flex items-center justify-between">
+        <div class="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+          <span class="flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">people</span>
+            {{ room.capacity }} مقعد
+          </span>
+          <span class="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 font-medium">{{ room.classroom_type }}</span>
+        </div>
+        {% if is_admin %}
+        <form method="post" action="{% url 'delete_classroom' room.id %}"
+          onsubmit="return confirm('حذف {{ room.name }}؟')">
+          {% csrf_token %}
+          <button type="submit" class="p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+            <span class="material-symbols-outlined text-base">delete</span>
+          </button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 py-16 text-center">
+    <span class="material-symbols-outlined text-5xl text-slate-200 dark:text-slate-600">meeting_room</span>
+    <p class="text-slate-400 mt-3 font-semibold">لا توجد قاعات</p>
+    {% if is_admin %}
+    <a href="{% url 'add_classroom' %}" class="mt-4 inline-flex items-center gap-1.5 text-sm text-primary font-bold">
+      <span class="material-symbols-outlined text-base">add_circle</span> إضافة قاعة
+    </a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
