@@ -61,6 +61,19 @@
           </select>
         </div>
         <div>
+          <label class="label-xs">الجنسية</label>
+          <div class="flex gap-2">
+            <select name="nationality_choice" id="nat-choice" onchange="toggleNatField(this.value)" class="inp w-40">
+              <option value="Sudan" {% if not teacher.nationality or teacher.nationality == 'Sudan' or teacher.nationality == 'سودان' or teacher.nationality == 'سوداني' %}selected{% endif %}>🇸🇩 سوداني</option>
+              <option value="Foreign" {% if teacher.nationality and teacher.nationality != 'Sudan' and teacher.nationality != 'سودان' and teacher.nationality != 'سوداني' %}selected{% endif %}>أجنبي</option>
+            </select>
+            <input type="text" name="nationality_text" id="nat-text"
+              value="{{ teacher.nationality|default:'' }}"
+              placeholder="اكتب الجنسية"
+              class="inp flex-1 {% if not teacher.nationality or teacher.nationality == 'Sudan' or teacher.nationality == 'سودان' or teacher.nationality == 'سوداني' %}hidden{% endif %}">
+          </div>
+        </div>
+        <div>
           <label class="label-xs">صورة شخصية</label>
           <input type="file" name="profile_photo" accept="image/*" class="inp">
           {% if teacher.profile_photo %}
@@ -163,6 +176,11 @@ function loadDepts() {
         sel.innerHTML += '<option value="' + d.id + '">' + d.name + '</option>';
       });
     });
+}
+function toggleNatField(val) {
+  const t = document.getElementById('nat-text');
+  if (val === 'Foreign') { t.classList.remove('hidden'); t.required = true; }
+  else { t.classList.add('hidden'); t.required = false; t.value = ''; }
 }
 </script>
 {% endblock %}

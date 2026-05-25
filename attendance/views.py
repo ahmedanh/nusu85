@@ -370,22 +370,42 @@ def admin_control_panel(request):
 
 
 @login_required
-@staff_member_required
 def faculty_management(request):
+    is_admin = request.user.is_superuser or request.user.is_staff
+    coordinator = Coordinator.objects.filter(auth_user=request.user).first()
+    if not is_admin and not coordinator:
+        return _redirect_by_role(request)
+
     teachers = Teacher.objects.select_related('department', 'college').order_by('name')
+
+    # Coordinators can only see their own college
+    if coordinator and not is_admin:
+        teachers = teachers.filter(college=coordinator.college)
+
     college_f = request.GET.get('college_id', '')
     dept_f = request.GET.get('department_id', '')
     q = request.GET.get('q', '')
-    if college_f:
+    if college_f and is_admin:
         teachers = teachers.filter(college_id=college_f)
     if dept_f:
         teachers = teachers.filter(department_id=dept_f)
     if q:
         teachers = teachers.filter(name__icontains=q)
+
+    # Limit college/department filter options by role
+    if coordinator and not is_admin:
+        colleges    = College.objects.filter(pk=coordinator.college_id)
+        departments = Department.objects.filter(college=coordinator.college)
+    else:
+        colleges    = College.objects.all()
+        departments = Department.objects.all()
+
     return render(request, 'attendance/faculty_management.html', {
-        'teachers': teachers,
-        'colleges': College.objects.all(),
-        'departments': Department.objects.all(),
+        'teachers':    teachers,
+        'colleges':    colleges,
+        'departments': departments,
+        'coordinator': coordinator,
+        'is_admin':    is_admin,
         'filters': {'college_id': college_f, 'department_id': dept_f, 'q': q},
     })
 
@@ -679,48 +699,130 @@ def delete_classroom(request, classroom_id):
 @login_required
 @staff_member_required
 def register_student(request):
+    is_admin    = request.user.is_superuser or request.user.is_staff
+    coordinator = Coordinator.objects.filter(auth_user=request.user).first()
+    if not is_admin and not coordinator:
+        return _redirect_by_role(request)
+
     if request.method == 'POST':
         try:
-            username = request.POST.get('username', '').strip()
-            password = request.POST.get('password', 'Shamel@123')
-            name = request.POST.get('name', '').strip()
+            username     = request.POST.get('username', '').strip()
+            password     = request.POST.get('password', 'Shamel@123')
+            name         = request.POST.get('name', '').strip()
             student_code = request.POST.get('student_code', '').strip()
-            dept_id = request.POST.get('department_id') or None
-            batch = request.POST.get('batch', '')
+            dept_id      = request.POST.get('department_id') or None
+            batch        = request.POST.get('batch', '')
+            phone        = request.POST.get('phone_number', '').strip()
+            email        = request.POST.get('university_email', '').strip()
+            blood_type   = request.POST.get('blood_type', '').strip()
+            # Nationality: "Sudan" or custom text
+            nat_choice   = request.POST.get('nationality_choice', 'Sudan')
+            nationality  = 'Sudan' if nat_choice == 'Sudan' else request.POST.get('nationality_text', '').strip()
+
+            # Coordinator can only register in their own college
+            if coordinator and not is_admin and dept_id:
+                dept = Department.objects.filter(pk=dept_id, college=coordinator.college).first()
+                if not dept:
+                    messages.error(request, 'لا يمكنك التسجيل في هذا القسم.')
+                    return redirect('register_student')
+
             user = User.objects.create_user(username=username, password=password)
-            student = Student.objects.create(
-                auth_user=user, name=name, student_code=student_code,
-                department_id=dept_id, batch=batch,
-            )
+            from django.db import connection as _conn
+            cursor = _conn.cursor()
+            # Insert using raw SQL to pass extra DB-level fields
+            cursor.execute("""
+                INSERT INTO attendance_student
+                  (auth_user_id, student_code, name, department_id, batch,
+                   phone_number, university_email, blood_type, nationality,
+                   is_registered, is_allowed_entry, is_trained, semester)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,true,true,false,'1')
+            """, [user.pk, student_code, name, dept_id, batch,
+                  phone or None, email or None,
+                  blood_type or None, nationality or None])
+            student = Student.objects.get(auth_user=user)
             messages.success(request, f'تم تسجيل الطالب {name}.')
             log_audit(request, 'REGISTER_STUDENT', 'Student', student.pk, name)
         except Exception as e:
             messages.error(request, f'خطأ: {e}')
-    return redirect('faculty_management')
+        return redirect('coordinator_students' if coordinator and not is_admin else 'faculty_management')
+
+    # GET — render form
+    if coordinator and not is_admin:
+        departments = Department.objects.filter(college=coordinator.college)
+        colleges    = College.objects.filter(pk=coordinator.college_id)
+    else:
+        departments = Department.objects.select_related('college').all()
+        colleges    = College.objects.all()
+    import datetime as _dt
+    current_year = _dt.date.today().year
+    return render(request, 'attendance/register_student.html', {
+        'departments': departments, 'colleges': colleges,
+        'is_admin': is_admin, 'coordinator': coordinator,
+        'blood_types': ['A+','A-','B+','B-','AB+','AB-','O+','O-'],
+        'batch_years': list(range(current_year, current_year - 10, -1)),
+        'semester_choices': list(range(1, 9)),
+    })
 
 
 @login_required
-@staff_member_required
 def register_teacher(request):
+    is_admin    = request.user.is_superuser or request.user.is_staff
+    coordinator = Coordinator.objects.filter(auth_user=request.user).first()
+    if not is_admin and not coordinator:
+        return _redirect_by_role(request)
+
     if request.method == 'POST':
         try:
-            username = request.POST.get('username', '').strip()
-            password = request.POST.get('password', 'Shamel@123')
-            name = request.POST.get('name', '').strip()
-            degree = request.POST.get('academic_degree', 'PhD')
-            major = request.POST.get('major', '').strip()
-            college_id = request.POST.get('college_id') or None
-            dept_id = request.POST.get('department_id') or None
+            username   = request.POST.get('username', '').strip()
+            password   = request.POST.get('password', 'Shamel@123')
+            name       = request.POST.get('name', '').strip()
+            degree     = request.POST.get('academic_degree', 'PhD')
+            major      = request.POST.get('major', '').strip()
+            college_id = request.POST.get('college_id') or (str(coordinator.college_id) if coordinator else None)
+            dept_id    = request.POST.get('department_id') or None
+            phone      = request.POST.get('phone_number', '').strip()
+            email      = request.POST.get('university_email', '').strip()
+            blood_type = request.POST.get('blood_type', '').strip()
+            gender     = request.POST.get('gender', 'M')
+
+            # Coordinator scoped to their college
+            if coordinator and not is_admin:
+                college_id = str(coordinator.college_id)
+
             user = User.objects.create_user(username=username, password=password, is_staff=False)
             teacher = Teacher.objects.create(
                 auth_user=user, name=name, academic_degree=degree,
                 major=major, college_id=college_id, department_id=dept_id,
+                gender=gender,
+                phone_number=phone or None,
+                university_email=email or None,
             )
+            # blood_type is in DB but not model — set via raw SQL
+            if blood_type:
+                from django.db import connection as _conn
+                _conn.cursor().execute(
+                    'UPDATE attendance_teacher SET blood_type=%s WHERE teacher_id=%s',
+                    [blood_type, teacher.pk]
+                )
             messages.success(request, f'تم تسجيل الأستاذ {name}.')
             log_audit(request, 'REGISTER_TEACHER', 'Teacher', teacher.pk, name)
         except Exception as e:
             messages.error(request, f'خطأ: {e}')
-    return redirect('faculty_management')
+        return redirect('coordinator_faculty' if coordinator and not is_admin else 'faculty_management')
+
+    # GET — render form
+    if coordinator and not is_admin:
+        departments = Department.objects.filter(college=coordinator.college)
+        colleges    = College.objects.filter(pk=coordinator.college_id)
+    else:
+        departments = Department.objects.select_related('college').all()
+        colleges    = College.objects.all()
+    return render(request, 'attendance/register_teacher.html', {
+        'departments': departments, 'colleges': colleges,
+        'is_admin': is_admin, 'coordinator': coordinator,
+        'blood_types': ['A+','A-','B+','B-','AB+','AB-','O+','O-'],
+        'degrees': ['Prof.','Assoc. Prof.','Asst. Prof.','PhD','MSc','BSc','Lecturer'],
+    })
 
 
 @login_required
@@ -2114,6 +2216,7 @@ def edit_student(request, student_id):
             messages.error(request, 'ليس في نطاق كليتك.')
             return redirect('coordinator_students')
 
+    BLOOD_TYPES = ['A+','A-','B+','B-','AB+','AB-','O+','O-']
     if request.method == 'POST':
         student.name             = request.POST.get('name', student.name).strip()
         student.phone_number     = request.POST.get('phone_number', '').strip() or ''
@@ -2127,6 +2230,15 @@ def edit_student(request, student_id):
         if 'profile_photo' in request.FILES:
             student.face_image = request.FILES['profile_photo']
         student.save()
+        # nationality and blood_type are in DB but not model — raw SQL
+        nat_choice  = request.POST.get('nationality_choice', 'Sudan')
+        nationality = 'Sudan' if nat_choice == 'Sudan' else request.POST.get('nationality_text', '').strip()
+        blood_type  = request.POST.get('blood_type', '').strip()
+        from django.db import connection as _c
+        _c.cursor().execute(
+            'UPDATE attendance_student SET nationality=%s, blood_type=%s WHERE id=%s',
+            [nationality or None, blood_type or None, student.pk]
+        )
         if student.auth_user:
             student.auth_user.email = student.university_email or student.auth_user.email
             student.auth_user.save(update_fields=['email'])
@@ -2137,9 +2249,17 @@ def edit_student(request, student_id):
                    if (coordinator and not is_admin)
                    else Department.objects.select_related('college').all())
     colleges = College.objects.all() if is_admin else College.objects.none()
+    # Fetch nationality/blood_type from DB
+    from django.db import connection as _c
+    cur = _c.cursor()
+    cur.execute('SELECT nationality, blood_type FROM attendance_student WHERE id=%s', [student.pk])
+    row = cur.fetchone()
+    student.nationality = row[0] if row else ''
+    student.blood_type  = row[1] if row else ''
     return render(request, 'attendance/edit_student.html', {
         'student': student, 'departments': departments, 'colleges': colleges,
         'is_admin': is_admin, 'coordinator': coordinator,
+        'blood_types': BLOOD_TYPES,
     })
 
 
@@ -2158,6 +2278,7 @@ def edit_teacher(request, teacher_id):
             messages.error(request, 'ليس في نطاق كليتك.')
             return redirect('coordinator_faculty')
 
+    BLOOD_TYPES = ['A+','A-','B+','B-','AB+','AB-','O+','O-']
     if request.method == 'POST':
         teacher.name               = request.POST.get('name', teacher.name).strip()
         teacher.academic_degree    = request.POST.get('academic_degree', teacher.academic_degree)
@@ -2177,6 +2298,15 @@ def edit_teacher(request, teacher_id):
         if 'profile_photo' in request.FILES:
             teacher.face_image = request.FILES['profile_photo']
         teacher.save()
+        # blood_type and nationality in DB but not model
+        blood_type  = request.POST.get('blood_type', '').strip()
+        nat_choice  = request.POST.get('nationality_choice', 'Sudan')
+        nationality = 'Sudan' if nat_choice == 'Sudan' else request.POST.get('nationality_text', '').strip()
+        from django.db import connection as _c
+        _c.cursor().execute(
+            'UPDATE attendance_teacher SET blood_type=%s WHERE teacher_id=%s',
+            [blood_type or None, teacher.pk]
+        )
         messages.success(request, 'تم تحديث بيانات الأستاذ.')
         return redirect('teacher_detail', teacher_id=teacher.pk)
 
@@ -2184,9 +2314,17 @@ def edit_teacher(request, teacher_id):
     departments = (Department.objects.filter(college=coordinator.college)
                    if (coordinator and not is_admin)
                    else Department.objects.select_related('college').all())
+    # Fetch blood_type from DB
+    from django.db import connection as _c
+    cur = _c.cursor()
+    cur.execute('SELECT blood_type FROM attendance_teacher WHERE teacher_id=%s', [teacher.pk])
+    row = cur.fetchone()
+    teacher.blood_type  = row[0] if row else ''
+    teacher.nationality = 'Sudan'  # teachers default to Sudan
     return render(request, 'attendance/edit_teacher.html', {
         'teacher': teacher, 'colleges': colleges, 'departments': departments,
         'is_admin': is_admin, 'coordinator': coordinator,
+        'blood_types': BLOOD_TYPES,
     })
 
 

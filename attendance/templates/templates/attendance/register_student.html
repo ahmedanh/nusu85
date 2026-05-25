@@ -115,18 +115,32 @@
           class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm font-medium dark:text-white focus:ring-2 focus:ring-primary/20 outline-none">
       </div>
 
-      <div>
-        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">الجنسية</label>
-        <input type="text" name="nationality" placeholder="سوداني"
-          class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm font-medium dark:text-white focus:ring-2 focus:ring-primary/20 outline-none">
+      <!-- Nationality -->
+      <div class="md:col-span-2">
+        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
+          <span data-en="Nationality" data-ar="الجنسية">الجنسية</span>
+        </label>
+        <div class="flex gap-3">
+          <select name="nationality_choice" id="nat-choice" onchange="toggleNatField(this.value)"
+            class="rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm font-medium dark:text-white focus:ring-2 focus:ring-primary/20 outline-none w-48">
+            <option value="Sudan" selected>🇸🇩 سوداني</option>
+            <option value="Foreign">أجنبي / Foreign</option>
+          </select>
+          <input type="text" name="nationality_text" id="nat-text"
+            placeholder="اكتب الجنسية / Enter nationality"
+            class="hidden flex-1 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm font-medium dark:text-white focus:ring-2 focus:ring-primary/20 outline-none">
+        </div>
       </div>
 
+      <!-- Blood Type -->
       <div>
-        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">فصيلة الدم</label>
+        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
+          <span data-en="Blood Type" data-ar="فصيلة الدم">فصيلة الدم</span>
+        </label>
         <select name="blood_type"
           class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm font-medium dark:text-white focus:ring-2 focus:ring-primary/20 outline-none">
           <option value="">— غير محدد —</option>
-          {% for bt in "A+ A- B+ B- AB+ AB- O+ O-"|split:" " %}
+          {% for bt in blood_types %}
           <option value="{{ bt }}">{{ bt }}</option>
           {% endfor %}
         </select>
@@ -157,6 +171,11 @@
 </div>
 
 <script>
+function toggleNatField(val) {
+  const t = document.getElementById('nat-text');
+  if (val === 'Foreign') { t.classList.remove('hidden'); t.required = true; }
+  else { t.classList.add('hidden'); t.required = false; t.value = ''; }
+}
 async function loadDepartments(collegeId) {
   const sel = document.getElementById('dept-select');
   if (!collegeId) { sel.innerHTML = '<option value="">— اختر القسم —</option>'; return; }
