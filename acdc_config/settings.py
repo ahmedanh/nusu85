@@ -64,9 +64,20 @@ ASGI_APPLICATION = 'acdc_config.asgi.application'
 
 # ─────────────────────────────────────────────
 # DATABASE — Remote VPS PostgreSQL  (SQLite offline fallback)
-# Set USE_LOCAL_DB=True in .env to use SQLite (when VPS is unreachable)
+# Auto-detects VPS reachability; falls back to SQLite if unreachable.
 # ─────────────────────────────────────────────
-_USE_LOCAL = config('USE_LOCAL_DB', default=False, cast=bool)
+import socket as _socket
+def _can_reach(host, port, timeout=3):
+    try:
+        s = _socket.create_connection((host, port), timeout=timeout)
+        s.close()
+        return True
+    except Exception:
+        return False
+
+_pg_host = config('DATABASE_HOST', default='localhost')
+_pg_port = int(config('DATABASE_PORT', default='5432'))
+_USE_LOCAL = config('USE_LOCAL_DB', default=False, cast=bool) or not _can_reach(_pg_host, _pg_port)
 
 if _USE_LOCAL:
     DATABASES = {

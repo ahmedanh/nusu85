@@ -174,22 +174,46 @@ def gen_frames(camera_index=0):
             success, frame = cap.read()
             if not success:
                 break
-            # Optional: draw face bounding boxes
-            if FACE_RECOGNITION_AVAILABLE and NUMPY_AVAILABLE and known_face_encodings:
+            # Draw face bounding boxes: green=authorized, yellow=known but no gate access, red=unknown
+            if FACE_RECOGNITION_AVAILABLE and NUMPY_AVAILABLE:
                 small = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
                 rgb_small = small[:, :, ::-1]
                 locations = face_recognition.face_locations(rgb_small)
-                encodings = face_recognition.face_encodings(rgb_small, locations)
-                for (top, right, bottom, left), enc in zip(locations, encodings):
-                    name = 'Unknown'
-                    matches = face_recognition.compare_faces(known_face_encodings, enc, tolerance=0.5)
-                    if True in matches:
-                        name = known_face_names[matches.index(True)]
-                    top, right, bottom, left = top*4, right*4, bottom*4, left*4
-                    color = (0, 255, 0) if name != 'Unknown' else (0, 0, 255)
-                    cv2.rectangle(frame, (left, top), (right, bottom), color, 2)
-                    cv2.putText(frame, name, (left, top - 10),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+                if not locations:
+                    pass  # no faces
+                elif not known_face_encodings:
+                    # DB not loaded yet — yellow "analyzing" for every face
+                    for (top, right, bottom, left) in locations:
+                        top, right, bottom, left = top*4, right*4, bottom*4, left*4
+                        cv2.rectangle(frame, (left, top), (right, bottom), (0, 200, 255), 2)
+                        cv2.putText(frame, 'Analyzing...', (left, top - 10),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 200, 255), 2)
+                else:
+                    encodings = face_recognition.face_encodings(rgb_small, locations)
+                    for (top, right, bottom, left), enc in zip(locations, encodings):
+                        name = 'Unknown'
+                        matches = face_recognition.compare_faces(known_face_encodings, enc, tolerance=0.5)
+                        if True in matches:
+                            name = known_face_names[matches.index(True)]
+                        top, right, bottom, left = top*4, right*4, bottom*4, left*4
+                        if name == 'Unknown':
+                            # Red: face not in database
+                            color, label = (0, 0, 220), 'Not Registered'
+                        else:
+                            # Check gate authorization (student must be active)
+                            try:
+                                from attendance.models import Student as _St
+                                st = _St.objects.filter(student_code=name).first()
+                                authorized = st is not None
+                            except Exception:
+                                authorized = True
+                            if authorized:
+                                color, label = (0, 220, 0), name   # Green
+                            else:
+                                color, label = (0, 200, 255), name  # Yellow: known but not authorized
+                        cv2.rectangle(frame, (left, top), (right, bottom), color, 2)
+                        cv2.putText(frame, label, (left, top - 10),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 2)
             ret, buffer = cv2.imencode('.jpg', frame)
             if not ret:
                 continue
@@ -530,6 +554,12 @@ def toggle_user_access(request, user_type, user_id):
 
 @login_required
 def gate_page(request):
+    user = request.user
+    # Only admin/staff and gate_staff group can access the gate page
+    is_gate_staff = user.groups.filter(name__in=['gate_staff', 'GATE_STAFF']).exists()
+    if not (user.is_staff or user.is_superuser or is_gate_staff):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('Access denied. Gate access requires gate staff authorization.')
     recent_gate_logs = GateLog.objects.order_by('-timestamp')[:30]
     return render(request, 'attendance/gate.html', {
         'recent_logs': recent_gate_logs,
@@ -1953,8 +1983,16 @@ def create_ticket(request):
             messages.success(request, f'تم رفع البلاغ #{ticket.id} بنجاح.')
             return redirect('ticket_detail', ticket_id=ticket.id)
 
+    TYPE_CHOICES = [
+        ('general', 'عام'),
+        ('technical', 'تقني'),
+        ('academic', 'أكاديمي'),
+        ('financial', 'مالي'),
+        ('other', 'أخرى'),
+    ]
     return render(request, 'attendance/create_ticket.html', {
         'priority_choices': SupportTicket.PRIORITY_CHOICES,
+        'type_choices': TYPE_CHOICES,
     })
 
 
