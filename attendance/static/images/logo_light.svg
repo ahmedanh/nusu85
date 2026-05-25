@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 90" fill="none">
+  <!-- Shield body -->
+  <path d="M42 8 L72 8 C74 8 76 10 76 12 L76 44 C76 58 58 72 57 73 C56 72 38 58 38 44 L38 12 C38 10 40 8 42 8Z" fill="#0B2545" stroke="#1a3a6b" stroke-width="1.5"/>
+  <!-- Shield highlight top -->
+  <path d="M44 10 L70 10 C71.5 10 73 11.5 73 13 L73 30 C60 26 47 26 41 30 L41 13 C41 11.5 42.5 10 44 10Z" fill="#0d2f5e" opacity="0.6"/>
+  <!-- Shield border -->
+  <path d="M42 8 L72 8 C74 8 76 10 76 12 L76 44 C76 58 58 72 57 73 C56 72 38 58 38 44 L38 12 C38 10 40 8 42 8Z" fill="none" stroke="#C9A227" stroke-width="1.8" opacity="0.9"/>
+
+  <!-- Molecular network dots (left) -->
+  <circle cx="29" cy="28" r="3" fill="#C9A227" opacity="0.85"/>
+  <circle cx="20" cy="42" r="2.5" fill="#C9A227" opacity="0.7"/>
+  <circle cx="31" cy="54" r="2" fill="#C9A227" opacity="0.6"/>
+  <line x1="29" y1="28" x2="20" y2="42" stroke="#C9A227" stroke-width="1.2" opacity="0.5"/>
+  <line x1="20" y1="42" x2="31" y2="54" stroke="#C9A227" stroke-width="1.2" opacity="0.5"/>
+  <line x1="29" y1="28" x2="31" y2="54" stroke="#C9A227" stroke-width="1" opacity="0.3"/>
+
+  <!-- Molecular network dots (right) -->
+  <circle cx="85" cy="28" r="3" fill="#C9A227" opacity="0.85"/>
+  <circle cx="94" cy="42" r="2.5" fill="#C9A227" opacity="0.7"/>
+  <circle cx="83" cy="54" r="2" fill="#C9A227" opacity="0.6"/>
+  <line x1="85" y1="28" x2="94" y2="42" stroke="#C9A227" stroke-width="1.2" opacity="0.5"/>
+  <line x1="94" y1="42" x2="83" y2="54" stroke="#C9A227" stroke-width="1.2" opacity="0.5"/>
+  <line x1="85" y1="28" x2="83" y2="54" stroke="#C9A227" stroke-width="1" opacity="0.3"/>
+  <line x1="29" y1="28" x2="38" y2="22" stroke="#C9A227" stroke-width="1" opacity="0.4"/>
+  <line x1="85" y1="28" x2="76" y2="22" stroke="#C9A227" stroke-width="1" opacity="0.4"/>
+
+  <!-- Arabic S / calligraphic letter at top of shield -->
+  <text x="57" y="28" text-anchor="middle" font-family="Georgia, serif" font-size="13" font-weight="900" fill="#C9A227" opacity="0.95" letter-spacing="0">س</text>
+
+  <!-- Torch body -->
+  <rect x="54" y="38" width="6" height="18" rx="2" fill="#C9A227" opacity="0.9"/>
+  <!-- Torch flame -->
+  <path d="M57 38 C55 34 52 32 54 28 C56 30 57 27 57 25 C58 27 59 29 61 28 C63 32 60 34 57 38Z" fill="#E8C040"/>
+  <path d="M57 38 C56 35 54.5 33.5 55.5 30 C56.5 31.5 57 29.5 57 28 C57.5 29.5 58 31 59.5 30 C60.5 33.5 58 35 57 38Z" fill="#FFF0A0" opacity="0.7"/>
+  <!-- Torch handle notches -->
+  <rect x="53.5" y="42" width="7" height="1.5" rx="0.75" fill="#A8831A" opacity="0.8"/>
+  <rect x="53.5" y="45" width="7" height="1.5" rx="0.75" fill="#A8831A" opacity="0.8"/>
+
+  <!-- Keyhole -->
+  <circle cx="57" cy="58" r="4" fill="none" stroke="#C9A227" stroke-width="1.5"/>
+  <path d="M55.5 58 L55.5 63 L58.5 63 L58.5 58" fill="#C9A227" opacity="0.85"/>
+
+  <!-- SHAMEL text -->
+  <text x="110" y="38" font-family="Manrope, Segoe UI, system-ui, sans-serif" font-size="30" font-weight="900" fill="#0B2545" letter-spacing="2">SHAMEL</text>
+  <!-- Tagline -->
+  <text x="111" y="54" font-family="Inter, Segoe UI, sans-serif" font-size="9.5" fill="#6B7FA3" letter-spacing="0.5">Secure High-dimensional Academic</text>
+  <text x="111" y="66" font-family="Inter, Segoe UI, sans-serif" font-size="9.5" fill="#6B7FA3" letter-spacing="0.5">Management &amp; Entry Logic</text>
+</svg>

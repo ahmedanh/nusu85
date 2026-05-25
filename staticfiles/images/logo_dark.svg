@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 90" fill="none">
+  <!-- Shield glow effect (dark theme) -->
+  <ellipse cx="57" cy="42" rx="26" ry="28" fill="#4AABFF" opacity="0.08" filter="url(#glow)"/>
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="goldglow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Shield body (dark blue/steel) -->
+  <path d="M42 8 L72 8 C74 8 76 10 76 12 L76 44 C76 58 58 72 57 73 C56 72 38 58 38 44 L38 12 C38 10 40 8 42 8Z" fill="#1A4A8A" opacity="0.85"/>
+  <!-- Shield inner shine -->
+  <path d="M44 10 L70 10 C71.5 10 73 11.5 73 13 L73 28 C62 24 49 24 41 28 L41 13 C41 11.5 42.5 10 44 10Z" fill="#4AABFF" opacity="0.15"/>
+  <!-- Shield border — gold glow -->
+  <path d="M42 8 L72 8 C74 8 76 10 76 12 L76 44 C76 58 58 72 57 73 C56 72 38 58 38 44 L38 12 C38 10 40 8 42 8Z" fill="none" stroke="#F0C040" stroke-width="2" filter="url(#goldglow)"/>
+  <!-- Shield border sharp -->
+  <path d="M42 8 L72 8 C74 8 76 10 76 12 L76 44 C76 58 58 72 57 73 C56 72 38 58 38 44 L38 12 C38 10 40 8 42 8Z" fill="none" stroke="#F0C040" stroke-width="1.5"/>
+
+  <!-- Molecular network dots (left) — electric blue -->
+  <circle cx="29" cy="28" r="3" fill="#4AABFF" opacity="0.9"/>
+  <circle cx="20" cy="42" r="2.5" fill="#4AABFF" opacity="0.75"/>
+  <circle cx="31" cy="54" r="2" fill="#4AABFF" opacity="0.65"/>
+  <line x1="29" y1="28" x2="20" y2="42" stroke="#4AABFF" stroke-width="1.2" opacity="0.5"/>
+  <line x1="20" y1="42" x2="31" y2="54" stroke="#4AABFF" stroke-width="1.2" opacity="0.5"/>
+  <line x1="29" y1="28" x2="31" y2="54" stroke="#4AABFF" stroke-width="1" opacity="0.3"/>
+
+  <!-- Molecular network dots (right) — electric blue -->
+  <circle cx="85" cy="28" r="3" fill="#4AABFF" opacity="0.9"/>
+  <circle cx="94" cy="42" r="2.5" fill="#4AABFF" opacity="0.75"/>
+  <circle cx="83" cy="54" r="2" fill="#4AABFF" opacity="0.65"/>
+  <line x1="85" y1="28" x2="94" y2="42" stroke="#4AABFF" stroke-width="1.2" opacity="0.5"/>
+  <line x1="94" y1="42" x2="83" y2="54" stroke="#4AABFF" stroke-width="1.2" opacity="0.5"/>
+  <line x1="85" y1="28" x2="83" y2="54" stroke="#4AABFF" stroke-width="1" opacity="0.3"/>
+  <line x1="29" y1="28" x2="38" y2="22" stroke="#4AABFF" stroke-width="1" opacity="0.4"/>
+  <line x1="85" y1="28" x2="76" y2="22" stroke="#4AABFF" stroke-width="1" opacity="0.4"/>
+
+  <!-- Arabic S / calligraphic letter -->
+  <text x="57" y="28" text-anchor="middle" font-family="Georgia, serif" font-size="13" font-weight="900" fill="#F0C040" filter="url(#goldglow)">س</text>
+
+  <!-- Torch body — bright gold -->
+  <rect x="54" y="38" width="6" height="18" rx="2" fill="#F0C040"/>
+  <!-- Torch flame (bright) -->
+  <path d="M57 38 C55 34 52 32 54 28 C56 30 57 27 57 25 C58 27 59 29 61 28 C63 32 60 34 57 38Z" fill="#FFD700" filter="url(#goldglow)"/>
+  <path d="M57 38 C55 34 52 32 54 28 C56 30 57 27 57 25 C58 27 59 29 61 28 C63 32 60 34 57 38Z" fill="#FFD700"/>
+  <path d="M57 37 C56 34.5 54.5 33 55.5 30 C56.5 31.5 57 30 57 28.5 C57.5 30 58.5 31 59.5 30 C60.5 33 58.5 34.5 57 37Z" fill="#FFF8C0" opacity="0.8"/>
+  <!-- Torch handle -->
+  <rect x="53.5" y="42" width="7" height="1.5" rx="0.75" fill="#C9A227"/>
+  <rect x="53.5" y="45" width="7" height="1.5" rx="0.75" fill="#C9A227"/>
+
+  <!-- Keyhole — gold -->
+  <circle cx="57" cy="58" r="4" fill="none" stroke="#F0C040" stroke-width="1.5"/>
+  <path d="M55.5 58 L55.5 63 L58.5 63 L58.5 58" fill="#F0C040"/>
+
+  <!-- Bottom glow under shield -->
+  <ellipse cx="57" cy="74" rx="16" ry="4" fill="#4AABFF" opacity="0.25" filter="url(#glow)"/>
+
+  <!-- SHAMEL text — white for dark bg -->
+  <text x="110" y="38" font-family="Manrope, Segoe UI, system-ui, sans-serif" font-size="30" font-weight="900" fill="#FFFFFF" letter-spacing="2">SHAMEL</text>
+  <!-- Tagline -->
+  <text x="111" y="54" font-family="Inter, Segoe UI, sans-serif" font-size="9.5" fill="#8BA8CC" letter-spacing="0.5">Secure High-dimensional Academic</text>
+  <text x="111" y="66" font-family="Inter, Segoe UI, sans-serif" font-size="9.5" fill="#8BA8CC" letter-spacing="0.5">Management &amp; Entry Logic</text>
+</svg>

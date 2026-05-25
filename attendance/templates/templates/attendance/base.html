@@ -203,7 +203,7 @@ tailwind.config = {
     <a href="/" class="flex items-center" id="sidebar-logo-link">
       <!-- Single logo element — JS swaps src based on theme -->
       <img id="sidebar-logo-img"
-           src="{% static 'images/logo_light.png' %}"
+           src="{% static 'images/logo_light.svg' %}"
            class="h-11 max-w-[160px] object-contain"
            alt="SHAMEL"
            onerror="this.style.display='none'; document.getElementById('sidebar-logo-fallback').style.display='flex'">
@@ -645,8 +645,8 @@ document.addEventListener('click', function(e) {
 });
 
 // ── Dark / Light theme ───────────────────────
-const LOGO_LIGHT = "{% static 'images/logo_light.png' %}";
-const LOGO_DARK  = "{% static 'images/logo_dark.png' %}";
+const LOGO_LIGHT = "{% static 'images/logo_light.svg' %}";
+const LOGO_DARK  = "{% static 'images/logo_dark.svg' %}";
 
 function _updateSidebarLogo(theme) {
   const img = document.getElementById('sidebar-logo-img');
