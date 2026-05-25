@@ -1,0 +1,2 @@
+
+136 static files deleted, 140 static files copied to 'D:\مهم\ACDC_FINAL-main\staticfiles', 10 skipped due to conflict.

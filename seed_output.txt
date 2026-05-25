@@ -1,0 +1,32 @@
+Creating colleges...
+  OK 12 colleges
+Creating departments...
+  OK departments created
+Creating courses from document...
+Generating extra courses to reach 887...
+  OK 1115 courses total
+Creating gate users gf1�gf15...
+  OK gf1�gf15 created
+Creating 399 teachers...
+  OK 399 teachers total
+Creating 9889 students (this may take a minute)...
+
+  OK 9889 students total
+Creating coordinators...
+  OK coordinators created
+
+==================================================
+SEEDING COMPLETE
+  Colleges    : 13
+  Departments : 27
+  Courses     : 1115
+  Teachers    : 399
+  Students    : 9889
+  Gate users  : gf1�gf15  | pwd: Gate@NUSU2026!
+  Teacher auth: tf1�tf3   | pwd: Teacher@NUSU2026!
+  Student auth: sf1�sf3   | pwd: Student@NUSU2026!
+  Coordinators: coord_gen, coord_med � | pwd: Coord@NUSU2026!
+==================================================
+
+
+STDERR:

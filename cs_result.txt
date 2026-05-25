@@ -1,0 +1,2 @@
+
+0 static files copied to 'D:\مهم\ACDC_FINAL-main\staticfiles', 134 unmodified, 4 skipped due to conflict.
