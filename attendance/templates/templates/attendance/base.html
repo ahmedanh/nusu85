@@ -167,6 +167,32 @@ tailwind = {
   /* ── Sidebar border override ── */
   #sidebar { border-right-color: rgba(255,255,255,0.08) !important; }
 
+  /* ── Light mode: white cards, clean shadows ── */
+  :not(.dark) .bg-white,
+  html:not(.dark) .bg-white {
+    background-color: #FFFFFF !important;
+    box-shadow: 0 1px 4px rgba(11,37,69,0.06), 0 0 0 1px rgba(11,37,69,0.05) !important;
+  }
+  html:not(.dark) body,
+  html:not(.dark) #main-canvas {
+    background-color: #F1F3F8 !important;
+  }
+  html:not(.dark) #topbar {
+    background-color: #FFFFFF !important;
+    border-bottom: 1.5px solid #E5EAF2 !important;
+    box-shadow: 0 1px 6px rgba(11,37,69,0.07) !important;
+  }
+  html:not(.dark) .dark\:bg-slate-800,
+  html:not(.dark) [class*="dark:bg-slate"] {
+    /* ensure no slate bleeds into light mode */
+    background-color: initial;
+  }
+  /* Dark mode: deep contrast */
+  html.dark body,
+  html.dark #main-canvas { background-color: #060C1A !important; }
+  html.dark #topbar { background-color: #0A1628 !important; border-bottom-color: #1A2F50 !important; }
+  html.dark .bg-white { background-color: #0D1A33 !important; box-shadow: none !important; }
+
   /* ── Gold shimmer on active elements ── */
   .gold-accent { color: #C9A227; }
   .dark .gold-accent { color: #F0C040; }
@@ -304,10 +330,6 @@ tailwind = {
     <a href="{% url 'coordinator_course_assignment' %}" class="nav-link {% if request.resolver_match.url_name == 'coordinator_course_assignment' %}active{% endif %}">
       <span class="material-symbols-outlined text-[18px]">calendar_month</span>
       <span data-en="Timetables" data-ar="الجداول الدراسية">Timetables</span>
-    </a>
-    <a href="{% url 'coordinator_grading' %}" class="nav-link {% if request.resolver_match.url_name == 'coordinator_grading' %}active{% endif %}">
-      <span class="material-symbols-outlined text-[18px]">grading</span>
-      <span data-en="Grading" data-ar="الدرجات">Grading</span>
     </a>
     <a href="{% url 'coordinator_register_user' %}" class="nav-link {% if request.resolver_match.url_name == 'coordinator_register_user' %}active{% endif %}">
       <span class="material-symbols-outlined text-[18px]">person_add</span>

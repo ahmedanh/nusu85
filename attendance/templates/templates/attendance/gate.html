@@ -146,10 +146,6 @@ tailwind.config = {
             <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1"><span data-en="Phone" data-ar="الهاتف">Phone</span></p>
             <p id="user-phone" class="font-bold text-white text-sm">—</p>
           </div>
-          <div class="bg-slate-800 rounded-xl p-4 col-span-2">
-            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1"><span data-en="Fees Status" data-ar="حالة الرسوم">Fees Status</span></p>
-            <p id="fees-label" class="font-bold text-sm">—</p>
-          </div>
         </div>
 
         <!-- Tags -->
@@ -195,7 +191,6 @@ const userNameEl    = document.getElementById('user-name');
 const userTypeLabel = document.getElementById('user-type-label');
 const userIdEl      = document.getElementById('user-id');
 const userPhoneEl   = document.getElementById('user-phone');
-const feesLabel     = document.getElementById('fees-label');
 const tagsEl        = document.getElementById('tags');
 const logList       = document.getElementById('log-list');
 const statusBadge   = document.getElementById('gate-status-badge');
@@ -302,9 +297,6 @@ function showResult(data) {
     accessIcon.textContent = 'cancel';
     accessLabel.textContent= IS_AR() ? 'الدخول محظور' : 'ACCESS DENIED';
   }
-
-  feesLabel.textContent = data.is_paid ? (IS_AR() ? 'تم الدفع' : 'Paid') : (IS_AR() ? 'الرسوم مستحقة' : 'Payment Due');
-  feesLabel.className   = 'font-bold text-sm ' + (data.is_paid ? 'text-emerald-400' : 'text-amber-400');
 
   tagsEl.innerHTML = '';
   if (data.user_type === 'Student' && !data.is_registered) {

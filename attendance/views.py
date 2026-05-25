@@ -258,6 +258,10 @@ def logout_view(request):
 
 @login_required
 def scan_page(request):
+    # Block coordinators — scan station is admin/staff only
+    if not (request.user.is_staff or request.user.is_superuser):
+        if Coordinator.objects.filter(auth_user=request.user).exists():
+            return _redirect_by_role(request)
     cameras = CameraSource.objects.filter(is_active=True, is_gate=False)
     sessions = LectureSession.objects.filter(is_active=True).select_related(
         'schedule__course', 'schedule__teacher', 'schedule__classroom'
@@ -321,6 +325,11 @@ def attendance_logs(request):
     logs = AIAttendanceLog.objects.select_related(
         'student', 'schedule__course', 'schedule__teacher'
     ).order_by('-timestamp')
+
+    # Coordinator: restrict to their college only
+    coordinator = Coordinator.objects.filter(auth_user=request.user).first()
+    if coordinator and not (request.user.is_staff or request.user.is_superuser):
+        logs = logs.filter(schedule__course__college=coordinator.college)
 
     date_f = request.GET.get('date', '')
     status_f = request.GET.get('status', '')
@@ -1025,13 +1034,53 @@ def export_my_courses_csv(request):
     return response
 
 
+@login_required
 def teacher_attendance_report(request):
-    teachers = Teacher.objects.select_related('department', 'college').order_by('name')
+    from datetime import date as _date
+    teacher_q  = request.GET.get('teacher_q', '').strip()
+    date_from  = request.GET.get('date_from', '')
+    date_to    = request.GET.get('date_to', '')
+
+    teachers_qs = Teacher.objects.select_related('department', 'college').order_by('name')
+    if teacher_q:
+        teachers_qs = teachers_qs.filter(name__icontains=teacher_q)
+
+    sessions_qs = LectureSession.objects.filter(is_active=False).select_related(
+        'schedule__teacher', 'schedule__course', 'schedule__classroom'
+    )
+    if date_from:
+        try:
+            from datetime import datetime as _dt
+            sessions_qs = sessions_qs.filter(actual_start_time__date__gte=_dt.strptime(date_from, '%Y-%m-%d').date())
+        except ValueError:
+            pass
+    if date_to:
+        try:
+            from datetime import datetime as _dt
+            sessions_qs = sessions_qs.filter(actual_start_time__date__lte=_dt.strptime(date_to, '%Y-%m-%d').date())
+        except ValueError:
+            pass
+    if teacher_q:
+        sessions_qs = sessions_qs.filter(schedule__teacher__name__icontains=teacher_q)
+
     data = []
-    for t in teachers:
-        sessions = LectureSession.objects.filter(schedule__teacher=t, is_active=False).count()
-        data.append({'teacher': t, 'sessions': sessions})
-    return render(request, 'attendance/reports/teacher_report.html', {'data': data})
+    for t in teachers_qs:
+        t_sessions = [s for s in sessions_qs if s.schedule and s.schedule.teacher_id == t.id]
+        total_minutes = sum((s.duration_minutes or 0) for s in t_sessions)
+        data.append({
+            'teacher': t,
+            'sessions': len(t_sessions),
+            'total_minutes': total_minutes,
+            'session_list': t_sessions[:5],
+        })
+
+    return render(request, 'attendance/reports/teacher_report.html', {
+        'data': data,
+        'teacher_q': teacher_q,
+        'date_from': date_from,
+        'date_to': date_to,
+        'total_sessions': sum(d['sessions'] for d in data),
+    })
 
 
 def export_teacher_report_csv(request):
@@ -1156,7 +1205,7 @@ def student_courses(request):
         except Exception:
             pass
     if search_q:
-        all_courses_qs = all_courses_qs.filter(name__icontains=search_q)
+        all_courses_qs = all_courses_qs.filter(title__icontains=search_q)
 
     # Attach course_type from DB
     course_type_map = {}
@@ -1167,7 +1216,7 @@ def student_courses(request):
     except Exception:
         pass
 
-    all_courses = list(all_courses_qs.order_by('name'))
+    all_courses = list(all_courses_qs.order_by('title'))
     for c in all_courses:
         c.course_type_val = course_type_map.get(c.pk, '')
 
@@ -1317,7 +1366,16 @@ def coordinator_course_assignment(request):
 
 @login_required
 def coordinator_register_user(request):
-    coordinator = get_object_or_404(Coordinator, auth_user=request.user)
+    # Allow admin/staff to reach this page (they see all colleges)
+    coordinator = Coordinator.objects.filter(auth_user=request.user).first()
+    if coordinator is None and not (request.user.is_staff or request.user.is_superuser):
+        return _redirect_by_role(request)
+    if coordinator is None:
+        # Admin acting as coordinator — create a stub for template compat
+        coordinator = type('FakeCoord', (), {
+            'college': None,
+            'id': None,
+        })()
     if request.method == 'POST':
         user_type = request.POST.get('user_type', 'student')
         username = request.POST.get('username', '').strip()
@@ -1344,7 +1402,7 @@ def coordinator_register_user(request):
             messages.error(request, f'خطأ: {e}')
         return redirect('coordinator_register_user')
 
-    departments = Department.objects.filter(college=coordinator.college)
+    departments = Department.objects.filter(college=coordinator.college) if coordinator.college else Department.objects.all()
     import datetime
     current_year = datetime.date.today().year
     batch_years = list(range(current_year, current_year - 10, -1))
@@ -1940,54 +1998,71 @@ def create_ticket(request):
         body     = (request.POST.get('description') or request.POST.get('body', '')).strip()
         priority = request.POST.get('priority', 'medium')
 
+        ticket_type = request.POST.get('ticket_type', 'general')
         if not subject or not body:
             messages.error(request, 'الموضوع والوصف مطلوبان.')
         else:
-            ticket = SupportTicket.objects.create(
-                user=user, subject=subject, body=body, priority=priority,
-            )
-            # Notify admin users
-            admin_users = User.objects.filter(is_staff=True)
-            for admin_u in admin_users:
-                try:
-                    Notification.objects.create(
-                        user=admin_u,
-                        title=f'بلاغ جديد #{ticket.id}',
-                        message=f'{user.get_full_name() or user.username} رفع بلاغاً: {subject}',
-                        notif_type='warning',
+            # Use raw SQL — the DB schema has description/requester_id/ticket_type as NOT NULL
+            # which are not yet in the Django model
+            from django.db import connection as _conn
+            try:
+                with _conn.cursor() as cur:
+                    cur.execute(
+                        """INSERT INTO attendance_supportticket
+                           (subject, description, body, status, priority, ticket_type,
+                            created_at, updated_at, requester_id, user_id, admin_reply)
+                           VALUES (%s, %s, %s, 'open', %s, %s, NOW(), NOW(), %s, %s, '')
+                           RETURNING id""",
+                        [subject, body, body, priority, ticket_type, user.id, user.id]
                     )
+                    ticket_id = cur.fetchone()[0]
+                ticket = SupportTicket.objects.get(id=ticket_id)
+            except Exception as e:
+                messages.error(request, f'خطأ في حفظ البلاغ: {e}')
+                ticket = None
+            if ticket:
+                # Notify admin users
+                admin_users = User.objects.filter(is_staff=True)
+                for admin_u in admin_users:
+                    try:
+                        Notification.objects.create(
+                            user=admin_u,
+                            title=f'بلاغ جديد #{ticket.id}',
+                            message=f'{user.get_full_name() or user.username} رفع بلاغاً: {subject}',
+                            notif_type='warning',
+                        )
+                    except Exception:
+                        pass
+                # Notify coordinator of the student/teacher college
+                try:
+                    college = None
+                    if Student.objects.filter(auth_user=user).exists():
+                        st = Student.objects.get(auth_user=user)
+                        if st.department and st.department.college_id:
+                            college = st.department.college
+                    if college is None and Teacher.objects.filter(auth_user=user).exists():
+                        tc = Teacher.objects.get(auth_user=user)
+                        college = tc.college if hasattr(tc, 'college') else None
+                    if college:
+                        coords = Coordinator.objects.filter(college=college)
+                        for coord in coords:
+                            if coord.auth_user:
+                                Notification.objects.create(
+                                    user=coord.auth_user,
+                                    title=f'بلاغ جديد #{ticket.id}',
+                                    message=f'{user.get_full_name() or user.username} رفع بلاغاً: {subject}',
+                                    notif_type='warning',
+                                )
                 except Exception:
                     pass
-            # Notify coordinator of the student/teacher college
-            try:
-                college = None
-                if Student.objects.filter(auth_user=user).exists():
-                    st = Student.objects.get(auth_user=user)
-                    if st.department and st.department.college_id:
-                        college = st.department.college
-                if college is None and Teacher.objects.filter(auth_user=user).exists():
-                    tc = Teacher.objects.get(auth_user=user)
-                    college = tc.college if hasattr(tc, 'college') else None
-                if college:
-                    coords = Coordinator.objects.filter(college=college)
-                    for coord in coords:
-                        if coord.auth_user:
-                            Notification.objects.create(
-                                user=coord.auth_user,
-                                title=f'بلاغ جديد #{ticket.id}',
-                                message=f'{user.get_full_name() or user.username} رفع بلاغاً: {subject}',
-                                notif_type='warning',
-                            )
-            except Exception:
-                pass
-            messages.success(request, f'تم رفع البلاغ #{ticket.id} بنجاح.')
-            return redirect('ticket_detail', ticket_id=ticket.id)
+                messages.success(request, f'تم رفع البلاغ #{ticket.id} بنجاح.')
+                return redirect('ticket_detail', ticket_id=ticket.id)
+            return redirect('tickets_list')
 
     TYPE_CHOICES = [
         ('general', 'عام'),
         ('technical', 'تقني'),
         ('academic', 'أكاديمي'),
-        ('financial', 'مالي'),
         ('other', 'أخرى'),
     ]
     return render(request, 'attendance/create_ticket.html', {
@@ -2621,7 +2696,10 @@ def teacher_profile_view(request):
         'course', 'classroom').order_by('day_of_week', 'start_time')
     sessions_completed = LectureSession.objects.filter(
         schedule__teacher=teacher, is_active=False).count()
-    permissions = list(ClassroomPermission.objects.filter(teacher=teacher).select_related('classroom'))
+    try:
+        permissions = list(ClassroomPermission.objects.filter(teacher=teacher).select_related('classroom'))
+    except (AttributeError, TypeError):
+        permissions = []
     return render(request, 'attendance/teacher_profile.html', {
         'teacher': teacher,
         'schedules': schedules,
@@ -2656,8 +2734,11 @@ def classrooms_status_view(request):
 @login_required
 def teacher_permissions_view(request):
     teacher = get_object_or_404(Teacher, auth_user=request.user)
-    permissions = list(ClassroomPermission.objects.filter(
-        teacher=teacher).select_related('classroom').order_by('classroom__name'))
+    try:
+        permissions = list(ClassroomPermission.objects.filter(
+            teacher=teacher).select_related('classroom').order_by('classroom__name'))
+    except (AttributeError, TypeError):
+        permissions = []
     return render(request, 'attendance/teacher_permissions.html', {
         'permissions': permissions, 'teacher': teacher,
     })

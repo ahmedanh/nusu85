@@ -79,8 +79,6 @@
         <div class="flex justify-between"><span class="text-slate-400 font-medium">الهاتف</span><span class="font-semibold dark:text-slate-200">{{ student.phone_number|default:"—" }}</span></div>
         <hr class="border-slate-100 dark:border-slate-700">
         <div class="flex justify-between"><span class="text-slate-400 font-medium">مسجّل</span><span class="font-bold {% if student.is_registered %}text-emerald-600{% else %}text-red-500{% endif %}">{% if student.is_registered %}نعم{% else %}لا{% endif %}</span></div>
-        <div class="flex justify-between"><span class="text-slate-400 font-medium">الرسوم</span><span class="font-bold {% if fin and fin.is_paid %}text-emerald-600{% else %}text-amber-500{% endif %}">{% if fin and fin.is_paid %}مسددة{% else %}غير مسددة{% endif %}</span></div>
-        {% if fin and fin.balance_due %}<div class="flex justify-between"><span class="text-slate-400 font-medium">المديونية</span><span class="font-bold text-red-600">{{ fin.balance_due }} SDG</span></div>{% endif %}
       </div>
     </div>
 

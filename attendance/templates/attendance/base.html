@@ -225,10 +225,6 @@ tailwind.config = {
       <span class="material-symbols-outlined text-[18px]">calendar_month</span>
       <span data-en="Timetables" data-ar="الجداول الدراسية">Timetables</span>
     </a>
-    <a href="{% url 'coordinator_grading' %}" class="nav-link {% if request.resolver_match.url_name == 'coordinator_grading' %}active{% endif %}">
-      <span class="material-symbols-outlined text-[18px]">grading</span>
-      <span data-en="Grading" data-ar="الدرجات">Grading</span>
-    </a>
     <a href="{% url 'coordinator_register_user' %}" class="nav-link {% if request.resolver_match.url_name == 'coordinator_register_user' %}active{% endif %}">
       <span class="material-symbols-outlined text-[18px]">person_add</span>
       <span data-en="Register User" data-ar="تسجيل مستخدم">Register User</span>

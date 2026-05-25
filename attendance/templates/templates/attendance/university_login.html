@@ -29,9 +29,9 @@ tailwind.config = {
   h1,h2,h3,.font-headline { font-family:'Manrope','Segoe UI',system-ui,sans-serif; }
   .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24; line-height:1; }
 
-  /* ── Left panel — deep navy from logo ── */
+  /* ── Left panel — softer, warmer deep navy ── */
   .panel-bg {
-    background: linear-gradient(150deg, #060D1F 0%, #0B2545 45%, #0d2f5e 100%);
+    background: linear-gradient(150deg, #0A1628 0%, #122040 40%, #1a3060 100%);
     position: relative;
     overflow: hidden;
   }
@@ -156,10 +156,10 @@ tailwind.config = {
       <!-- Full logo with description (login page only) -->
       <div class="mb-8">
         <!-- Logo image — dark version for the dark panel -->
-        <img src="{% static 'images/logo_dark.png' %}"
+        <img src="{% static 'images/logo_dark.svg' %}"
              class="h-28 mx-auto object-contain mb-6"
              alt="SHAMEL"
-             onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='block'">
+             onerror="this.onerror=null; this.src='{% static 'images/logo_dark.png' %}'; this.style='mix-blend-mode:screen'; document.getElementById('logo-fallback') && (this.addEventListener('error', function(){this.style.display='none'; document.getElementById('logo-fallback').style.display='block'}))">
         <!-- Text fallback -->
         <div id="logo-fallback" style="display:none;" class="mb-6">
           <div class="w-24 h-24 mx-auto rounded-3xl flex items-center justify-center mb-4"
@@ -175,30 +175,6 @@ tailwind.config = {
         <div class="gold-line w-32 mx-auto mt-4"></div>
       </div>
 
-      <!-- 3 feature cards -->
-      <div class="space-y-3 text-left mt-8">
-        <div class="feature-card">
-          <span class="material-symbols-outlined mt-0.5 flex-shrink-0" style="font-size:20px; color:#C9A227;">face_recognition</span>
-          <div>
-            <p class="text-white text-sm font-bold">Biometric Check-in</p>
-            <p class="text-white/50 text-xs leading-snug mt-0.5">Sub-second face recognition powered by AI embeddings.</p>
-          </div>
-        </div>
-        <div class="feature-card">
-          <span class="material-symbols-outlined mt-0.5 flex-shrink-0" style="font-size:20px; color:#C9A227;">bar_chart</span>
-          <div>
-            <p class="text-white text-sm font-bold">Live Attendance Reports</p>
-            <p class="text-white/50 text-xs leading-snug mt-0.5">Real-time dashboards for coordinators and instructors.</p>
-          </div>
-        </div>
-        <div class="feature-card">
-          <span class="material-symbols-outlined mt-0.5 flex-shrink-0" style="font-size:20px; color:#C9A227;">security</span>
-          <div>
-            <p class="text-white text-sm font-bold">Privacy-First Security</p>
-            <p class="text-white/50 text-xs leading-snug mt-0.5">AES-256 encrypted embeddings. University data policy compliant.</p>
-          </div>
-        </div>
-      </div>
 
     </div>
 
