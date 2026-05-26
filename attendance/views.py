@@ -1586,6 +1586,7 @@ def exam_planner(request):
         'exams': exams,
         'courses': Course.objects.all(),
         'classrooms': Classroom.objects.all(),
+        'semester_choices': SEMESTER_CHOICES_4Y,
     })
 
 
