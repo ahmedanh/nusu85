@@ -16,8 +16,8 @@
         <!-- Status badge -->
         <span class="px-2.5 py-1 rounded-full text-[11px] font-bold
           {% if ticket.status == 'open' %}bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400
-          {% elif ticket.status == 'investigating' %}bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400
-          {% elif ticket.status == 'resolved' %}bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400
+          {% elif ticket.status == 'in_progress' %}bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400
+          {% elif ticket.status == 'closed' %}bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400
           {% else %}bg-slate-100 dark:bg-slate-700 text-slate-500{% endif %}">
           {{ ticket.get_status_display }}
         </span>
@@ -28,13 +28,11 @@
           {% else %}bg-slate-100 text-slate-500{% endif %}">
           {{ ticket.get_priority_display }}
         </span>
-        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-700 text-slate-500">{{ ticket.get_ticket_type_display }}</span>
       </div>
       <h1 class="text-xl font-extrabold text-slate-900 dark:text-white">{{ ticket.subject }}</h1>
       <p class="text-xs text-slate-400 mt-0.5">
-        بواسطة {{ ticket.requester.get_full_name|default:ticket.requester.username }}
+        بواسطة {{ ticket.user.get_full_name|default:ticket.user.username|default:"مجهول" }}
         · {{ ticket.created_at|date:"Y/m/d H:i" }}
-        {% if ticket.college %} · {{ ticket.college.college_name }}{% endif %}
       </p>
     </div>
   </div>

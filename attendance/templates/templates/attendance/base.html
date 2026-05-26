@@ -536,16 +536,17 @@ tailwind = {
           {% for n in notifications %}
           <div class="flex gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 border-b border-slate-50 dark:border-slate-700 last:border-0 transition-colors">
             <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5
-              {% if n.notif_type == 'success' %}bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600
-              {% elif n.notif_type == 'warning' %}bg-amber-100 dark:bg-amber-900/40 text-amber-600
-              {% elif n.notif_type == 'error' %}bg-red-100 dark:bg-red-900/40 text-red-600
+              {% if n.level == 'success' %}bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600
+              {% elif n.level == 'warning' %}bg-amber-100 dark:bg-amber-900/40 text-amber-600
+              {% elif n.level == 'danger' %}bg-red-100 dark:bg-red-900/40 text-red-600
               {% else %}bg-blue-100 dark:bg-blue-900/40 text-blue-600{% endif %}">
               <span class="material-symbols-outlined text-sm">
-                {% if n.notif_type == 'success' %}check_circle{% elif n.notif_type == 'warning' %}warning{% elif n.notif_type == 'error' %}error{% else %}info{% endif %}
+                {% if n.level == 'success' %}check_circle{% elif n.level == 'warning' %}warning{% elif n.level == 'danger' %}error{% else %}info{% endif %}
               </span>
             </div>
             <div class="flex-1 min-w-0">
-              <p class="text-xs font-medium text-slate-800 dark:text-slate-200 leading-snug">{{ n.message }}</p>
+              <p class="text-xs font-medium text-slate-800 dark:text-slate-200 leading-snug">{{ n.title }}</p>
+              {% if n.body %}<p class="text-[10px] text-slate-400 leading-snug">{{ n.body|truncatechars:60 }}</p>{% endif %}
               <p class="text-[10px] text-slate-400 mt-0.5">{{ n.created_at|timesince }} ago</p>
             </div>
           </div>

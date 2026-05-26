@@ -2349,8 +2349,8 @@ def create_ticket(request):
                         Notification.objects.create(
                             user=admin_u,
                             title=f'بلاغ جديد #{ticket.id}',
-                            message=f'{user.get_full_name() or user.username} رفع بلاغاً: {subject}',
-                            notif_type='warning',
+                            body=f'{user.get_full_name() or user.username} رفع بلاغاً: {subject}',
+                            level='warning',
                         )
                     except Exception:
                         pass
@@ -2371,8 +2371,8 @@ def create_ticket(request):
                                 Notification.objects.create(
                                     user=coord.auth_user,
                                     title=f'بلاغ جديد #{ticket.id}',
-                                    message=f'{user.get_full_name() or user.username} رفع بلاغاً: {subject}',
-                                    notif_type='warning',
+                                    body=f'{user.get_full_name() or user.username} رفع بلاغاً: {subject}',
+                                    level='warning',
                                 )
                 except Exception:
                     pass
