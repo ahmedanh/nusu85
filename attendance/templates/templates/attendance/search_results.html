@@ -12,6 +12,12 @@
     </p>
     {% endif %}
   </div>
+  {% if query and total > 0 %}
+  <a href="{% url 'export_search_pdf' %}?q={{ query }}"
+     class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-all shadow-sm">
+    <span class="material-symbols-outlined text-lg">picture_as_pdf</span> تصدير PDF
+  </a>
+  {% endif %}
 
   <!-- Search bar -->
   <form method="get" class="flex gap-3">

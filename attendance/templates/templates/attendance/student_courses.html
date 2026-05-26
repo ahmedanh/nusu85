@@ -6,48 +6,92 @@
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
     <div>
       <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">مقرراتي الدراسية</h1>
-      <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">جميع المقررات المتاحة في كليتك</p>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+        مقررات تخصصك
+        {% if student_dept %}<span class="font-semibold text-primary">— {{ student_dept.name }}</span>{% endif %}
+      </p>
     </div>
-    <div class="flex items-center gap-2 text-xs font-semibold">
-      <span class="bg-primary/10 text-primary px-3 py-1.5 rounded-full">
-        مسجّل في {{ enrollments.count }} مقرر
-      </span>
-    </div>
+    <span class="bg-primary/10 text-primary text-xs font-bold px-3 py-1.5 rounded-full">
+      مسجّل في {{ enrollments.count }} مقرر
+    </span>
   </div>
 
   <!-- Filter bar -->
   <form method="get" class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-4 flex flex-wrap gap-3 items-end">
     <div class="flex-1 min-w-[160px]">
       <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">بحث</label>
-      <input type="text" name="q" value="{{ search_q }}" placeholder="اسم المقرر..."
+      <input type="text" name="q" value="{{ search_q }}" placeholder="اسم المقرر أو الكود..."
         class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30 dark:text-white">
     </div>
-    <div class="min-w-[140px]">
-      <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">القسم</label>
-      <select name="dept" class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-3 py-2 text-sm outline-none dark:text-white">
-        <option value="">الكل</option>
-        {% for d in departments %}
-        <option value="{{ d.id }}" {% if dept_filter == d.id|stringformat:"s" %}selected{% endif %}>{{ d.name }}</option>
+    <div class="min-w-[200px]">
+      <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">الفصل الدراسي</label>
+      <select name="semester" class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-3 py-2 text-sm outline-none dark:text-white">
+        <option value="">كل الفصول</option>
+        {% for s in semester_choices %}
+        <option value="{{ s.0 }}" {% if semester_filter == s.0 %}selected{% endif %}>{{ s.1 }}</option>
         {% endfor %}
-      </select>
-    </div>
-    <div class="min-w-[130px]">
-      <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">النوع</label>
-      <select name="ctype" class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-3 py-2 text-sm outline-none dark:text-white">
-        <option value="">الكل</option>
-        <option value="mandatory" {% if type_filter == 'mandatory' %}selected{% endif %}>إجباري</option>
-        <option value="elective"  {% if type_filter == 'elective'  %}selected{% endif %}>اختياري</option>
-        <option value="lab"       {% if type_filter == 'lab'       %}selected{% endif %}>مختبر</option>
       </select>
     </div>
     <button type="submit"
       class="bg-primary text-white text-sm font-bold px-5 py-2 rounded-xl hover:bg-primary/90 transition-all">
       بحث
     </button>
-    {% if search_q or dept_filter or type_filter %}
+    {% if search_q or semester_filter %}
     <a href="{% url 'student_courses' %}" class="text-sm text-slate-500 hover:text-slate-700 dark:text-slate-400 py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-600">مسح</a>
     {% endif %}
   </form>
+
+  <!-- ─── Current Courses (from coordinator schedule) ─── -->
+  {% if current_schedules %}
+  <div>
+    <h2 class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+      <span class="material-symbols-outlined text-base text-emerald-500">schedule</span>
+      الكورسات الحالية
+      <span class="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-xs px-2 py-0.5 rounded-full font-bold">{{ current_schedules|length }} جدول</span>
+    </h2>
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-50 dark:bg-slate-900/40 text-xs text-slate-400 uppercase tracking-wider">
+            <tr>
+              <th class="px-5 py-3 text-right font-semibold">اليوم</th>
+              <th class="px-5 py-3 text-right font-semibold">المقرر</th>
+              <th class="px-5 py-3 text-right font-semibold">الأستاذ</th>
+              <th class="px-5 py-3 text-right font-semibold">القاعة</th>
+              <th class="px-5 py-3 text-right font-semibold">الوقت</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-50 dark:divide-slate-700">
+            {% for s in current_schedules %}
+            <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors">
+              <td class="px-5 py-3">
+                <span class="text-xs font-bold bg-primary/10 text-primary px-2 py-1 rounded-lg">
+                  {% if s.day_of_week == 'Saturday' %}السبت
+                  {% elif s.day_of_week == 'Sunday' %}الأحد
+                  {% elif s.day_of_week == 'Monday' %}الاثنين
+                  {% elif s.day_of_week == 'Tuesday' %}الثلاثاء
+                  {% elif s.day_of_week == 'Wednesday' %}الأربعاء
+                  {% elif s.day_of_week == 'Thursday' %}الخميس
+                  {% else %}{{ s.day_of_week }}{% endif %}
+                </span>
+              </td>
+              <td class="px-5 py-3">
+                <p class="font-semibold text-slate-800 dark:text-slate-200">{{ s.course.title }}</p>
+                <p class="text-xs text-slate-400">{{ s.course.course_code }}</p>
+              </td>
+              <td class="px-5 py-3 text-slate-500 dark:text-slate-400 text-xs">{{ s.teacher.name|default:"—" }}</td>
+              <td class="px-5 py-3 text-slate-500 dark:text-slate-400 text-xs">{{ s.classroom.name|default:"—" }}</td>
+              <td class="px-5 py-3 font-mono text-xs text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                {{ s.start_time|time:"H:i" }} – {{ s.end_time|time:"H:i" }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
 
   <!-- ─── My Enrolled Courses ─── -->
   {% if enrollments %}
@@ -63,7 +107,7 @@
         <span class="absolute top-3 left-3 bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full">مسجّل</span>
         <div class="p-5 pt-4">
           <h3 class="text-sm font-extrabold text-slate-900 dark:text-white font-headline leading-tight ml-12">
-            {{ e.course.name|default:e.course.title }}
+            {{ e.course.title }}
           </h3>
           <p class="text-xs text-slate-400 mt-0.5">{{ e.course.course_code }}</p>
           <div class="mt-3 grid grid-cols-2 gap-2">
@@ -91,11 +135,11 @@
   </div>
   {% endif %}
 
-  <!-- ─── All College Courses ─── -->
+  <!-- ─── All Department Courses ─── -->
   <div>
     <h2 class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
       <span class="material-symbols-outlined text-base">menu_book</span>
-      جميع مقررات الكلية
+      مقررات تخصصك
       <span class="bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 text-xs px-2 py-0.5 rounded-full font-bold">{{ all_courses|length }}</span>
     </h2>
 
@@ -103,7 +147,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
       {% for c in all_courses %}
       <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden hover:shadow-md transition-shadow
-        {% if c.id in enrolled_ids %}opacity-60{% endif %}">
+        {% if c.id in enrolled_ids %}opacity-70{% endif %}">
         <div class="h-1 {% if c.course_type_val == 'mandatory' %}bg-navy{% elif c.course_type_val == 'elective' %}bg-emerald-400{% elif c.course_type_val == 'lab' %}bg-orange-400{% else %}bg-slate-300{% endif %}"></div>
         <div class="p-4">
           <div class="flex items-start justify-between gap-2">
@@ -119,14 +163,16 @@
               {% if c.course_type_val == 'mandatory' %}إجباري
               {% elif c.course_type_val == 'elective' %}اختياري
               {% elif c.course_type_val == 'lab' %}مختبر
-              {% else %}{{ c.course_type_val|default:"—" }}{% endif %}
+              {% else %}—{% endif %}
             </span>
           </div>
-          <div class="mt-3 flex items-center gap-3 text-[10px] text-slate-400">
+          <div class="mt-3 flex flex-wrap items-center gap-3 text-[10px] text-slate-400">
+            {% if c.year_level %}
             <span class="flex items-center gap-1">
-              <span class="material-symbols-outlined text-xs">corporate_fare</span>
-              {{ c.department.name|default:"—" }}
+              <span class="material-symbols-outlined text-xs">layers</span>
+              السنة {{ c.year_level }}
             </span>
+            {% endif %}
             <span class="flex items-center gap-1">
               <span class="material-symbols-outlined text-xs">school</span>
               {{ c.credits|default:"—" }} ساعة

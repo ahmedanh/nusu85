@@ -53,6 +53,8 @@ urlpatterns = [
     path('reports/teachers/export/csv/', views.export_teacher_report_csv, name='export_teacher_csv'),
     path('reports/teachers/export/pdf/', views.export_teacher_report_pdf, name='export_teacher_pdf'),
     path('reports/grades/export/pdf/', views.export_grades_pdf, name='export_grades_pdf'),
+    path('reports/analytics/export/pdf/', views.export_analytics_pdf, name='export_analytics_pdf'),
+    path('search/export/pdf/', views.export_search_pdf, name='export_search_pdf'),
 
     # Search
     path('search/', views.global_search, name='global_search'),
@@ -116,6 +118,7 @@ urlpatterns = [
     path('schedule/', views.schedule_view, name='schedule'),
     path('schedule/add/', views.add_schedule, name='add_schedule'),
     path('schedule/<int:schedule_id>/edit/', views.edit_schedule, name='edit_schedule'),
+    path('schedule/<int:schedule_id>/delete/', views.delete_schedule, name='delete_schedule'),
 
     # Face enrollment
     path('enroll-face/', views.enroll_face, name='enroll_face'),

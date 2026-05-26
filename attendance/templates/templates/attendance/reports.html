@@ -8,10 +8,10 @@
     <h1 class="text-2xl font-extrabold text-slate-900 font-headline"><span data-en="Analytics &amp; Reports" data-ar="التحليلات والتقارير">Analytics &amp; Reports</span></h1>
     <p class="text-sm text-slate-500 mt-1"><span data-en="System performance and biometric attendance insights." data-ar="أداء النظام ورؤى الحضور البيومترية.">System performance and biometric attendance insights.</span></p>
   </div>
-  <button onclick="window.print()"
+  <a href="{% url 'export_analytics_pdf' %}"
     class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary-container transition-all shadow-sm">
-    <span class="material-symbols-outlined text-lg">print</span> <span data-en="Export PDF" data-ar="تصدير PDF">Export PDF</span>
-  </button>
+    <span class="material-symbols-outlined text-lg">picture_as_pdf</span> <span data-en="Export PDF" data-ar="تصدير PDF احترافي">تصدير PDF احترافي</span>
+  </a>
 </div>
 
 <!-- KPI row -->

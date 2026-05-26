@@ -618,51 +618,160 @@ def gate_page(request):
 @login_required
 def schedule_view(request):
     coordinator = Coordinator.objects.filter(auth_user=request.user).first()
-    is_admin = request.user.is_staff or request.user.is_superuser
+    is_admin    = request.user.is_staff or request.user.is_superuser
     teacher_obj = Teacher.objects.filter(auth_user=request.user).first()
+    student_obj = Student.objects.filter(auth_user=request.user).first()
 
+    # Role-based filtering
     if is_admin:
-        schedules = Schedule.objects.select_related('course', 'teacher', 'classroom').all()
+        schedules  = Schedule.objects.select_related('course', 'teacher', 'classroom', 'course__college', 'course__department').all()
+        role       = 'admin'
     elif coordinator:
-        schedules = Schedule.objects.filter(
+        # Coordinator sees only their college — isolation enforced here
+        schedules  = Schedule.objects.filter(
             course__college=coordinator.college
-        ).select_related('course', 'teacher', 'classroom')
+        ).select_related('course', 'teacher', 'classroom', 'course__department')
+        role       = 'coordinator'
     elif teacher_obj:
-        schedules = Schedule.objects.filter(
+        # Teacher sees only schedules assigned to them by coordinator
+        schedules  = Schedule.objects.filter(
             teacher=teacher_obj
-        ).select_related('course', 'teacher', 'classroom')
+        ).select_related('course', 'teacher', 'classroom', 'course__department')
+        role       = 'teacher'
+    elif student_obj:
+        # Students redirected to their specialised view
+        return redirect('student_schedule')
     else:
-        schedules = Schedule.objects.none()
+        schedules  = Schedule.objects.none()
+        role       = 'none'
+
+    # Filters (accessible to admin + coordinator)
+    filter_day      = request.GET.get('day', '')
+    filter_semester = request.GET.get('semester', '')
+    filter_dept     = request.GET.get('dept', '')
+
+    if filter_day:
+        schedules = schedules.filter(day_of_week=filter_day)
+    if filter_semester:
+        schedules = schedules.filter(semester=filter_semester)
+    if filter_dept and role in ('admin', 'coordinator'):
+        schedules = schedules.filter(course__department_id=filter_dept)
+
+    # Group by day
+    DAYS_ORDER = ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+    DAY_AR = {
+        'Saturday': 'السبت', 'Sunday': 'الأحد', 'Monday': 'الاثنين',
+        'Tuesday': 'الثلاثاء', 'Wednesday': 'الأربعاء',
+        'Thursday': 'الخميس', 'Friday': 'الجمعة',
+    }
+    schedules_list = list(schedules.order_by('day_of_week', 'start_time'))
+    grouped = {}
+    for s in schedules_list:
+        day = s.day_of_week
+        if day not in grouped:
+            grouped[day] = {'ar': DAY_AR.get(day, day), 'schedules': []}
+        grouped[day]['schedules'].append(s)
+    grouped_schedules = {d: grouped[d] for d in DAYS_ORDER if d in grouped}
+
+    # Departments for filter (coordinator: only their college depts)
+    if coordinator and not is_admin:
+        departments = Department.objects.filter(college=coordinator.college).order_by('name')
+    else:
+        departments = Department.objects.order_by('name')
+
+    # Courses for add-schedule form
+    if coordinator and not is_admin:
+        courses = Course.objects.filter(college=coordinator.college).order_by('title')
+    else:
+        courses = Course.objects.order_by('title') if is_admin else Course.objects.none()
+
+    # Teachers for add-schedule form
+    if coordinator and not is_admin:
+        teachers = Teacher.objects.filter(college=coordinator.college).order_by('name')
+    else:
+        teachers = Teacher.objects.order_by('name') if is_admin else Teacher.objects.none()
+
+    classrooms = Classroom.objects.order_by('name')
+    days       = DAYS_ORDER
 
     return render(request, 'attendance/schedule.html', {
-        'schedules': schedules,
-        'is_admin': is_admin,
-        'coordinator': coordinator,
+        'grouped_schedules': grouped_schedules,
+        'schedules':         schedules_list,
+        'is_admin':          is_admin,
+        'coordinator':       coordinator,
+        'teacher_obj':       teacher_obj,
+        'role':              role,
+        'days':              days,
+        'day_ar':            DAY_AR,
+        'filter_day':        filter_day,
+        'filter_semester':   filter_semester,
+        'filter_dept':       filter_dept,
+        'departments':       departments,
+        'courses':           courses,
+        'teachers':          teachers,
+        'classrooms':        classrooms,
+        'semesters':         SEMESTER_CHOICES_4Y,
     })
 
 
 @login_required
 def add_schedule(request):
+    coordinator = Coordinator.objects.filter(auth_user=request.user).first()
+    is_admin    = request.user.is_staff or request.user.is_superuser
+    if not (is_admin or coordinator):
+        messages.error(request, 'غير مصرح.')
+        return redirect('schedule')
+
     if request.method == 'POST':
-        coordinator = Coordinator.objects.filter(auth_user=request.user).first()
-        is_admin = request.user.is_staff or request.user.is_superuser
-        if not (is_admin or coordinator):
-            messages.error(request, 'غير مصرح.')
-            return redirect('schedule')
         try:
-            schedule = Schedule.objects.create(
-                course_id=request.POST.get('course_id'),
-                teacher_id=request.POST.get('teacher_id') or None,
-                classroom_id=request.POST.get('classroom_id') or None,
-                day_of_week=request.POST.get('day_of_week'),
-                start_time=request.POST.get('start_time'),
-                end_time=request.POST.get('end_time'),
-                batch=request.POST.get('batch', ''),
-                semester=request.POST.get('semester', ''),
+            Schedule.objects.create(
+                course_id    = request.POST.get('course_id'),
+                teacher_id   = request.POST.get('teacher_id') or None,
+                classroom_id = request.POST.get('classroom_id') or None,
+                day_of_week  = request.POST.get('day_of_week'),
+                start_time   = request.POST.get('start_time'),
+                end_time     = request.POST.get('end_time'),
+                batch        = request.POST.get('batch', ''),
+                semester     = request.POST.get('semester', ''),
             )
-            messages.success(request, 'تمت إضافة الجدول الدراسي.')
+            messages.success(request, 'تمت إضافة الحصة الدراسية.')
         except Exception as e:
             messages.error(request, f'خطأ: {e}')
+        return redirect('schedule')
+
+    # GET — render form
+    DAYS = ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+    if coordinator and not is_admin:
+        courses    = Course.objects.filter(college=coordinator.college).order_by('title')
+        teachers   = Teacher.objects.filter(college=coordinator.college).order_by('name')
+        classrooms = Classroom.objects.filter(Q(college=coordinator.college) | Q(college__isnull=True)).order_by('name')
+    else:
+        courses    = Course.objects.order_by('title')
+        teachers   = Teacher.objects.order_by('name')
+        classrooms = Classroom.objects.order_by('name')
+
+    return render(request, 'attendance/add_schedule.html', {
+        'courses': courses, 'teachers': teachers, 'classrooms': classrooms,
+        'days': DAYS, 'semesters': SEMESTER_CHOICES_4Y,
+        'is_admin': is_admin, 'coordinator': coordinator,
+    })
+
+
+@login_required
+def delete_schedule(request, schedule_id):
+    is_admin    = request.user.is_staff or request.user.is_superuser
+    coordinator = Coordinator.objects.filter(auth_user=request.user).first()
+    if not (is_admin or coordinator):
+        messages.error(request, 'غير مصرح.')
+        return redirect('schedule')
+    schedule = get_object_or_404(Schedule, pk=schedule_id)
+    # Coordinator can only delete schedules in their college
+    if coordinator and not is_admin:
+        if schedule.course.college != coordinator.college:
+            messages.error(request, 'لا يمكنك حذف جداول كليات أخرى.')
+            return redirect('schedule')
+    schedule.delete()
+    messages.success(request, 'تم حذف الحصة.')
     return redirect('schedule')
 
 
@@ -1216,42 +1325,38 @@ def student_profile(request):
 @login_required
 def student_courses(request):
     student = get_object_or_404(Student, auth_user=request.user)
+
     # My enrolled courses
-    enrollments = Enrollment.objects.filter(student=student).select_related('course', 'classroom')
-    enrolled_ids = enrollments.values_list('course_id', flat=True)
+    enrollments = Enrollment.objects.filter(student=student).select_related('course', 'classroom', 'course__department')
+    enrolled_ids = set(enrollments.values_list('course_id', flat=True))
 
-    # All courses in student's college/department for browsing
-    college = None
-    try:
-        if student.department and student.department.college:
-            college = student.department.college
-    except Exception:
-        pass
-
-    all_courses_qs = Course.objects.select_related('department', 'college')
-    if college:
-        all_courses_qs = all_courses_qs.filter(college=college)
+    # Student's own department + college (never show other departments)
+    student_dept   = student.department
+    student_college = student_dept.college if student_dept else None
 
     # Filters
-    dept_filter  = request.GET.get('dept', '')
-    type_filter  = request.GET.get('ctype', '')
-    search_q     = request.GET.get('q', '').strip()
+    semester_filter = request.GET.get('semester', '')
+    search_q        = request.GET.get('q', '').strip()
 
-    if dept_filter:
-        all_courses_qs = all_courses_qs.filter(department_id=dept_filter)
-    if type_filter:
-        # course_type is DB-only — filter via raw SQL id list
-        try:
-            with connection.cursor() as cur:
-                cur.execute(
-                    "SELECT id FROM attendance_course WHERE course_type=%s", [type_filter]
-                )
-                ids = [r[0] for r in cur.fetchall()]
-            all_courses_qs = all_courses_qs.filter(id__in=ids)
-        except Exception:
-            pass
+    # Base: only student's department courses (or college if no dept)
+    if student_dept:
+        all_courses_qs = Course.objects.filter(department=student_dept).select_related('department', 'college')
+    elif student_college:
+        all_courses_qs = Course.objects.filter(college=student_college).select_related('department', 'college')
+    else:
+        all_courses_qs = Course.objects.none()
+
     if search_q:
-        all_courses_qs = all_courses_qs.filter(title__icontains=search_q)
+        all_courses_qs = all_courses_qs.filter(Q(title__icontains=search_q) | Q(course_code__icontains=search_q))
+
+    if semester_filter:
+        # filter by year_level matching semester (semester / 2 rounds up = year)
+        try:
+            sem_int = int(semester_filter)
+            year_level = (sem_int + 1) // 2
+            all_courses_qs = all_courses_qs.filter(year_level=year_level)
+        except ValueError:
+            pass
 
     # Attach course_type from DB
     course_type_map = {}
@@ -1262,23 +1367,29 @@ def student_courses(request):
     except Exception:
         pass
 
-    all_courses = list(all_courses_qs.order_by('title'))
+    all_courses = list(all_courses_qs.order_by('year_level', 'title'))
     for c in all_courses:
         c.course_type_val = course_type_map.get(c.pk, '')
 
-    departments = Department.objects.all().order_by('name')
-    if college:
-        departments = departments.filter(college=college)
+    # "Current Courses" — schedules the coordinator created for student's dept this semester
+    current_schedules = []
+    try:
+        current_schedules = Schedule.objects.filter(
+            course__department=student_dept
+        ).select_related('course', 'teacher', 'classroom').order_by('day_of_week', 'start_time') if student_dept else []
+    except Exception:
+        pass
 
     return render(request, 'attendance/student_courses.html', {
-        'student': student,
-        'enrollments': enrollments,
-        'enrolled_ids': list(enrolled_ids),
-        'all_courses': all_courses,
-        'departments': departments,
-        'dept_filter': dept_filter,
-        'type_filter': type_filter,
-        'search_q': search_q,
+        'student':          student,
+        'enrollments':      enrollments,
+        'enrolled_ids':     enrolled_ids,
+        'all_courses':      all_courses,
+        'semester_filter':  semester_filter,
+        'semester_choices': SEMESTER_CHOICES_4Y,
+        'search_q':         search_q,
+        'current_schedules': current_schedules,
+        'student_dept':     student_dept,
     })
 
 
@@ -1476,25 +1587,188 @@ def _pdf_response(html_string, filename):
 
 @login_required
 def export_student_report_pdf(request):
+    from datetime import date as _date
     logs, filters, meta = _build_attendance_queryset(request)
     summary = _summarise_logs(logs)
+
+    # Per-course attendance chart data
+    course_stats = {}
+    for log in logs:
+        key = getattr(getattr(log, 'schedule', None), 'course', None)
+        if key:
+            title = key.title
+            if title not in course_stats:
+                course_stats[title] = {'present': 0, 'absent': 0, 'total': 0}
+            course_stats[title]['total'] += 1
+            if log.status == 'Present':
+                course_stats[title]['present'] += 1
+            elif log.status in ('Absent', 'Late'):
+                course_stats[title]['absent'] += 1
+
+    # Build percentage data for SVG bar chart (max 10 courses)
+    chart_data = []
+    for title, stats in list(course_stats.items())[:10]:
+        pct = round(stats['present'] / stats['total'] * 100) if stats['total'] else 0
+        chart_data.append({'title': title[:25], 'pct': pct, 'total': stats['total']})
+
+    # Overall stats
+    total     = len(logs)
+    present   = sum(1 for l in logs if l.status == 'Present')
+    absent    = sum(1 for l in logs if l.status == 'Absent')
+    late      = sum(1 for l in logs if l.status == 'Late')
+    pct_overall = round(present / total * 100) if total else 0
+
     html = render(request, 'attendance/reports/student_report_pdf.html', {
-        'summary': summary, 'filters': filters, **meta,
+        'summary': summary, 'filters': filters,
+        'logs': logs, 'chart_data': chart_data,
+        'total': total, 'present': present, 'absent': absent, 'late': late,
+        'pct_overall': pct_overall,
+        'generated_at': timezone.now(),
+        **meta,
     }).content.decode('utf-8')
-    from datetime import date
-    return _pdf_response(html, f'SHAMEL_StudentAttendance_Report_{date.today()}.pdf')
+    return _pdf_response(html, f'SHAMEL_StudentReport_{_date.today()}.pdf')
 
 
 @login_required
 def export_teacher_report_pdf(request):
+    from datetime import date as _date
     teachers = Teacher.objects.select_related('department', 'college').order_by('name')
     data = []
+    max_sessions = 1
+    total_present_all = 0
+    total_att_all = 0
     for t in teachers:
         sessions = LectureSession.objects.filter(schedule__teacher=t, is_active=False).count()
-        data.append({'teacher': t, 'sessions': sessions})
-    html = render(request, 'attendance/reports/teacher_report_pdf.html', {'data': data}).content.decode('utf-8')
-    from datetime import date
-    return _pdf_response(html, f'SHAMEL_TeacherAttendance_Report_{date.today()}.pdf')
+        present_count = AIAttendanceLog.objects.filter(schedule__teacher=t, status='Present').count()
+        absent_count  = AIAttendanceLog.objects.filter(schedule__teacher=t, status='Absent').count()
+        att_total = present_count + absent_count
+        att_pct   = round(present_count / att_total * 100) if att_total else 0
+        sessions_pct = 0  # filled after max_sessions known
+        total_present_all += present_count
+        total_att_all     += att_total
+        data.append({
+            'teacher': t,
+            'sessions': sessions,
+            'present': present_count,
+            'absent': absent_count,
+            'att_total': att_total,
+            'att_pct': att_pct,
+            'sessions_pct': 0,
+        })
+        if sessions > max_sessions:
+            max_sessions = sessions
+    # Fill sessions_pct now that max_sessions is known
+    for item in data:
+        item['sessions_pct'] = round(item['sessions'] / max_sessions * 100) if max_sessions else 0
+    overall_pct = round(total_present_all / total_att_all * 100) if total_att_all else 0
+    html = render(request, 'attendance/reports/teacher_report_pdf.html', {
+        'data': data,
+        'max_sessions': max_sessions,
+        'total_student_records': total_att_all,
+        'overall_pct': overall_pct,
+        'generated_at': timezone.now(),
+    }).content.decode('utf-8')
+    return _pdf_response(html, f'SHAMEL_TeacherReport_{_date.today()}.pdf')
+
+
+@login_required
+def export_analytics_pdf(request):
+    from datetime import date as _date
+    today = timezone.now().date()
+    week_ago = today - timedelta(days=6)
+
+    # Overall stats
+    total_students   = Student.objects.count()
+    total_teachers   = Teacher.objects.count()
+    total_courses    = Course.objects.count()
+    total_sessions   = LectureSession.objects.filter(is_active=False).count()
+    total_attendance = AIAttendanceLog.objects.count()
+
+    present_count = AIAttendanceLog.objects.filter(status='Present').count()
+    absent_count  = AIAttendanceLog.objects.filter(status='Absent').count()
+    late_count    = AIAttendanceLog.objects.filter(status='Late').count()
+    overall_present_pct = round(present_count / total_attendance * 100) if total_attendance else 0
+
+    # Weekly chart (last 7 days)
+    DAY_LABELS = {'Saturday':'سبت','Sunday':'أحد','Monday':'اثن','Tuesday':'ثلث','Wednesday':'أرب','Thursday':'خمس','Friday':'جمع'}
+    weekly_chart = []
+    for i in range(7):
+        d = week_ago + timedelta(days=i)
+        day_total   = AIAttendanceLog.objects.filter(timestamp__date=d).count()
+        day_present = AIAttendanceLog.objects.filter(timestamp__date=d, status='Present').count()
+        pct = round(day_present / day_total * 100) if day_total else 0
+        weekly_chart.append({
+            'label': DAY_LABELS.get(d.strftime('%A'), d.strftime('%a')),
+            'count': day_total,
+            'pct': pct,
+        })
+
+    # Department chart
+    dept_chart = []
+    for dept in Department.objects.all():
+        students = Student.objects.filter(department=dept)
+        tot = AIAttendanceLog.objects.filter(student__in=students).count()
+        pre = AIAttendanceLog.objects.filter(student__in=students, status='Present').count()
+        pct = round(pre / tot * 100) if tot else 0
+        dept_chart.append({'name': dept.name, 'pct': pct, 'present': pre, 'total': tot})
+    dept_chart = sorted(dept_chart, key=lambda x: -x['pct'])[:8]
+
+    # College chart
+    college_chart = []
+    for col in College.objects.all():
+        students_count = Student.objects.filter(college=col).count()
+        tot = AIAttendanceLog.objects.filter(student__college=col).count()
+        pre = AIAttendanceLog.objects.filter(student__college=col, status='Present').count()
+        pct = round(pre / tot * 100) if tot else 0
+        college_chart.append({'name': col.college_name, 'pct': pct, 'students': students_count})
+    college_chart = sorted(college_chart, key=lambda x: -x['pct'])[:6]
+
+    # Top courses by session count
+    from django.db.models import Count as DBCount
+    course_sessions = (LectureSession.objects.filter(is_active=False)
+                       .values('schedule__course__title', 'schedule__course__department__name')
+                       .annotate(cnt=DBCount('id')).order_by('-cnt')[:8])
+    max_cs = max((x['cnt'] for x in course_sessions), default=1)
+    top_courses = [{
+        'title': x['schedule__course__title'] or '—',
+        'dept':  x['schedule__course__department__name'] or '—',
+        'sessions': x['cnt'],
+        'pct': round(x['cnt'] / max_cs * 100),
+    } for x in course_sessions]
+
+    # Top students by attendance
+    top_students_qs = (AIAttendanceLog.objects
+                       .values('student__id', 'student__name', 'student__student_code',
+                               'student__department__name')
+                       .annotate(total=DBCount('id'),
+                                 present=DBCount('id', filter=Q(status='Present')))
+                       .order_by('-present')[:10])
+    top_students = [{
+        'name': x['student__name'],
+        'code': x['student__student_code'],
+        'dept': x['student__department__name'] or '—',
+        'present': x['present'],
+        'pct': round(x['present'] / x['total'] * 100) if x['total'] else 0,
+    } for x in top_students_qs]
+
+    html = render(request, 'attendance/reports/analytics_pdf.html', {
+        'total_students': total_students,
+        'total_teachers': total_teachers,
+        'total_courses': total_courses,
+        'total_sessions': total_sessions,
+        'total_attendance': total_attendance,
+        'present_count': present_count,
+        'absent_count': absent_count,
+        'late_count': late_count,
+        'overall_present_pct': overall_present_pct,
+        'weekly_chart': weekly_chart,
+        'dept_chart': dept_chart,
+        'college_chart': college_chart,
+        'top_courses': top_courses,
+        'top_students': top_students,
+        'generated_at': timezone.now(),
+    }).content.decode('utf-8')
+    return _pdf_response(html, f'SHAMEL_Analytics_{_date.today()}.pdf')
 
 
 @login_required
@@ -2149,6 +2423,26 @@ def admin_tickets(request):
 # ===================================================================
 # FROM _missing_views.py  — Search, Edit CRUD, Detail pages
 # ===================================================================
+
+@login_required
+def export_search_pdf(request):
+    """Export global search results as a professional PDF."""
+    from datetime import date as _date
+    query = request.GET.get('q', '').strip()
+    results = {'students': [], 'teachers': [], 'courses': [], 'classrooms': []}
+    if len(query) >= 2:
+        results['students']   = list(Student.objects.filter(name__icontains=query).select_related('department', 'college')[:30])
+        results['teachers']   = list(Teacher.objects.filter(name__icontains=query).select_related('department', 'college')[:30])
+        results['courses']    = list(Course.objects.filter(Q(title__icontains=query) | Q(course_code__icontains=query)).select_related('department', 'college')[:20])
+        results['classrooms'] = list(Classroom.objects.filter(name__icontains=query)[:20])
+    total = sum(len(v) for v in results.values())
+    html = render(request, 'attendance/reports/search_pdf.html', {
+        'query': query, 'results': results, 'total': total,
+        'generated_at': timezone.now(),
+    }).content.decode('utf-8')
+    safe_q = query.replace(' ', '_')[:20] if query else 'all'
+    return _pdf_response(html, f'SHAMEL_Search_{safe_q}_{_date.today()}.pdf')
+
 
 def global_search(request):
     query = request.GET.get('q', '').strip()
