@@ -21,6 +21,11 @@
 
   {% if is_admin or coordinator %}
   <div class="flex items-center gap-2">
+    <a href="{% url 'schedule_calendar' %}"
+       class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500 text-white text-sm font-bold hover:bg-amber-600 transition-all shadow-sm">
+      <span class="material-symbols-outlined text-lg">calendar_month</span>
+      عرض التقويم
+    </a>
     <a href="{% url 'add_schedule' %}"
        class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-all shadow-sm">
       <span class="material-symbols-outlined text-lg">add</span>

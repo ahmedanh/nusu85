@@ -589,6 +589,13 @@ def toggle_user_access(request, user_type, user_id):
         obj = get_object_or_404(Student, pk=user_id)
         obj.is_allowed_entry = not obj.is_allowed_entry
         obj.save(update_fields=['is_allowed_entry'])
+        # Email student if they just became ineligible
+        if not obj.is_allowed_entry:
+            try:
+                from .email_utils import notify_student_ineligible
+                notify_student_ineligible(obj)
+            except Exception:
+                pass
     elif user_type == 'teacher':
         obj = get_object_or_404(Teacher, pk=user_id)
         obj.is_allowed_entry = not obj.is_allowed_entry
@@ -724,9 +731,10 @@ def add_schedule(request):
 
     if request.method == 'POST':
         try:
-            Schedule.objects.create(
+            teacher_id = request.POST.get('teacher_id') or None
+            sched = Schedule.objects.create(
                 course_id    = request.POST.get('course_id'),
-                teacher_id   = request.POST.get('teacher_id') or None,
+                teacher_id   = teacher_id,
                 classroom_id = request.POST.get('classroom_id') or None,
                 day_of_week  = request.POST.get('day_of_week'),
                 start_time   = request.POST.get('start_time'),
@@ -734,6 +742,14 @@ def add_schedule(request):
                 batch        = request.POST.get('batch', ''),
                 semester     = request.POST.get('semester', ''),
             )
+            # Email teacher about assignment
+            if teacher_id:
+                try:
+                    from .email_utils import notify_teacher_assignment
+                    teacher_obj = Teacher.objects.get(pk=teacher_id)
+                    notify_teacher_assignment(teacher_obj, sched)
+                except Exception:
+                    pass
             messages.success(request, 'تمت إضافة الحصة الدراسية.')
         except Exception as e:
             messages.error(request, f'خطأ: {e}')
@@ -1626,6 +1642,13 @@ def export_student_report_pdf(request):
         'generated_at': timezone.now(),
         **meta,
     }).content.decode('utf-8')
+    # Notify admins about report generation
+    try:
+        from .email_utils import notify_admin_new_report
+        for admin_user in User.objects.filter(is_staff=True).exclude(email=''):
+            notify_admin_new_report(admin_user.email, 'تقرير حضور الطلاب', request.user.get_full_name() or request.user.username)
+    except Exception:
+        pass
     return _pdf_response(html, f'SHAMEL_StudentReport_{_date.today()}.pdf')
 
 
@@ -1668,6 +1691,13 @@ def export_teacher_report_pdf(request):
         'overall_pct': overall_pct,
         'generated_at': timezone.now(),
     }).content.decode('utf-8')
+    # Notify admins about report generation
+    try:
+        from .email_utils import notify_admin_new_report
+        for admin_user in User.objects.filter(is_staff=True).exclude(email=''):
+            notify_admin_new_report(admin_user.email, 'تقرير حضور الأساتذة', request.user.get_full_name() or request.user.username)
+    except Exception:
+        pass
     return _pdf_response(html, f'SHAMEL_TeacherReport_{_date.today()}.pdf')
 
 
@@ -3286,3 +3316,188 @@ def update_settings(request):
             messages.error(request, f'خطأ: {e}')
 
     return redirect('settings_page')
+
+
+# ── Timetable Calendar ────────────────────────────────────────────────────────
+
+@login_required
+def schedule_calendar(request):
+    """
+    Timetable calendar view. Coordinator or admin only.
+    GET params: sem_start, sem_end, semester
+    Shows a 7-column week grid with existing Schedule slots.
+    """
+    coordinator = Coordinator.objects.filter(auth_user=request.user).first()
+    is_admin    = request.user.is_staff or request.user.is_superuser
+    if not (is_admin or coordinator):
+        messages.error(request, 'غير مصرح.')
+        return redirect('schedule')
+
+    if coordinator and not is_admin:
+        courses    = Course.objects.filter(college=coordinator.college).order_by('title')
+        teachers   = Teacher.objects.filter(college=coordinator.college).order_by('name')
+        classrooms = Classroom.objects.filter(
+            Q(college=coordinator.college) | Q(college__isnull=True)
+        ).order_by('name')
+        base_schedules = Schedule.objects.filter(
+            course__college=coordinator.college
+        ).select_related('course', 'teacher', 'classroom')
+    else:
+        courses    = Course.objects.order_by('title')
+        teachers   = Teacher.objects.order_by('name')
+        classrooms = Classroom.objects.order_by('name')
+        base_schedules = Schedule.objects.select_related('course', 'teacher', 'classroom').all()
+
+    sem_start = request.GET.get('sem_start', '')
+    sem_end   = request.GET.get('sem_end', '')
+    semester  = request.GET.get('semester', '')
+
+    if semester:
+        base_schedules = base_schedules.filter(semester=semester)
+
+    DAYS_ORDER = ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+    DAY_AR = {
+        'Saturday': 'السبت', 'Sunday': 'الأحد', 'Monday': 'الاثنين',
+        'Tuesday': 'الثلاثاء', 'Wednesday': 'الأربعاء',
+        'Thursday': 'الخميس', 'Friday': 'الجمعة',
+    }
+    schedules_by_day = {d: [] for d in DAYS_ORDER}
+    for s in base_schedules:
+        if s.day_of_week in schedules_by_day:
+            schedules_by_day[s.day_of_week].append(s)
+
+    days_data = [
+        {'key': d, 'ar': DAY_AR[d], 'slots': schedules_by_day[d]}
+        for d in DAYS_ORDER
+    ]
+
+    return render(request, 'attendance/timetable_calendar.html', {
+        'days_data':   days_data,
+        'courses':     courses,
+        'teachers':    teachers,
+        'classrooms':  classrooms,
+        'sem_start':   sem_start,
+        'sem_end':     sem_end,
+        'semester':    semester,
+        'semesters':   SEMESTER_CHOICES_4Y,
+        'coordinator': coordinator,
+        'is_admin':    is_admin,
+    })
+
+
+@login_required
+@require_POST
+def calendar_add_slot(request):
+    """
+    Add one or more Schedule entries from the calendar drawer.
+    Supports multiple teachers via teacher_id[] list.
+    """
+    coordinator = Coordinator.objects.filter(auth_user=request.user).first()
+    is_admin    = request.user.is_staff or request.user.is_superuser
+    if not (is_admin or coordinator):
+        return JsonResponse({'ok': False, 'error': 'غير مصرح'}, status=403)
+
+    course_id    = request.POST.get('course_id')
+    day_of_week  = request.POST.get('day_of_week')
+    start_time   = request.POST.get('start_time')
+    end_time     = request.POST.get('end_time')
+    semester     = request.POST.get('semester', '')
+    classroom_id = request.POST.get('classroom_id') or None
+    teacher_ids  = request.POST.getlist('teacher_id[]')
+    if not teacher_ids:
+        single = request.POST.get('teacher_id')
+        teacher_ids = [single] if single else []
+
+    if not course_id or not day_of_week or not start_time or not end_time:
+        messages.error(request, 'بيانات ناقصة.')
+        return redirect('schedule_calendar')
+
+    if coordinator and not is_admin:
+        if not Course.objects.filter(pk=course_id, college=coordinator.college).exists():
+            messages.error(request, 'المادة ليست في كليتك.')
+            return redirect('schedule_calendar')
+
+    from .email_utils import notify_teacher_assignment
+    created_count = 0
+    if teacher_ids:
+        for tid in teacher_ids:
+            if not tid:
+                continue
+            try:
+                sched = Schedule.objects.create(
+                    course_id=course_id, teacher_id=tid,
+                    classroom_id=classroom_id, day_of_week=day_of_week,
+                    start_time=start_time, end_time=end_time, semester=semester,
+                )
+                created_count += 1
+                try:
+                    teacher = Teacher.objects.get(pk=tid)
+                    notify_teacher_assignment(teacher, sched)
+                except Exception:
+                    pass
+            except Exception as e:
+                messages.error(request, f'خطأ: {e}')
+    if not created_count:
+        try:
+            Schedule.objects.create(
+                course_id=course_id, teacher_id=None,
+                classroom_id=classroom_id, day_of_week=day_of_week,
+                start_time=start_time, end_time=end_time, semester=semester,
+            )
+        except Exception as e:
+            messages.error(request, f'خطأ: {e}')
+
+    messages.success(request, 'تمت إضافة الحصة الدراسية.')
+    sem_start = request.POST.get('sem_start', '')
+    sem_end   = request.POST.get('sem_end', '')
+    return redirect(f"/schedule/calendar/?sem_start={sem_start}&sem_end={sem_end}&semester={semester}")
+
+
+@login_required
+def calendar_delete_slot(request, schedule_id):
+    """Delete a schedule slot from the calendar."""
+    coordinator = Coordinator.objects.filter(auth_user=request.user).first()
+    is_admin    = request.user.is_staff or request.user.is_superuser
+    if not (is_admin or coordinator):
+        messages.error(request, 'غير مصرح.')
+        return redirect('schedule_calendar')
+
+    schedule = get_object_or_404(Schedule, pk=schedule_id)
+    if coordinator and not is_admin:
+        if schedule.course.college != coordinator.college:
+            messages.error(request, 'لا يمكنك حذف جداول كليات أخرى.')
+            return redirect('schedule_calendar')
+    schedule.delete()
+    messages.success(request, 'تم حذف الحصة.')
+    sem = request.GET.get('semester', '')
+    ss  = request.GET.get('sem_start', '')
+    se  = request.GET.get('sem_end', '')
+    return redirect(f"/schedule/calendar/?sem_start={ss}&sem_end={se}&semester={sem}")
+
+
+# ── Attendance Warning Check ──────────────────────────────────────────────────
+
+@login_required
+def check_attendance_warnings(request):
+    """
+    Staff-only view: scan all students and send warning emails
+    when attendance is below 80%.
+    """
+    if not (request.user.is_staff or request.user.is_superuser):
+        return JsonResponse({'error': 'غير مصرح'}, status=403)
+
+    from .email_utils import notify_student_attendance_warning
+    sent = 0
+    students = Student.objects.all()
+    for student in students:
+        logs = AIAttendanceLog.objects.filter(student=student)
+        total = logs.count()
+        if total == 0:
+            continue
+        present = logs.filter(status='Present').count()
+        pct = present / total * 100
+        if pct < 80:
+            notify_student_attendance_warning(student, pct)
+            sent += 1
+
+    return JsonResponse({'ok': True, 'emails_sent': sent})
