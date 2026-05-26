@@ -150,4 +150,7 @@ urlpatterns = [
     path('sw.js',    views.pwa_sw,      name='pwa_sw'),
     path('offline/', views.pwa_offline,  name='pwa_offline'),
     path('manifest.json', views.pwa_manifest, name='pwa_manifest'),
+
+    # Live Reload (called by deploy script)
+    path('api/live-reload/', views.trigger_live_reload, name='live_reload_trigger'),
 ]

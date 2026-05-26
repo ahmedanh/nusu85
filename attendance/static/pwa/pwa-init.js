@@ -261,4 +261,90 @@
   /* Expose sync helper globally */
   window.shamelSync = syncFromIndexedDB;
 
+
+  /* ── Live Reload via WebSocket ───────────────────────── */
+  (function initLiveReload() {
+    if (!('WebSocket' in window)) return;
+
+    const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+    const wsUrl = `${proto}://${location.host}/ws/live-reload/`;
+    let ws, retryDelay = 2000, retryTimer;
+
+    function connect() {
+      try { ws = new WebSocket(wsUrl); } catch { return; }
+
+      ws.onopen = () => {
+        retryDelay = 2000; /* reset backoff on success */
+        console.log('[PWA] Live-reload WS connected');
+      };
+
+      ws.onmessage = e => {
+        try {
+          const msg = JSON.parse(e.data);
+          if (msg.type === 'reload') {
+            console.log('[PWA] Server pushed update v' + msg.version + ' — reloading…');
+            showReloadToast(msg.version);
+          }
+        } catch {}
+      };
+
+      ws.onclose = () => {
+        /* Reconnect with exponential backoff (max 30s) */
+        clearTimeout(retryTimer);
+        retryTimer = setTimeout(() => {
+          retryDelay = Math.min(retryDelay * 1.5, 30000);
+          connect();
+        }, retryDelay);
+      };
+
+      ws.onerror = () => ws.close();
+    }
+
+    function showReloadToast(version) {
+      /* Remove any existing toast */
+      document.getElementById('shamel-reload-toast')?.remove();
+
+      const toast = document.createElement('div');
+      toast.id = 'shamel-reload-toast';
+      toast.innerHTML = `
+        <span style="font-size:1.1rem">🚀</span>
+        <span>تحديث جديد جاهز</span>
+        <button onclick="location.reload(true)" style="
+          background:#c9a84c;color:#0f172a;border:none;border-radius:.5rem;
+          padding:.3rem .8rem;cursor:pointer;font-weight:700;
+          font-family:'Tajawal',sans-serif;font-size:.85rem;white-space:nowrap;
+        ">تحديث الآن</button>
+        <button onclick="this.closest('#shamel-reload-toast').remove()" style="
+          background:transparent;border:none;color:#94a3b8;
+          cursor:pointer;font-size:1.1rem;padding:0 .2rem;
+        ">✕</button>
+      `;
+      Object.assign(toast.style, {
+        position: 'fixed', top: '1rem', right: '1rem', zIndex: '99999',
+        background: '#1e3a5f', color: '#e2e8f0',
+        border: '1px solid #c9a84c', borderRadius: '.875rem',
+        padding: '.75rem 1rem', display: 'flex',
+        alignItems: 'center', gap: '.75rem',
+        fontFamily: "'Tajawal',sans-serif", fontSize: '.9rem', fontWeight: '600',
+        direction: 'rtl', boxShadow: '0 8px 24px rgba(0,0,0,.4)',
+        animation: 'slideIn .3s ease',
+      });
+
+      const styleEl = document.createElement('style');
+      styleEl.textContent = `@keyframes slideIn{from{transform:translateX(110%)}to{transform:translateX(0)}}`;
+      document.head.appendChild(styleEl);
+      document.body.appendChild(toast);
+
+      /* Auto-reload after 8 seconds if user doesn't dismiss */
+      setTimeout(() => {
+        if (document.getElementById('shamel-reload-toast')) {
+          location.reload(true);
+        }
+      }, 8000);
+    }
+
+    /* Start connection after page load */
+    document.addEventListener('DOMContentLoaded', connect);
+  })();
+
 })();

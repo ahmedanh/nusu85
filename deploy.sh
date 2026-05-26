@@ -24,5 +24,17 @@ sudo systemctl daemon-reload
 sudo systemctl restart shamel
 sudo systemctl restart nginx
 
+# ── Notify all connected browsers to reload (Live Reload) ──
+# Wait a moment for the server to come back up, then push the signal
+echo "Waiting for server to start..."
+sleep 3
+DEPLOY_SECRET="${DEPLOY_SECRET:-}"
+if [ -n "$DEPLOY_SECRET" ]; then
+  curl -sf "http://localhost/api/live-reload/?secret=${DEPLOY_SECRET}" \
+    -o /dev/null && echo "Live reload signal sent." || echo "Live reload: server not ready yet (harmless)."
+else
+  echo "Tip: set DEPLOY_SECRET in environment to enable live-reload push."
+fi
+
 echo "=== Deploy Complete ==="
 sudo systemctl status shamel --no-pager

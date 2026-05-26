@@ -3552,3 +3552,46 @@ def pwa_manifest(request):
     with open(manifest_path, 'r', encoding='utf-8') as f:
         data = _json.load(f)
     return JsonResponse(data, json_dumps_params={'ensure_ascii': False, 'indent': 2})
+
+
+# ── Live Reload Trigger ───────────────────────────────────────────────────────
+
+@require_GET
+def trigger_live_reload(request):
+    """
+    Staff-only endpoint: broadcast a reload signal to all connected browsers.
+    Called automatically by the deploy script after collectstatic.
+    GET /api/live-reload/?secret=DEPLOY_SECRET
+    """
+    from django.conf import settings
+    secret = request.GET.get('secret', '')
+    deploy_secret = getattr(settings, 'DEPLOY_SECRET', '')
+
+    # Must be staff or provide the deploy secret
+    authed = (request.user.is_authenticated and request.user.is_staff) or \
+             (deploy_secret and secret == deploy_secret)
+    if not authed:
+        return JsonResponse({'error': 'غير مصرح'}, status=403)
+
+    import subprocess
+    from asgiref.sync import async_to_sync
+    from channels.layers import get_channel_layer
+
+    try:
+        version = subprocess.check_output(
+            ['git', 'rev-parse', '--short', 'HEAD'],
+            cwd=settings.BASE_DIR, stderr=subprocess.DEVNULL
+        ).decode().strip()
+    except Exception:
+        version = 'unknown'
+
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        'shamel_live_reload',
+        {
+            'type':    'live_reload',
+            'reason':  'deploy',
+            'version': version,
+        }
+    )
+    return JsonResponse({'ok': True, 'version': version, 'message': 'Reload signal sent'})
