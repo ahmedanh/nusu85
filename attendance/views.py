@@ -3512,12 +3512,28 @@ import json as _json
 @require_GET
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 def pwa_sw(request):
-    """Serve the service worker from root scope."""
-    import os
+    """Serve the service worker with a dynamic version injected (git hash or timestamp)."""
+    import os, subprocess
     from django.conf import settings
+
+    # Dynamic version = git short hash (changes on every deploy automatically)
+    try:
+        version = subprocess.check_output(
+            ['git', 'rev-parse', '--short', 'HEAD'],
+            cwd=settings.BASE_DIR, stderr=subprocess.DEVNULL
+        ).decode().strip()
+    except Exception:
+        from datetime import date
+        version = date.today().strftime('%Y%m%d')
+
     sw_path = os.path.join(settings.BASE_DIR, 'attendance', 'static', 'pwa', 'sw.js')
     with open(sw_path, 'r', encoding='utf-8') as f:
         content = f.read()
+
+    # Replace the static version string with the live one
+    content = content.replace("const VERSION      = 'shamel-v1.0';",
+                              f"const VERSION      = 'shamel-{version}';")
+
     return HttpResponse(content, content_type='application/javascript; charset=utf-8')
 
 
