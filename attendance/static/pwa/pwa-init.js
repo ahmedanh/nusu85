@@ -56,14 +56,127 @@
   function updateOnlineState() {
     if (navigator.onLine) {
       offlineBanner.classList.remove('show');
-      /* Trigger sync */
+      updateCornerIndicator(true);
       if (navigator.serviceWorker?.controller) {
         navigator.serviceWorker.controller.postMessage({ type: 'SYNC_NOW' });
       }
-      syncFromIndexedDB(); /* also try direct flush */
+      syncFromIndexedDB();
     } else {
       offlineBanner.classList.add('show');
+      updateCornerIndicator(false);
     }
+  }
+
+  /* ── Corner online/offline indicator (all pages, all roles) ── */
+  function createCornerIndicator() {
+    const wrap = document.createElement('div');
+    wrap.id = 'shamel-net-indicator';
+    wrap.title = 'حالة الاتصال';
+    wrap.innerHTML = `
+      <span id="shamel-net-dot"></span>
+      <span id="shamel-net-label"></span>
+    `;
+    const style = document.createElement('style');
+    style.textContent = `
+      #shamel-net-indicator {
+        position: fixed;
+        bottom: 1.25rem;
+        left: 1.25rem;
+        z-index: 9990;
+        display: flex;
+        align-items: center;
+        gap: .45rem;
+        background: rgba(15,23,42,.85);
+        backdrop-filter: blur(6px);
+        border: 1px solid rgba(255,255,255,.1);
+        border-radius: 99px;
+        padding: .35rem .75rem .35rem .5rem;
+        font-family: 'Tajawal', sans-serif;
+        font-size: .75rem;
+        font-weight: 700;
+        color: #e2e8f0;
+        direction: rtl;
+        transition: opacity .3s;
+        cursor: default;
+        user-select: none;
+      }
+      #shamel-net-indicator:hover { opacity: 1 !important; }
+      #shamel-net-dot {
+        width: 9px; height: 9px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        transition: background .3s;
+      }
+      #shamel-net-dot.online  { background: #22c55e; box-shadow: 0 0 6px #22c55e; }
+      #shamel-net-dot.offline { background: #ef4444; box-shadow: 0 0 6px #ef4444; animation: blink-red .9s infinite; }
+      #shamel-net-dot.checking{ background: #f59e0b; box-shadow: 0 0 6px #f59e0b; animation: blink-red .6s infinite; }
+      @keyframes blink-red { 50% { opacity: .3; } }
+    `;
+    document.head.appendChild(style);
+    document.body.appendChild(wrap);
+    return wrap;
+  }
+
+  const _cornerWrap = createCornerIndicator();
+
+  function updateCornerIndicator(online) {
+    const dot   = document.getElementById('shamel-net-dot');
+    const label = document.getElementById('shamel-net-label');
+    if (!dot) return;
+    if (online) {
+      dot.className   = 'online';
+      label.textContent = 'متصل';
+      _cornerWrap.style.opacity = '.55';
+      setTimeout(() => { _cornerWrap.style.opacity = '.35'; }, 3000);
+    } else {
+      dot.className   = 'offline';
+      label.textContent = 'غير متصل';
+      _cornerWrap.style.opacity = '1';
+    }
+  }
+
+  /* ── Intercept SW queued responses → show toast instead of raw JSON ── */
+  (function interceptQueuedResponses() {
+    const _origFetch = window.fetch;
+    window.fetch = async function(...args) {
+      const res = await _origFetch(...args);
+      if (res.status === 202) {
+        try {
+          const clone = res.clone();
+          const data  = await clone.json();
+          if (data.queued) {
+            showQueuedToast(data.message || 'تم حفظ الطلب وسيُرسل عند عودة الاتصال');
+          }
+        } catch {}
+      }
+      return res;
+    };
+  })();
+
+  function showQueuedToast(msg) {
+    const t = document.createElement('div');
+    t.className = 'shamel-queued-toast';
+    t.innerHTML = `<span style="font-size:1.1rem">📥</span><span>${msg}</span>`;
+    const style = document.getElementById('shamel-toast-style');
+    if (!style) {
+      const s = document.createElement('style');
+      s.id = 'shamel-toast-style';
+      s.textContent = `
+        .shamel-queued-toast {
+          position:fixed; bottom:5rem; left:50%; transform:translateX(-50%);
+          z-index:99999; background:#1e3a5f; color:#e2e8f0;
+          border:1px solid #c9a84c; border-radius:.875rem;
+          padding:.7rem 1.25rem; display:flex; align-items:center; gap:.6rem;
+          font-family:'Tajawal',sans-serif; font-size:.9rem; font-weight:700;
+          direction:rtl; box-shadow:0 8px 24px rgba(0,0,0,.4);
+          animation: fadeUp .3s ease;
+        }
+        @keyframes fadeUp { from{opacity:0;transform:translate(-50%,10px)} to{opacity:1;transform:translate(-50%,0)} }
+      `;
+      document.head.appendChild(s);
+    }
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 4000);
   }
 
   function createBanner() {

@@ -1746,9 +1746,9 @@ def export_analytics_pdf(request):
     # College chart
     college_chart = []
     for col in College.objects.all():
-        students_count = Student.objects.filter(college=col).count()
-        tot = AIAttendanceLog.objects.filter(student__college=col).count()
-        pre = AIAttendanceLog.objects.filter(student__college=col, status='Present').count()
+        students_count = Student.objects.filter(department__college=col).count()
+        tot = AIAttendanceLog.objects.filter(student__department__college=col).count()
+        pre = AIAttendanceLog.objects.filter(student__department__college=col, status='Present').count()
         pct = round(pre / tot * 100) if tot else 0
         college_chart.append({'name': col.college_name, 'pct': pct, 'students': students_count})
     college_chart = sorted(college_chart, key=lambda x: -x['pct'])[:6]
