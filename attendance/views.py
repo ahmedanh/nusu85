@@ -3501,3 +3501,38 @@ def check_attendance_warnings(request):
             sent += 1
 
     return JsonResponse({'ok': True, 'emails_sent': sent})
+
+
+# ── PWA Views ─────────────────────────────────────────────────────────────────
+
+from django.views.decorators.cache import cache_control
+from django.views.decorators.http import require_GET
+import json as _json
+
+@require_GET
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+def pwa_sw(request):
+    """Serve the service worker from root scope."""
+    import os
+    from django.conf import settings
+    sw_path = os.path.join(settings.BASE_DIR, 'attendance', 'static', 'pwa', 'sw.js')
+    with open(sw_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+    return HttpResponse(content, content_type='application/javascript; charset=utf-8')
+
+
+@require_GET
+def pwa_offline(request):
+    """Offline fallback page."""
+    return render(request, 'attendance/offline.html')
+
+
+@require_GET
+def pwa_manifest(request):
+    """Serve manifest.json from root."""
+    import os
+    from django.conf import settings
+    manifest_path = os.path.join(settings.BASE_DIR, 'attendance', 'static', 'pwa', 'manifest.json')
+    with open(manifest_path, 'r', encoding='utf-8') as f:
+        data = _json.load(f)
+    return JsonResponse(data, json_dumps_params={'ensure_ascii': False, 'indent': 2})

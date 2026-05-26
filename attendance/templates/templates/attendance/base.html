@@ -3,8 +3,23 @@
 <html lang="en" dir="ltr" class="">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <title>{% block title %}SHAMEL{% endblock %}</title>
+
+<!-- PWA -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#1e3a5f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SHAMEL">
+<link rel="apple-touch-icon" href="/static/pwa/icons/icon-192.png">
+<link rel="apple-touch-icon" sizes="152x152" href="/static/pwa/icons/icon-152.png">
+<link rel="apple-touch-icon" sizes="144x144" href="/static/pwa/icons/icon-144.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/static/pwa/icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="96x96"  href="/static/pwa/icons/icon-96.png">
+<meta name="msapplication-TileImage" content="/static/pwa/icons/icon-144.png">
+<meta name="msapplication-TileColor" content="#1e3a5f">
 <!-- ① Tailwind config MUST come before CDN script so darkMode:"class" is honoured -->
 <script>
 tailwind = {
@@ -954,5 +969,8 @@ document.addEventListener('keydown', function(e) {
   }
 });
 </script>
+
+<!-- PWA init -->
+<script src="/static/pwa/pwa-init.js" defer></script>
 </body>
 </html>

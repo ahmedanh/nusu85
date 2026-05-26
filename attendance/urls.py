@@ -145,4 +145,9 @@ urlpatterns = [
 
     # Stop session
     path('stop-session/<int:session_id>/', views.stop_session, name='stop_session'),
+
+    # PWA
+    path('sw.js',    views.pwa_sw,      name='pwa_sw'),
+    path('offline/', views.pwa_offline,  name='pwa_offline'),
+    path('manifest.json', views.pwa_manifest, name='pwa_manifest'),
 ]
