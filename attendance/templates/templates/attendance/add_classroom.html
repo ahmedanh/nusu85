@@ -49,6 +49,18 @@
         <input type="number" name="capacity" value="50" min="1" max="500" class="inp">
       </div>
 
+      <!-- College assignment -->
+      <div>
+        <label class="label-xs">تخصيص الكلية</label>
+        <select name="college_id" class="inp">
+          <option value="">مشتركة بين جميع الكليات</option>
+          {% for col in colleges %}
+          <option value="{{ col.college_id }}">{{ col.college_name }}</option>
+          {% endfor %}
+        </select>
+        <p class="text-xs text-slate-400 mt-1">اختر كلية معينة أو اتركها فارغة للقاعات المشتركة</p>
+      </div>
+
       <!-- Type selector -->
       <div>
         <label class="label-xs mb-3 block">نوع القاعة</label>

@@ -66,6 +66,30 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+# ── Semester helpers ─────────────────────────────────────────────────────────
+ARABIC_ORDINALS = ['الأول','الثاني','الثالث','الرابع','الخامس',
+                   'السادس','السابع','الثامن','التاسع','العاشر',
+                   'الحادي عشر','الثاني عشر']
+ARABIC_YEAR_ORDINALS = ['الأولى','الثانية','الثالثة','الرابعة',
+                         'الخامسة','السادسة']
+
+def get_semester_choices(num_semesters=8):
+    """Return list of (value, label) for num_semesters semesters, with year context."""
+    choices = []
+    for i in range(1, num_semesters + 1):
+        year_num = (i - 1) // 2
+        sem_in_year = ((i - 1) % 2) + 1
+        sem_ord = ARABIC_ORDINALS[i - 1] if i <= len(ARABIC_ORDINALS) else str(i)
+        year_ord = ARABIC_YEAR_ORDINALS[year_num] if year_num < len(ARABIC_YEAR_ORDINALS) else f'{year_num+1}'
+        sem_label = f'الفصل {sem_ord} — السنة {year_ord}'
+        choices.append((str(i), sem_label))
+    return choices
+
+# Standard semester sets by college type (value, label)
+SEMESTER_CHOICES_4Y  = get_semester_choices(8)   # 4-year programs (Law, Science, Commerce, etc.)
+SEMESTER_CHOICES_5Y  = get_semester_choices(10)  # 5-year programs (Engineering, Pharmacy)
+SEMESTER_CHOICES_6Y  = get_semester_choices(12)  # 6-year programs (Medicine, Dentistry)
+
 # ── In-memory face cache ─────────────────────────────────────────────────────
 known_face_encodings = []
 known_face_names = []
@@ -715,10 +739,11 @@ def delete_course(request, course_id):
 
 @login_required
 def classrooms_list(request):
-    classrooms = Classroom.objects.all().order_by('name')
+    classrooms = Classroom.objects.select_related('college').all().order_by('name')
     return render(request, 'attendance/classrooms_list.html', {
         'classrooms': classrooms,
         'types': Classroom.CLASSROOM_TYPES,
+        'colleges': College.objects.order_by('college_name'),
         'is_admin': request.user.is_staff or request.user.is_superuser,
     })
 
@@ -726,13 +751,20 @@ def classrooms_list(request):
 @login_required
 @staff_member_required
 def add_classroom(request):
+    if request.method == 'GET':
+        return render(request, 'attendance/add_classroom.html', {
+            'types': Classroom.CLASSROOM_TYPES,
+            'colleges': College.objects.order_by('college_name'),
+        })
     if request.method == 'POST':
         try:
+            college_id = request.POST.get('college_id') or None
             Classroom.objects.create(
                 name=request.POST.get('name', '').strip(),
                 location=request.POST.get('location', '').strip(),
                 capacity=int(request.POST.get('capacity', 30)),
                 classroom_type=request.POST.get('classroom_type', 'Lecture'),
+                college_id=int(college_id) if college_id else None,
             )
             messages.success(request, 'تمت إضافة القاعة.')
         except Exception as e:
@@ -814,7 +846,7 @@ def register_student(request):
         'is_admin': is_admin, 'coordinator': coordinator,
         'blood_types': ['A+','A-','B+','B-','AB+','AB-','O+','O-'],
         'batch_years': list(range(current_year, current_year - 10, -1)),
-        'semester_choices': list(range(1, 9)),
+        'semester_choices': SEMESTER_CHOICES_4Y,
     })
 
 
@@ -1420,7 +1452,7 @@ def coordinator_register_user(request):
     import datetime
     current_year = datetime.date.today().year
     batch_years = list(range(current_year, current_year - 10, -1))
-    semester_choices = list(range(1, 9))
+    semester_choices = SEMESTER_CHOICES_4Y
     return render(request, 'attendance/coordinator_register.html', {
         'coordinator': coordinator, 'departments': departments,
         'batch_years': batch_years, 'semester_choices': semester_choices,
@@ -1757,7 +1789,7 @@ def _build_attendance_queryset(request):
     meta = {
         'colleges': colleges, 'departments': departments, 'courses': courses,
         'year_choices': range(1, 7),
-        'semesters': ['1', '2', 'Summer'],
+        'semesters': SEMESTER_CHOICES_4Y,
         'is_admin': is_admin, 'coordinator': coordinator,
     }
     return logs, f, meta
@@ -2248,7 +2280,7 @@ def edit_schedule(request, schedule_id):
     days = ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
     return render(request, 'attendance/edit_schedule.html', {
         'schedule': schedule, 'courses': courses, 'teachers': teachers,
-        'classrooms': classrooms, 'days': days, 'semesters': ['1', '2', 'Summer'],
+        'classrooms': classrooms, 'days': days, 'semesters': SEMESTER_CHOICES_4Y,
         'coordinator': coordinator, 'is_admin': is_admin,
     })
 
@@ -2520,6 +2552,7 @@ def edit_student(request, student_id):
         'student': student, 'departments': departments, 'colleges': colleges,
         'is_admin': is_admin, 'coordinator': coordinator,
         'blood_types': BLOOD_TYPES,
+        'semesters': SEMESTER_CHOICES_4Y,
     })
 
 
@@ -2928,9 +2961,33 @@ def update_settings(request):
         else:
             messages.info(request, 'لم يتم تغيير كلمة المرور.')
 
-    elif tab in ('privacy', 'notifications'):
-        # These tabs reference profile fields that may not exist.
-        # Log the action silently and report success.
-        messages.success(request, 'تم حفظ الإعدادات.')
+    elif tab == 'privacy':
+        try:
+            from .models import UserProfile
+            profile, _ = UserProfile.objects.get_or_create(user=user)
+            profile.show_phone_to_peers            = 'show_phone' in request.POST
+            profile.show_email_to_peers            = 'show_email' in request.POST
+            profile.show_attendance_to_coordinator = 'show_attendance' in request.POST
+            profile.save(update_fields=[
+                'show_phone_to_peers', 'show_email_to_peers', 'show_attendance_to_coordinator'
+            ])
+            messages.success(request, 'تم حفظ إعدادات الخصوصية.')
+        except Exception as e:
+            messages.error(request, f'خطأ: {e}')
+
+    elif tab == 'notifications':
+        try:
+            from .models import UserProfile
+            profile, _ = UserProfile.objects.get_or_create(user=user)
+            profile.email_notifications = 'email_notif' in request.POST
+            profile.attendance_alerts   = 'att_alerts' in request.POST
+            profile.ticket_updates      = 'ticket_updates' in request.POST
+            profile.weekly_summary      = 'weekly_summary' in request.POST
+            profile.save(update_fields=[
+                'email_notifications', 'attendance_alerts', 'ticket_updates', 'weekly_summary'
+            ])
+            messages.success(request, 'تم حفظ إعدادات الإشعارات.')
+        except Exception as e:
+            messages.error(request, f'خطأ: {e}')
 
     return redirect('settings_page')

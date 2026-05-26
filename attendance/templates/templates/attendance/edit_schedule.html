@@ -71,7 +71,7 @@
         <label class="label-xs">الفصل الدراسي</label>
         <select name="semester" class="inp">
           {% for s in semesters %}
-          <option value="{{ s }}" {% if schedule.semester == s %}selected{% endif %}>الفصل {{ s }}</option>
+          <option value="{{ s.0 }}" {% if schedule.semester == s.0 %}selected{% endif %}>{{ s.1 }}</option>
           {% endfor %}
         </select>
       </div>
