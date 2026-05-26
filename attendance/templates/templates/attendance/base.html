@@ -231,13 +231,14 @@ tailwind = {
   <!-- Logo bar -->
   <div class="flex items-center justify-between px-4 h-16 border-b border-white/10 flex-shrink-0">
     <a href="/" class="flex items-center" id="sidebar-logo-link">
-      <!-- Single logo element — JS swaps src based on theme -->
+      <!-- Single adaptive logo — CSS filter makes it visible on dark sidebar -->
       <img id="sidebar-logo-img"
-           src="{% static 'images/logo_icon_light.png' %}"
-           class="h-12 w-12 object-contain flex-shrink-0"
+           src="{% static 'images/logo.svg' %}"
+           class="h-12 w-auto object-contain flex-shrink-0"
+           style="filter: brightness(0) invert(1);"
            alt="SHAMEL"
            onerror="this.style.display='none'; document.getElementById('sidebar-logo-fallback').style.display='flex'">
-      <!-- Single fallback — shown only when image fails -->
+      <!-- Fallback — shown only when image fails -->
       <span id="sidebar-logo-fallback" style="display:none;" class="items-center gap-2 flex">
         <span class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 font-black text-lg"
               style="background:linear-gradient(135deg,#C9A227,#E8C040); color:#0B2545;">S</span>
@@ -671,14 +672,9 @@ document.addEventListener('click', function(e) {
 });
 
 // ── Dark / Light theme ───────────────────────
-const LOGO_LIGHT = "{% static 'images/logo_icon_light.png' %}";
-const LOGO_DARK  = "{% static 'images/logo_icon_dark.png' %}";
-
+// Single logo — always white via filter (sidebar is always dark navy)
 function _updateSidebarLogo(theme) {
-  const img = document.getElementById('sidebar-logo-img');
-  if (!img) return;
-  if (img.style.display === 'none') return; // fallback already showing
-  img.src = theme === 'dark' ? LOGO_DARK : LOGO_LIGHT;
+  // No-op: logo.svg uses CSS filter brightness(0) invert(1) to appear white on dark sidebar
 }
 
 function _updateTopbarButtons(theme) {
