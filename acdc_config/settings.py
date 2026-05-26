@@ -6,7 +6,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY    = config('SECRET_KEY')
 DEPLOY_SECRET = config('DEPLOY_SECRET', default='')   # set on VPS for live-reload push
 DEBUG = config('DEBUG', default=True, cast=bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,84.46.251.93,shamel.sd,www.shamel.sd').split(',')
+
+# CSRF trusted origins — cover all ports used locally + production domain
+CSRF_TRUSTED_ORIGINS = [
+    'http://127.0.0.1:8000',
+    'http://127.0.0.1:9000',
+    'http://localhost:8000',
+    'http://localhost:9000',
+    'https://shamel.sd',
+    'https://www.shamel.sd',
+    'http://84.46.251.93',
+]
 
 # ─────────────────────────────────────────────
 # INSTALLED APPS

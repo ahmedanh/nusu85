@@ -1791,6 +1791,7 @@ def export_analytics_pdf(request):
         'absent_count': absent_count,
         'late_count': late_count,
         'overall_present_pct': overall_present_pct,
+        'overall_absent_pct': 100 - overall_present_pct,
         'weekly_chart': weekly_chart,
         'dept_chart': dept_chart,
         'college_chart': college_chart,
