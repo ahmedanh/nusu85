@@ -317,11 +317,69 @@ tailwind = {
       <span data-en="Gate Logs" data-ar="سجلات البوابة">Gate Logs</span>
     </a>
 
+    <p class="nav-section" data-en="Advanced" data-ar="متقدم">Advanced</p>
+    <a href="{% url 'courses_list' %}" class="nav-link {% if request.resolver_match.url_name == 'courses_list' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">menu_book</span>
+      <span data-en="Courses" data-ar="المقررات">Courses</span>
+    </a>
+    <a href="{% url 'classrooms_list' %}" class="nav-link {% if request.resolver_match.url_name == 'classrooms_list' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">domain</span>
+      <span data-en="Classrooms (List)" data-ar="القاعات (قائمة)">Classrooms (List)</span>
+    </a>
+    <a href="{% url 'departments_view' %}" class="nav-link {% if request.resolver_match.url_name == 'departments_view' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">account_tree</span>
+      <span data-en="Departments" data-ar="الأقسام">Departments</span>
+    </a>
+    <a href="{% url 'audit_log' %}" class="nav-link {% if request.resolver_match.url_name == 'audit_log' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">manage_search</span>
+      <span data-en="Audit Log" data-ar="سجل التدقيق">Audit Log</span>
+    </a>
+    <a href="{% url 'global_search' %}" class="nav-link {% if request.resolver_match.url_name == 'global_search' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">search</span>
+      <span data-en="Search" data-ar="البحث">Search</span>
+    </a>
+
+    <p class="nav-section" data-en="Exams" data-ar="الامتحانات">Exams</p>
+    <a href="{% url 'exam_planner' %}" class="nav-link {% if request.resolver_match.url_name == 'exam_planner' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">event_note</span>
+      <span data-en="Exam Planner" data-ar="مخطط الامتحانات">Exam Planner</span>
+    </a>
+    <a href="{% url 'exam_seating_chart' %}" class="nav-link {% if request.resolver_match.url_name == 'exam_seating_chart' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">chair</span>
+      <span data-en="Seating Chart" data-ar="خريطة الجلوس">Seating Chart</span>
+    </a>
+    <a href="{% url 'exam_gate_verify' %}" class="nav-link {% if request.resolver_match.url_name == 'exam_gate_verify' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">verified_user</span>
+      <span data-en="Exam Gate" data-ar="بوابة الامتحان">Exam Gate</span>
+    </a>
+
+    <p class="nav-section" data-en="Workspace" data-ar="مساحة العمل">Workspace</p>
+    <a href="{% url 'dean_evaluation_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dean_evaluation_dashboard' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">leaderboard</span>
+      <span data-en="Dean Evaluation" data-ar="تقييم العميد">Dean Evaluation</span>
+    </a>
+    <a href="{% url 'faculty_timeline' %}" class="nav-link {% if request.resolver_match.url_name == 'faculty_timeline' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">timeline</span>
+      <span data-en="Faculty Timeline" data-ar="الجدول الزمني">Faculty Timeline</span>
+    </a>
+    <a href="{% url 'excuse_approval_board' %}" class="nav-link {% if request.resolver_match.url_name == 'excuse_approval_board' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">how_to_reg</span>
+      <span data-en="Excuse Board" data-ar="لوحة الأعذار">Excuse Board</span>
+    </a>
+    <a href="{% url 'onboarding_wizard' %}" class="nav-link {% if request.resolver_match.url_name == 'onboarding_wizard' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">rocket_launch</span>
+      <span data-en="Onboarding" data-ar="الإعداد الأولي">Onboarding</span>
+    </a>
+
     <p class="nav-section" data-en="System" data-ar="النظام">System</p>
     <a href="{% url 'admin_notifications' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_notifications' %}active{% endif %}">
       <span class="material-symbols-outlined text-[18px]">notifications</span>
       <span data-en="Notifications" data-ar="الإشعارات">Notifications</span>
       {% if notifications %}<span class="ml-auto bg-red-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0">{{ notifications|length }}</span>{% endif %}
+    </a>
+    <a href="{% url 'admin_tickets' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_tickets' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">confirmation_number</span>
+      <span data-en="Tickets" data-ar="تذاكر الدعم">Tickets</span>
     </a>
     <a href="{% url 'settings_page' %}" class="nav-link {% if request.resolver_match.url_name == 'settings_page' %}active{% endif %}">
       <span class="material-symbols-outlined text-[18px]">settings</span>
@@ -360,9 +418,23 @@ tailwind = {
       <span class="material-symbols-outlined text-[18px]">assessment</span>
       <span data-en="Attendance Report" data-ar="تقرير الحضور">Attendance Report</span>
     </a>
+    <a href="{% url 'coordinator_grading' %}" class="nav-link {% if request.resolver_match.url_name == 'coordinator_grading' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">grade</span>
+      <span data-en="Grading" data-ar="الدرجات">Grading</span>
+    </a>
     <a href="{% url 'export_coordinator_csv' %}" class="nav-link {% if request.resolver_match.url_name == 'export_coordinator_csv' %}active{% endif %}">
       <span class="material-symbols-outlined text-[18px]">download</span>
       <span data-en="Export Students" data-ar="تصدير بيانات الطلاب">Export Students</span>
+    </a>
+
+    <p class="nav-section" data-en="System" data-ar="النظام">System</p>
+    <a href="{% url 'notifications_view' %}" class="nav-link {% if request.resolver_match.url_name == 'notifications_view' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">notifications</span>
+      <span data-en="Notifications" data-ar="الإشعارات">Notifications</span>
+    </a>
+    <a href="{% url 'tickets_list' %}" class="nav-link {% if request.resolver_match.url_name == 'tickets_list' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">confirmation_number</span>
+      <span data-en="Tickets" data-ar="تذاكر الدعم">Tickets</span>
     </a>
 
     <!-- ══ TEACHER ══ -->
@@ -408,6 +480,16 @@ tailwind = {
       <span data-en="Room Permissions" data-ar="صلاحيات القاعات">Room Permissions</span>
     </a>
 
+    <p class="nav-section" data-en="System" data-ar="النظام">System</p>
+    <a href="{% url 'notifications_view' %}" class="nav-link {% if request.resolver_match.url_name == 'notifications_view' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">notifications</span>
+      <span data-en="Notifications" data-ar="الإشعارات">Notifications</span>
+    </a>
+    <a href="{% url 'tickets_list' %}" class="nav-link {% if request.resolver_match.url_name == 'tickets_list' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">confirmation_number</span>
+      <span data-en="Support Tickets" data-ar="تذاكر الدعم">Support Tickets</span>
+    </a>
+
     <!-- ══ STUDENT ══ -->
     {% elif student_profile %}
 
@@ -435,10 +517,27 @@ tailwind = {
       <span data-en="Classrooms" data-ar="القاعات">Classrooms</span>
     </a>
 
+    <a href="{% url 'student_schedule' %}" class="nav-link {% if request.resolver_match.url_name == 'student_schedule' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">event</span>
+      <span data-en="My Schedule" data-ar="جدولي">My Schedule</span>
+    </a>
+    <a href="{% url 'excuse_portal' %}" class="nav-link {% if request.resolver_match.url_name == 'excuse_portal' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">assignment_late</span>
+      <span data-en="Excuse Portal" data-ar="بوابة الأعذار">Excuse Portal</span>
+    </a>
+
     <p class="nav-section" data-en="Support" data-ar="الدعم">Support</p>
     <a href="{% url 'student_support' %}" class="nav-link {% if request.resolver_match.url_name == 'student_support' %}active{% endif %}">
       <span class="material-symbols-outlined text-[18px]">support_agent</span>
       <span data-en="Help & Support" data-ar="المساعدة والدعم">Help & Support</span>
+    </a>
+    <a href="{% url 'notifications_view' %}" class="nav-link {% if request.resolver_match.url_name == 'notifications_view' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">notifications</span>
+      <span data-en="Notifications" data-ar="الإشعارات">Notifications</span>
+    </a>
+    <a href="{% url 'tickets_list' %}" class="nav-link {% if request.resolver_match.url_name == 'tickets_list' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">confirmation_number</span>
+      <span data-en="Support Tickets" data-ar="تذاكر الدعم">Support Tickets</span>
     </a>
 
     <!-- ══ GATE STAFF ══ -->

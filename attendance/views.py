@@ -756,15 +756,22 @@ def add_schedule(request):
         return redirect('schedule')
 
     # GET — render form
+    # Search/filter support for large datasets (1000+ courses)
+    course_q = request.GET.get('course_q', '').strip()
     DAYS = ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
     if coordinator and not is_admin:
-        courses    = Course.objects.filter(college=coordinator.college).order_by('title')
+        courses_qs = Course.objects.filter(college=coordinator.college)
         teachers   = Teacher.objects.filter(college=coordinator.college).order_by('name')
         classrooms = Classroom.objects.filter(Q(college=coordinator.college) | Q(college__isnull=True)).order_by('name')
     else:
-        courses    = Course.objects.order_by('title')
+        courses_qs = Course.objects.all()
         teachers   = Teacher.objects.order_by('name')
         classrooms = Classroom.objects.order_by('name')
+
+    if course_q:
+        courses_qs = courses_qs.filter(Q(title__icontains=course_q) | Q(course_code__icontains=course_q))
+    # Limit to 200 for performance; user can search to narrow down
+    courses = courses_qs.order_by('title')[:200]
 
     return render(request, 'attendance/add_schedule.html', {
         'courses': courses, 'teachers': teachers, 'classrooms': classrooms,
