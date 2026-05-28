@@ -3091,6 +3091,8 @@ def teacher_profile_view(request):
 @login_required
 def classrooms_status_view(request):
     try:
+        from django.db import close_old_connections
+        close_old_connections()
         now = timezone.now()
         classrooms = Classroom.objects.all().order_by('name')
         classroom_data = []
