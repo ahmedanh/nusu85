@@ -7,7 +7,9 @@ from django.conf import settings
 
 def update_classroom_status():
     """Every minute: auto-update classroom busy/free status based on schedule."""
+    from django.db import close_old_connections, connection
     from .models import Schedule, Classroom, LectureSession
+    close_old_connections()   # prevent "connection already closed" from stale pool
     now = timezone.now()
     current_time = now.time()
     current_day = now.strftime('%A')
@@ -27,6 +29,8 @@ def update_classroom_status():
 
 
 def sync_offline_cache():
+    from django.db import close_old_connections
+    close_old_connections()
     """Every 2 minutes: push offline attendance records to PostgreSQL."""
     import sqlite3, os
     from .models import AIAttendanceLog, Student, Schedule

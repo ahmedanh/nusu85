@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8"/>
+<style>
+@page {
+  size: A4;
+  margin: 16mm 14mm 22mm 14mm;
+  @bottom-center {
+    content: "SHAMEL — نظام إدارة الحضور الجامعي · صفحة " counter(page) " من " counter(pages);
+    font-size: 8px; color: #9BA8C5;
+  }
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, 'Segoe UI', sans-serif; font-size: 11px; direction: rtl; color: #1A2545; background: #fff; }
+
+.hdr { display:flex; align-items:center; justify-content:space-between; padding-bottom:10px; border-bottom:2.5px solid #C9A227; margin-bottom:14px; }
+.hdr-logo { display:flex; align-items:center; gap:9px; }
+.logo-box { width:42px; height:42px; background:#0B2545; border-radius:8px; display:flex; align-items:center; justify-content:center; }
+.logo-box svg { width:28px; height:28px; fill:#C9A227; }
+.brand-name { font-size:17px; font-weight:900; color:#0B2545; letter-spacing:1.5px; }
+.brand-tag  { font-size:7.5px; color:#6B7FA3; letter-spacing:.07em; text-transform:uppercase; }
+.hdr-title { font-size:13px; font-weight:800; color:#0B2545; text-align:left; }
+.hdr-date  { font-size:9px; color:#6B7FA3; margin-top:2px; text-align:left; }
+
+.gold-stripe { height:2.5px; background:linear-gradient(90deg,#0B2545 0%,#C9A227 40%,#E8C040 60%,#C9A227 80%,#0B2545 100%); border-radius:99px; margin-bottom:14px; }
+
+.search-box { background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; padding:10px 14px; margin-bottom:14px; }
+.search-query { font-size:14px; font-weight:900; color:#0B2545; }
+.search-count { font-size:10px; color:#6B7FA3; margin-top:2px; }
+
+.sec-title { font-size:11px; font-weight:800; color:#0B2545; border-right:3px solid #C9A227; padding-right:7px; margin-bottom:8px; margin-top:14px; }
+
+table { width:100%; border-collapse:collapse; margin-bottom:14px; }
+thead th { background:#0B2545; color:#fff; padding:6px 8px; text-align:right; font-size:10px; font-weight:700; }
+tbody td { padding:5px 8px; border-bottom:1px solid #EEF0F6; font-size:10px; text-align:right; }
+tbody tr:nth-child(even) { background:#F8FAFC; }
+
+.badge-eligible { color:#15803D; font-weight:700; }
+.badge-not     { color:#B91C1C; font-weight:700; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="hdr">
+  <div class="hdr-logo">
+    <div class="logo-box">
+      <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+    </div>
+    <div>
+      <div class="brand-name">SHAMEL</div>
+      <div class="brand-tag">Secure Academic Management &amp; Entry Logic</div>
+    </div>
+  </div>
+  <div>
+    <div class="hdr-title">نتائج البحث الشامل</div>
+    <div class="hdr-date">تاريخ الإنشاء: {{ generated_at|date:"Y-m-d H:i" }}</div>
+  </div>
+</div>
+<div class="gold-stripe"></div>
+
+<div class="search-box">
+  <div class="search-query">بحث عن: "{{ query }}"</div>
+  <div class="search-count">{{ total }} نتيجة موزعة على {{ results.students|length }} طالب — {{ results.teachers|length }} أستاذ — {{ results.courses|length }} مقرر — {{ results.classrooms|length }} قاعة</div>
+</div>
+
+<!-- Students -->
+{% if results.students %}
+<div class="sec-title">الطلاب ({{ results.students|length }})</div>
+<table>
+  <thead>
+    <tr><th>#</th><th>الاسم</th><th>رقم الطالب</th><th>القسم</th><th>الكلية</th><th>الحالة</th></tr>
+  </thead>
+  <tbody>
+    {% for s in results.students %}
+    <tr>
+      <td>{{ forloop.counter }}</td>
+      <td style="font-weight:600;">{{ s.name }}</td>
+      <td>{{ s.student_code }}</td>
+      <td>{{ s.department.name|default:"—" }}</td>
+      <td>{{ s.college.college_name|default:"—" }}</td>
+      <td class="{% if s.is_eligible_for_entry %}badge-eligible{% else %}badge-not{% endif %}">
+        {% if s.is_eligible_for_entry %}✓ مؤهل{% else %}✗ غير مؤهل{% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+<!-- Teachers -->
+{% if results.teachers %}
+<div class="sec-title">الأساتذة ({{ results.teachers|length }})</div>
+<table>
+  <thead>
+    <tr><th>#</th><th>الاسم</th><th>الدرجة العلمية</th><th>القسم</th><th>الكلية</th><th>الهاتف</th></tr>
+  </thead>
+  <tbody>
+    {% for t in results.teachers %}
+    <tr>
+      <td>{{ forloop.counter }}</td>
+      <td style="font-weight:600;">{{ t.name }}</td>
+      <td>{{ t.academic_degree|default:"—" }}</td>
+      <td>{{ t.department.name|default:"—" }}</td>
+      <td>{{ t.college.college_name|default:"—" }}</td>
+      <td>{{ t.phone|default:"—" }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+<!-- Courses -->
+{% if results.courses %}
+<div class="sec-title">المقررات الدراسية ({{ results.courses|length }})</div>
+<table>
+  <thead>
+    <tr><th>#</th><th>اسم المقرر</th><th>الكود</th><th>القسم</th><th>الكلية</th><th>الساعات</th></tr>
+  </thead>
+  <tbody>
+    {% for c in results.courses %}
+    <tr>
+      <td>{{ forloop.counter }}</td>
+      <td style="font-weight:600;">{{ c.title }}</td>
+      <td>{{ c.course_code }}</td>
+      <td>{{ c.department.name|default:"—" }}</td>
+      <td>{{ c.college.college_name|default:"—" }}</td>
+      <td style="text-align:center;">{{ c.credits|default:"—" }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+<!-- Classrooms -->
+{% if results.classrooms %}
+<div class="sec-title">القاعات ({{ results.classrooms|length }})</div>
+<table>
+  <thead>
+    <tr><th>#</th><th>اسم القاعة</th><th>الموقع</th><th>السعة</th><th>النوع</th></tr>
+  </thead>
+  <tbody>
+    {% for r in results.classrooms %}
+    <tr>
+      <td>{{ forloop.counter }}</td>
+      <td style="font-weight:600;">{{ r.name }}</td>
+      <td>{{ r.location|default:"—" }}</td>
+      <td style="text-align:center;">{{ r.capacity }}</td>
+      <td>{{ r.classroom_type|default:"—" }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+{% if total == 0 %}
+<div style="text-align:center;padding:40px;color:#9BA8C5;">
+  <p style="font-size:14px;font-weight:700;">لا توجد نتائج للكلمة "{{ query }}"</p>
+</div>
+{% endif %}
+
+</body>
+</html>

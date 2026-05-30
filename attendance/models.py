@@ -43,6 +43,8 @@ class Classroom(models.Model):
     capacity       = models.IntegerField(default=30)
     classroom_type = models.CharField(max_length=50, choices=CLASSROOM_TYPES, default='Lecture')
     is_busy        = models.BooleanField(default=False)
+    college        = models.ForeignKey('College', on_delete=models.SET_NULL, null=True, blank=True,
+                                       help_text='اترك فارغاً للقاعات المشتركة بين الكليات')
 
     class Meta:
         db_table = 'attendance_classroom'
@@ -452,3 +454,28 @@ class AsyncTask(models.Model):
 
     class Meta:
         db_table = 'attendance_asynctask'
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# User Profile (settings preferences per user)
+# ─────────────────────────────────────────────────────────────────────────────
+class UserProfile(models.Model):
+    user                          = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    # Privacy
+    show_phone_to_peers           = models.BooleanField(default=True)
+    show_email_to_peers           = models.BooleanField(default=True)
+    show_attendance_to_coordinator = models.BooleanField(default=True)
+    # Notifications
+    email_notifications           = models.BooleanField(default=True)
+    attendance_alerts             = models.BooleanField(default=True)
+    ticket_updates                = models.BooleanField(default=True)
+    weekly_summary                = models.BooleanField(default=False)
+    # Security
+    require_face_login            = models.BooleanField(default=False)
+    last_password_change          = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'attendance_userprofile'
+
+    def __str__(self):
+        return f'Profile: {self.user.username}'

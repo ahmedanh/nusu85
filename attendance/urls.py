@@ -53,6 +53,8 @@ urlpatterns = [
     path('reports/teachers/export/csv/', views.export_teacher_report_csv, name='export_teacher_csv'),
     path('reports/teachers/export/pdf/', views.export_teacher_report_pdf, name='export_teacher_pdf'),
     path('reports/grades/export/pdf/', views.export_grades_pdf, name='export_grades_pdf'),
+    path('reports/analytics/export/pdf/', views.export_analytics_pdf, name='export_analytics_pdf'),
+    path('search/export/pdf/', views.export_search_pdf, name='export_search_pdf'),
 
     # Search
     path('search/', views.global_search, name='global_search'),
@@ -116,6 +118,11 @@ urlpatterns = [
     path('schedule/', views.schedule_view, name='schedule'),
     path('schedule/add/', views.add_schedule, name='add_schedule'),
     path('schedule/<int:schedule_id>/edit/', views.edit_schedule, name='edit_schedule'),
+    path('schedule/<int:schedule_id>/delete/', views.delete_schedule, name='delete_schedule'),
+    path('schedule/calendar/', views.schedule_calendar, name='schedule_calendar'),
+    path('schedule/calendar/add-slot/', views.calendar_add_slot, name='calendar_add_slot'),
+    path('schedule/calendar/delete-slot/<int:schedule_id>/', views.calendar_delete_slot, name='calendar_delete_slot'),
+    path('attendance/check-warnings/', views.check_attendance_warnings, name='check_attendance_warnings'),
 
     # Face enrollment
     path('enroll-face/', views.enroll_face, name='enroll_face'),
@@ -138,4 +145,14 @@ urlpatterns = [
 
     # Stop session
     path('stop-session/<int:session_id>/', views.stop_session, name='stop_session'),
+
+    # PWA
+    path('sw.js',    views.pwa_sw,      name='pwa_sw'),
+    path('offline/', views.pwa_offline,  name='pwa_offline'),
+    path('manifest.json', views.pwa_manifest, name='pwa_manifest'),
+
+    # Live Reload (called by deploy script)
+    path('api/live-reload/', views.trigger_live_reload, name='live_reload_trigger'),
+    path('api/ping/', views.api_ping, name='api_ping'),
+    path('api/cameras/', views.api_list_cameras, name='api_list_cameras'),
 ]

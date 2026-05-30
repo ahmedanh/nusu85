@@ -1,83 +1,188 @@
 <!DOCTYPE html>
-<html dir="rtl">
+<html dir="rtl" lang="ar">
 <head>
 <meta charset="UTF-8"/>
 <style>
-  @page { margin: 18mm 15mm 20mm 15mm; }
-  body { font-family: Arial, sans-serif; font-size: 12px; direction: rtl; color: #0B2545; }
+@page {
+  size: A4;
+  margin: 16mm 14mm 22mm 14mm;
+  @bottom-center {
+    content: "SHAMEL — نظام إدارة الحضور الجامعي · صفحة " counter(page) " من " counter(pages);
+    font-size: 8px; color: #9BA8C5;
+  }
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, 'Segoe UI', sans-serif; font-size: 11px; direction: rtl; color: #1A2545; background: #fff; }
 
-  .pdf-header {
-    display: flex; align-items: center;
-    justify-content: space-between;
-    padding-bottom: 12px;
-    border-bottom: 3px solid #C9A227;
-    margin-bottom: 18px;
-  }
-  .logo-area { display: flex; align-items: center; gap: 10px; }
-  .logo-shield {
-    width: 44px; height: 44px; background: #0B2545;
-    border-radius: 8px; display: flex; align-items: center; justify-content: center;
-    color: #C9A227; font-size: 24px; font-weight: 900; flex-shrink: 0;
-  }
-  .logo-text .name  { font-size: 18px; font-weight: 900; color: #0B2545; letter-spacing: 1px; }
-  .logo-text .tagline { font-size: 8px; color: #6B7FA3; letter-spacing: .06em; text-transform: uppercase; }
-  .report-info { text-align: left; }
-  .report-info .title { font-size: 14px; font-weight: 700; color: #0B2545; }
-  .report-info .date  { font-size: 10px; color: #6B7FA3; margin-top: 2px; }
-  .gold-bar {
-    height: 3px;
-    background: linear-gradient(90deg, #0B2545, #C9A227, #E8C040, #C9A227, #0B2545);
-    border-radius: 9999px; margin-bottom: 16px;
-  }
-  table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-  thead th { background: #0B2545; color: #fff; padding: 8px 10px; text-align: right; font-size: 11px; font-weight: 700; }
-  tbody td { padding: 6px 10px; border-bottom: 1px solid #E8ECF4; text-align: right; font-size: 11px; }
-  tbody tr:nth-child(even) { background: #F4F6FB; }
-  .summary-box { margin-top:16px; padding:10px 14px; background:#F4F6FB; border-left:3px solid #C9A227; border-radius:0 8px 8px 0; font-size:11px; color:#3D4A6B; }
-  .pdf-footer { position:fixed; bottom:0; left:0; right:0; font-size:9px; color:#9BA8C5; text-align:center; padding:5px; border-top:1px solid #E8ECF4; background:#fff; }
+.hdr { display:flex; align-items:center; justify-content:space-between; padding-bottom:10px; border-bottom:2.5px solid #C9A227; margin-bottom:14px; }
+.hdr-logo { display:flex; align-items:center; gap:9px; }
+.logo-box { width:42px; height:42px; background:#0B2545; border-radius:8px; display:flex; align-items:center; justify-content:center; }
+.logo-box svg { width:28px; height:28px; fill:#C9A227; }
+.brand-name { font-size:17px; font-weight:900; color:#0B2545; letter-spacing:1.5px; }
+.brand-tag  { font-size:7.5px; color:#6B7FA3; letter-spacing:.07em; text-transform:uppercase; }
+.hdr-title { font-size:13px; font-weight:800; color:#0B2545; text-align:left; }
+.hdr-date  { font-size:9px; color:#6B7FA3; margin-top:2px; text-align:left; }
+
+.gold-stripe { height:2.5px; background:linear-gradient(90deg,#0B2545 0%,#C9A227 40%,#E8C040 60%,#C9A227 80%,#0B2545 100%); border-radius:99px; margin-bottom:14px; }
+
+.cards { display:flex; gap:8px; margin-bottom:16px; }
+.card { flex:1; border-radius:8px; padding:10px 12px; color:#fff; }
+.card-navy  { background:#0B2545; }
+.card-blue  { background:#1D4ED8; }
+.card-green { background:#15803D; }
+.card-teal  { background:#0F766E; }
+.card-label { font-size:8.5px; opacity:.75; text-transform:uppercase; letter-spacing:.06em; }
+.card-value { font-size:22px; font-weight:900; line-height:1.1; margin-top:3px; }
+.card-sub   { font-size:9px; opacity:.7; margin-top:1px; }
+
+.sec-title { font-size:11px; font-weight:800; color:#0B2545; border-right:3px solid #C9A227; padding-right:7px; margin-bottom:10px; margin-top:16px; }
+
+.chart-wrap { background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; padding:12px; margin-bottom:16px; }
+.chart-row  { margin-bottom:7px; }
+.chart-name { font-size:9px; font-weight:700; color:#374151; margin-bottom:2px; }
+.bar-bg   { background:#E2E8F0; border-radius:99px; height:14px; position:relative; overflow:hidden; }
+.bar-fill { height:100%; border-radius:99px; }
+.bar-right { font-size:8px; font-weight:800; color:#fff; position:absolute; right:6px; top:50%; transform:translateY(-50%); }
+.bar-left  { font-size:8px; color:#6B7FA3; position:absolute; left:6px; top:50%; transform:translateY(-50%); }
+
+.legend-row { display:flex; gap:14px; margin-bottom:10px; flex-wrap:wrap; }
+.legend-item { display:flex; align-items:center; gap:5px; font-size:9px; color:#374151; }
+.legend-dot  { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+
+table { width:100%; border-collapse:collapse; margin-top:8px; }
+thead th { background:#0B2545; color:#fff; padding:7px 9px; text-align:right; font-size:10px; font-weight:700; }
+tbody td { padding:5px 9px; border-bottom:1px solid #EEF0F6; font-size:10px; text-align:right; }
+tbody tr:nth-child(even) { background:#F8FAFC; }
 </style>
 </head>
 <body>
 
-<div class="pdf-header">
-  <div class="logo-area">
-    <div class="logo-shield">S</div>
-    <div class="logo-text">
-      <div class="name">SHAMEL</div>
-      <div class="tagline">Secure Academic Management &amp; Entry Logic</div>
+<!-- Header -->
+<div class="hdr">
+  <div class="hdr-logo">
+    <div class="logo-box">
+      <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+    </div>
+    <div>
+      <div class="brand-name">SHAMEL</div>
+      <div class="brand-tag">Secure Academic Management &amp; Entry Logic</div>
     </div>
   </div>
-  <div class="report-info">
-    <div class="title">تقرير حضور الأساتذة</div>
-    <div class="date">تاريخ الإنشاء: {% now "Y-m-d H:i" %}</div>
+  <div>
+    <div class="hdr-title">تقرير حضور الأساتذة</div>
+    <div class="hdr-date">تاريخ الإنشاء: {{ generated_at|date:"Y-m-d H:i" }}</div>
+  </div>
+</div>
+<div class="gold-stripe"></div>
+
+<!-- Summary Cards -->
+<div class="cards">
+  <div class="card card-navy">
+    <div class="card-label">إجمالي الأساتذة</div>
+    <div class="card-value">{{ data|length }}</div>
+    <div class="card-sub">في النظام</div>
+  </div>
+  <div class="card card-blue">
+    <div class="card-label">أعلى رصيد جلسات</div>
+    <div class="card-value">{{ max_sessions }}</div>
+    <div class="card-sub">جلسة مُنجزة</div>
+  </div>
+  <div class="card card-green">
+    <div class="card-label">إجمالي سجلات الحضور</div>
+    <div class="card-value">{{ total_student_records }}</div>
+    <div class="card-sub">سجل طالب</div>
+  </div>
+  <div class="card card-teal">
+    <div class="card-label">نسبة الحضور الكلية</div>
+    <div class="card-value">{{ overall_pct }}%</div>
+    <div class="card-sub">متوسط جميع الأساتذة</div>
   </div>
 </div>
 
-<div class="gold-bar"></div>
+{% if data %}
 
+<!-- Chart 1: Sessions per teacher -->
+<div class="sec-title">عدد الجلسات المُنجزة لكل أستاذ</div>
+<div class="legend-row">
+  <div class="legend-item"><div class="legend-dot" style="background:#1D4ED8"></div> الجلسات المنجزة</div>
+</div>
+<div class="chart-wrap">
+  {% for item in data %}
+  <div class="chart-row">
+    <div class="chart-name">{{ item.teacher.name }}</div>
+    <div class="bar-bg">
+      <div class="bar-fill" style="width:{{ item.sessions_pct }}%;background:#1D4ED8;"></div>
+      <span class="bar-right">{{ item.sessions }}</span>
+      <span class="bar-left">{{ item.teacher.department.name|default:"—" }}</span>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Chart 2: Student attendance rate per teacher -->
+<div class="sec-title">نسبة حضور الطلاب لكل أستاذ</div>
+<div class="legend-row">
+  <div class="legend-item"><div class="legend-dot" style="background:#15803D"></div> ≥ 75% ممتاز</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#B45309"></div> 50–74% متوسط</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#B91C1C"></div> &lt; 50% ضعيف</div>
+</div>
+<div class="chart-wrap">
+  {% for item in data %}
+  {% if item.att_total > 0 %}
+  <div class="chart-row">
+    <div class="chart-name">{{ item.teacher.name }}</div>
+    <div class="bar-bg">
+      <div class="bar-fill" style="width:{{ item.att_pct }}%;
+        background:{% if item.att_pct >= 75 %}#15803D{% elif item.att_pct >= 50 %}#B45309{% else %}#B91C1C{% endif %};"></div>
+      <span class="bar-right">{{ item.att_pct }}%</span>
+      <span class="bar-left">{{ item.present }}/{{ item.att_total }} طالب</span>
+    </div>
+  </div>
+  {% endif %}
+  {% endfor %}
+</div>
+
+<!-- Detailed Table -->
+<div class="sec-title">تفاصيل جميع الأساتذة</div>
 <table>
   <thead>
     <tr>
-      <th>#</th><th>اسم الأستاذ</th><th>التاريخ</th><th>وقت الدخول</th><th>وقت الخروج</th><th>المدة (دقيقة)</th>
+      <th>#</th>
+      <th>اسم الأستاذ</th>
+      <th>القسم</th>
+      <th>الكلية</th>
+      <th>الجلسات</th>
+      <th>حضور الطلاب</th>
+      <th>غياب الطلاب</th>
+      <th>نسبة الحضور</th>
     </tr>
   </thead>
   <tbody>
-    {% for log in logs %}
+    {% for item in data %}
     <tr>
       <td>{{ forloop.counter }}</td>
-      <td>{{ log.teacher.name }}</td>
-      <td>{{ log.check_in_time|date:"Y-m-d" }}</td>
-      <td>{{ log.check_in_time|time:"H:i" }}</td>
-      <td>{% if log.check_out_time %}{{ log.check_out_time|time:"H:i" }}{% else %}—{% endif %}</td>
-      <td>{{ log.duration_minutes }}</td>
+      <td style="font-weight:600;">{{ item.teacher.name }}</td>
+      <td>{{ item.teacher.department.name|default:"—" }}</td>
+      <td>{{ item.teacher.college.college_name|default:"—" }}</td>
+      <td style="text-align:center;font-weight:700;color:#1D4ED8;">{{ item.sessions }}</td>
+      <td style="text-align:center;font-weight:700;color:#15803D;">{{ item.present }}</td>
+      <td style="text-align:center;font-weight:700;color:#B91C1C;">{{ item.absent }}</td>
+      <td style="text-align:center;font-weight:800;
+        color:{% if item.att_pct >= 75 %}#15803D{% elif item.att_pct >= 50 %}#B45309{% else %}#B91C1C{% endif %};">
+        {% if item.att_total > 0 %}{{ item.att_pct }}%{% else %}—{% endif %}
+      </td>
     </tr>
     {% empty %}
-    <tr><td colspan="6" style="text-align:center; padding:20px; color:#9BA8C5;">لا توجد سجلات</td></tr>
+    <tr><td colspan="8" style="text-align:center;padding:18px;color:#9BA8C5;">لا توجد بيانات</td></tr>
     {% endfor %}
   </tbody>
 </table>
 
-<div class="summary-box">إجمالي السجلات: <strong>{{ logs|length }}</strong></div>
-<div class="pdf-footer">SHAMEL — نظام إدارة الحضور الجامعي · سري وللاستخدام الداخلي فقط</div>
+{% else %}
+<div style="text-align:center;padding:40px;color:#9BA8C5;">
+  <p style="font-size:14px;font-weight:700;">لا توجد بيانات لعرضها</p>
+</div>
+{% endif %}
+
 </body>
 </html>

@@ -78,7 +78,7 @@
         <select name="semester" class="inp">
           <option value="">الكل</option>
           {% for s in semesters %}
-          <option value="{{ s }}" {% if filters.semester == s %}selected{% endif %}>الفصل {{ s }}</option>
+          <option value="{{ s.0 }}" {% if filters.semester == s.0 %}selected{% endif %}>{{ s.1 }}</option>
           {% endfor %}
         </select>
       </div>

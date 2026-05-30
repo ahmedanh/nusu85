@@ -1,0 +1,306 @@
+{% extends 'attendance/base.html' %}
+{% block title %}تقويم الجدول الدراسي — SHAMEL{% endblock %}
+{% block content %}
+
+<!-- ── Header ─────────────────────────────────────────────────────────────── -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+  <div>
+    <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">
+      تقويم الجدول الدراسي
+    </h1>
+    <p class="text-xs text-slate-400 mt-1">
+      {% if coordinator %}كلية {{ coordinator.college.college_name }}{% else %}جميع الكليات{% endif %}
+      — اختر الفصل الدراسي ثم انقر على أي يوم لإضافة حصة
+    </p>
+  </div>
+  <a href="{% url 'schedule' %}"
+     class="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-600 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
+    <span class="material-symbols-outlined text-base">arrow_back</span>
+    العودة للجدول
+  </a>
+</div>
+
+<!-- ── Step 1: Semester range picker ──────────────────────────────────────── -->
+<div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-5 mb-6">
+  <h2 class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase mb-3">الخطوة 1 — حدد الفصل الدراسي</h2>
+  <form method="get" action="{% url 'schedule_calendar' %}"
+        class="flex flex-wrap gap-4 items-end">
+    <div class="min-w-[160px]">
+      <label class="block text-xs font-semibold text-slate-500 mb-1">تاريخ بداية الفصل</label>
+      <input type="date" name="sem_start" value="{{ sem_start }}"
+             class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-3 py-2 text-sm outline-none dark:text-white"/>
+    </div>
+    <div class="min-w-[160px]">
+      <label class="block text-xs font-semibold text-slate-500 mb-1">تاريخ نهاية الفصل</label>
+      <input type="date" name="sem_end" value="{{ sem_end }}"
+             class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-3 py-2 text-sm outline-none dark:text-white"/>
+    </div>
+    <div class="min-w-[180px]">
+      <label class="block text-xs font-semibold text-slate-500 mb-1">الفصل الدراسي</label>
+      <select name="semester"
+              class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-3 py-2 text-sm outline-none dark:text-white">
+        <option value="">— اختر الفصل —</option>
+        {% for s in semesters %}
+        <option value="{{ s.0 }}" {% if semester == s.0 %}selected{% endif %}>{{ s.1 }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit"
+            class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0B2545] text-white text-sm font-bold hover:bg-[#0B2545]/90 transition-all shadow-sm">
+      <span class="material-symbols-outlined text-base">search</span>
+      عرض التقويم
+    </button>
+  </form>
+</div>
+
+<!-- ── Step 2: Weekly calendar grid ───────────────────────────────────────── -->
+{% if sem_start or semester %}
+<div class="mb-4">
+  <h2 class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase mb-3">الخطوة 2 — الجدول الأسبوعي</h2>
+
+  {% if messages %}
+  <div class="mb-3">
+    {% for msg in messages %}
+    <div class="px-4 py-2 rounded-xl text-sm font-medium mb-1
+      {% if msg.tags == 'success' %}bg-green-50 text-green-700 border border-green-200
+      {% elif msg.tags == 'error' %}bg-red-50 text-red-700 border border-red-200
+      {% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %}">
+      {{ msg }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Horizontal scroll container for the 7-column grid -->
+  <div class="overflow-x-auto rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm">
+    <div class="grid grid-cols-7 min-w-[900px]">
+
+      {% for day in days_data %}
+      <!-- Day Column -->
+      <div class="flex flex-col border-l border-slate-100 dark:border-slate-700 last:border-l-0">
+        <!-- Day Header -->
+        <div class="flex items-center justify-between px-3 py-3 bg-[#0B2545] {% if forloop.first %}rounded-tr-2xl{% endif %} {% if forloop.last %}rounded-tl-2xl{% endif %}">
+          <span class="text-sm font-bold text-[#C9A227]">{{ day.ar }}</span>
+          <button
+            onclick="openDrawer('{{ day.key }}', '{{ day.ar }}')"
+            class="w-7 h-7 rounded-full bg-[#C9A227] text-[#0B2545] flex items-center justify-center hover:bg-yellow-300 transition-all"
+            title="إضافة حصة ليوم {{ day.ar }}">
+            <span class="material-symbols-outlined text-sm font-black">add</span>
+          </button>
+        </div>
+
+        <!-- Slots for this day -->
+        <div class="flex-1 p-2 bg-white dark:bg-slate-800 min-h-[200px] flex flex-col gap-2">
+          {% for slot in day.slots %}
+          <div class="rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/50 p-2.5 group relative">
+            <p class="text-xs font-bold text-[#0B2545] dark:text-[#C9A227] leading-tight mb-1">
+              {{ slot.course.title|truncatechars:30 }}
+            </p>
+            {% if slot.teacher %}
+            <p class="text-[10px] text-slate-500 dark:text-slate-400">
+              <span class="material-symbols-outlined text-[10px] align-middle">person</span>
+              {{ slot.teacher.name|truncatechars:22 }}
+            </p>
+            {% endif %}
+            {% if slot.classroom %}
+            <p class="text-[10px] text-slate-400 dark:text-slate-500">
+              <span class="material-symbols-outlined text-[10px] align-middle">meeting_room</span>
+              {{ slot.classroom.name }}
+            </p>
+            {% endif %}
+            <p class="text-[10px] text-slate-400 mt-1">
+              {{ slot.start_time|time:"H:i" }} – {{ slot.end_time|time:"H:i" }}
+            </p>
+            <!-- Delete button -->
+            <a href="{% url 'calendar_delete_slot' slot.pk %}?sem_start={{ sem_start }}&sem_end={{ sem_end }}&semester={{ semester }}"
+               onclick="return confirm('هل تريد حذف هذه الحصة؟')"
+               class="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity w-5 h-5 rounded-full bg-red-100 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white"
+               title="حذف">
+              <span class="material-symbols-outlined text-[11px]">close</span>
+            </a>
+          </div>
+          {% empty %}
+          <p class="text-[11px] text-slate-300 dark:text-slate-600 text-center mt-6">لا توجد حصص</p>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- ── Slide-in Drawer (Add Slot Modal) ──────────────────────────────────── -->
+<div id="slot-drawer-overlay"
+     class="fixed inset-0 bg-black/40 z-40 hidden"
+     onclick="closeDrawer()"></div>
+
+<div id="slot-drawer"
+     class="fixed top-0 right-0 h-full w-full max-w-md bg-white dark:bg-slate-800 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col"
+     dir="rtl">
+
+  <!-- Drawer Header -->
+  <div class="flex items-center justify-between px-5 py-4 bg-[#0B2545]">
+    <div>
+      <h3 class="text-base font-bold text-white">إضافة حصة دراسية</h3>
+      <p id="drawer-day-label" class="text-xs text-[#C9A227] mt-0.5"></p>
+    </div>
+    <button onclick="closeDrawer()"
+            class="w-8 h-8 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-all">
+      <span class="material-symbols-outlined text-base">close</span>
+    </button>
+  </div>
+
+  <!-- Drawer Form -->
+  <form id="add-slot-form" method="post" action="{% url 'calendar_add_slot' %}" class="flex-1 overflow-y-auto p-5">
+    {% csrf_token %}
+    <input type="hidden" name="day_of_week" id="drawer-day-input"/>
+    <input type="hidden" name="sem_start" value="{{ sem_start }}"/>
+    <input type="hidden" name="sem_end" value="{{ sem_end }}"/>
+    <input type="hidden" name="semester" value="{{ semester }}"/>
+
+    <div class="space-y-4">
+      <!-- Course -->
+      <div>
+        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">المادة الدراسية *</label>
+        <select name="course_id" required
+                class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-3 py-2.5 text-sm outline-none dark:text-white focus:border-[#0B2545]">
+          <option value="">— اختر المادة —</option>
+          {% for c in courses %}
+          <option value="{{ c.pk }}">{{ c.title }} ({{ c.course_code }})</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Classroom -->
+      <div>
+        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">القاعة</label>
+        <select name="classroom_id"
+                class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-3 py-2.5 text-sm outline-none dark:text-white focus:border-[#0B2545]">
+          <option value="">— بدون قاعة —</option>
+          {% for cr in classrooms %}
+          <option value="{{ cr.pk }}">{{ cr.name }}{% if cr.capacity %} ({{ cr.capacity }}){% endif %}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Time range -->
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase mb-1">وقت البداية *</label>
+          <input type="time" name="start_time" required
+                 class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-3 py-2.5 text-sm outline-none dark:text-white focus:border-[#0B2545]"/>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase mb-1">وقت النهاية *</label>
+          <input type="time" name="end_time" required
+                 class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-3 py-2.5 text-sm outline-none dark:text-white focus:border-[#0B2545]"/>
+        </div>
+      </div>
+
+      <!-- Teachers section — dynamic (multiple) -->
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <label class="text-xs font-bold text-slate-500 uppercase">الأستاذ (يمكن إضافة أكثر من واحد)</label>
+          <button type="button" onclick="addTeacherRow()"
+                  class="text-[11px] text-[#0B2545] dark:text-[#C9A227] font-bold hover:underline flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">add_circle</span>إضافة أستاذ
+          </button>
+        </div>
+        <div id="teachers-container" class="space-y-2">
+          <!-- Initial teacher row -->
+          <div class="teacher-row flex items-center gap-2">
+            <select name="teacher_id[]"
+                    class="flex-1 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-3 py-2 text-sm outline-none dark:text-white">
+              <option value="">— بدون أستاذ —</option>
+              {% for t in teachers %}
+              <option value="{{ t.pk }}">{{ t.name }}</option>
+              {% endfor %}
+            </select>
+            <button type="button" onclick="removeTeacherRow(this)"
+                    class="w-8 h-8 rounded-full text-slate-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center transition-all">
+              <span class="material-symbols-outlined text-base">remove_circle</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /space-y-4 -->
+
+    <!-- Submit -->
+    <div class="mt-6 flex gap-3">
+      <button type="submit"
+              class="flex-1 py-3 rounded-xl bg-[#0B2545] text-white font-bold text-sm hover:bg-[#0B2545]/90 transition-all shadow-sm">
+        <span class="material-symbols-outlined text-base align-middle">save</span>
+        حفظ الحصة
+      </button>
+      <button type="button" onclick="closeDrawer()"
+              class="px-5 py-3 rounded-xl border border-slate-200 dark:border-slate-600 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
+        إلغاء
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- ── Legend ─────────────────────────────────────────────────────────────── -->
+{% if sem_start or semester %}
+<div class="mt-4 flex items-center gap-4 text-xs text-slate-400 dark:text-slate-500">
+  <span class="flex items-center gap-1">
+    <span class="w-3 h-3 rounded-full bg-[#C9A227] inline-block"></span> انقر + لإضافة حصة
+  </span>
+  <span class="flex items-center gap-1">
+    <span class="w-3 h-3 rounded-full bg-red-400 inline-block"></span> مرّر على الحصة لحذفها
+  </span>
+</div>
+{% endif %}
+
+<!-- ── JavaScript ─────────────────────────────────────────────────────────── -->
+<script>
+  // Teachers template for dynamic add
+  const teacherOptions = `{% for t in teachers %}<option value="{{ t.pk }}">{{ t.name|escapejs }}</option>{% endfor %}`;
+
+  function openDrawer(dayKey, dayAr) {
+    document.getElementById('drawer-day-input').value = dayKey;
+    document.getElementById('drawer-day-label').textContent = 'اليوم: ' + dayAr;
+    document.getElementById('slot-drawer').classList.remove('translate-x-full');
+    document.getElementById('slot-drawer-overlay').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeDrawer() {
+    document.getElementById('slot-drawer').classList.add('translate-x-full');
+    document.getElementById('slot-drawer-overlay').classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  function addTeacherRow() {
+    const container = document.getElementById('teachers-container');
+    const row = document.createElement('div');
+    row.className = 'teacher-row flex items-center gap-2';
+    row.innerHTML = `
+      <select name="teacher_id[]"
+              class="flex-1 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-3 py-2 text-sm outline-none dark:text-white">
+        <option value="">— بدون أستاذ —</option>
+        ${teacherOptions}
+      </select>
+      <button type="button" onclick="removeTeacherRow(this)"
+              class="w-8 h-8 rounded-full text-slate-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center transition-all">
+        <span class="material-symbols-outlined text-base">remove_circle</span>
+      </button>`;
+    container.appendChild(row);
+  }
+
+  function removeTeacherRow(btn) {
+    const rows = document.querySelectorAll('.teacher-row');
+    if (rows.length <= 1) return; // keep at least one
+    btn.closest('.teacher-row').remove();
+  }
+
+  // Close drawer on Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeDrawer();
+  });
+</script>
+
+{% endblock %}

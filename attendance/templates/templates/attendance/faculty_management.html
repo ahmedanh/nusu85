@@ -2,40 +2,66 @@
 {% block title %}Faculty Management — SHAMEL{% endblock %}
 {% block content %}
 
-<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
   <div>
     <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">
       <span data-en="Faculty Management" data-ar="إدارة هيئة التدريس">Faculty Management</span>
     </h1>
-    <p class="text-sm text-slate-500 mt-1">
-      <span data-en="Manage academic staff and department access levels." data-ar="إدارة أعضاء هيئة التدريس ومستويات الوصول.">Manage academic staff and department access levels.</span>
-    </p>
+    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">{{ teachers|length }} faculty member(s) found</p>
   </div>
-  <div class="flex items-center gap-3">
-    <select class="bg-white dark:bg-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-600 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-primary/20 outline-none shadow-sm cursor-pointer">
-      <option value=""><span data-en="All Departments" data-ar="جميع الأقسام">All Departments</span></option>
-      {% for dept in departments %}
-      <option value="{{ dept.id }}">{{ dept.name }}</option>
-      {% endfor %}
-    </select>
-    <a href="/admin/attendance/teacher/add/"
-      class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary-container transition-all shadow-sm">
-      <span class="material-symbols-outlined text-lg">person_add</span>
-      <span data-en="Add Faculty" data-ar="إضافة أستاذ">Add Faculty</span>
-    </a>
-  </div>
+  {% if is_admin %}
+  <a href="/admin/attendance/teacher/add/"
+     class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary-dark transition-all shadow-sm">
+    <span class="material-symbols-outlined text-lg">person_add</span>
+    <span data-en="Add Faculty" data-ar="إضافة أستاذ">Add Faculty</span>
+  </a>
+  {% endif %}
 </div>
 
+<!-- Filters -->
+<form method="GET" class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-4 mb-5 flex flex-wrap gap-3 items-end">
+  <div class="flex-1 min-w-[160px]">
+    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Search</label>
+    <input name="q" type="text" value="{{ filters.q }}" placeholder="Name or ID..."
+           class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-3 py-2 text-sm outline-none focus:border-primary transition-all">
+  </div>
+  {% if is_admin %}
+  <div class="min-w-[160px]">
+    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">College</label>
+    <select name="college_id" class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-3 py-2 text-sm outline-none focus:border-primary transition-all">
+      <option value="">All Colleges</option>
+      {% for col in colleges %}<option value="{{ col.id }}" {% if filters.college_id == col.id|stringformat:'s' %}selected{% endif %}>{{ col.college_name }}</option>{% endfor %}
+    </select>
+  </div>
+  {% endif %}
+  <div class="min-w-[160px]">
+    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Department</label>
+    <select name="department_id" class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-3 py-2 text-sm outline-none focus:border-primary transition-all">
+      <option value="">All Departments</option>
+      {% for dept in departments %}<option value="{{ dept.id }}" {% if filters.department_id == dept.id|stringformat:'s' %}selected{% endif %}>{{ dept.name }}</option>{% endfor %}
+    </select>
+  </div>
+  <button type="submit" class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary-dark transition-all">
+    <span class="material-symbols-outlined text-lg">search</span> Filter
+  </button>
+  {% if filters.q or filters.college_id or filters.department_id %}
+  <a href="{% url 'faculty_management' %}" class="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 text-sm font-bold hover:border-red-300 hover:text-red-500 transition-all">
+    <span class="material-symbols-outlined text-lg">close</span> Clear
+  </a>
+  {% endif %}
+</form>
+
+<!-- Table -->
 <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
   <div class="overflow-x-auto">
     <table class="w-full text-sm">
-      <thead class="bg-slate-50 dark:bg-slate-900/40 text-xs text-slate-400 uppercase tracking-wider">
+      <thead class="bg-slate-50 dark:bg-slate-900/40 text-xs text-slate-400 dark:text-slate-500 uppercase tracking-wider">
         <tr>
-          <th class="px-6 py-3 text-left font-semibold"><span data-en="Faculty Name" data-ar="اسم الأستاذ">Faculty Name</span></th>
-          <th class="px-6 py-3 text-left font-semibold"><span data-en="Major" data-ar="التخصص">Major</span></th>
-          <th class="px-6 py-3 text-left font-semibold"><span data-en="Degree" data-ar="الدرجة العلمية">Degree</span></th>
-          <th class="px-6 py-3 text-left font-semibold"><span data-en="Status" data-ar="الحالة">Status</span></th>
-          <th class="px-6 py-3 text-right font-semibold"><span data-en="Actions" data-ar="الإجراءات">Actions</span></th>
+          <th class="px-6 py-3 text-left font-semibold">Faculty Name</th>
+          <th class="px-6 py-3 text-left font-semibold">Department / College</th>
+          <th class="px-6 py-3 text-left font-semibold">Degree</th>
+          <th class="px-6 py-3 text-left font-semibold">Status</th>
+          <th class="px-6 py-3 text-right font-semibold">Actions</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-slate-50 dark:divide-slate-700">
@@ -43,22 +69,25 @@
         <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors">
           <td class="px-6 py-4">
             <div class="flex items-center gap-3">
-              <div class="w-9 h-9 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-sm flex-shrink-0">
+              {% if teacher.face_image %}
+              <img src="{{ teacher.face_image.url }}" class="w-9 h-9 rounded-xl object-cover flex-shrink-0">
+              {% else %}
+              <div class="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-sm flex-shrink-0">
                 {{ teacher.name|first|upper }}
               </div>
+              {% endif %}
               <div>
                 <p class="font-semibold text-slate-800 dark:text-slate-200">{{ teacher.name }}</p>
-                <p class="text-xs text-slate-400">ID: {{ teacher.teacher_id }}</p>
+                <p class="text-xs text-slate-400">{{ teacher.teacher_id }}</p>
               </div>
             </div>
           </td>
           <td class="px-6 py-4">
-            <span class="text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2.5 py-1 rounded-full">
-              {{ teacher.major|default:"General" }}
-            </span>
+            <p class="text-xs font-semibold text-slate-700 dark:text-slate-300">{{ teacher.department.name|default:"—" }}</p>
+            <p class="text-xs text-slate-400">{{ teacher.college.college_name|default:"—" }}</p>
           </td>
           <td class="px-6 py-4">
-            <span class="text-xs font-semibold bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 px-2.5 py-1 rounded-full uppercase">
+            <span class="text-xs font-semibold bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 px-2.5 py-1 rounded-full">
               {{ teacher.academic_degree|default:"—" }}
             </span>
           </td>
@@ -66,31 +95,35 @@
             <span class="flex items-center gap-1.5 text-xs font-semibold
               {% if teacher.is_allowed_entry %}text-emerald-700 dark:text-emerald-400{% else %}text-red-600 dark:text-red-400{% endif %}">
               <span class="w-1.5 h-1.5 rounded-full {% if teacher.is_allowed_entry %}bg-emerald-500{% else %}bg-red-500{% endif %}"></span>
-              {% if teacher.is_allowed_entry %}<span data-en="Active" data-ar="نشط">Active</span>{% else %}<span data-en="Blocked" data-ar="محظور">Blocked</span>{% endif %}
+              {% if teacher.is_allowed_entry %}Active{% else %}Blocked{% endif %}
             </span>
           </td>
           <td class="px-6 py-4 text-right">
             <div class="flex items-center justify-end gap-1">
-              <a href="/attendance/user/teacher/{{ teacher.pk }}/upload-face/" title="Upload Face"
+              <a href="/attendance/user/teacher/{{ teacher.pk }}/upload-face/" title="بصمة الوجه"
                 class="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors">
                 <span class="material-symbols-outlined text-lg">face</span>
               </a>
-              <a href="/admin/attendance/teacher/{{ teacher.pk }}/change/" title="Edit"
-                class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+              <a href="{% url 'teacher_detail' teacher.pk %}" title="View"
+                class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors">
+                <span class="material-symbols-outlined text-lg">visibility</span>
+              </a>
+              <a href="{% url 'edit_teacher' teacher.pk %}" title="Edit"
+                class="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors">
                 <span class="material-symbols-outlined text-lg">edit</span>
               </a>
               <a href="{% url 'toggle_access' 'teacher' teacher.teacher_id %}" title="Toggle Access"
-                class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                <span class="material-symbols-outlined text-lg">block</span>
+                class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+                <span class="material-symbols-outlined text-lg">{% if teacher.is_allowed_entry %}block{% else %}check_circle{% endif %}</span>
               </a>
             </div>
           </td>
         </tr>
         {% empty %}
         <tr>
-          <td colspan="5" class="px-6 py-12 text-center text-slate-400 text-sm">
-            <span class="material-symbols-outlined text-3xl block mb-2 opacity-30">group_off</span>
-            <span data-en="No faculty members found." data-ar="لا يوجد أعضاء هيئة تدريس.">No faculty members found.</span>
+          <td colspan="5" class="px-6 py-16 text-center text-slate-400 text-sm">
+            <span class="material-symbols-outlined text-4xl block mb-2 opacity-30">group_off</span>
+            No faculty members found.
           </td>
         </tr>
         {% endfor %}

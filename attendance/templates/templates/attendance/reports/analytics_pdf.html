@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8"/>
+<style>
+@page {
+  size: A4;
+  margin: 16mm 14mm 22mm 14mm;
+  @bottom-center {
+    content: "SHAMEL — نظام إدارة الحضور الجامعي · صفحة " counter(page) " من " counter(pages);
+    font-size: 8px; color: #9BA8C5;
+  }
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, 'Segoe UI', sans-serif; font-size: 11px; direction: rtl; color: #1A2545; background: #fff; }
+
+.hdr { display:flex; align-items:center; justify-content:space-between; padding-bottom:10px; border-bottom:2.5px solid #C9A227; margin-bottom:14px; }
+.hdr-logo { display:flex; align-items:center; gap:9px; }
+.logo-box { width:42px; height:42px; background:#0B2545; border-radius:8px; display:flex; align-items:center; justify-content:center; }
+.logo-box svg { width:28px; height:28px; fill:#C9A227; }
+.brand-name { font-size:17px; font-weight:900; color:#0B2545; letter-spacing:1.5px; }
+.brand-tag  { font-size:7.5px; color:#6B7FA3; letter-spacing:.07em; text-transform:uppercase; }
+.hdr-title { font-size:13px; font-weight:800; color:#0B2545; text-align:left; }
+.hdr-date  { font-size:9px; color:#6B7FA3; margin-top:2px; text-align:left; }
+
+.gold-stripe { height:2.5px; background:linear-gradient(90deg,#0B2545 0%,#C9A227 40%,#E8C040 60%,#C9A227 80%,#0B2545 100%); border-radius:99px; margin-bottom:14px; }
+
+/* KPI cards */
+.kpi-row { display:flex; gap:8px; margin-bottom:16px; }
+.kpi-card { flex:1; border-radius:8px; padding:10px 12px; }
+.kpi-navy  { background:#0B2545; color:#fff; }
+.kpi-blue  { background:#1D4ED8; color:#fff; }
+.kpi-green { background:#15803D; color:#fff; }
+.kpi-amber { background:#B45309; color:#fff; }
+.kpi-teal  { background:#0F766E; color:#fff; }
+.kpi-label { font-size:8px; opacity:.75; text-transform:uppercase; letter-spacing:.06em; }
+.kpi-value { font-size:20px; font-weight:900; line-height:1.1; margin-top:3px; }
+.kpi-sub   { font-size:8.5px; opacity:.7; margin-top:1px; }
+
+.sec-title { font-size:11px; font-weight:800; color:#0B2545; border-right:3px solid #C9A227; padding-right:7px; margin-bottom:10px; margin-top:16px; }
+
+.chart-wrap { background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; padding:12px; margin-bottom:14px; }
+.chart-row  { margin-bottom:6px; }
+.chart-name { font-size:9px; font-weight:700; color:#374151; margin-bottom:2px; }
+.bar-bg   { background:#E2E8F0; border-radius:99px; height:14px; position:relative; overflow:hidden; }
+.bar-fill { height:100%; border-radius:99px; }
+.bar-right { font-size:8px; font-weight:800; color:#fff; position:absolute; right:6px; top:50%; transform:translateY(-50%); }
+.bar-left  { font-size:8px; color:#6B7FA3; position:absolute; left:6px; top:50%; transform:translateY(-50%); }
+
+/* Two-column layout */
+.two-col { display:flex; gap:10px; margin-bottom:14px; }
+.col-half { flex:1; }
+.col-60 { flex:1.6; }
+.col-40 { flex:1; }
+
+/* Pie */
+.pie-row { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+.pie-legend { font-size:9.5px; }
+.legend-item { display:flex; align-items:center; gap:5px; margin-bottom:5px; }
+.legend-dot  { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+
+/* Table */
+table { width:100%; border-collapse:collapse; margin-top:6px; font-size:10px; }
+thead th { background:#0B2545; color:#fff; padding:6px 8px; text-align:right; font-weight:700; }
+tbody td { padding:5px 8px; border-bottom:1px solid #EEF0F6; text-align:right; }
+tbody tr:nth-child(even) { background:#F8FAFC; }
+
+/* Weekly chart */
+.week-bars { display:flex; align-items:flex-end; gap:6px; height:80px; }
+.week-bar-wrap { flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; height:100%; }
+.week-bar-col { flex:1; display:flex; align-items:flex-end; width:100%; }
+.week-bar { width:100%; border-radius:4px 4px 0 0; min-height:3px; }
+.week-label { font-size:7.5px; color:#6B7FA3; font-weight:700; }
+.week-pct { font-size:7px; color:#374151; font-weight:800; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="hdr">
+  <div class="hdr-logo">
+    <div class="logo-box">
+      <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+    </div>
+    <div>
+      <div class="brand-name">SHAMEL</div>
+      <div class="brand-tag">Secure Academic Management &amp; Entry Logic</div>
+    </div>
+  </div>
+  <div>
+    <div class="hdr-title">تقرير التحليلات الأكاديمية الشامل</div>
+    <div class="hdr-date">تاريخ الإنشاء: {{ generated_at|date:"Y-m-d H:i" }}</div>
+  </div>
+</div>
+<div class="gold-stripe"></div>
+
+<!-- KPI Row 1 -->
+<div class="kpi-row">
+  <div class="kpi-card kpi-navy">
+    <div class="kpi-label">إجمالي الطلاب</div>
+    <div class="kpi-value">{{ total_students }}</div>
+    <div class="kpi-sub">مسجّل في النظام</div>
+  </div>
+  <div class="kpi-card kpi-blue">
+    <div class="kpi-label">الأساتذة</div>
+    <div class="kpi-value">{{ total_teachers }}</div>
+    <div class="kpi-sub">عضو هيئة تدريس</div>
+  </div>
+  <div class="kpi-card kpi-green">
+    <div class="kpi-label">المقررات</div>
+    <div class="kpi-value">{{ total_courses }}</div>
+    <div class="kpi-sub">مقرر دراسي</div>
+  </div>
+  <div class="kpi-card kpi-amber">
+    <div class="kpi-label">إجمالي الجلسات</div>
+    <div class="kpi-value">{{ total_sessions }}</div>
+    <div class="kpi-sub">جلسة مُنجزة</div>
+  </div>
+  <div class="kpi-card kpi-teal">
+    <div class="kpi-label">سجلات الحضور</div>
+    <div class="kpi-value">{{ total_attendance }}</div>
+    <div class="kpi-sub">سجل كلي</div>
+  </div>
+</div>
+
+<!-- Overall attendance pie + Weekly bar -->
+<div class="two-col">
+
+  <!-- Pie chart -->
+  <div class="col-40">
+    <div class="sec-title">توزيع الحضور الكلي</div>
+    <div class="chart-wrap" style="padding:14px;">
+      <div class="pie-row" style="flex-direction:column;align-items:center;gap:10px;">
+        <svg width="90" height="90" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#E2E8F0" stroke-width="4"/>
+          {% if overall_present_pct > 0 %}
+          <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#15803D" stroke-width="4"
+                  stroke-dasharray="{{ overall_present_pct }} {{ overall_absent_pct }}"
+                  stroke-dashoffset="25" stroke-linecap="round"/>
+          {% endif %}
+          <text x="18" y="20" text-anchor="middle" font-size="6.5" font-weight="900" fill="#0B2545">{{ overall_present_pct }}%</text>
+        </svg>
+        <div class="pie-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#15803D"></div> حاضر — {{ present_count }} ({{ overall_present_pct }}%)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#B91C1C"></div> غائب — {{ absent_count }}</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#B45309"></div> متأخر — {{ late_count }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Weekly bar chart -->
+  <div class="col-60">
+    <div class="sec-title">توزيع الحضور الأسبوعي</div>
+    <div class="chart-wrap" style="padding:14px 12px;">
+      <div class="week-bars">
+        {% for day in weekly_chart %}
+        <div class="week-bar-wrap">
+          <div class="week-pct">{{ day.pct }}%</div>
+          <div class="week-bar-col">
+            <div class="week-bar" style="height:{{ day.pct }}%;
+              background:{% if day.pct >= 75 %}#15803D{% elif day.pct >= 50 %}#B45309{% else %}#B91C1C{% endif %};"></div>
+          </div>
+          <div class="week-label">{{ day.label }}</div>
+          <div style="font-size:7px;color:#9BA8C5;">{{ day.count }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Department attendance chart -->
+{% if dept_chart %}
+<div class="sec-title">نسبة الحضور حسب القسم</div>
+<div class="chart-wrap">
+  {% for dept in dept_chart %}
+  <div class="chart-row">
+    <div class="chart-name">{{ dept.name }}</div>
+    <div class="bar-bg">
+      <div class="bar-fill" style="width:{{ dept.pct }}%;
+        background:{% if dept.pct >= 75 %}#15803D{% elif dept.pct >= 50 %}#B45309{% else %}#B91C1C{% endif %};"></div>
+      <span class="bar-right">{{ dept.pct }}%</span>
+      <span class="bar-left">{{ dept.present }}/{{ dept.total }} سجل</span>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Two col: top courses + colleges -->
+<div class="two-col">
+  <!-- Top courses by sessions -->
+  {% if top_courses %}
+  <div class="col-half">
+    <div class="sec-title">أكثر المقررات نشاطاً</div>
+    <div class="chart-wrap">
+      {% for c in top_courses %}
+      <div class="chart-row">
+        <div class="chart-name">{{ c.title|truncatechars:22 }}</div>
+        <div class="bar-bg">
+          <div class="bar-fill" style="width:{{ c.pct }}%;background:#1D4ED8;"></div>
+          <span class="bar-right">{{ c.sessions }}</span>
+          <span class="bar-left">{{ c.dept }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Colleges chart -->
+  {% if college_chart %}
+  <div class="col-half">
+    <div class="sec-title">الحضور حسب الكلية</div>
+    <div class="chart-wrap">
+      {% for col in college_chart %}
+      <div class="chart-row">
+        <div class="chart-name">{{ col.name|truncatechars:20 }}</div>
+        <div class="bar-bg">
+          <div class="bar-fill" style="width:{{ col.pct }}%;
+            background:{% if col.pct >= 75 %}#15803D{% elif col.pct >= 50 %}#B45309{% else %}#B91C1C{% endif %};"></div>
+          <span class="bar-right">{{ col.pct }}%</span>
+          <span class="bar-left">{{ col.students }} طالب</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Top students by attendance -->
+{% if top_students %}
+<div class="sec-title">الطلاب الأعلى حضوراً</div>
+<table>
+  <thead>
+    <tr><th>#</th><th>اسم الطالب</th><th>الرقم</th><th>القسم</th><th>سجلات الحضور</th><th>نسبة الحضور</th></tr>
+  </thead>
+  <tbody>
+    {% for s in top_students %}
+    <tr>
+      <td>{{ forloop.counter }}</td>
+      <td style="font-weight:600;">{{ s.name }}</td>
+      <td>{{ s.code }}</td>
+      <td>{{ s.dept }}</td>
+      <td style="text-align:center;font-weight:700;color:#1D4ED8;">{{ s.present }}</td>
+      <td style="text-align:center;font-weight:800;
+        color:{% if s.pct >= 75 %}#15803D{% elif s.pct >= 50 %}#B45309{% else %}#B91C1C{% endif %};">{{ s.pct }}%</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+</body>
+</html>

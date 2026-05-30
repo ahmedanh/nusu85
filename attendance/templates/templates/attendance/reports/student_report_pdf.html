@@ -1,106 +1,167 @@
 <!DOCTYPE html>
-<html dir="rtl">
+<html dir="rtl" lang="ar">
 <head>
 <meta charset="UTF-8"/>
 <style>
-  @page { margin: 18mm 15mm 20mm 15mm; }
-  body { font-family: Arial, sans-serif; font-size: 12px; direction: rtl; color: #0B2545; }
+@page {
+  size: A4;
+  margin: 16mm 14mm 22mm 14mm;
+  @bottom-center {
+    content: "SHAMEL — نظام إدارة الحضور الجامعي · صفحة " counter(page) " من " counter(pages);
+    font-size: 8px; color: #9BA8C5;
+  }
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, 'Segoe UI', sans-serif; font-size: 11px; direction: rtl; color: #1A2545; background: #fff; }
 
-  /* ── PDF Header with logo ── */
-  .pdf-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-bottom: 12px;
-    border-bottom: 3px solid #C9A227;
-    margin-bottom: 18px;
-  }
-  .pdf-header .logo-area {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .logo-shield {
-    width: 44px; height: 44px;
-    background: #0B2545;
-    border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    color: #C9A227; font-size: 24px; font-weight: 900;
-    letter-spacing: -1px;
-    flex-shrink: 0;
-  }
-  .logo-text { line-height: 1.15; }
-  .logo-text .name { font-size: 18px; font-weight: 900; color: #0B2545; letter-spacing: 1px; }
-  .logo-text .tagline { font-size: 8px; color: #6B7FA3; letter-spacing: .06em; text-transform: uppercase; }
-  .pdf-header .report-info { text-align: left; }
-  .report-info .title { font-size: 14px; font-weight: 700; color: #0B2545; }
-  .report-info .date { font-size: 10px; color: #6B7FA3; margin-top: 2px; }
+/* ── Header ──────────────────────────────────────────────────── */
+.hdr { display: flex; align-items: center; justify-content: space-between; padding-bottom: 10px; border-bottom: 2.5px solid #C9A227; margin-bottom: 14px; }
+.hdr-logo { display: flex; align-items: center; gap: 9px; }
+.logo-box { width:42px; height:42px; background:#0B2545; border-radius:8px; display:flex; align-items:center; justify-content:center; }
+.logo-box svg { width:28px; height:28px; fill:#C9A227; }
+.brand { line-height: 1.2; }
+.brand-name { font-size:17px; font-weight:900; color:#0B2545; letter-spacing:1.5px; }
+.brand-tag  { font-size:7.5px; color:#6B7FA3; letter-spacing:.07em; text-transform:uppercase; }
+.hdr-info { text-align:left; }
+.hdr-title { font-size:13px; font-weight:800; color:#0B2545; }
+.hdr-date  { font-size:9px; color:#6B7FA3; margin-top:2px; }
 
-  /* ── Gold accent bar ── */
-  .gold-bar {
-    height: 3px;
-    background: linear-gradient(90deg, #0B2545, #C9A227, #E8C040, #C9A227, #0B2545);
-    border-radius: 9999px;
-    margin-bottom: 16px;
-  }
+/* ── Gold accent ─────────────────────────────────────────────── */
+.gold-stripe { height:2.5px; background:linear-gradient(90deg,#0B2545 0%,#C9A227 40%,#E8C040 60%,#C9A227 80%,#0B2545 100%); border-radius:99px; margin-bottom:14px; }
 
-  /* ── Table ── */
-  table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-  thead th {
-    background: #0B2545; color: #fff;
-    padding: 8px 10px; text-align: right;
-    font-size: 11px; font-weight: 700;
-  }
-  thead th:first-child { border-radius: 0 6px 0 0; }
-  thead th:last-child  { border-radius: 6px 0 0 0; }
-  tbody td { padding: 6px 10px; border-bottom: 1px solid #E8ECF4; text-align: right; font-size: 11px; }
-  tbody tr:nth-child(even) { background: #F4F6FB; }
-  tbody tr:hover { background: #EEF1F8; }
+/* ── Summary cards ───────────────────────────────────────────── */
+.cards { display:flex; gap:8px; margin-bottom:16px; }
+.card { flex:1; border-radius:8px; padding:10px 12px; color:#fff; }
+.card-navy  { background:#0B2545; }
+.card-green { background:#15803D; }
+.card-red   { background:#B91C1C; }
+.card-amber { background:#B45309; }
+.card-label { font-size:8.5px; opacity:.75; text-transform:uppercase; letter-spacing:.06em; }
+.card-value { font-size:22px; font-weight:900; line-height:1.1; margin-top:3px; }
+.card-sub   { font-size:9px; opacity:.7; margin-top:1px; }
 
-  .badge-present { color: #166534; font-weight: 700; }
-  .badge-absent  { color: #991B1B; font-weight: 700; }
-  .badge-excused { color: #92400E; font-weight: 700; }
+/* ── Section title ───────────────────────────────────────────── */
+.sec-title { font-size:11px; font-weight:800; color:#0B2545; border-right:3px solid #C9A227; padding-right:7px; margin-bottom:10px; margin-top:16px; }
 
-  /* ── Summary box ── */
-  .summary-box {
-    margin-top: 16px;
-    padding: 10px 14px;
-    background: #F4F6FB;
-    border-left: 3px solid #C9A227;
-    border-radius: 0 8px 8px 0;
-    font-size: 11px;
-    color: #3D4A6B;
-  }
+/* ── SVG bar chart ───────────────────────────────────────────── */
+.chart-wrap { background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; padding:12px; margin-bottom:16px; }
+.chart-row  { margin-bottom:6px; }
+.chart-label { font-size:9px; font-weight:700; color:#374151; margin-bottom:2px; }
+.bar-bg   { background:#E2E8F0; border-radius:99px; height:14px; position:relative; overflow:hidden; }
+.bar-fill { height:100%; border-radius:99px; display:flex; align-items:center; padding-right:6px; }
+.bar-pct  { font-size:8px; font-weight:800; color:#fff; position:absolute; right:5px; top:50%; transform:translateY(-50%); }
+.bar-num  { font-size:8px; color:#6B7FA3; position:absolute; left:5px; top:50%; transform:translateY(-50%); }
 
-  /* ── Footer ── */
-  .pdf-footer {
-    position: fixed; bottom: 0; left: 0; right: 0;
-    font-size: 9px; color: #9BA8C5;
-    text-align: center; padding: 5px;
-    border-top: 1px solid #E8ECF4;
-    background: #fff;
-  }
+/* ── Pie SVG ─────────────────────────────────────────────────── */
+.pie-row { display:flex; align-items:center; gap:14px; margin-bottom:16px; }
+.pie-legend { font-size:9.5px; }
+.legend-item { display:flex; align-items:center; gap:5px; margin-bottom:4px; }
+.legend-dot  { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+
+/* ── Table ───────────────────────────────────────────────────── */
+table { width:100%; border-collapse:collapse; margin-top:8px; }
+thead th { background:#0B2545; color:#fff; padding:7px 9px; text-align:right; font-size:10px; font-weight:700; }
+tbody td { padding:5px 9px; border-bottom:1px solid #EEF0F6; font-size:10px; text-align:right; }
+tbody tr:nth-child(even) { background:#F8FAFC; }
+.badge-P { color:#15803D; font-weight:700; }
+.badge-A { color:#B91C1C; font-weight:700; }
+.badge-L { color:#B45309; font-weight:700; }
+.badge-E { color:#7C3AED; font-weight:700; }
 </style>
 </head>
 <body>
 
-<!-- Logo header -->
-<div class="pdf-header">
-  <div class="logo-area">
-    <div class="logo-shield">S</div>
-    <div class="logo-text">
-      <div class="name">SHAMEL</div>
-      <div class="tagline">Secure Academic Management &amp; Entry Logic</div>
+<!-- Header -->
+<div class="hdr">
+  <div class="hdr-logo">
+    <div class="logo-box">
+      <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+    </div>
+    <div class="brand">
+      <div class="brand-name">SHAMEL</div>
+      <div class="brand-tag">Secure Academic Management &amp; Entry Logic</div>
     </div>
   </div>
-  <div class="report-info">
-    <div class="title">تقرير حضور الطلاب</div>
-    <div class="date">تاريخ الإنشاء: {{ generated_at|date:"Y-m-d H:i" }}</div>
+  <div class="hdr-info">
+    <div class="hdr-title">تقرير حضور الطلاب</div>
+    <div class="hdr-date">تاريخ الإنشاء: {{ generated_at|date:"Y-m-d H:i" }}</div>
+  </div>
+</div>
+<div class="gold-stripe"></div>
+
+<!-- Summary Cards -->
+<div class="cards">
+  <div class="card card-navy">
+    <div class="card-label">إجمالي السجلات</div>
+    <div class="card-value">{{ total }}</div>
+    <div class="card-sub">جميع الحالات</div>
+  </div>
+  <div class="card card-green">
+    <div class="card-label">حاضر</div>
+    <div class="card-value">{{ present }}</div>
+    <div class="card-sub">{{ pct_overall }}% نسبة الحضور</div>
+  </div>
+  <div class="card card-red">
+    <div class="card-label">غائب</div>
+    <div class="card-value">{{ absent }}</div>
+    <div class="card-sub">{{ total|add:0 }} من المجموع</div>
+  </div>
+  <div class="card card-amber">
+    <div class="card-label">متأخر</div>
+    <div class="card-value">{{ late }}</div>
+    <div class="card-sub">سجلات التأخر</div>
   </div>
 </div>
 
-<div class="gold-bar"></div>
+<!-- Pie chart (SVG) -->
+{% if total > 0 %}
+{% with p_deg=pct_overall|floatformat:0 %}
+<div class="sec-title">توزيع الحضور</div>
+<div class="pie-row">
+  <!-- SVG pie using stroke-dasharray trick -->
+  <svg width="90" height="90" viewBox="0 0 36 36" style="flex-shrink:0;">
+    <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#E2E8F0" stroke-width="4"/>
+    {% if pct_overall > 0 %}
+    <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#15803D" stroke-width="4"
+            stroke-dasharray="{{ pct_overall }} {{ 100|add:-pct_overall }}"
+            stroke-dashoffset="25" stroke-linecap="round"/>
+    {% endif %}
+    {% with absent_pct=absent|add:0 %}
+    {% endwith %}
+    <text x="18" y="20" text-anchor="middle" font-size="7" font-weight="800" fill="#0B2545">{{ pct_overall }}%</text>
+  </svg>
+  <div class="pie-legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#15803D"></div> حاضر — {{ present }} سجل ({{ pct_overall }}%)</div>
+    {% if total > 0 %}
+    <div class="legend-item"><div class="legend-dot" style="background:#B91C1C"></div> غائب — {{ absent }} سجل</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#B45309"></div> متأخر — {{ late }} سجل</div>
+    {% endif %}
+  </div>
+</div>
+{% endwith %}
+{% endif %}
 
+<!-- Bar chart per course -->
+{% if chart_data %}
+<div class="sec-title">نسبة الحضور لكل مقرر</div>
+<div class="chart-wrap">
+  {% for item in chart_data %}
+  <div class="chart-row">
+    <div class="chart-label">{{ item.title }}</div>
+    <div class="bar-bg">
+      <div class="bar-fill" style="width:{{ item.pct }}%;
+        background:{% if item.pct >= 75 %}#15803D{% elif item.pct >= 50 %}#B45309{% else %}#B91C1C{% endif %};">
+      </div>
+      <span class="bar-pct" style="color:{% if item.pct >= 75 %}#fff{% else %}#fff{% endif %};">{{ item.pct }}%</span>
+      <span class="bar-num">{{ item.total }} جلسة</span>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Detailed table -->
+<div class="sec-title">السجلات التفصيلية</div>
 <table>
   <thead>
     <tr>
@@ -116,22 +177,19 @@
     {% for log in logs %}
     <tr>
       <td>{{ forloop.counter }}</td>
-      <td>{{ log.student.name }}</td>
-      <td>{{ log.schedule.course.title|default:"N/A" }}</td>
+      <td style="font-weight:600;">{{ log.student.name }}</td>
+      <td>{{ log.schedule.course.title|default:"—" }}</td>
       <td>{{ log.timestamp|date:"Y-m-d" }}</td>
       <td>{{ log.timestamp|time:"H:i" }}</td>
-      <td class="{% if log.status == 'Present' %}badge-present{% elif log.status == 'Excused' %}badge-excused{% else %}badge-absent{% endif %}">
-        {% if log.status == 'Present' %}حاضر{% elif log.status == 'Excused' %}معذور{% else %}غائب{% endif %}
+      <td class="{% if log.status == 'Present' %}badge-P{% elif log.status == 'Absent' %}badge-A{% elif log.status == 'Late' %}badge-L{% else %}badge-E{% endif %}">
+        {% if log.status == 'Present' %}● حاضر{% elif log.status == 'Absent' %}✗ غائب{% elif log.status == 'Late' %}◑ متأخر{% else %}○ معذور{% endif %}
       </td>
     </tr>
     {% empty %}
-    <tr><td colspan="6" style="text-align:center; padding:20px; color:#9BA8C5;">لا توجد سجلات</td></tr>
+    <tr><td colspan="6" style="text-align:center;padding:18px;color:#9BA8C5;">لا توجد سجلات للعرض</td></tr>
     {% endfor %}
   </tbody>
 </table>
 
-<div class="summary-box">إجمالي السجلات: <strong>{{ logs|length }}</strong></div>
-
-<div class="pdf-footer">SHAMEL — نظام إدارة الحضور الجامعي · سري وللاستخدام الداخلي فقط</div>
 </body>
 </html>

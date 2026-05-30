@@ -35,14 +35,23 @@
 
       <div class="md:col-span-2">
         <label class="label-xs">المادة الدراسية *</label>
+        <div class="flex gap-2 mb-2">
+          <form method="get" class="flex gap-2 w-full" id="course-search-form">
+            <input type="text" name="course_q" value="{{ request.GET.course_q }}"
+              placeholder="ابحث عن المادة بالاسم أو الكود…"
+              class="inp flex-1" oninput="this.form.submit()">
+            <button type="submit" class="btn-secondary px-3">🔍</button>
+          </form>
+        </div>
         <select name="course_id" required class="inp" onchange="checkConflict()">
-          <option value="">— اختر المادة —</option>
+          <option value="">— اختر المادة (تظهر أول 200 — ابحث لتضييق النتائج) —</option>
           {% for c in courses %}
           <option value="{{ c.id }}">{{ c.course_code }} — {{ c.title }}
             {% if c.college %} ({{ c.college.college_name }}){% endif %}
           </option>
           {% endfor %}
         </select>
+        <p class="text-xs text-slate-400 mt-1">تظهر أول 200 مادة. استخدم البحث للعثور على مادة محددة.</p>
       </div>
 
       <div>
@@ -99,7 +108,7 @@
         <label class="label-xs">الفصل الدراسي</label>
         <select name="semester" class="inp">
           {% for s in semesters %}
-          <option value="{{ s }}">الفصل {{ s }}</option>
+          <option value="{{ s.0 }}">{{ s.1 }}</option>
           {% endfor %}
         </select>
       </div>

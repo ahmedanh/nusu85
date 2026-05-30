@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>غير متصل — SHAMEL</title>
+  <link rel="manifest" href="/static/pwa/manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy:  #1e3a5f;
+      --gold:  #c9a84c;
+      --bg:    #0f172a;
+      --card:  #1e293b;
+      --text:  #e2e8f0;
+      --muted: #94a3b8;
+    }
+    body {
+      font-family: 'Tajawal', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    /* Animated signal icon */
+    .signal {
+      position: relative;
+      width: 80px; height: 80px;
+      margin: 0 auto 2rem;
+    }
+    .signal svg { width: 80px; height: 80px; }
+    .signal-ring {
+      animation: pulse-ring 2s ease-out infinite;
+      transform-origin: center;
+    }
+    .signal-ring:nth-child(2) { animation-delay: .4s; }
+    .signal-ring:nth-child(3) { animation-delay: .8s; }
+    @keyframes pulse-ring {
+      0%   { opacity: .8; transform: scale(.85); }
+      100% { opacity: 0;  transform: scale(1.4); }
+    }
+
+    .badge {
+      display: inline-block;
+      background: var(--gold);
+      color: #0f172a;
+      font-weight: 900;
+      font-size: .7rem;
+      letter-spacing: .08em;
+      padding: .25rem .75rem;
+      border-radius: 99px;
+      margin-bottom: 1rem;
+    }
+    h1 { font-size: 2rem; font-weight: 900; color: white; margin-bottom: .5rem; }
+    p  { color: var(--muted); line-height: 1.7; max-width: 360px; margin: 0 auto 2rem; }
+
+    .card {
+      background: var(--card);
+      border: 1px solid #334155;
+      border-radius: 1rem;
+      padding: 1.5rem;
+      max-width: 480px;
+      width: 100%;
+      margin: 0 auto 1.5rem;
+    }
+    .card h2 { font-size: 1rem; font-weight: 700; color: var(--gold); margin-bottom: 1rem; }
+
+    .offline-links {
+      display: grid;
+      gap: .5rem;
+    }
+    .offline-link {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: .75rem;
+      padding: .75rem 1rem;
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: .9rem;
+      transition: border-color .2s;
+    }
+    .offline-link:hover { border-color: var(--gold); }
+    .offline-link .icon {
+      width: 32px; height: 32px;
+      border-radius: .5rem;
+      background: var(--navy);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+    }
+
+    /* Sync queue indicator */
+    #sync-status {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: .75rem;
+      padding: .75rem 1rem;
+      font-size: .85rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      margin-bottom: 1rem;
+    }
+    #sync-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #ef4444;
+      flex-shrink: 0;
+    }
+    #sync-dot.online  { background: #22c55e; }
+    #sync-dot.syncing { background: #f59e0b; animation: blink .8s infinite; }
+    @keyframes blink { 50% { opacity: .3; } }
+
+    .btn-retry {
+      background: var(--gold);
+      color: #0f172a;
+      font-weight: 900;
+      border: none;
+      border-radius: .75rem;
+      padding: .75rem 2rem;
+      cursor: pointer;
+      font-family: 'Tajawal', sans-serif;
+      font-size: 1rem;
+      transition: opacity .2s;
+    }
+    .btn-retry:hover { opacity: .85; }
+
+    /* Queue badge */
+    #queue-count {
+      display: none;
+      background: #ef4444;
+      color: white;
+      border-radius: 99px;
+      font-size: .7rem;
+      font-weight: 700;
+      padding: .1rem .4rem;
+      margin-right: .25rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Animated offline icon -->
+  <div class="signal">
+    <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle class="signal-ring" cx="40" cy="40" r="30" stroke="#c9a84c" stroke-width="2" fill="none" opacity=".8"/>
+      <circle class="signal-ring" cx="40" cy="40" r="22" stroke="#c9a84c" stroke-width="2" fill="none" opacity=".6"/>
+      <circle class="signal-ring" cx="40" cy="40" r="14" stroke="#c9a84c" stroke-width="2" fill="none" opacity=".4"/>
+      <circle cx="40" cy="40" r="6" fill="#c9a84c"/>
+    </svg>
+  </div>
+
+  <span class="badge">OFFLINE MODE</span>
+  <h1>وضع عدم الاتصال</h1>
+  <p>لا يوجد اتصال بالإنترنت حالياً. يمكنك الاطلاع على الصفحات المحفوظة أو إجراء عمليات ستُزامن تلقائياً عند عودة الشبكة.</p>
+
+  <!-- Sync status -->
+  <div id="sync-status" style="max-width:480px;width:100%;">
+    <span id="sync-dot"></span>
+    <span id="sync-text">يتحقق من الاتصال…</span>
+    <span id="queue-count"></span>
+  </div>
+
+  <!-- Cached pages -->
+  <div class="card">
+    <h2>📂 الصفحات المتاحة بدون إنترنت</h2>
+    <div class="offline-links">
+      <a href="/" class="offline-link">
+        <span class="icon">🏠</span> الصفحة الرئيسية
+      </a>
+      <a href="/student/dashboard/" class="offline-link">
+        <span class="icon">🎓</span> لوحة تحكم الطالب
+      </a>
+      <a href="/professor-dashboard/" class="offline-link">
+        <span class="icon">👨‍🏫</span> لوحة تحكم الأستاذ
+      </a>
+      <a href="/coordinator/dashboard/" class="offline-link">
+        <span class="icon">🗂️</span> لوحة تحكم المنسق
+      </a>
+      <a href="/reports/" class="offline-link">
+        <span class="icon">📊</span> التقارير
+      </a>
+      <a href="/schedule/" class="offline-link">
+        <span class="icon">📅</span> الجدول الدراسي
+      </a>
+    </div>
+  </div>
+
+  <button class="btn-retry" onclick="retryConnection()">
+    🔄 إعادة المحاولة
+  </button>
+
+<script>
+(function () {
+  const dot  = document.getElementById('sync-dot');
+  const text = document.getElementById('sync-text');
+  const qbadge = document.getElementById('queue-count');
+
+  function updateStatus() {
+    if (navigator.onLine) {
+      dot.className  = 'online';
+      text.textContent = 'متصل — جارٍ المزامنة…';
+      dot.className  = 'syncing';
+      /* Tell SW to flush queue */
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({ type: 'SYNC_NOW' });
+      }
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1500);
+    } else {
+      dot.className  = '';
+      text.textContent = 'غير متصل — البيانات ستُزامن عند عودة الشبكة';
+    }
+  }
+
+  /* Queue size from IndexedDB */
+  function loadQueueCount() {
+    const req = indexedDB.open('shamel-sync-db', 1);
+    req.onsuccess = e => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('shamel-sync-queue')) return;
+      const tx    = db.transaction('shamel-sync-queue', 'readonly');
+      const store = tx.objectStore('shamel-sync-queue');
+      const count = store.count();
+      count.onsuccess = () => {
+        const n = count.result;
+        if (n > 0) {
+          qbadge.style.display = 'inline';
+          qbadge.textContent   = `${n} عملية معلقة`;
+        }
+      };
+    };
+  }
+
+  window.addEventListener('online',  updateStatus);
+  window.addEventListener('offline', updateStatus);
+  updateStatus();
+  loadQueueCount();
+
+  window.retryConnection = function () {
+    fetch('/', { cache: 'no-store', signal: AbortSignal.timeout(3000) })
+      .then(() => { window.location.href = '/'; })
+      .catch(() => {
+        text.textContent = 'لا يزال غير متصل. حاول مرة أخرى لاحقاً.';
+      });
+  };
+})();
+</script>
+</body>
+</html>

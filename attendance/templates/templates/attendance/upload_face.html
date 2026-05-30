@@ -1,0 +1,59 @@
+{% extends 'attendance/base.html' %}
+{% block title %}تسجيل بصمة الوجه — SHAMEL{% endblock %}
+{% block content %}
+<div class="max-w-lg mx-auto space-y-6">
+
+  <div class="flex items-center gap-3">
+    <a href="javascript:history.back()" class="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-slate-500 hover:text-slate-800 transition-all shadow-sm">
+      <span class="material-symbols-outlined text-lg">arrow_back</span>
+    </a>
+    <div>
+      <h1 class="text-xl font-extrabold text-slate-900 dark:text-white">تسجيل بصمة الوجه</h1>
+      <p class="text-sm text-slate-500">{{ person.name|default:"المستخدم" }} — {{ user_type }}</p>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-6">
+    <div class="flex flex-col items-center gap-4 mb-6">
+      <div class="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center">
+        <span class="material-symbols-outlined text-primary text-4xl">face_recognition</span>
+      </div>
+      <p class="text-sm text-slate-500 text-center">ارفع صورة واضحة للوجه لتسجيل البصمة البيومترية. يجب أن يكون الوجه واضحاً ومضاءً جيداً.</p>
+    </div>
+
+    {% if messages %}
+    {% for msg in messages %}
+    <div class="mb-4 px-4 py-3 rounded-xl text-sm font-medium {% if msg.tags == 'success' %}bg-emerald-50 text-emerald-700 border border-emerald-200{% else %}bg-red-50 text-red-700 border border-red-200{% endif %}">
+      {{ msg }}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data" class="space-y-4">
+      {% csrf_token %}
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">اختر صورة الوجه</label>
+        <input type="file" name="face_image" accept="image/*" required
+               class="block w-full text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
+      </div>
+
+      {% if person and person.face_image %}
+      <div class="flex items-center gap-3 p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-800">
+        <span class="material-symbols-outlined text-emerald-600 text-xl">check_circle</span>
+        <div>
+          <p class="text-xs font-bold text-emerald-700 dark:text-emerald-400">بصمة مسجّلة مسبقاً</p>
+          <p class="text-xs text-emerald-600 dark:text-emerald-500">رفع صورة جديدة سيحل محل البصمة الحالية</p>
+        </div>
+        <img src="{{ person.face_image.url }}" class="w-10 h-10 rounded-lg object-cover ml-auto">
+      </div>
+      {% endif %}
+
+      <button type="submit" class="w-full flex items-center justify-center gap-2 bg-primary text-white font-bold py-3 rounded-xl hover:bg-primary-dark transition-all shadow-sm">
+        <span class="material-symbols-outlined text-xl">upload</span>
+        رفع وتسجيل البصمة
+      </button>
+    </form>
+  </div>
+
+</div>
+{% endblock %}
