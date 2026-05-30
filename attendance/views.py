@@ -188,11 +188,27 @@ def load_known_faces():
                 pass
 
 
+def _find_best_camera(preferred_index=0):
+    """Return the best available camera index.
+    If preferred_index fails, try external cameras (1,2) then fallback to 0."""
+    if not CV2_AVAILABLE:
+        return preferred_index
+    for idx in [preferred_index, 1, 2, 0]:
+        cap = cv2.VideoCapture(idx, cv2.CAP_DSHOW)
+        if cap.isOpened():
+            ret, _ = cap.read()
+            cap.release()
+            if ret:
+                return idx
+    return preferred_index
+
+
 def gen_frames(camera_index=0):
     """Yield MJPEG frames from camera with optional face detection overlay."""
     if not CV2_AVAILABLE:
         return
-    cap = cv2.VideoCapture(camera_index)
+    actual_index = _find_best_camera(camera_index)
+    cap = cv2.VideoCapture(actual_index, cv2.CAP_DSHOW)
     try:
         while True:
             success, frame = cap.read()
@@ -871,11 +887,21 @@ def delete_course(request, course_id):
 
 @login_required
 def classrooms_list(request):
-    classrooms = Classroom.objects.select_related('college').all().order_by('name')
+    from django.core.cache import cache
+    from django.db import close_old_connections
+    close_old_connections()
+    classrooms = cache.get('classrooms_list_qs')
+    colleges   = cache.get('colleges_list_qs')
+    if classrooms is None:
+        classrooms = list(Classroom.objects.select_related('college').all().order_by('name'))
+        cache.set('classrooms_list_qs', classrooms, 60)  # cache 60s
+    if colleges is None:
+        colleges = list(College.objects.order_by('college_name'))
+        cache.set('colleges_list_qs', colleges, 120)
     return render(request, 'attendance/classrooms_list.html', {
         'classrooms': classrooms,
         'types': Classroom.CLASSROOM_TYPES,
-        'colleges': College.objects.order_by('college_name'),
+        'colleges': colleges,
         'is_admin': request.user.is_staff or request.user.is_superuser,
     })
 
@@ -3030,7 +3056,11 @@ def face_login(request):
                     matched_type = 'student'
 
             if not matched_name:
-                return JsonResponse({'status': 'error', 'message': 'Face not recognized'})
+                return JsonResponse({
+                    'status': 'error',
+                    'code': 'face_not_registered',
+                    'message': 'الوجه غير مسجل في النظام — يرجى التسجيل أولاً أو استخدام كلمة المرور'
+                })
 
             auth_user = None
             if matched_type == 'student':
@@ -3605,3 +3635,34 @@ def trigger_live_reload(request):
         }
     )
     return JsonResponse({'ok': True, 'version': version, 'message': 'Reload signal sent'})
+
+
+def api_ping(request):
+    """Lightweight connectivity check — no auth required.
+    The PWA uses this instead of navigator.onLine so that devices on a
+    local/emulator network (with server reachable but no internet) are
+    correctly treated as online.
+    """
+    from django.http import JsonResponse
+    return JsonResponse({'ok': True, 'status': 'online'})
+
+
+def api_list_cameras(request):
+    """Return list of available camera indices on the server.
+    Used by the scan page to let users select an external USB camera."""
+    if not CV2_AVAILABLE:
+        return JsonResponse({'cameras': [{'index': 0, 'label': 'Default Camera'}]})
+    cameras = []
+    for i in range(5):  # check indices 0-4
+        try:
+            cap = cv2.VideoCapture(i, cv2.CAP_DSHOW)
+            if cap.isOpened():
+                ret, _ = cap.read()
+                cap.release()
+                if ret:
+                    cameras.append({'index': i, 'label': f'Camera {i}' if i > 0 else 'Built-in Camera (0)'})
+        except Exception:
+            pass
+    if not cameras:
+        cameras = [{'index': 0, 'label': 'Default Camera'}]
+    return JsonResponse({'cameras': cameras})

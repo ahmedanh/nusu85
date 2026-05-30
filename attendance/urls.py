@@ -153,4 +153,6 @@ urlpatterns = [
 
     # Live Reload (called by deploy script)
     path('api/live-reload/', views.trigger_live_reload, name='live_reload_trigger'),
+    path('api/ping/', views.api_ping, name='api_ping'),
+    path('api/cameras/', views.api_list_cameras, name='api_list_cameras'),
 ]

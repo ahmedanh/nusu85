@@ -6,7 +6,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY    = config('SECRET_KEY')
 DEPLOY_SECRET = config('DEPLOY_SECRET', default='')   # set on VPS for live-reload push
 DEBUG = config('DEBUG', default=True, cast=bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,84.46.251.93,shamel.sd,www.shamel.sd').split(',')
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,84.46.251.93,shamel.sd,www.shamel.sd,10.0.2.2').split(',')
 
 # CSRF trusted origins — cover all ports used locally + production domain
 CSRF_TRUSTED_ORIGINS = [
@@ -17,6 +17,8 @@ CSRF_TRUSTED_ORIGINS = [
     'https://shamel.sd',
     'https://www.shamel.sd',
     'http://84.46.251.93',
+    'http://10.0.2.2:8000',
+    'http://10.0.2.2:9000',
 ]
 
 # ─────────────────────────────────────────────
@@ -38,6 +40,7 @@ INSTALLED_APPS = [
 # MIDDLEWARE
 # ─────────────────────────────────────────────
 MIDDLEWARE = [
+    'attendance.middleware.CloseOldConnectionsMiddleware',  # must be first — fixes stale VPS connections
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -107,13 +110,15 @@ else:
             'PASSWORD': config('DATABASE_PASSWORD'),
             'HOST': config('DATABASE_HOST', default='localhost'),
             'PORT': config('DATABASE_PORT', default='5432'),
-            'CONN_MAX_AGE': None,
+            'CONN_MAX_AGE': 30,   # reconnect every 30s max — prevents stale VPS connections
+            'CONN_HEALTH_CHECKS': True,  # Django 4.1+ — validate connection before reuse
             'OPTIONS': {
                 'connect_timeout': 10,
                 'keepalives': 1,
                 'keepalives_idle': 30,
                 'keepalives_interval': 5,
                 'keepalives_count': 5,
+                'application_name': 'shamel_local',
             },
         }
     }
