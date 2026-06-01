@@ -8,8 +8,38 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 ///  - Android emulator reaches the host machine at 10.0.2.2
 ///  - A physical phone would use the LAN IP / public domain (shamel.sd)
 class Api {
-  // 10.0.2.2 = host loopback from the Android emulator. Daphne runs on :9000.
+  // 10.0.2.2 = host loopback from the Android emulator.
+  // Both Daphne (:9000) and the Django dev server (:8000) serve /api/v1.
+  // The app auto-discovers whichever is reachable so testing never breaks
+  // just because one server is down.
   static String baseUrl = 'http://10.0.2.2:9000';
+
+  /// Candidate hosts tried in order during discovery.
+  static const List<String> _candidates = [
+    'http://10.0.2.2:9000', // emulator → host Daphne
+    'http://10.0.2.2:8000', // emulator → host Django dev server
+    'http://127.0.0.1:9000', // desktop / same host
+    'http://127.0.0.1:8000',
+  ];
+
+  /// Probe candidate hosts and lock onto the first reachable one.
+  /// Returns true if a server was found.
+  static Future<bool> discover() async {
+    for (final base in _candidates) {
+      try {
+        final r = await http
+            .get(Uri.parse('$base/api/v1/health'))
+            .timeout(const Duration(seconds: 3));
+        if (r.statusCode == 200) {
+          baseUrl = base;
+          return true;
+        }
+      } catch (_) {
+        // try next candidate
+      }
+    }
+    return false;
+  }
 
   static const _storage = FlutterSecureStorage();
   static String? _token;

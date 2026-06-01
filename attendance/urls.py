@@ -35,6 +35,12 @@ urlpatterns = [
     path('api/v1/settings',            apix.app_settings,          name='api_settings'),
     path('api/v1/coordinator/students', apix.coordinator_students, name='api_coord_students'),
     path('api/v1/gate/toggle-access',  apix.toggle_access,         name='api_toggle_access'),
+    path('api/v1/dean-evaluations',    apix.dean_evaluations,      name='api_dean_evals'),
+    path('api/v1/grades',              apix.grades,                name='api_grades'),
+    path('api/v1/excuses',             apix.excuses,               name='api_excuses'),
+    path('api/v1/tickets/<int:tid>',   apix.ticket_detail,         name='api_ticket_detail'),
+    path('api/v1/teacher/timeline',    apix.teacher_timeline,      name='api_teacher_timeline'),
+    path('api/v1/gate-reports',        apix.gate_reports,          name='api_gate_reports'),
 
     # Home redirect / unified login
     path('', views.login_view, name='home'),

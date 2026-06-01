@@ -9,8 +9,11 @@ class AuthState extends ChangeNotifier {
   String get role => (user?['role'] ?? 'student') as String;
   String get name => (user?['name'] ?? 'مستخدم') as String;
 
-  /// Called at startup: restore token, fetch profile.
+  bool serverReachable = true;
+
+  /// Called at startup: discover a reachable server, restore token, fetch profile.
   Future<void> bootstrap() async {
+    serverReachable = await Api.discover();
     await Api.loadToken();
     if (Api.isLoggedIn) {
       try {
@@ -29,6 +32,10 @@ class AuthState extends ChangeNotifier {
   }
 
   Future<String?> login(String username, String password) async {
+    // Re-discover if the previous probe failed (server may have come up).
+    if (!serverReachable) {
+      serverReachable = await Api.discover();
+    }
     try {
       final r = await Api.login(username, password);
       if (r['ok'] == true) {
@@ -38,7 +45,20 @@ class AuthState extends ChangeNotifier {
       }
       return (r['message'] ?? 'فشل تسجيل الدخول') as String;
     } catch (e) {
-      return 'تعذّر الاتصال بالخادم — تحقق من الشبكة';
+      // Try one more discovery pass before giving up.
+      if (await Api.discover()) {
+        try {
+          final r = await Api.login(username, password);
+          if (r['ok'] == true) {
+            user = r['user'] as Map<String, dynamic>;
+            notifyListeners();
+            return null;
+          }
+          return (r['message'] ?? 'فشل تسجيل الدخول') as String;
+        } catch (_) {}
+      }
+      return 'تعذّر الوصول للخادم — تأكد أن خادم SHAMEL يعمل على الكمبيوتر '
+          '(المنفذ 9000 أو 8000)';
     }
   }
 

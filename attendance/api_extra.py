@@ -366,3 +366,126 @@ def toggle_access(request):
     t.is_allowed_entry = not t.is_allowed_entry
     t.save(update_fields=['is_allowed_entry'])
     return JsonResponse({'ok': True, 'allowed_entry': t.is_allowed_entry})
+
+
+# ── Dean evaluation ────────────────────────────────────────────────────────
+@api_staff
+@require_http_methods(['GET'])
+def dean_evaluations(request):
+    from django.db import OperationalError, ProgrammingError
+    from django.db.models import Avg
+    from .models import CourseEvaluation
+    try:
+        qs = CourseEvaluation.objects.select_related('student', 'course').order_by('-submitted_at')
+        avg = qs.aggregate(a=Avg('rating'))['a'] or 0
+        rows, total, _ = _page(qs, request)
+        data = [{'id': e.id, 'course': getattr(e.course, 'title', None),
+                 'student': getattr(e.student, 'name', None),
+                 'rating': e.rating, 'comment': e.comment,
+                 'semester': e.semester} for e in rows]
+        return JsonResponse({'ok': True, 'total': total, 'count': len(data),
+                             'avg_rating': round(avg, 2), 'evaluations': data})
+    except (OperationalError, ProgrammingError):
+        return JsonResponse({'ok': True, 'total': 0, 'count': 0, 'avg_rating': 0,
+                             'evaluations': [], 'unavailable': True})
+
+
+# ── Grades (coordinator) ───────────────────────────────────────────────────
+@api_auth
+@require_http_methods(['GET'])
+def grades(request):
+    from django.db import OperationalError, ProgrammingError
+    from .models import Grade
+    try:
+        qs = Grade.objects.select_related('student', 'course').order_by('-updated_at')
+        role = _role_of(request.api_user)
+        if role == 'student':
+            s = Student.objects.filter(auth_user=request.api_user).first()
+            qs = qs.filter(student=s) if s else qs.none()
+        rows, total, _ = _page(qs, request)
+        data = [{'id': g.id, 'student': getattr(g.student, 'name', None),
+                 'course': getattr(g.course, 'title', None),
+                 'score': g.score, 'grade': g.grade, 'semester': g.semester} for g in rows]
+        return JsonResponse({'ok': True, 'total': total, 'count': len(data), 'grades': data})
+    except (OperationalError, ProgrammingError):
+        return JsonResponse({'ok': True, 'total': 0, 'count': 0, 'grades': [], 'unavailable': True})
+
+
+# ── Medical excuses ────────────────────────────────────────────────────────
+@api_auth
+@require_http_methods(['GET'])
+def excuses(request):
+    from django.db import OperationalError, ProgrammingError
+    from .models import MedicalExcuse
+    try:
+        qs = MedicalExcuse.objects.select_related('student').order_by('-submitted_at')
+        role = _role_of(request.api_user)
+        if role == 'student':
+            s = Student.objects.filter(auth_user=request.api_user).first()
+            qs = qs.filter(student=s) if s else qs.none()
+        rows, total, _ = _page(qs, request)
+        data = [{'id': e.id, 'student': getattr(e.student, 'name', None),
+                 'reason': e.reason, 'status': e.status,
+                 'note': e.review_note,
+                 'submitted': e.submitted_at.isoformat() if e.submitted_at else None} for e in rows]
+        return JsonResponse({'ok': True, 'total': total, 'count': len(data), 'excuses': data})
+    except (OperationalError, ProgrammingError):
+        return JsonResponse({'ok': True, 'total': 0, 'count': 0, 'excuses': [], 'unavailable': True})
+
+
+# ── Ticket detail ──────────────────────────────────────────────────────────
+@api_auth
+@require_http_methods(['GET'])
+def ticket_detail(request, tid):
+    t = SupportTicket.objects.select_related('user').filter(id=tid).first()
+    if not t:
+        return JsonResponse({'ok': False, 'message': 'غير موجود'}, status=404)
+    # students may only see their own tickets
+    if not _is_staff(request.api_user) and t.user_id != request.api_user.id:
+        return JsonResponse({'ok': False, 'message': 'غير مصرح'}, status=403)
+    return JsonResponse({'ok': True, 'ticket': {
+        'id': t.id, 'subject': t.subject, 'body': t.body, 'status': t.status,
+        'priority': t.priority, 'user': t.user.username if t.user else None,
+        'reply': t.admin_reply or '',
+        'created': t.created_at.isoformat() if t.created_at else None,
+    }})
+
+
+# ── Teacher timeline (sessions) ────────────────────────────────────────────
+@api_auth
+@require_http_methods(['GET'])
+def teacher_timeline(request):
+    role = _role_of(request.api_user)
+    qs = LectureSession.objects.select_related('schedule__course', 'schedule__teacher').order_by('-actual_start_time')
+    if role == 'teacher':
+        t = Teacher.objects.filter(auth_user=request.api_user).first()
+        qs = qs.filter(schedule__teacher=t) if t else qs.none()
+    rows, total, _ = _page(qs, request)
+    data = [{'id': s.id,
+             'course': getattr(getattr(s.schedule, 'course', None), 'title', None),
+             'teacher': getattr(getattr(s.schedule, 'teacher', None), 'name', None),
+             'active': s.is_active,
+             'start': s.actual_start_time.isoformat() if s.actual_start_time else None,
+             'end': s.actual_end_time.isoformat() if getattr(s, 'actual_end_time', None) else None} for s in rows]
+    return JsonResponse({'ok': True, 'total': total, 'count': len(data), 'sessions': data})
+
+
+# ── Gate reports (entry log summary) ───────────────────────────────────────
+@api_auth
+@require_http_methods(['GET'])
+def gate_reports(request):
+    from django.db import OperationalError, ProgrammingError
+    from .models import GateLog
+    try:
+        qs = GateLog.objects.order_by('-timestamp')
+        total = qs.count()
+        granted = qs.filter(status__icontains='grant').count()
+        denied = qs.filter(status__icontains='den').count()
+        rows, _, _ = _page(qs, request, size=30)
+        data = [{'id': g.id, 'person': g.person_name, 'status': g.status,
+                 'timestamp': g.timestamp.isoformat() if g.timestamp else None} for g in rows]
+        return JsonResponse({'ok': True, 'total': total, 'granted': granted,
+                             'denied': denied, 'count': len(data), 'logs': data})
+    except (OperationalError, ProgrammingError):
+        return JsonResponse({'ok': True, 'total': 0, 'granted': 0, 'denied': 0,
+                             'count': 0, 'logs': [], 'unavailable': True})

@@ -115,6 +115,46 @@ Section _tickets() => Section('البلاغات والدعم', Icons.support_age
       fab: const _AddFab(CreateTicketScreen()),
     ));
 
+Section _deanEval() => Section('تقييمات العميد', Icons.star_outline, () => ResourceListScreen(
+      title: 'تقييمات المقررات', endpoint: '/api/v1/dean-evaluations', listKey: 'evaluations',
+      icon: Icons.star_outline, accent: ShamelColors.warning,
+      titleOf: (m) => _s(m, 'course'),
+      subtitleOf: (m) => '${_s(m, 'student')} • ${_s(m, 'comment')}',
+      trailingOf: (m) => '⭐ ${_s(m, 'rating')}',
+    ));
+
+Section _grades() => Section('الدرجات', Icons.grade_outlined, () => ResourceListScreen(
+      title: 'الدرجات', endpoint: '/api/v1/grades', listKey: 'grades',
+      icon: Icons.grade_outlined, accent: ShamelColors.gold,
+      titleOf: (m) => _s(m, 'student'),
+      subtitleOf: (m) => _s(m, 'course'),
+      trailingOf: (m) => '${_s(m, 'grade')} (${_s(m, 'score')})',
+    ));
+
+Section _excuses() => Section('الأعذار الطبية', Icons.medical_services_outlined, () => ResourceListScreen(
+      title: 'الأعذار الطبية', endpoint: '/api/v1/excuses', listKey: 'excuses',
+      icon: Icons.medical_services_outlined, accent: ShamelColors.error,
+      titleOf: (m) => _s(m, 'student'),
+      subtitleOf: (m) => _s(m, 'reason'),
+      trailingOf: (m) => _s(m, 'status'),
+    ));
+
+Section _teacherTimeline() => Section('الجدول الزمني', Icons.timeline_outlined, () => ResourceListScreen(
+      title: 'الجدول الزمني', endpoint: '/api/v1/teacher/timeline', listKey: 'sessions',
+      icon: Icons.timeline_outlined, accent: ShamelColors.roleTeacher,
+      titleOf: (m) => _s(m, 'course'),
+      subtitleOf: (m) => _s(m, 'teacher'),
+      trailingOf: (m) => m['active'] == true ? '● نشطة' : 'منتهية',
+    ));
+
+Section _gateReports() => Section('تقارير البوابة', Icons.assessment_outlined, () => ResourceListScreen(
+      title: 'تقارير البوابة', endpoint: '/api/v1/gate-reports', listKey: 'logs',
+      icon: Icons.assessment_outlined, accent: ShamelColors.roleGate,
+      titleOf: (m) => _s(m, 'person'),
+      subtitleOf: (m) => _s(m, 'timestamp'),
+      trailingOf: (m) => _s(m, 'status'),
+    ));
+
 Section _search() => Section('البحث الشامل', Icons.search, () => const SearchScreen());
 Section _settings() => Section('الإعدادات', Icons.settings_outlined, () => const SettingsScreen());
 
@@ -124,28 +164,30 @@ List<SectionGroup> sectionsFor(String role) {
     case 'admin':
       return [
         SectionGroup('الإدارة', [_teachers(), _students(), _courses(), _classrooms(), _departments()]),
-        SectionGroup('العمليات', [_classroomStatus(), _attendanceLogs(), _gateLogs(), _exams()]),
+        SectionGroup('العمليات', [_classroomStatus(), _attendanceLogs(), _gateLogs(), _gateReports(), _exams(), _teacherTimeline()]),
+        SectionGroup('الأكاديمي', [_grades(), _excuses(), _deanEval()]),
         SectionGroup('النظام', [_tickets(), _auditLog(), _search(), _settings()]),
       ];
     case 'coordinator':
       return [
         SectionGroup('الإدارة', [_coordStudents(), _teachers(), _courses(), _classrooms()]),
         SectionGroup('العمليات', [_attendanceLogs(), _exams()]),
+        SectionGroup('الأكاديمي', [_grades(), _excuses()]),
         SectionGroup('النظام', [_tickets(), _search(), _settings()]),
       ];
     case 'teacher':
       return [
-        SectionGroup('التدريس', [_attendanceLogs(), _courses(), _classrooms()]),
+        SectionGroup('التدريس', [_teacherTimeline(), _attendanceLogs(), _courses(), _classrooms()]),
         SectionGroup('النظام', [_tickets(), _settings()]),
       ];
     case 'student':
       return [
-        SectionGroup('الدراسة', [_courses(), _attendanceLogs()]),
-        SectionGroup('النظام', [_tickets(), _settings()]),
+        SectionGroup('الدراسة', [_courses(), _attendanceLogs(), _grades(), _excuses()]),
+        SectionGroup('النظام', [_tickets(), _search(), _settings()]),
       ];
     case 'gate':
       return [
-        SectionGroup('البوابة', [_gateLogs(), _classroomStatus()]),
+        SectionGroup('البوابة', [_gateLogs(), _gateReports(), _classroomStatus()]),
         SectionGroup('النظام', [_settings()]),
       ];
     default:
