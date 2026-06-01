@@ -99,7 +99,7 @@
         <label class="label-xs">الفصل الدراسي</label>
         <select name="semester" class="inp">
           {% for s in semesters %}
-          <option value="{{ s }}">الفصل {{ s }}</option>
+          <option value="{{ s.0 }}">{{ s.1 }}</option>
           {% endfor %}
         </select>
       </div>

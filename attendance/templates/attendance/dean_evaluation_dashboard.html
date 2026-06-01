@@ -9,7 +9,7 @@
     </div>
     <form method="get">
       <select name="semester" onchange="this.form.submit()" class="rounded-xl bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-2.5 text-sm dark:text-white outline-none">
-        {% for s in semester_choices %}<option value="{{ s }}" {% if semester == s|stringformat:'s' %}selected{% endif %}>الفصل {{ s }}</option>{% endfor %}
+        {% for s in semester_choices %}<option value="{{ s }}" {% if semester == s.0|stringformat:'s' %}selected{% endif %}>{{ s.1 }}</option>{% endfor %}
       </select>
     </form>
   </div>

@@ -49,7 +49,7 @@
       <!-- Placeholder -->
       <div id="cam-placeholder" class="absolute inset-0 flex flex-col items-center justify-center gap-3">
         <div class="w-24 h-24 rounded-full bg-slate-800 flex items-center justify-center">
-          <span class="material-symbols-outlined text-slate-600 text-5xl">face_recognition</span>
+          <span class="material-symbols-outlined text-slate-600 text-5xl">face</span>
         </div>
         <p class="text-slate-500 text-sm font-semibold">الكاميرا غير مفعّلة</p>
       </div>
@@ -96,7 +96,7 @@
         </button>
         <button id="capture-btn" onclick="captureAndEnroll()" disabled
           class="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary-container text-white font-bold text-sm py-3 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed">
-          <span class="material-symbols-outlined text-lg">face_recognition</span>
+          <span class="material-symbols-outlined text-lg">face</span>
           التقاط وتسجيل
         </button>
       </div>
@@ -261,7 +261,7 @@ function retake() {
     placeholder.classList.remove('hidden');
   }
   captureBtn.disabled = false;
-  captureBtn.innerHTML = '<span class="material-symbols-outlined text-lg">face_recognition</span> التقاط وتسجيل';
+  captureBtn.innerHTML = '<span class="material-symbols-outlined text-lg">face</span> التقاط وتسجيل';
   captureBtn.className = captureBtn.className
     .replace('bg-emerald-600 hover:bg-emerald-700', 'bg-primary hover:bg-primary-container');
 }
