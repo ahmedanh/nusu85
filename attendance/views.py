@@ -7,6 +7,7 @@ Auto-reconstructed from helper scripts.
 # ── Standard library ────────────────────────────────────────────────────────
 import os
 import io
+import re
 import csv
 import json
 import logging
@@ -126,6 +127,24 @@ class _EmptyQS:
 # ═══════════════════════════════════════════════════════════════════════════════
 # HELPER FUNCTIONS
 # ═══════════════════════════════════════════════════════════════════════════════
+
+def _unique_username(*candidates):
+    """Build a unique, valid username from the first non-empty candidate
+    (email local-part, student code, or name). Registration forms collect
+    name/email/password but no explicit username, so we derive one."""
+    base = ''
+    for c in candidates:
+        c = (c or '').strip()
+        if c:
+            base = c.split('@')[0] if '@' in c else c
+            break
+    base = re.sub(r'[^a-zA-Z0-9_.]', '', base.replace(' ', '_')) or 'user'
+    username, n = base, 1
+    while User.objects.filter(username=username).exists():
+        n += 1
+        username = f'{base}{n}'
+    return username
+
 
 def _redirect_by_role(request):
     """Redirect the logged-in user to their role-appropriate dashboard."""
@@ -1062,7 +1081,9 @@ def register_student(request):
                     messages.error(request, 'لا يمكنك التسجيل في هذا القسم.')
                     return redirect('register_student')
 
-            user = User.objects.create_user(username=username, password=password)
+            if not username:
+                username = _unique_username(email, student_code, name)
+            user = User.objects.create_user(username=username, password=password, email=email)
             from django.db import connection as _conn
             cursor = _conn.cursor()
             # Insert using raw SQL to pass extra DB-level fields
@@ -1125,7 +1146,9 @@ def register_teacher(request):
             if coordinator and not is_admin:
                 college_id = str(coordinator.college_id)
 
-            user = User.objects.create_user(username=username, password=password, is_staff=False)
+            if not username:
+                username = _unique_username(email, name)
+            user = User.objects.create_user(username=username, password=password, is_staff=False, email=email)
             teacher = Teacher.objects.create(
                 auth_user=user, name=name, academic_degree=degree,
                 major=major, college_id=college_id, department_id=dept_id,
@@ -1679,14 +1702,31 @@ def coordinator_register_user(request):
         username = request.POST.get('username', '').strip()
         password = request.POST.get('password', 'Shamel@123')
         name = request.POST.get('name', '').strip()
+        email = request.POST.get('email', '').strip()
+        student_code = request.POST.get('student_code', '').strip()
+        # The form collects name/email/password (no username field) → derive a
+        # unique username from email local-part / student code / name.
+        if not username:
+            base = ''
+            if email and '@' in email:
+                base = email.split('@')[0]
+            base = base or student_code or (name.replace(' ', '_').lower() if name else '')
+            base = re.sub(r'[^a-zA-Z0-9_.]', '', base) or 'user'
+            username = base
+            n = 1
+            while User.objects.filter(username=username).exists():
+                n += 1
+                username = f'{base}{n}'
         try:
-            user = User.objects.create_user(username=username, password=password)
+            if User.objects.filter(username=username).exists():
+                messages.error(request, 'اسم المستخدم مستخدم بالفعل.')
+                return redirect('coordinator_register_user')
+            user = User.objects.create_user(username=username, password=password, email=email)
             if user_type == 'student':
-                student_code = request.POST.get('student_code', '').strip()
                 dept_id = request.POST.get('department_id') or None
                 Student.objects.create(
                     auth_user=user, name=name, student_code=student_code,
-                    department_id=dept_id,
+                    department_id=dept_id, university_email=email,
                 )
             elif user_type == 'teacher':
                 Teacher.objects.create(
@@ -2029,17 +2069,30 @@ def exam_planner(request):
     except Exception:
         exams = []
     if request.method == 'POST':
+        action = request.POST.get('action', 'create_exam')
         try:
-            Exam.objects.create(
-                course_id=request.POST.get('course_id'),
-                exam_type=request.POST.get('exam_type', 'Final'),
-                date=request.POST.get('date'),
-                start_time=request.POST.get('start_time'),
-                end_time=request.POST.get('end_time'),
-                classroom_id=request.POST.get('classroom_id') or None,
-                semester=request.POST.get('semester', ''),
-            )
-            messages.success(request, 'تمت إضافة الاختبار.')
+            if action == 'delete_exam':
+                Exam.objects.filter(id=request.POST.get('exam_id')).delete()
+                messages.success(request, 'تم حذف الاختبار.')
+            elif action == 'assign_seats':
+                # seat assignment handled by exam_seating_chart; just acknowledge
+                messages.info(request, 'استخدم خريطة المقاعد لتوزيع الطلاب.')
+            else:  # create_exam
+                # template field is exam_date; accept legacy 'date' too
+                exam_date = request.POST.get('exam_date') or request.POST.get('date')
+                if not exam_date:
+                    messages.error(request, 'تاريخ الاختبار مطلوب.')
+                    return redirect('exam_planner')
+                Exam.objects.create(
+                    course_id=request.POST.get('course_id'),
+                    exam_type=request.POST.get('exam_type', 'Final'),
+                    date=exam_date,
+                    start_time=request.POST.get('start_time'),
+                    end_time=request.POST.get('end_time'),
+                    classroom_id=request.POST.get('classroom_id') or None,
+                    semester=request.POST.get('semester', ''),
+                )
+                messages.success(request, 'تمت إضافة الاختبار.')
         except Exception as e:
             messages.error(request, f'خطأ: {e}')
         return redirect('exam_planner')
