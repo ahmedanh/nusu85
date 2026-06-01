@@ -2079,16 +2079,26 @@ def exam_planner(request):
                 messages.info(request, 'استخدم خريطة المقاعد لتوزيع الطلاب.')
             else:  # create_exam
                 # template field is exam_date; accept legacy 'date' too
-                exam_date = request.POST.get('exam_date') or request.POST.get('date')
-                if not exam_date:
-                    messages.error(request, 'تاريخ الاختبار مطلوب.')
+                exam_date  = request.POST.get('exam_date') or request.POST.get('date')
+                course_id  = request.POST.get('course_id')
+                start_time = request.POST.get('start_time')
+                end_time   = request.POST.get('end_time')
+                # All four are NOT NULL in the DB — validate before insert so a
+                # missing field gives a clear message instead of a constraint 500.
+                missing = []
+                if not course_id:  missing.append('المادة')
+                if not exam_date:  missing.append('التاريخ')
+                if not start_time: missing.append('وقت البداية')
+                if not end_time:   missing.append('وقت النهاية')
+                if missing:
+                    messages.error(request, 'الحقول التالية مطلوبة: ' + '، '.join(missing))
                     return redirect('exam_planner')
                 Exam.objects.create(
-                    course_id=request.POST.get('course_id'),
+                    course_id=course_id,
                     exam_type=request.POST.get('exam_type', 'Final'),
                     date=exam_date,
-                    start_time=request.POST.get('start_time'),
-                    end_time=request.POST.get('end_time'),
+                    start_time=start_time,
+                    end_time=end_time,
                     classroom_id=request.POST.get('classroom_id') or None,
                     semester=request.POST.get('semester', ''),
                 )
