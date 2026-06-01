@@ -1071,5 +1071,26 @@ document.addEventListener('keydown', function(e) {
 
 <!-- PWA init -->
 <script src="/static/pwa/pwa-init.js" defer></script>
+
+<script>
+/* Global CSRF hardening: before any POST form submits, copy the LIVE
+   csrftoken cookie into its hidden csrfmiddlewaretoken field — keeps the
+   token in sync with the cookie even when the HTML was served from a stale
+   PWA/browser cache. Eliminates "CSRF token from POST incorrect". */
+(function () {
+  function getCookie(name) {
+    var m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return m ? decodeURIComponent(m.pop()) : '';
+  }
+  document.addEventListener('submit', function (e) {
+    var form = e.target;
+    if (!form || (form.method || '').toLowerCase() !== 'post') return;
+    var tok = getCookie('csrftoken');
+    if (!tok) return;
+    var input = form.querySelector('input[name=csrfmiddlewaretoken]');
+    if (input) input.value = tok;
+  }, true);
+})();
+</script>
 </body>
 </html>
