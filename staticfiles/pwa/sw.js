@@ -3,11 +3,21 @@
    Offline-first + Background Sync + SQLite-compatible
    ====================================================== */
 
-const VERSION = 'shamel-v1.1';
+const VERSION = 'shamel-v1.2';
 const CACHE_SHELL  = `${VERSION}-shell`;
 const CACHE_DATA   = `${VERSION}-data`;
 const CACHE_PAGES  = `${VERSION}-pages`;
 const SYNC_TAG     = 'shamel-sync';
+
+/* ── Pages that MUST bypass the cache (network-only) ─────
+   Auth / form pages set the Django CSRF cookie via response headers.
+   Serving them from cache means the browser never receives the fresh
+   Set-Cookie: csrftoken → POST then fails with "CSRF cookie not set".
+   These always go straight to the network. */
+const NETWORK_ONLY = [
+  /\/login\//, /\/login\/face\//, /\/logout\//,
+  /\/django-admin\//, /\/admin\//,
+];
 
 /* ── Pages & assets cached immediately on install ─────── */
 const SHELL_ASSETS = [
@@ -97,6 +107,12 @@ self.addEventListener('fetch', event => {
     return;
   }
 
+  /* Auth / form pages — NEVER cache (CSRF cookie must reach the browser) */
+  if (NETWORK_ONLY.some(p => p.test(url.pathname))) {
+    event.respondWith(fetch(request));
+    return;
+  }
+
   /* Static assets — cache first */
   if (CACHE_PATTERNS.some(p => p.test(request.url))) {
     event.respondWith(cacheFirst(request, CACHE_DATA));
@@ -109,9 +125,10 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  /* Navigation pages — stale-while-revalidate */
+  /* Navigation pages — network-first so fresh CSRF cookies/tokens always
+     flow when online; fall back to cache only when truly offline. */
   if (request.mode === 'navigate' || NAV_PATTERNS.some(p => p.test(url.pathname))) {
-    event.respondWith(staleWhileRevalidate(request));
+    event.respondWith(networkFirst(request));
     return;
   }
 

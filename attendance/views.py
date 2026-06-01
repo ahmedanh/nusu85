@@ -267,6 +267,10 @@ def gen_frames(camera_index=0):
 # AUTH VIEWS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+from django.views.decorators.csrf import ensure_csrf_cookie
+
+
+@ensure_csrf_cookie  # always plant a fresh csrftoken cookie on the login page
 def login_view(request):
     if request.user.is_authenticated:
         return _redirect_by_role(request)
