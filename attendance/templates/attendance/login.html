@@ -320,7 +320,17 @@ function togglePw() {
   icon.textContent = inp.type === 'password' ? 'visibility' : 'visibility_off';
 }
 
-document.getElementById('login-form').addEventListener('submit', function () {
+// Read the LIVE csrftoken cookie and sync it into the form before submit.
+// Makes the POST token always match the cookie even if this HTML was served
+// from a stale Service-Worker/browser cache (fixes "CSRF token incorrect").
+function _getCookie(name) {
+  const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+  return m ? decodeURIComponent(m.pop()) : '';
+}
+document.getElementById('login-form').addEventListener('submit', function (e) {
+  const tok = _getCookie('csrftoken');
+  const input = e.target.querySelector('input[name=csrfmiddlewaretoken]');
+  if (tok && input) input.value = tok;
   const btn = document.getElementById('submit-btn');
   btn.disabled = true;
   btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:20px;animation:spin 1s linear infinite">progress_activity</span> Signing in…';
