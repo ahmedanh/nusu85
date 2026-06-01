@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from . import api
+from . import api_extra as apix
 
 urlpatterns = [
     # ── Native-app REST API (JSON, token auth) ──────────────────────────
@@ -13,6 +14,27 @@ urlpatterns = [
     path('api/v1/notifications',       api.notifications,          name='api_notifications'),
     path('api/v1/notifications/read',  api.mark_notifications_read, name='api_notifs_read'),
     path('api/v1/scan',                api.scan_submit,            name='api_scan_submit'),
+    # ── Full section coverage (mirrors every web urlpattern) ────────────
+    path('api/v1/courses',             apix.courses,               name='api_courses'),
+    path('api/v1/courses/create',      apix.course_create,         name='api_course_create'),
+    path('api/v1/classrooms',          apix.classrooms,            name='api_classrooms'),
+    path('api/v1/classrooms/status',   apix.classrooms_status,     name='api_classrooms_status'),
+    path('api/v1/classrooms/create',   apix.classroom_create,      name='api_classroom_create'),
+    path('api/v1/departments',         apix.departments,           name='api_departments_v1'),
+    path('api/v1/teachers',            apix.teachers,              name='api_teachers'),
+    path('api/v1/teachers/<int:tid>',  apix.teacher_detail,        name='api_teacher_detail'),
+    path('api/v1/students',            apix.students,              name='api_students'),
+    path('api/v1/students/<int:sid>',  apix.student_detail,        name='api_student_detail'),
+    path('api/v1/tickets',             apix.tickets,               name='api_tickets'),
+    path('api/v1/tickets/create',      apix.ticket_create,         name='api_ticket_create'),
+    path('api/v1/attendance-logs',     apix.attendance_logs,       name='api_attendance_logs'),
+    path('api/v1/gate-logs',           apix.gate_logs,             name='api_gate_logs'),
+    path('api/v1/audit-log',           apix.audit_log,             name='api_audit_log'),
+    path('api/v1/exams',               apix.exams,                 name='api_exams'),
+    path('api/v1/search',              apix.search,                name='api_search'),
+    path('api/v1/settings',            apix.app_settings,          name='api_settings'),
+    path('api/v1/coordinator/students', apix.coordinator_students, name='api_coord_students'),
+    path('api/v1/gate/toggle-access',  apix.toggle_access,         name='api_toggle_access'),
 
     # Home redirect / unified login
     path('', views.login_view, name='home'),

@@ -8,6 +8,7 @@ import 'reports_screen.dart';
 import 'notifications_screen.dart';
 import 'profile_screen.dart';
 import 'scan_screen.dart';
+import 'menu_drawer.dart';
 
 /// Role-based shell with a Bottom Navigation Bar (native mobile idiom,
 /// replacing the web sidebar).
@@ -51,8 +52,9 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_index >= tabs.length) _index = 0;
 
     return Scaffold(
+      drawer: const MenuDrawer(),
       appBar: AppBar(
-        titleSpacing: 16,
+        titleSpacing: 8,
         title: Row(children: [
           const Icon(Icons.shield_outlined, color: ShamelColors.gold, size: 22),
           const SizedBox(width: 8),

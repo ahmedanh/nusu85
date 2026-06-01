@@ -1,0 +1,359 @@
+# -*- coding: utf-8 -*-
+"""
+SHAMEL native-app REST API — extended section coverage.
+
+List / detail / action endpoints mirroring every web urlpattern so the
+native app contains the full system. Reuses the auth helpers from api.py.
+"""
+import json
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+from django.db.models import Q
+
+from .api import (
+    api_auth, api_staff, _is_staff, _role_of, _bearer,
+    _user_from_token,
+)
+from .models import (
+    Student, Teacher, Coordinator, Schedule, LectureSession,
+    AIAttendanceLog, Notification, Course, Classroom,
+    Department, College, SupportTicket,
+)
+
+
+def _page(qs, request, size=50):
+    try:
+        offset = int(request.GET.get('offset', 0))
+    except ValueError:
+        offset = 0
+    total = qs.count()
+    return list(qs[offset:offset + size]), total, offset
+
+
+# ── Courses ────────────────────────────────────────────────────────────────
+@api_auth
+@require_http_methods(['GET'])
+def courses(request):
+    qs = Course.objects.select_related('college', 'department').all()
+    q = request.GET.get('q', '').strip()
+    if q:
+        qs = qs.filter(Q(title__icontains=q) | Q(course_code__icontains=q))
+    rows, total, offset = _page(qs.order_by('title'), request)
+    data = [{
+        'id': c.id, 'code': c.course_code, 'title': c.title,
+        'credits': c.credits, 'hours': c.total_hours, 'year': c.year_level,
+        'college': getattr(c.college, 'college_name', None),
+        'department': getattr(c.department, 'name', None),
+    } for c in rows]
+    return JsonResponse({'ok': True, 'total': total, 'count': len(data), 'courses': data})
+
+
+@api_staff
+@csrf_exempt
+@require_http_methods(['POST'])
+def course_create(request):
+    try:
+        p = json.loads(request.body or '{}')
+    except json.JSONDecodeError:
+        p = request.POST
+    if not p.get('course_code') or not p.get('title'):
+        return JsonResponse({'ok': False, 'message': 'الكود والعنوان مطلوبان'}, status=400)
+    c = Course.objects.create(
+        course_code=p['course_code'], title=p['title'],
+        credits=p.get('credits') or 3, total_hours=p.get('total_hours') or 45,
+        year_level=p.get('year_level') or None,
+        college_id=p.get('college') or None, department_id=p.get('department') or None,
+    )
+    return JsonResponse({'ok': True, 'id': c.id})
+
+
+# ── Classrooms ─────────────────────────────────────────────────────────────
+@api_auth
+@require_http_methods(['GET'])
+def classrooms(request):
+    qs = Classroom.objects.select_related('college').order_by('name')
+    rows, total, offset = _page(qs, request)
+    data = [{
+        'id': r.id, 'name': r.name, 'location': r.location,
+        'capacity': r.capacity, 'type': r.classroom_type, 'is_busy': r.is_busy,
+        'college': getattr(r.college, 'college_name', None),
+    } for r in rows]
+    return JsonResponse({'ok': True, 'total': total, 'count': len(data), 'classrooms': data})
+
+
+@api_auth
+@require_http_methods(['GET'])
+def classrooms_status(request):
+    from django.db import close_old_connections
+    close_old_connections()
+    rows = Classroom.objects.order_by('name')
+    data = [{'id': r.id, 'name': r.name, 'is_busy': r.is_busy,
+             'location': r.location, 'capacity': r.capacity} for r in rows]
+    busy = sum(1 for r in data if r['is_busy'])
+    return JsonResponse({'ok': True, 'count': len(data), 'busy': busy,
+                         'free': len(data) - busy, 'classrooms': data})
+
+
+@api_staff
+@csrf_exempt
+@require_http_methods(['POST'])
+def classroom_create(request):
+    try:
+        p = json.loads(request.body or '{}')
+    except json.JSONDecodeError:
+        p = request.POST
+    if not p.get('name'):
+        return JsonResponse({'ok': False, 'message': 'الاسم مطلوب'}, status=400)
+    r = Classroom.objects.create(
+        name=p['name'], capacity=p.get('capacity') or 30,
+        location=p.get('location') or '', classroom_type=p.get('type') or 'lecture',
+    )
+    return JsonResponse({'ok': True, 'id': r.id})
+
+
+# ── Departments ────────────────────────────────────────────────────────────
+@api_auth
+@require_http_methods(['GET'])
+def departments(request):
+    rows = Department.objects.select_related('college').order_by('name')
+    data = [{'id': d.id, 'name': d.name, 'college': getattr(d.college, 'college_name', None)} for d in rows]
+    return JsonResponse({'ok': True, 'count': len(data), 'departments': data})
+
+
+# ── Teachers ───────────────────────────────────────────────────────────────
+@api_auth
+@require_http_methods(['GET'])
+def teachers(request):
+    qs = Teacher.objects.select_related('department', 'college').order_by('name')
+    q = request.GET.get('q', '').strip()
+    if q:
+        qs = qs.filter(name__icontains=q)
+    rows, total, offset = _page(qs, request)
+    data = [{
+        'id': t.teacher_id, 'name': t.name, 'degree': t.academic_degree,
+        'major': t.major, 'email': t.university_email, 'phone': t.phone_number,
+        'department': getattr(t.department, 'name', None),
+        'college': getattr(t.college, 'college_name', None),
+        'allowed_entry': t.is_allowed_entry,
+    } for t in rows]
+    return JsonResponse({'ok': True, 'total': total, 'count': len(data), 'teachers': data})
+
+
+@api_auth
+@require_http_methods(['GET'])
+def teacher_detail(request, tid):
+    t = Teacher.objects.select_related('department', 'college').filter(teacher_id=tid).first()
+    if not t:
+        return JsonResponse({'ok': False, 'message': 'غير موجود'}, status=404)
+    return JsonResponse({'ok': True, 'teacher': {
+        'id': t.teacher_id, 'name': t.name, 'degree': t.academic_degree,
+        'major': t.major, 'email': t.university_email, 'phone': t.phone_number,
+        'department': getattr(t.department, 'name', None),
+        'college': getattr(t.college, 'college_name', None),
+        'allowed_entry': t.is_allowed_entry,
+        'sessions': LectureSession.objects.filter(schedule__teacher=t).count(),
+        'courses': Schedule.objects.filter(teacher=t).values('course').distinct().count(),
+    }})
+
+
+# ── Students ───────────────────────────────────────────────────────────────
+@api_auth
+@require_http_methods(['GET'])
+def students(request):
+    qs = Student.objects.select_related('department').order_by('name')
+    q = request.GET.get('q', '').strip()
+    if q:
+        qs = qs.filter(Q(name__icontains=q) | Q(student_code__icontains=q))
+    rows, total, offset = _page(qs, request)
+    data = [{
+        'id': s.id, 'name': s.name, 'code': s.student_code,
+        'department': getattr(s.department, 'name', None),
+        'batch': getattr(s, 'batch', None), 'email': s.university_email,
+    } for s in rows]
+    return JsonResponse({'ok': True, 'total': total, 'count': len(data), 'students': data})
+
+
+@api_auth
+@require_http_methods(['GET'])
+def student_detail(request, sid):
+    s = Student.objects.select_related('department').filter(id=sid).first()
+    if not s:
+        return JsonResponse({'ok': False, 'message': 'غير موجود'}, status=404)
+    total = AIAttendanceLog.objects.filter(student=s).count()
+    present = AIAttendanceLog.objects.filter(student=s, status='Present').count()
+    return JsonResponse({'ok': True, 'student': {
+        'id': s.id, 'name': s.name, 'code': s.student_code,
+        'department': getattr(s.department, 'name', None),
+        'batch': getattr(s, 'batch', None), 'email': s.university_email,
+        'phone': s.phone_number, 'total_records': total, 'present': present,
+        'attendance_pct': round(present / total * 100, 1) if total else 0,
+    }})
+
+
+# ── Tickets ────────────────────────────────────────────────────────────────
+@api_auth
+@require_http_methods(['GET'])
+def tickets(request):
+    user = request.api_user
+    qs = SupportTicket.objects.all() if _is_staff(user) else SupportTicket.objects.filter(user=user)
+    rows, total, offset = _page(qs.select_related('user').order_by('-id'), request)
+    data = [{
+        'id': t.id, 'subject': t.subject, 'body': t.body, 'status': t.status,
+        'priority': t.priority, 'user': t.user.username if t.user else None,
+        'reply': t.admin_reply or '',
+    } for t in rows]
+    return JsonResponse({'ok': True, 'total': total, 'count': len(data), 'tickets': data})
+
+
+@api_auth
+@csrf_exempt
+@require_http_methods(['POST'])
+def ticket_create(request):
+    try:
+        p = json.loads(request.body or '{}')
+    except json.JSONDecodeError:
+        p = request.POST
+    subject = (p.get('subject') or '').strip()
+    body = (p.get('body') or p.get('description') or '').strip()
+    if not subject or not body:
+        return JsonResponse({'ok': False, 'message': 'الموضوع والوصف مطلوبان'}, status=400)
+    from django.db import connection as _conn
+    try:
+        if _conn.vendor == 'postgresql':
+            with _conn.cursor() as cur:
+                cur.execute(
+                    "INSERT INTO attendance_supportticket "
+                    "(subject, description, body, status, priority, ticket_type, "
+                    "created_at, updated_at, requester_id, user_id, admin_reply) "
+                    "VALUES (%s,%s,%s,'open',%s,'general',NOW(),NOW(),%s,%s,'') RETURNING id",
+                    [subject, body, body, p.get('priority', 'medium'),
+                     request.api_user.id, request.api_user.id])
+                tid = cur.fetchone()[0]
+        else:
+            tid = SupportTicket.objects.create(
+                user=request.api_user, subject=subject, body=body,
+                status='open', priority=p.get('priority', 'medium')).id
+        return JsonResponse({'ok': True, 'id': tid})
+    except Exception as e:
+        return JsonResponse({'ok': False, 'message': 'خطأ: ' + str(e)[:80]}, status=500)
+
+
+# ── Attendance logs ────────────────────────────────────────────────────────
+@api_auth
+@require_http_methods(['GET'])
+def attendance_logs(request):
+    qs = AIAttendanceLog.objects.select_related('student', 'schedule__course').order_by('-timestamp')
+    role = _role_of(request.api_user)
+    if role == 'student':
+        s = Student.objects.filter(auth_user=request.api_user).first()
+        qs = qs.filter(student=s) if s else qs.none()
+    elif role == 'teacher':
+        t = Teacher.objects.filter(auth_user=request.api_user).first()
+        qs = qs.filter(schedule__teacher=t) if t else qs.none()
+    rows, total, offset = _page(qs, request)
+    data = [{
+        'id': l.id, 'student': getattr(l.student, 'name', None),
+        'course': getattr(getattr(l.schedule, 'course', None), 'title', None),
+        'status': l.status, 'confidence': l.confidence_score,
+        'timestamp': l.timestamp.isoformat() if l.timestamp else None,
+    } for l in rows]
+    return JsonResponse({'ok': True, 'total': total, 'count': len(data), 'logs': data})
+
+
+# ── Gate logs ──────────────────────────────────────────────────────────────
+@api_auth
+@require_http_methods(['GET'])
+def gate_logs(request):
+    from .models import GateLog
+    rows, total, offset = _page(
+        GateLog.objects.order_by('-timestamp'), request)
+    data = [{'id': g.id, 'person': g.person_name, 'status': g.status,
+             'timestamp': g.timestamp.isoformat() if g.timestamp else None} for g in rows]
+    return JsonResponse({'ok': True, 'total': total, 'count': len(data), 'logs': data})
+
+
+# ── Audit log (staff) ──────────────────────────────────────────────────────
+@api_staff
+@require_http_methods(['GET'])
+def audit_log(request):
+    from .models import AuditLog
+    rows, total, offset = _page(
+        AuditLog.objects.select_related('user').order_by('-timestamp'), request)
+    data = [{'id': a.id, 'user': a.user.username if a.user else None,
+             'action': a.action, 'target': a.target_model, 'description': a.description,
+             'timestamp': a.timestamp.isoformat() if a.timestamp else None} for a in rows]
+    return JsonResponse({'ok': True, 'total': total, 'count': len(data), 'entries': data})
+
+
+# ── Exams ──────────────────────────────────────────────────────────────────
+@api_auth
+@require_http_methods(['GET'])
+def exams(request):
+    from .models import Exam
+    rows, total, offset = _page(
+        Exam.objects.select_related('course', 'classroom').order_by('-date'), request)
+    data = [{'id': e.id, 'course': getattr(e.course, 'title', None), 'type': e.exam_type,
+             'date': str(e.date) if e.date else None, 'start': str(e.start_time),
+             'end': str(e.end_time), 'classroom': getattr(e.classroom, 'name', None),
+             'semester': e.semester} for e in rows]
+    return JsonResponse({'ok': True, 'total': total, 'count': len(data), 'exams': data})
+
+
+# ── Global search ──────────────────────────────────────────────────────────
+@api_auth
+@require_http_methods(['GET'])
+def search(request):
+    q = request.GET.get('q', '').strip()
+    if len(q) < 2:
+        return JsonResponse({'ok': True, 'students': [], 'teachers': [], 'courses': []})
+    st = [{'id': s.id, 'name': s.name, 'code': s.student_code}
+          for s in Student.objects.filter(Q(name__icontains=q) | Q(student_code__icontains=q))[:10]]
+    tc = [{'id': t.teacher_id, 'name': t.name}
+          for t in Teacher.objects.filter(name__icontains=q)[:10]]
+    cr = [{'id': c.id, 'title': c.title, 'code': c.course_code}
+          for c in Course.objects.filter(Q(title__icontains=q) | Q(course_code__icontains=q))[:10]]
+    return JsonResponse({'ok': True, 'students': st, 'teachers': tc, 'courses': cr})
+
+
+# ── Settings ───────────────────────────────────────────────────────────────
+@api_auth
+@require_http_methods(['GET'])
+def app_settings(request):
+    from django.conf import settings as dj
+    return JsonResponse({'ok': True, 'settings': {
+        'face_engine': getattr(dj, 'FACE_ENGINE', 'dlib'),
+        'version': 'SHAMEL v4.2', 'role': _role_of(request.api_user),
+    }})
+
+
+# ── Coordinator students ───────────────────────────────────────────────────
+@api_auth
+@require_http_methods(['GET'])
+def coordinator_students(request):
+    co = Coordinator.objects.filter(auth_user=request.api_user).first()
+    qs = Student.objects.select_related('department')
+    if co and co.college_id:
+        qs = qs.filter(department__college=co.college)
+    rows, total, offset = _page(qs.order_by('name'), request)
+    data = [{'id': s.id, 'name': s.name, 'code': s.student_code,
+             'department': getattr(s.department, 'name', None)} for s in rows]
+    return JsonResponse({'ok': True, 'total': total, 'count': len(data), 'students': data})
+
+
+# ── Toggle gate access (staff) ─────────────────────────────────────────────
+@api_staff
+@csrf_exempt
+@require_http_methods(['POST'])
+def toggle_access(request):
+    try:
+        p = json.loads(request.body or '{}')
+    except json.JSONDecodeError:
+        p = request.POST
+    t = Teacher.objects.filter(teacher_id=p.get('teacher_id')).first()
+    if not t:
+        return JsonResponse({'ok': False, 'message': 'الأستاذ غير موجود'}, status=404)
+    t.is_allowed_entry = not t.is_allowed_entry
+    t.save(update_fields=['is_allowed_entry'])
+    return JsonResponse({'ok': True, 'allowed_entry': t.is_allowed_entry})

@@ -71,6 +71,10 @@ class Api {
   static Future<Map<String, dynamic>> markNotificationsRead() =>
       _post('/api/v1/notifications/read', {});
 
+  /// Generic authenticated GET / POST for the extended section endpoints.
+  static Future<Map<String, dynamic>> getJson(String path) => _get(path);
+  static Future<Map<String, dynamic>> postJson(String path, Map body) => _post(path, body);
+
   /// Submit a base64 JPEG for face scan. Optional schedule_id to log attendance.
   static Future<Map<String, dynamic>> scan(String imageB64, {int? scheduleId}) =>
       _post('/api/v1/scan', {
