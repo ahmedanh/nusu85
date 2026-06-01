@@ -593,7 +593,6 @@ def export_teachers_csv(request):
     response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
     from datetime import date
     response['Content-Disposition'] = f'attachment; filename="SHAMEL_Teachers_Export_{date.today()}.csv"'
-    response.write('﻿')  # BOM for Excel Arabic compatibility
     writer = csv.writer(response)
     writer.writerow(['ID', 'Name', 'Degree', 'Major', 'Department', 'College', 'Email', 'Phone', 'Allowed Entry'])
     for t in teachers:
@@ -1314,7 +1313,6 @@ def export_my_courses_csv(request):
     from datetime import date
     tname = teacher.name.replace(' ', '_')[:30]
     response['Content-Disposition'] = f'attachment; filename="SHAMEL_{tname}_MyCourses_{date.today()}.csv"'
-    response.write('﻿')  # BOM for Excel Arabic compatibility
     writer = csv.writer(response)
     writer.writerow(['Course Code', 'Title', 'Day', 'Start', 'End', 'Classroom', 'Batch', 'Semester'])
     for s in schedules:
@@ -1382,7 +1380,6 @@ def export_teacher_report_csv(request):
     response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
     from datetime import date
     response['Content-Disposition'] = f'attachment; filename="SHAMEL_TeacherAttendance_Report_{date.today()}.csv"'
-    response.write('﻿')  # BOM for Excel Arabic compatibility
     writer = csv.writer(response)
     writer.writerow(['Name', 'Degree', 'Major', 'College', 'Department', 'Sessions Held'])
     for t in teachers:
@@ -1713,7 +1710,9 @@ def coordinator_register_user(request):
 # ── PDF exports ──────────────────────────────────────────────────────────────
 
 def _pdf_response(html_string, filename):
-    """Render HTML to PDF using weasyprint or fallback to plain HTML."""
+    """Render HTML → PDF. Tries weasyprint (best CSS, Linux/VPS), then
+    xhtml2pdf (pure-Python, works on Windows), then a printable-HTML fallback."""
+    # 1) weasyprint — full CSS, needs GTK/cairo (usually only on Linux VPS)
     try:
         from weasyprint import HTML as WeasyprintHTML
         pdf_bytes = WeasyprintHTML(string=html_string).write_pdf()
@@ -1721,8 +1720,33 @@ def _pdf_response(html_string, filename):
         resp['Content-Disposition'] = f'attachment; filename="{filename}"'
         return resp
     except Exception:
-        # Fallback: return HTML
-        return HttpResponse(html_string, content_type='text/html')
+        pass
+    # 2) xhtml2pdf — pure-Python (reportlab), cross-platform.
+    #    Its CSS parser chokes on @page running-content rules and some modern
+    #    CSS, so sanitize first: drop @page{} blocks and unsupported props.
+    try:
+        from xhtml2pdf import pisa
+        import io as _io, re as _re
+        safe = html_string
+        # Remove @page {...} blocks (xhtml2pdf mishandles content:/running())
+        safe = _re.sub(r'@page[^{]*\{[^}]*\}', '', safe)
+        # Remove content: "..." declarations anywhere (running headers/footers)
+        safe = _re.sub(r'content\s*:\s*"[^"]*"\s*;?', '', safe)
+        buf = _io.BytesIO()
+        result = pisa.CreatePDF(src=safe, dest=buf, encoding='utf-8')
+        if not result.err and buf.getvalue()[:4] == b'%PDF':
+            resp = HttpResponse(buf.getvalue(), content_type='application/pdf')
+            resp['Content-Disposition'] = f'attachment; filename="{filename}"'
+            return resp
+    except Exception:
+        pass
+    # 3) Fallback: printable HTML with auto-print trigger (browser → Save as PDF)
+    printable = html_string.replace(
+        '</body>',
+        '<script>window.onload=function(){setTimeout(function(){window.print();},300);};</script></body>'
+    )
+    resp = HttpResponse(printable, content_type='text/html; charset=utf-8')
+    return resp
 
 
 @login_required
@@ -1763,6 +1787,7 @@ def export_student_report_pdf(request):
         'logs': logs, 'chart_data': chart_data,
         'total': total, 'present': present, 'absent': absent, 'late': late,
         'pct_overall': pct_overall,
+        'pct_remaining': 100 - pct_overall,  # for SVG donut (template can't negate inline)
         'generated_at': timezone.now(),
         **meta,
     }).content.decode('utf-8')
@@ -2310,7 +2335,6 @@ def export_student_attendance_csv(request):
     from datetime import date
     college_f = request.GET.get('college', 'All')
     response['Content-Disposition'] = f'attachment; filename="SHAMEL_StudentAttendance_{college_f}_{date.today()}.csv"'
-    response.write('﻿')  # BOM for Excel Arabic compatibility
     writer = csv.writer(response)
     writer.writerow([
         'Student ID', 'Student Name', 'College', 'Department',
@@ -2516,21 +2540,30 @@ def create_ticket(request):
         if not subject or not body:
             messages.error(request, 'الموضوع والوصف مطلوبان.')
         else:
-            # Use raw SQL — the DB schema has description/requester_id/ticket_type as NOT NULL
-            # which are not yet in the Django model
+            # Dual-DB aware: the VPS PostgreSQL schema has extra NOT NULL columns
+            # (description/requester_id/ticket_type) not present in the Django model
+            # nor in the local SQLite fallback. Branch on vendor so BOTH work.
             from django.db import connection as _conn
+            ticket = None
             try:
-                with _conn.cursor() as cur:
-                    cur.execute(
-                        """INSERT INTO attendance_supportticket
-                           (subject, description, body, status, priority, ticket_type,
-                            created_at, updated_at, requester_id, user_id, admin_reply)
-                           VALUES (%s, %s, %s, 'open', %s, %s, NOW(), NOW(), %s, %s, '')
-                           RETURNING id""",
-                        [subject, body, body, priority, ticket_type, user.id, user.id]
+                if _conn.vendor == 'postgresql':
+                    with _conn.cursor() as cur:
+                        cur.execute(
+                            """INSERT INTO attendance_supportticket
+                               (subject, description, body, status, priority, ticket_type,
+                                created_at, updated_at, requester_id, user_id, admin_reply)
+                               VALUES (%s, %s, %s, 'open', %s, %s, NOW(), NOW(), %s, %s, '')
+                               RETURNING id""",
+                            [subject, body, body, priority, ticket_type, user.id, user.id]
+                        )
+                        ticket_id = cur.fetchone()[0]
+                    ticket = SupportTicket.objects.get(id=ticket_id)
+                else:
+                    # SQLite / other — plain ORM works against the model fields
+                    ticket = SupportTicket.objects.create(
+                        user=user, subject=subject, body=body,
+                        status='open', priority=priority,
                     )
-                    ticket_id = cur.fetchone()[0]
-                ticket = SupportTicket.objects.get(id=ticket_id)
             except Exception as e:
                 messages.error(request, f'خطأ في حفظ البلاغ: {e}')
                 ticket = None
@@ -3374,7 +3407,6 @@ def export_coordinator_students_csv(request):
     from datetime import date
     college_name = coordinator.college.college_name.replace(' ', '_')[:25] if coordinator.college else 'College'
     response['Content-Disposition'] = f'attachment; filename="SHAMEL_{college_name}_Students_{date.today()}.csv"'
-    response.write('﻿')  # BOM for Excel Arabic compatibility
     writer = csv.writer(response)
     writer.writerow(['Student ID', 'Name', 'Batch', 'Registered', 'Phone', 'Email'])
     for s in students:

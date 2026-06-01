@@ -123,7 +123,7 @@ tbody tr:nth-child(even) { background:#F8FAFC; }
     <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#E2E8F0" stroke-width="4"/>
     {% if pct_overall > 0 %}
     <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#15803D" stroke-width="4"
-            stroke-dasharray="{{ pct_overall }} {{ 100|add:-pct_overall }}"
+            stroke-dasharray="{{ pct_overall }} {{ pct_remaining }}"
             stroke-dashoffset="25" stroke-linecap="round"/>
     {% endif %}
     {% with absent_pct=absent|add:0 %}
