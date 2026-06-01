@@ -1,7 +1,19 @@
 from django.urls import path
 from . import views
+from . import api
 
 urlpatterns = [
+    # ── Native-app REST API (JSON, token auth) ──────────────────────────
+    path('api/v1/health',              api.health,                 name='api_health'),
+    path('api/v1/auth/login',          api.login,                  name='api_login'),
+    path('api/v1/me',                  api.me,                     name='api_me'),
+    path('api/v1/dashboard',           api.dashboard,              name='api_dashboard'),
+    path('api/v1/schedule',            api.schedule,               name='api_schedule'),
+    path('api/v1/reports/summary',     api.reports_summary,        name='api_reports_summary'),
+    path('api/v1/notifications',       api.notifications,          name='api_notifications'),
+    path('api/v1/notifications/read',  api.mark_notifications_read, name='api_notifs_read'),
+    path('api/v1/scan',                api.scan_submit,            name='api_scan_submit'),
+
     # Home redirect / unified login
     path('', views.login_view, name='home'),
 
