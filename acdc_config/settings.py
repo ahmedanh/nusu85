@@ -140,6 +140,19 @@ CACHES = {
 SESSION_ENGINE = 'django.contrib.sessions.backends.file'
 SESSION_FILE_PATH = None  # uses tempfile default
 
+# ─────────────────────────────────────────────
+# FACE RECOGNITION ENGINE
+#   'dlib'        — legacy face_recognition (128-dim). Default: zero change
+#                   to existing deployments and stored embeddings.
+#   'insightface' — buffalo_s ONNX CPU (512-dim). Faster + more accurate on
+#                   the weak VPS. Requires re-enrolling faces:
+#                       python manage.py reenroll_faces
+# Switch with env var FACE_ENGINE=insightface (no code change needed).
+# ─────────────────────────────────────────────
+FACE_ENGINE    = config('FACE_ENGINE', default='dlib')
+FACE_THRESHOLD = config('FACE_THRESHOLD', default=0.35, cast=float)  # insightface cosine
+FACE_TOLERANCE = config('FACE_TOLERANCE', default=0.5, cast=float)   # dlib euclidean
+
 
 # ─────────────────────────────────────────────
 # AUTHENTICATION BACKENDS (django-axes)

@@ -291,13 +291,13 @@ def scan_submit(request):
         return JsonResponse({'ok': False, 'error': 'no_image',
                              'message': 'لم تصل صورة'}, status=400)
 
-    # Reuse the recognition pipeline from views (lazy import to avoid heavy load)
+    # Engine-agnostic recognition (dlib or InsightFace via settings.FACE_ENGINE)
+    from . import face_engine as fe
     from . import views as _v
-    if not (_v.FACE_RECOGNITION_AVAILABLE and _v.NUMPY_AVAILABLE):
+    if not fe.available():
         return JsonResponse({'ok': False, 'error': 'engine_unavailable',
                              'message': 'محرك التعرف غير متوفر على الخادم'}, status=503)
 
-    import tempfile, os as _os
     try:
         if ',' in b64:
             b64 = b64.split(',')[1]
@@ -308,29 +308,29 @@ def scan_submit(request):
         return JsonResponse({'ok': False, 'error': 'bad_image',
                              'message': 'الصورة غير صالحة'}, status=400)
 
-    tmp_path = None
     try:
-        with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp:
-            tmp.write(img_bytes)
-            tmp_path = tmp.name
         import numpy as np
-        face_recognition = _v.face_recognition
-        if not _v.known_face_encodings:
-            _v.load_known_faces()
-        img = face_recognition.load_image_file(tmp_path)
-        encs = face_recognition.face_encodings(img)
-        if not encs:
+        from PIL import Image
+        import io as _io
+        img = np.array(Image.open(_io.BytesIO(img_bytes)).convert('RGB'))
+
+        probe = fe.encode(img)
+        if probe is None:
             return JsonResponse({'ok': False, 'error': 'no_face',
                                  'message': 'لم يُكتشف وجه — وجّه الكاميرا للوجه مباشرة'})
-        matches = face_recognition.compare_faces(_v.known_face_encodings, encs[0], tolerance=0.5)
-        if True not in matches:
+
+        # Build the known set from the in-memory cache loaded by views
+        if not _v.known_face_encodings:
+            _v.load_known_faces()
+        known = [list(e) for e in _v.known_face_encodings]
+        names = _v.known_face_names
+
+        idx, score = fe.match(known, probe)
+        if idx < 0:
             return JsonResponse({'ok': False, 'error': 'no_match',
                                  'message': 'الوجه غير مسجّل في النظام'})
-        idx = matches.index(True)
-        name = _v.known_face_names[idx]
-        # distance → confidence
-        dists = face_recognition.face_distance(_v.known_face_encodings, encs[0])
-        confidence = round(float(1 - dists[idx]), 3)
+        name = names[idx]
+        confidence = round(float(score), 3)
 
         student = Student.objects.filter(name__icontains=name).first()
         logged = False
@@ -338,22 +338,15 @@ def scan_submit(request):
             sch = Schedule.objects.filter(id=schedule_id).first()
             if sch:
                 AIAttendanceLog.objects.get_or_create(
-                    student=student, schedule=sch,
-                    timestamp=timezone.now(),
+                    student=student, schedule=sch, timestamp=timezone.now(),
                     defaults={'confidence_score': confidence, 'status': 'Present'},
                 )
                 logged = True
         return JsonResponse({'ok': True, 'matched': name, 'confidence': confidence,
-                             'logged': logged})
-    except Exception as e:
+                             'logged': logged, 'engine': fe.active_engine()})
+    except Exception:
         return JsonResponse({'ok': False, 'error': 'processing_error',
                              'message': 'تعذّر تحليل الصورة'}, status=500)
-    finally:
-        if tmp_path:
-            try:
-                _os.unlink(tmp_path)
-            except Exception:
-                pass
 
 
 # ──────────────────────────────────────────────────────────────────────────
