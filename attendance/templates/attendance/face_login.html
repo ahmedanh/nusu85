@@ -146,14 +146,26 @@
     canvas.getContext('2d').drawImage(video, 0, 0);
     const imageData = canvas.toDataURL('image/jpeg', 0.85);
 
+    const csrfToken = document.cookie.split(';')
+      .find(c => c.trim().startsWith('csrftoken='))
+      ?.split('=')[1] || '{{ csrf_token }}';
+
     const formData = new FormData();
     formData.append('image_data', imageData);
-    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    formData.append('csrfmiddlewaretoken', csrfToken);
 
     try {
-      const resp = await fetch('{% url "face_login" %}', { method: 'POST', body: formData });
+      const resp = await fetch('{% url "face_login" %}', {
+        method: 'POST',
+        body: formData,
+        headers: { 'X-CSRFToken': csrfToken },
+      });
+      if (!resp.ok) {
+        showStatus('خطأ ' + resp.status + ' — أعد تحميل الصفحة وحاول مجدداً', 'error');
+        scanBtn.disabled = false;
+        return;
+      }
       const data = await resp.json();
-
       if (data.status === 'success') {
         showStatus('مرحباً ' + data.name + '! جاري التحويل...', 'success');
         setTimeout(() => { window.location.href = data.redirect; }, 1000);
@@ -162,7 +174,7 @@
         scanBtn.disabled = false;
       }
     } catch (e) {
-      showStatus('خطأ في الاتصال بالخادم', 'error');
+      showStatus('تعذر الوصول للخادم — تحقق من الاتصال', 'error');
       scanBtn.disabled = false;
     }
   }

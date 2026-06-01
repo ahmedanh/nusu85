@@ -302,18 +302,24 @@ def scan_page(request):
     if not (request.user.is_staff or request.user.is_superuser):
         if Coordinator.objects.filter(auth_user=request.user).exists():
             return _redirect_by_role(request)
-    cameras = CameraSource.objects.filter(is_active=True, is_gate=False)
+    camera_sources = CameraSource.objects.filter(is_active=True, is_gate=False)
     sessions = LectureSession.objects.filter(is_active=True).select_related(
         'schedule__course', 'schedule__teacher', 'schedule__classroom'
     )
     return render(request, 'attendance/scan.html', {
-        'cameras': cameras,
+        'cameras': camera_sources,
+        'camera_sources': camera_sources,  # template uses camera_sources
         'active_sessions': sessions,
     })
 
 
 def video_feed(request):
-    camera_index = int(request.GET.get('camera', 0))
+    # Accept both 'camera' and 'source' params for compatibility
+    cam_param = request.GET.get('camera') or request.GET.get('source', '0')
+    try:
+        camera_index = int(cam_param)
+    except (ValueError, TypeError):
+        camera_index = 0
     return StreamingHttpResponse(
         gen_frames(camera_index),
         content_type='multipart/x-mixed-replace; boundary=frame'
@@ -486,17 +492,72 @@ def faculty_management(request):
 @login_required
 @staff_member_required
 def reports_view(request):
+    from django.db.models import Avg, FloatField
+    from django.db.models.functions import ExtractWeekDay
     today = timezone.now().date()
     week_ago = today - timedelta(days=7)
+
+    # ── Weekly attendance data (Sun–Fri) ──────────────────────────────────────
+    day_map = {1: 'Sun', 2: 'Mon', 3: 'Tue', 4: 'Wed', 5: 'Thu', 6: 'Fri', 7: 'Sat'}
+    weekly_qs = (
+        AIAttendanceLog.objects
+        .filter(timestamp__date__gte=week_ago, status='Present')
+        .annotate(dow=ExtractWeekDay('timestamp'))
+        .values('dow')
+        .annotate(count=Count('id'))
+    )
+    weekly_data = {'Sun': 0, 'Mon': 0, 'Tue': 0, 'Wed': 0, 'Thu': 0, 'Fri': 0}
+    for row in weekly_qs:
+        label = day_map.get(row['dow'], '')
+        if label in weekly_data:
+            weekly_data[label] = row['count']
+
+    # ── Total sessions ────────────────────────────────────────────────────────
+    total_sessions = LectureSession.objects.count()
+
+    # ── Avg attendance % ─────────────────────────────────────────────────────
+    total_logs = AIAttendanceLog.objects.count()
+    present_logs = AIAttendanceLog.objects.filter(status='Present').count()
+    avg_attendance = round((present_logs / total_logs * 100), 1) if total_logs else 0
+
+    # ── AI Engine accuracy (avg confidence of present scans) ──────────────────
+    avg_conf = (
+        AIAttendanceLog.objects
+        .filter(status='Present', confidence_score__isnull=False)
+        .aggregate(avg=Avg('confidence_score', output_field=FloatField()))
+        ['avg'] or 0
+    )
+    ai_accuracy = round(avg_conf * 100, 1)
+
+    # ── Top departments by attendance ─────────────────────────────────────────
+    top_departments = (
+        AIAttendanceLog.objects
+        .filter(status='Present', student__department__isnull=False)
+        .values('student__department__name')
+        .annotate(count=Count('id'))
+        .order_by('-count')[:5]
+    )
+    top_depts = [
+        {'name': r['student__department__name'], 'count': r['count']}
+        for r in top_departments
+    ]
+
+    # ── Daily counts (for any other chart) ───────────────────────────────────
     daily_counts = (AIAttendanceLog.objects
                     .filter(timestamp__date__gte=week_ago)
                     .values('timestamp__date')
                     .annotate(count=Count('id'))
                     .order_by('timestamp__date'))
+
     return render(request, 'attendance/reports.html', {
-        'daily_counts': list(daily_counts),
-        'total_students': Student.objects.count(),
-        'total_teachers': Teacher.objects.count(),
+        'daily_counts':    list(daily_counts),
+        'total_students':  Student.objects.count(),
+        'total_teachers':  Teacher.objects.count(),
+        'total_sessions':  total_sessions,
+        'avg_attendance':  avg_attendance,
+        'ai_accuracy':     ai_accuracy,
+        'weekly_data':     weekly_data,
+        'top_departments': top_depts,
     })
 
 
@@ -532,6 +593,7 @@ def export_teachers_csv(request):
     response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
     from datetime import date
     response['Content-Disposition'] = f'attachment; filename="SHAMEL_Teachers_Export_{date.today()}.csv"'
+    response.write('﻿')  # BOM for Excel Arabic compatibility
     writer = csv.writer(response)
     writer.writerow(['ID', 'Name', 'Degree', 'Major', 'Department', 'College', 'Email', 'Phone', 'Allowed Entry'])
     for t in teachers:
@@ -817,16 +879,43 @@ def delete_schedule(request, schedule_id):
 @login_required
 def api_check_conflict(request):
     classroom_id = request.GET.get('classroom_id')
-    day = request.GET.get('day')
-    start = request.GET.get('start')
-    end = request.GET.get('end')
-    exclude_id = request.GET.get('exclude_id')
-    qs = Schedule.objects.filter(classroom_id=classroom_id, day_of_week=day,
-                                  start_time__lt=end, end_time__gt=start)
-    if exclude_id:
-        qs = qs.exclude(pk=exclude_id)
-    conflict = qs.exists()
-    return JsonResponse({'conflict': conflict})
+    teacher_id   = request.GET.get('teacher_id')
+    day          = request.GET.get('day')
+    start        = request.GET.get('start')
+    end          = request.GET.get('end')
+    exclude_id   = request.GET.get('exclude_id')
+
+    base_filter = dict(day_of_week=day, start_time__lt=end, end_time__gt=start)
+
+    # Room conflict
+    room_conflict = False
+    room_msg = ''
+    if classroom_id:
+        qs = Schedule.objects.filter(classroom_id=classroom_id, **base_filter)
+        if exclude_id:
+            qs = qs.exclude(pk=exclude_id)
+        if qs.exists():
+            room_conflict = True
+            room_msg = 'القاعة محجوزة في هذا الوقت'
+
+    # Teacher conflict
+    teacher_conflict = False
+    teacher_msg = ''
+    if teacher_id:
+        qs2 = Schedule.objects.filter(teacher_id=teacher_id, **base_filter)
+        if exclude_id:
+            qs2 = qs2.exclude(pk=exclude_id)
+        if qs2.exists():
+            teacher_conflict = True
+            teacher_msg = 'الأستاذ مجدول في وقت آخر في نفس اليوم'
+
+    return JsonResponse({
+        'conflict': room_conflict or teacher_conflict,
+        'room_conflict': room_conflict,
+        'room_msg': room_msg,
+        'teacher_conflict': teacher_conflict,
+        'teacher_msg': teacher_msg,
+    })
 
 
 # ── Courses ──────────────────────────────────────────────────────────────────
@@ -1225,6 +1314,7 @@ def export_my_courses_csv(request):
     from datetime import date
     tname = teacher.name.replace(' ', '_')[:30]
     response['Content-Disposition'] = f'attachment; filename="SHAMEL_{tname}_MyCourses_{date.today()}.csv"'
+    response.write('﻿')  # BOM for Excel Arabic compatibility
     writer = csv.writer(response)
     writer.writerow(['Course Code', 'Title', 'Day', 'Start', 'End', 'Classroom', 'Batch', 'Semester'])
     for s in schedules:
@@ -1269,7 +1359,7 @@ def teacher_attendance_report(request):
 
     data = []
     for t in teachers_qs:
-        t_sessions = [s for s in sessions_qs if s.schedule and s.schedule.teacher_id == t.id]
+        t_sessions = [s for s in sessions_qs if s.schedule and s.schedule.teacher_id == t.teacher_id]
         total_minutes = sum((s.duration_minutes or 0) for s in t_sessions)
         data.append({
             'teacher': t,
@@ -1292,6 +1382,7 @@ def export_teacher_report_csv(request):
     response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
     from datetime import date
     response['Content-Disposition'] = f'attachment; filename="SHAMEL_TeacherAttendance_Report_{date.today()}.csv"'
+    response.write('﻿')  # BOM for Excel Arabic compatibility
     writer = csv.writer(response)
     writer.writerow(['Name', 'Degree', 'Major', 'College', 'Department', 'Sessions Held'])
     for t in teachers:
@@ -1974,13 +2065,24 @@ def exam_gate_verify(request):
 @staff_member_required
 def faculty_timeline(request):
     teachers = Teacher.objects.select_related('department', 'college').order_by('name')
+    teacher_id = request.GET.get('teacher_id')
     data = []
-    for t in teachers:
-        sessions = LectureSession.objects.filter(
-            schedule__teacher=t
-        ).select_related('schedule__course').order_by('-actual_start_time')[:5]
-        data.append({'teacher': t, 'sessions': sessions})
-    return render(request, 'attendance/faculty_timeline.html', {'data': data})
+    selected_teacher = None
+    if teacher_id:
+        try:
+            selected_teacher = Teacher.objects.get(pk=teacher_id)
+            sessions = LectureSession.objects.filter(
+                schedule__teacher=selected_teacher
+            ).select_related('schedule__course').order_by('-actual_start_time')[:20]
+            data = [{'teacher': selected_teacher, 'sessions': sessions}]
+        except Teacher.DoesNotExist:
+            pass
+    return render(request, 'attendance/faculty_timeline.html', {
+        'teachers': teachers,
+        'data': data,
+        'teacher_id': int(teacher_id) if teacher_id and teacher_id.isdigit() else None,
+        'selected_teacher': selected_teacher,
+    })
 
 
 # ── API: student search ──────────────────────────────────────────────────────
@@ -2001,12 +2103,38 @@ def api_student_search(request):
 @staff_member_required
 def onboarding_wizard(request):
     if request.method == 'POST':
-        key = request.POST.get('key', '').strip()
+        action = request.POST.get('action', '')
+
+        # ── AJAX: test email connection ───────────────────────────────────
+        if action == 'test_email':
+            import smtplib, ssl
+            host     = request.POST.get('email_host', 'smtp.gmail.com')
+            port     = int(request.POST.get('email_port', 587))
+            username = request.POST.get('email_user', '')
+            password = request.POST.get('email_pass', '')
+            try:
+                ctx = ssl.create_default_context()
+                with smtplib.SMTP(host, port, timeout=8) as server:
+                    server.ehlo()
+                    server.starttls(context=ctx)
+                    if username and password:
+                        server.login(username, password)
+                return JsonResponse({'ok': True, 'message': 'تم الاتصال بالخادم بنجاح ✓'})
+            except smtplib.SMTPAuthenticationError:
+                return JsonResponse({'ok': False, 'message': 'بيانات الدخول خاطئة — تحقق من اسم المستخدم وكلمة المرور (استخدم App Password لـ Gmail)'})
+            except smtplib.SMTPConnectError:
+                return JsonResponse({'ok': False, 'message': f'تعذر الاتصال بـ {host}:{port}'})
+            except Exception as e:
+                return JsonResponse({'ok': False, 'message': f'خطأ: {str(e)[:100]}'})
+
+        # ── Normal: save config key/value ─────────────────────────────────
+        key   = request.POST.get('key', '').strip()
         value = request.POST.get('value', '').strip()
         if key:
             SystemConfig.objects.update_or_create(key=key, defaults={'value': value})
             messages.success(request, 'تم حفظ الإعداد.')
         return redirect('onboarding_wizard')
+
     configs = SystemConfig.objects.all().order_by('key')
     return render(request, 'attendance/onboarding_wizard.html', {'configs': configs})
 
@@ -2182,6 +2310,7 @@ def export_student_attendance_csv(request):
     from datetime import date
     college_f = request.GET.get('college', 'All')
     response['Content-Disposition'] = f'attachment; filename="SHAMEL_StudentAttendance_{college_f}_{date.today()}.csv"'
+    response.write('﻿')  # BOM for Excel Arabic compatibility
     writer = csv.writer(response)
     writer.writerow([
         'Student ID', 'Student Name', 'College', 'Department',
@@ -2609,7 +2738,11 @@ def edit_schedule(request, schedule_id):
         messages.error(request, 'غير مصرح.')
         return redirect('schedule')
 
-    schedule = get_object_or_404(Schedule, pk=schedule_id)
+    try:
+        schedule = Schedule.objects.get(pk=schedule_id)
+    except Schedule.DoesNotExist:
+        messages.error(request, f'الجدول رقم {schedule_id} غير موجود — تأكد من الاتصال بالسيرفر الرئيسي.')
+        return redirect('schedule')
 
     if request.method == 'POST':
         schedule.day_of_week = request.POST.get('day_of_week', schedule.day_of_week)
@@ -3022,7 +3155,15 @@ def face_login(request):
         try:
             if ',' in b64_data:
                 b64_data = b64_data.split(',')[1]
-            img_bytes = base64.b64decode(b64_data)
+            # Fix base64 padding and whitespace issues
+            b64_data = b64_data.strip().replace(' ', '+')
+            padding = 4 - len(b64_data) % 4
+            if padding != 4:
+                b64_data += '=' * padding
+            try:
+                img_bytes = base64.b64decode(b64_data)
+            except Exception:
+                return JsonResponse({'status': 'error', 'message': 'بيانات الصورة غير صالحة — أعد المحاولة'}, status=400)
 
             with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp:
                 tmp.write(img_bytes)
@@ -3031,13 +3172,15 @@ def face_login(request):
             matched_name = None
             matched_type = None
 
+            live_encoding = None
             try:
-                live_encoding = None
                 if FACE_RECOGNITION_AVAILABLE and NUMPY_AVAILABLE:
                     img_arr = face_recognition.load_image_file(tmp_path)
                     encs = face_recognition.face_encodings(img_arr)
                     if encs:
                         live_encoding = encs[0].tolist()
+            except Exception as img_err:
+                return JsonResponse({'status': 'error', 'message': 'تعذر تحليل الصورة — تأكد من وضوح الإضاءة وأن الوجه ظاهر بوضوح'})
             finally:
                 try:
                     os.unlink(tmp_path)
@@ -3045,7 +3188,7 @@ def face_login(request):
                     pass
 
             if live_encoding is None:
-                return JsonResponse({'status': 'error', 'message': 'No face detected'})
+                return JsonResponse({'status': 'error', 'message': 'لم يتم اكتشاف وجه — ضع وجهك أمام الكاميرا مباشرة'})
 
             if NUMPY_AVAILABLE and known_face_encodings:
                 matches = face_recognition.compare_faces(
@@ -3063,17 +3206,47 @@ def face_login(request):
                 })
 
             auth_user = None
-            if matched_type == 'student':
-                student = Student.objects.filter(name__icontains=matched_name).first()
-                if student and student.auth_user:
+            person_obj = None
+
+            # Search students first, then teachers
+            student = Student.objects.filter(name__icontains=matched_name).first()
+            teacher = Teacher.objects.filter(name__icontains=matched_name).first() if not student else None
+
+            if student:
+                person_obj = student
+                if student.auth_user:
                     auth_user = student.auth_user
-            else:
-                teacher = Teacher.objects.filter(name__icontains=matched_name).first()
-                if teacher and teacher.auth_user:
+                else:
+                    # Auto-create auth user and link
+                    from django.utils.text import slugify
+                    uname = slugify(matched_name.replace(' ', '_'))[:30] or f'std_{student.pk}'
+                    uname = User.objects.get_or_create(username=uname)[0].username if User.objects.filter(username=uname).exists() else uname
+                    new_u, created = User.objects.get_or_create(username=f'std_{student.pk}')
+                    if created:
+                        new_u.set_password(User.objects.make_random_password())
+                        new_u.save()
+                    student.auth_user = new_u
+                    student.save(update_fields=['auth_user'])
+                    auth_user = new_u
+
+            elif teacher:
+                person_obj = teacher
+                if teacher.auth_user:
                     auth_user = teacher.auth_user
+                else:
+                    new_u, created = User.objects.get_or_create(username=f'tchr_{teacher.pk}')
+                    if created:
+                        new_u.set_password(User.objects.make_random_password())
+                        new_u.save()
+                    teacher.auth_user = new_u
+                    teacher.save(update_fields=['auth_user'])
+                    auth_user = new_u
 
             if not auth_user:
-                return JsonResponse({'status': 'error', 'message': 'User account not linked'})
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'الوجه معروف لكن لا يوجد حساب مرتبط — راجع الإدارة لربط حسابك'
+                })
 
             auth_login(request, auth_user, backend='django.contrib.auth.backends.ModelBackend')
 
@@ -3091,7 +3264,9 @@ def face_login(request):
             return JsonResponse({'status': 'success', 'redirect': redirect_url, 'name': matched_name})
 
         except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+            import logging
+            logging.getLogger('attendance').error('face_login error: %s', e, exc_info=True)
+            return JsonResponse({'status': 'error', 'message': 'حدث خطأ غير متوقع — أعد المحاولة أو استخدم كلمة المرور'})
 
     return JsonResponse({'status': 'error'}, status=400)
 
@@ -3199,6 +3374,7 @@ def export_coordinator_students_csv(request):
     from datetime import date
     college_name = coordinator.college.college_name.replace(' ', '_')[:25] if coordinator.college else 'College'
     response['Content-Disposition'] = f'attachment; filename="SHAMEL_{college_name}_Students_{date.today()}.csv"'
+    response.write('﻿')  # BOM for Excel Arabic compatibility
     writer = csv.writer(response)
     writer.writerow(['Student ID', 'Name', 'Batch', 'Registered', 'Phone', 'Email'])
     for s in students:

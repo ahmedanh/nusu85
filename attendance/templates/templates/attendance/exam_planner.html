@@ -55,10 +55,10 @@
                   <span class="material-symbols-outlined text-lg">shuffle</span>
                 </button>
               </form>
-              <a href="{% url 'exam_seating_chart' exam.id %}" class="text-xs font-bold text-slate-500 hover:text-slate-700" title="خريطة المقاعد">
+              <a href="{% url 'exam_seating_chart' %}?exam_id={{ exam.id }}" class="text-xs font-bold text-slate-500 hover:text-slate-700" title="خريطة المقاعد">
                 <span class="material-symbols-outlined text-lg">grid_view</span>
               </a>
-              <a href="{% url 'exam_gate_verify' exam.id %}" class="text-xs font-bold text-emerald-600 hover:text-emerald-700" title="بوابة التحقق">
+              <a href="{% url 'exam_gate_verify' %}?exam_id={{ exam.id }}" class="text-xs font-bold text-emerald-600 hover:text-emerald-700" title="بوابة التحقق">
                 <span class="material-symbols-outlined text-lg">how_to_reg</span>
               </a>
               <form method="post" class="inline" onsubmit="return confirm('حذف هذا الامتحان؟')">{% csrf_token %}

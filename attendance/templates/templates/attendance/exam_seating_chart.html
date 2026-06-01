@@ -54,7 +54,7 @@
 
   <div class="flex items-center justify-between text-sm text-slate-500">
     <span>إجمالي المقاعد: <strong class="text-slate-900 dark:text-white">{{ seats|length }}</strong></span>
-    <a href="{% url 'exam_gate_verify' exam.id %}" class="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-5 py-2.5 rounded-xl transition-all">
+    <a href="{% url 'exam_gate_verify' %}?exam_id={{ exam.id }}" class="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-5 py-2.5 rounded-xl transition-all">
       <span class="material-symbols-outlined text-base">how_to_reg</span> فتح بوابة التحقق
     </a>
   </div>
