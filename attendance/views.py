@@ -1953,7 +1953,10 @@ def export_analytics_pdf(request):
 
 @login_required
 def export_grades_pdf(request):
-    student = get_object_or_404(Student, auth_user=request.user)
+    student = Student.objects.filter(auth_user=request.user).first()
+    if not student:
+        messages.info(request, 'كشف الدرجات متاح لحسابات الطلاب فقط.')
+        return redirect('reports_view' if (request.user.is_staff or request.user.is_superuser) else 'home')
     grades = Grade.objects.filter(student=student).select_related('course')
     html = render(request, 'attendance/reports/grades_pdf.html', {
         'student': student, 'grades': grades,
@@ -3051,11 +3054,16 @@ def edit_student(request, student_id):
         nat_choice  = request.POST.get('nationality_choice', 'Sudan')
         nationality = 'Sudan' if nat_choice == 'Sudan' else request.POST.get('nationality_text', '').strip()
         blood_type  = request.POST.get('blood_type', '').strip()
-        from django.db import connection as _c
-        _c.cursor().execute(
-            'UPDATE attendance_student SET nationality=%s, blood_type=%s WHERE id=%s',
-            [nationality or None, blood_type or None, student.pk]
-        )
+        # nationality/blood_type exist on the VPS schema but not on the local
+        # SQLite fallback — degrade gracefully instead of 500.
+        from django.db import connection as _c, OperationalError, ProgrammingError
+        try:
+            _c.cursor().execute(
+                'UPDATE attendance_student SET nationality=%s, blood_type=%s WHERE id=%s',
+                [nationality or None, blood_type or None, student.pk]
+            )
+        except (OperationalError, ProgrammingError):
+            pass
         if student.auth_user:
             student.auth_user.email = student.university_email or student.auth_user.email
             student.auth_user.save(update_fields=['email'])
@@ -3066,13 +3074,19 @@ def edit_student(request, student_id):
                    if (coordinator and not is_admin)
                    else Department.objects.select_related('college').all())
     colleges = College.objects.all() if is_admin else College.objects.none()
-    # Fetch nationality/blood_type from DB
-    from django.db import connection as _c
-    cur = _c.cursor()
-    cur.execute('SELECT nationality, blood_type FROM attendance_student WHERE id=%s', [student.pk])
-    row = cur.fetchone()
-    student.nationality = row[0] if row else ''
-    student.blood_type  = row[1] if row else ''
+    # Fetch nationality/blood_type from DB (VPS-only columns — safe fallback)
+    from django.db import connection as _c, OperationalError, ProgrammingError
+    student.nationality = ''
+    student.blood_type  = ''
+    try:
+        cur = _c.cursor()
+        cur.execute('SELECT nationality, blood_type FROM attendance_student WHERE id=%s', [student.pk])
+        row = cur.fetchone()
+        if row:
+            student.nationality = row[0] or ''
+            student.blood_type  = row[1] or ''
+    except (OperationalError, ProgrammingError):
+        pass
     return render(request, 'attendance/edit_student.html', {
         'student': student, 'departments': departments, 'colleges': colleges,
         'is_admin': is_admin, 'coordinator': coordinator,
@@ -3120,11 +3134,14 @@ def edit_teacher(request, teacher_id):
         blood_type  = request.POST.get('blood_type', '').strip()
         nat_choice  = request.POST.get('nationality_choice', 'Sudan')
         nationality = 'Sudan' if nat_choice == 'Sudan' else request.POST.get('nationality_text', '').strip()
-        from django.db import connection as _c
-        _c.cursor().execute(
-            'UPDATE attendance_teacher SET blood_type=%s WHERE teacher_id=%s',
-            [blood_type or None, teacher.pk]
-        )
+        from django.db import connection as _c, OperationalError, ProgrammingError
+        try:
+            _c.cursor().execute(
+                'UPDATE attendance_teacher SET blood_type=%s WHERE teacher_id=%s',
+                [blood_type or None, teacher.pk]
+            )
+        except (OperationalError, ProgrammingError):
+            pass
         messages.success(request, 'تم تحديث بيانات الأستاذ.')
         return redirect('teacher_detail', teacher_id=teacher.pk)
 
@@ -3132,12 +3149,16 @@ def edit_teacher(request, teacher_id):
     departments = (Department.objects.filter(college=coordinator.college)
                    if (coordinator and not is_admin)
                    else Department.objects.select_related('college').all())
-    # Fetch blood_type from DB
-    from django.db import connection as _c
-    cur = _c.cursor()
-    cur.execute('SELECT blood_type FROM attendance_teacher WHERE teacher_id=%s', [teacher.pk])
-    row = cur.fetchone()
-    teacher.blood_type  = row[0] if row else ''
+    # Fetch blood_type from DB (VPS-only column — safe fallback)
+    from django.db import connection as _c, OperationalError, ProgrammingError
+    teacher.blood_type = ''
+    try:
+        cur = _c.cursor()
+        cur.execute('SELECT blood_type FROM attendance_teacher WHERE teacher_id=%s', [teacher.pk])
+        row = cur.fetchone()
+        teacher.blood_type = (row[0] or '') if row else ''
+    except (OperationalError, ProgrammingError):
+        pass
     teacher.nationality = 'Sudan'  # teachers default to Sudan
     return render(request, 'attendance/edit_teacher.html', {
         'teacher': teacher, 'colleges': colleges, 'departments': departments,

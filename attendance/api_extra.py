@@ -266,39 +266,48 @@ def attendance_logs(request):
 @api_auth
 @require_http_methods(['GET'])
 def gate_logs(request):
+    from django.db import OperationalError, ProgrammingError
     from .models import GateLog
-    rows, total, offset = _page(
-        GateLog.objects.order_by('-timestamp'), request)
-    data = [{'id': g.id, 'person': g.person_name, 'status': g.status,
-             'timestamp': g.timestamp.isoformat() if g.timestamp else None} for g in rows]
-    return JsonResponse({'ok': True, 'total': total, 'count': len(data), 'logs': data})
+    try:
+        rows, total, _ = _page(GateLog.objects.order_by('-timestamp'), request)
+        data = [{'id': g.id, 'person': g.person_name, 'status': g.status,
+                 'timestamp': g.timestamp.isoformat() if g.timestamp else None} for g in rows]
+        return JsonResponse({'ok': True, 'total': total, 'count': len(data), 'logs': data})
+    except (OperationalError, ProgrammingError):
+        return JsonResponse({'ok': True, 'total': 0, 'count': 0, 'logs': [], 'unavailable': True})
 
 
 # ── Audit log (staff) ──────────────────────────────────────────────────────
 @api_staff
 @require_http_methods(['GET'])
 def audit_log(request):
+    from django.db import OperationalError, ProgrammingError
     from .models import AuditLog
-    rows, total, offset = _page(
-        AuditLog.objects.select_related('user').order_by('-timestamp'), request)
-    data = [{'id': a.id, 'user': a.user.username if a.user else None,
-             'action': a.action, 'target': a.target_model, 'description': a.description,
-             'timestamp': a.timestamp.isoformat() if a.timestamp else None} for a in rows]
-    return JsonResponse({'ok': True, 'total': total, 'count': len(data), 'entries': data})
+    try:
+        rows, total, _ = _page(AuditLog.objects.select_related('user').order_by('-timestamp'), request)
+        data = [{'id': a.id, 'user': a.user.username if a.user else None,
+                 'action': a.action, 'target': a.target_model, 'description': a.description,
+                 'timestamp': a.timestamp.isoformat() if a.timestamp else None} for a in rows]
+        return JsonResponse({'ok': True, 'total': total, 'count': len(data), 'entries': data})
+    except (OperationalError, ProgrammingError):
+        return JsonResponse({'ok': True, 'total': 0, 'count': 0, 'entries': [], 'unavailable': True})
 
 
 # ── Exams ──────────────────────────────────────────────────────────────────
 @api_auth
 @require_http_methods(['GET'])
 def exams(request):
+    from django.db import OperationalError, ProgrammingError
     from .models import Exam
-    rows, total, offset = _page(
-        Exam.objects.select_related('course', 'classroom').order_by('-date'), request)
-    data = [{'id': e.id, 'course': getattr(e.course, 'title', None), 'type': e.exam_type,
-             'date': str(e.date) if e.date else None, 'start': str(e.start_time),
-             'end': str(e.end_time), 'classroom': getattr(e.classroom, 'name', None),
-             'semester': e.semester} for e in rows]
-    return JsonResponse({'ok': True, 'total': total, 'count': len(data), 'exams': data})
+    try:
+        rows, total, _ = _page(Exam.objects.select_related('course', 'classroom').order_by('-date'), request)
+        data = [{'id': e.id, 'course': getattr(e.course, 'title', None), 'type': e.exam_type,
+                 'date': str(e.date) if e.date else None, 'start': str(e.start_time),
+                 'end': str(e.end_time), 'classroom': getattr(e.classroom, 'name', None),
+                 'semester': e.semester} for e in rows]
+        return JsonResponse({'ok': True, 'total': total, 'count': len(data), 'exams': data})
+    except (OperationalError, ProgrammingError):
+        return JsonResponse({'ok': True, 'total': 0, 'count': 0, 'exams': [], 'unavailable': True})
 
 
 # ── Global search ──────────────────────────────────────────────────────────
