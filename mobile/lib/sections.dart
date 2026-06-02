@@ -4,6 +4,7 @@ import 'screens/resource_list_screen.dart';
 import 'screens/detail_screens.dart';
 import 'screens/create_screens.dart';
 import 'screens/attendance_logs_screen.dart';
+import 'screens/schedule_screen.dart';
 
 /// A navigable section: a label + icon + a builder for its screen.
 class Section {
@@ -112,8 +113,12 @@ Section _tickets() => Section('البلاغات والدعم', Icons.support_age
       titleOf: (m) => _s(m, 'subject'),
       subtitleOf: (m) => '${_s(m, 'user')} • ${_s(m, 'priority')}',
       trailingOf: (m) => _s(m, 'status'),
+      onTap: (ctx, m) => Navigator.push(ctx, MaterialPageRoute(
+          builder: (_) => TicketDetailScreen(ticketId: m['id'] as int))),
       fab: const _AddFab(CreateTicketScreen()),
     ));
+
+Section _schedule() => Section('الجدول الدراسي', Icons.calendar_month_outlined, () => const ScheduleScreen());
 
 Section _deanEval() => Section('تقييمات العميد', Icons.star_outline, () => ResourceListScreen(
       title: 'تقييمات المقررات', endpoint: '/api/v1/dean-evaluations', listKey: 'evaluations',
@@ -163,14 +168,14 @@ List<SectionGroup> sectionsFor(String role) {
   switch (role) {
     case 'admin':
       return [
-        SectionGroup('الإدارة', [_teachers(), _students(), _courses(), _classrooms(), _departments()]),
+        SectionGroup('الإدارة', [_teachers(), _students(), _courses(), _classrooms(), _departments(), _schedule()]),
         SectionGroup('العمليات', [_classroomStatus(), _attendanceLogs(), _gateLogs(), _gateReports(), _exams(), _teacherTimeline()]),
         SectionGroup('الأكاديمي', [_grades(), _excuses(), _deanEval()]),
         SectionGroup('النظام', [_tickets(), _auditLog(), _search(), _settings()]),
       ];
     case 'coordinator':
       return [
-        SectionGroup('الإدارة', [_coordStudents(), _teachers(), _courses(), _classrooms()]),
+        SectionGroup('الإدارة', [_coordStudents(), _teachers(), _courses(), _classrooms(), _schedule()]),
         SectionGroup('العمليات', [_attendanceLogs(), _exams()]),
         SectionGroup('الأكاديمي', [_grades(), _excuses()]),
         SectionGroup('النظام', [_tickets(), _search(), _settings()]),

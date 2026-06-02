@@ -126,6 +126,67 @@ class _Card extends StatelessWidget {
       );
 }
 
+// ── Ticket detail (view subject/body/status + admin reply) ─────────────────
+class TicketDetailScreen extends StatelessWidget {
+  final int ticketId;
+  const TicketDetailScreen({super.key, required this.ticketId});
+
+  Color _statusColor(String s) {
+    final l = s.toLowerCase();
+    if (l.contains('open')) return ShamelColors.warning;
+    if (l.contains('closed') || l.contains('resolved')) return ShamelColors.success;
+    return ShamelColors.roleTeacher;
+  }
+
+  @override
+  Widget build(BuildContext context) => _DetailScaffold(
+        title: 'تفاصيل البلاغ', dataKey: 'ticket',
+        future: Api.getJson('/api/v1/tickets/$ticketId'),
+        body: (d) {
+          final status = '${d['status'] ?? ''}';
+          return [
+            Row(children: [
+              Expanded(child: Text('${d['subject'] ?? ''}',
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: ShamelColors.primary))),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(color: _statusColor(status).withValues(alpha: 0.12), borderRadius: BorderRadius.circular(20)),
+                child: Text(status, style: TextStyle(color: _statusColor(status), fontSize: 12, fontWeight: FontWeight.w700)),
+              ),
+            ]),
+            const SizedBox(height: 6),
+            Text('${d['user'] ?? ''} • أولوية: ${d['priority'] ?? ''}',
+                style: const TextStyle(color: ShamelColors.secondary, fontSize: 12)),
+            const SizedBox(height: 16),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white, borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFE8EAED)),
+              ),
+              child: Text('${d['body'] ?? ''}', style: const TextStyle(color: ShamelColors.onSurface, height: 1.5)),
+            ),
+            if ('${d['reply'] ?? ''}'.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              const Text('رد الإدارة', style: TextStyle(fontWeight: FontWeight.w800, color: ShamelColors.primary)),
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: ShamelColors.success.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: ShamelColors.success.withValues(alpha: 0.3)),
+                ),
+                child: Text('${d['reply']}', style: const TextStyle(color: ShamelColors.onSurface, height: 1.5)),
+              ),
+            ],
+          ];
+        },
+      );
+}
+
 // ── Global search ────────────────────────────────────────────────────────
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
