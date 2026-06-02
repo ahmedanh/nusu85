@@ -148,7 +148,7 @@ tailwind = {
     border: 1.5px solid #D0D7E8 !important;
     border-radius: 10px;
   }
-  input::placeholder, textarea::placeholder { color: #9BA8C5 !important; }
+  input::placeholder, textarea::placeholder { color: #64748B !important; }
   input:focus:not([type="checkbox"]):not([type="radio"]),
   select:focus, textarea:focus {
     border-color: #C9A227 !important;
@@ -227,6 +227,11 @@ tailwind = {
     transition: all .2s;
   }
   .btn-navy:hover { background: #0d2f5e; }
+
+  /* CONTRAST FLOOR — ensure muted/secondary text stays readable (WCAG AA) */
+  .text-slate-400 { color:#64748B; }            /* light mode: slate-400 -> slate-500 */
+  .dark .text-slate-400 { color:#94A3B8; }      /* dark mode keeps lighter for contrast */
+  .text-slate-300 { color:#94A3B8; }
 </style>
 </head>
 
@@ -830,6 +835,65 @@ function toggleTheme() {
 
 // ── Arabic translation dictionary ────────────
 const AR = {
+  'Chancellor Control Panel':'لوحة تحكم المستشار',
+  'Registered Students':'الطلاب المسجّلون',
+  'Active Faculty Members':'أعضاء هيئة التدريس النشطون',
+  'Face Recognition Accuracy':'دقة التعرف على الوجه',
+  'Faculty Session Summary':'ملخص جلسات الأساتذة',
+  'Teacher Attendance Report':'تقرير حضور الأساتذة',
+  'Attendance Report':'تقرير الحضور',
+  'Room Status':'حالة القاعات',
+  'Room Availability':'توفر القاعات',
+  'Open Tickets':'التذاكر المفتوحة',
+  'Session Control':'التحكم بالجلسة',
+  'Stop Session':'إيقاف الجلسة',
+  'No Active Session':'لا توجد جلسة نشطة',
+  'No more sessions today':'لا مزيد من الجلسات اليوم',
+  'Upcoming Next':'التالي قادم',
+  'Started':'بدأت',
+  'Live':'مباشر',
+  'System Online':'النظام متصل',
+  'System Standby':'النظام في وضع الاستعداد',
+  'All Clear':'كل شيء سليم',
+  'At Risk':'في خطر',
+  'Low Attendance Warnings':'تحذيرات انخفاض الحضور',
+  'Verified':'موثّق',
+  'Verified Students Present':'الطلاب الموثّقون الحاضرون',
+  'Not checked in':'لم يسجّل دخوله',
+  'Sessions Held':'الجلسات المنعقدة',
+  'Sessions held by faculty members':'الجلسات التي عقدها الأساتذة',
+  'Total Sessions':'إجمالي الجلسات',
+  'Total Minutes':'إجمالي الدقائق',
+  'Teacher Name':'اسم الأستاذ',
+  'From Date':'من تاريخ',
+  'To Date':'إلى تاريخ',
+  'Training Progress':'تقدّم التدريب',
+  'Register New User':'تسجيل مستخدم جديد',
+  'Registration Form':'نموذج التسجيل',
+  'User Type':'نوع المستخدم',
+  'Full Name':'الاسم الكامل',
+  'Initial Password':'كلمة المرور المبدئية',
+  'Department / Specialization':'القسم / التخصص',
+  'Major / Specialization':'التخصص',
+  'Academic Details':'التفاصيل الأكاديمية',
+  'Student Details':'تفاصيل الطالب',
+  'Current Semester':'الفصل الحالي',
+  'Faculty':'الكلية',
+  'Faculty Report':'تقرير الكلية',
+  'Student Report':'تقرير الطالب',
+  'Gate Logs':'سجلات البوابة',
+  'Export Courses':'تصدير المقررات',
+  'Timetables':'الجداول الزمنية',
+  'Attendance':'الحضور',
+  'Professor':'أستاذ',
+  'Associate Professor':'أستاذ مشارك',
+  'Member':'عضو',
+  'Section':'الشعبة',
+  'Teaching staff':'هيئة التدريس',
+  'Enrolled in your college':'مسجّل في كليتك',
+  'Busy':'مشغولة',
+  'Free':'متاحة',
+  'Missing':'مفقود',
   // Page titles / headings
   'Faculty Management':'إدارة الكليات','Professor Dashboard':'لوحة الأستاذ',
   'Teacher Dashboard':'لوحة الأستاذ','Admin Control Panel':'لوحة التحكم',
@@ -953,21 +1017,25 @@ function applyLang(lang) {
   // Translate text nodes in headings, labels, buttons, table headers
   // that are NOT already handled by data-en/data-ar
   if (lang === 'ar') {
-    const selectors = 'h1,h2,h3,h4,th,label,button,a.nav-link,.page-title,'+
-      '.stat-label,.card-title,.section-title,p.text-xs.font-bold,'+
-      'p.text-sm.font-semibold,span.font-bold,span.font-semibold,'+
-      'td.font-semibold,td.font-bold,.badge,.chip';
-    document.querySelectorAll(selectors).forEach(el => {
-      if (el.closest('[data-en]')) return; // skip if inside explicit bilingual block
-      if (el.children.length > 3) return;  // skip complex elements
+    // Comprehensive leaf-node translation: walk every text-bearing element
+    // whose trimmed text exactly matches a dictionary entry. Leaf-only
+    // (no element children) keeps it safe — we never touch layout containers.
+    const scope = 'h1,h2,h3,h4,h5,h6,p,span,th,td,label,button,a,li,small,strong,b,div,option';
+    document.querySelectorAll(scope).forEach(el => {
+      if (el.closest('[data-en]')) return;           // explicit bilingual block
+      if (el.children.length > 0) return;            // leaf nodes only
       const txt = el.textContent.trim();
-      if (AR[txt]) el.setAttribute('data-orig-text', txt) || (el.textContent = AR[txt]);
-      // Also handle template buttons/links by full text
-      if (!AR[txt]) {
-        // Try partial match for compound labels like "Add New Teacher"
-        for (const [en, ar] of Object.entries(AR)) {
-          if (txt === en) { el.textContent = ar; break; }
-        }
+      if (txt && AR[txt]) {
+        if (!el.hasAttribute('data-orig-text')) el.setAttribute('data-orig-text', el.textContent);
+        el.textContent = el.textContent.replace(txt, AR[txt]);
+      }
+    });
+    // Translate placeholders too (search bars, inputs)
+    document.querySelectorAll('input[placeholder],textarea[placeholder]').forEach(el => {
+      const p = el.getAttribute('placeholder').trim();
+      if (AR[p]) {
+        if (!el.hasAttribute('data-orig-ph')) el.setAttribute('data-orig-ph', el.getAttribute('placeholder'));
+        el.setAttribute('placeholder', AR[p]);
       }
     });
     // Also translate page <title>
@@ -982,10 +1050,14 @@ function applyLang(lang) {
       }
     }
   } else {
-    // Restore original text if we stored it
+    // Restore original English text + placeholders
     document.querySelectorAll('[data-orig-text]').forEach(el => {
       el.textContent = el.getAttribute('data-orig-text');
       el.removeAttribute('data-orig-text');
+    });
+    document.querySelectorAll('[data-orig-ph]').forEach(el => {
+      el.setAttribute('placeholder', el.getAttribute('data-orig-ph'));
+      el.removeAttribute('data-orig-ph');
     });
   }
 

@@ -110,6 +110,11 @@ tailwind.config = {
   ::-webkit-scrollbar-track { background:transparent; }
   ::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:9999px; }
   .dark ::-webkit-scrollbar-thumb { background:#334155; }
+
+  /* CONTRAST FLOOR — ensure muted/secondary text stays readable (WCAG AA) */
+  .text-slate-400 { color:#64748B; }            /* light mode: slate-400 -> slate-500 */
+  .dark .text-slate-400 { color:#94A3B8; }      /* dark mode keeps lighter for contrast */
+  .text-slate-300 { color:#94A3B8; }
 </style>
 </head>
 
