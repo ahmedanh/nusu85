@@ -38,4 +38,15 @@ class CloseOldConnectionsMiddleware:
             if user is not None and getattr(user, 'pk', None):
                 cache.set(cache_key, user, SESSION_CACHE_TTL)
 
+        # ── Force fresh HTML ─────────────────────────────────────────────
+        # Dynamic, per-user pages must NOT be cached by the browser (no header
+        # = heuristic caching → users see stale UI after we ship template/JS/CSS
+        # changes). Force revalidation on every HTML navigation. Static assets
+        # (handled by WhiteNoise) keep their own long-cache headers.
+        ctype = response.get('Content-Type', '')
+        if ctype.startswith('text/html'):
+            response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+            response['Pragma'] = 'no-cache'
+            response['Expires'] = '0'
+
         return response

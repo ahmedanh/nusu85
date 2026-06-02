@@ -3852,25 +3852,35 @@ def pwa_sw(request):
     import os, subprocess
     from django.conf import settings
 
-    # Dynamic version = git short hash (changes on every deploy automatically)
+    # Dynamic version = git short hash; fall back to the sw.js file mtime so the
+    # version bumps whenever the worker changes even without git. This forces the
+    # browser to install the new SW (which purges old caches) on every change.
+    import re as _re
+    sw_path = os.path.join(settings.BASE_DIR, 'attendance', 'static', 'pwa', 'sw.js')
     try:
         version = subprocess.check_output(
             ['git', 'rev-parse', '--short', 'HEAD'],
             cwd=settings.BASE_DIR, stderr=subprocess.DEVNULL
         ).decode().strip()
     except Exception:
-        from datetime import date
-        version = date.today().strftime('%Y%m%d')
+        version = ''
+    try:
+        version = f"{version}-{int(os.path.getmtime(sw_path))}"
+    except Exception:
+        from datetime import datetime
+        version = version or datetime.now().strftime('%Y%m%d%H%M%S')
 
-    sw_path = os.path.join(settings.BASE_DIR, 'attendance', 'static', 'pwa', 'sw.js')
     with open(sw_path, 'r', encoding='utf-8') as f:
         content = f.read()
 
-    # Replace the static version string with the live one
-    content = content.replace("const VERSION      = 'shamel-v1.0';",
-                              f"const VERSION      = 'shamel-{version}';")
+    # Robustly replace whatever the hard-coded VERSION line is with the live one
+    # (regex tolerates any spacing / current version string).
+    content = _re.sub(r"const\s+VERSION\s*=\s*'[^']*';",
+                      f"const VERSION = 'shamel-{version}';", content, count=1)
 
-    return HttpResponse(content, content_type='application/javascript; charset=utf-8')
+    resp = HttpResponse(content, content_type='application/javascript; charset=utf-8')
+    resp['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    return resp
 
 
 @require_GET
