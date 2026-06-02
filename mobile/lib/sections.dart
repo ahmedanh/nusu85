@@ -118,7 +118,13 @@ Section _tickets() => Section('البلاغات والدعم', Icons.support_age
       fab: const _AddFab(CreateTicketScreen()),
     ));
 
-Section _schedule() => Section('الجدول الدراسي', Icons.calendar_month_outlined, () => const ScheduleScreen());
+// ScheduleScreen is a bare tab body (no Scaffold). When opened from the drawer
+// it needs its own Scaffold+AppBar so it gets a back button.
+Section _schedule() => Section('الجدول الدراسي', Icons.calendar_month_outlined,
+    () => Scaffold(
+          appBar: AppBar(title: const Text('الجدول الدراسي', style: TextStyle(fontWeight: FontWeight.w800))),
+          body: const ScheduleScreen(),
+        ));
 
 Section _deanEval() => Section('تقييمات العميد', Icons.star_outline, () => ResourceListScreen(
       title: 'تقييمات المقررات', endpoint: '/api/v1/dean-evaluations', listKey: 'evaluations',

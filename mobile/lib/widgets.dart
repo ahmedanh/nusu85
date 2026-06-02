@@ -125,6 +125,7 @@ class SkeletonList extends StatelessWidget {
       child: ListView.builder(
         padding: const EdgeInsets.all(12),
         physics: const NeverScrollableScrollPhysics(),
+        shrinkWrap: true,
         itemCount: count,
         itemBuilder: (_, __) => Container(
           margin: const EdgeInsets.only(bottom: 8),
