@@ -1,11 +1,11 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <meta name="csrf-token" content="{{ csrf_token }}"/>
-<title>Sign In — SHAMEL Portal</title>
+<title>تسجيل الدخول — بوابة SHAMEL</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="{% static 'fonts/fonts.css' %}" rel="stylesheet"/>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0&display=block"/>
@@ -236,8 +236,8 @@ tailwind.config = {
 
       <!-- Page heading -->
       <div class="mb-8">
-        <h1 class="text-3xl font-extrabold font-headline" style="color:#0B2545;">Welcome back</h1>
-        <p class="text-sm mt-1.5" style="color:#6B7FA3;">Sign in to access your academic portal.</p>
+        <h1 class="text-3xl font-extrabold font-headline" style="color:#0B2545;">مرحباً بعودتك</h1>
+        <p class="text-sm mt-1.5" style="color:#6B7FA3;">سجّل الدخول للوصول إلى بوابتك الأكاديمية.</p>
       </div>
 
       <!-- Error alert -->
@@ -252,11 +252,11 @@ tailwind.config = {
       <!-- ── PRIMARY: Face ID — Gold CTA ── -->
       <a href="{% url 'face_login' %}" class="btn-gold mb-4" style="text-decoration:none">
         <span class="material-symbols-outlined" style="font-size:22px">face</span>
-        Sign in with Face ID
+        تسجيل الدخول ببصمة الوجه
       </a>
 
       <p class="text-center text-xs mb-5 font-medium" style="color:#5B6B8C;">
-        Recommended — use your enrolled face to sign in instantly.
+        موصى به — استخدم وجهك المسجّل لتسجيل الدخول فوراً.
       </p>
 
       <!-- Divider -->
@@ -274,7 +274,7 @@ tailwind.config = {
             University ID or Email
           </label>
           <input name="username" type="text" required autocomplete="username"
-            placeholder="Enter your username or email" class="field"/>
+            placeholder="أدخل اسم المستخدم أو البريد" class="field"/>
         </div>
 
         <!-- Password -->
@@ -284,7 +284,7 @@ tailwind.config = {
           </label>
           <div class="relative">
             <input name="password" id="pw" type="password" required autocomplete="current-password"
-              placeholder="Enter your password" class="field" style="padding-right:46px"/>
+              placeholder="أدخل كلمة المرور" class="field" style="padding-right:46px"/>
             <button type="button" class="eye-btn" onclick="togglePw()" aria-label="Toggle password visibility">
               <span id="eye-icon" class="material-symbols-outlined" style="font-size:20px">visibility</span>
             </button>
@@ -294,7 +294,7 @@ tailwind.config = {
         <!-- Submit — Navy button -->
         <button type="submit" id="submit-btn" class="btn-navy-outline" style="margin-top:8px; background:#0B2545; color:#fff; border-color:#0B2545;">
           <span class="material-symbols-outlined" style="font-size:20px">login</span>
-          Sign In
+          تسجيل الدخول
         </button>
       </form>
 
@@ -302,7 +302,7 @@ tailwind.config = {
       <div class="mt-8 flex items-center justify-between">
         <div class="flex items-center gap-2">
           <span class="w-2 h-2 rounded-full bg-emerald-400 status-dot inline-block"></span>
-          <span class="text-xs font-medium" style="color:#5B6B8C;">System Online</span>
+          <span class="text-xs font-medium" style="color:#5B6B8C;">النظام متصل</span>
         </div>
         <span class="text-xs font-medium" style="color:#5B6B8C;">SHAMEL v4.2</span>
       </div>

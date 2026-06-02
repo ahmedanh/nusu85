@@ -1,31 +1,42 @@
 import 'package:flutter/material.dart';
 
-/// SHAMEL design tokens — mirrored exactly from the web system's Tailwind config.
+/// SHAMEL design tokens — high-contrast academic palette (light + dark).
 class ShamelColors {
-  static const primary           = Color(0xFF051125); // deep navy
-  static const primaryContainer  = Color(0xFF1B263B);
-  static const navy              = Color(0xFF0B2545);
-  static const gold              = Color(0xFFCBA135); // brand gold accent
-  static const goldLight         = Color(0xFFE3C766);
-  static const secondary         = Color(0xFF5A5E69);
-  static const secondaryContainer= Color(0xFFDCDFEC);
-  static const surface           = Color(0xFFF8F9FA);
-  static const surfaceContainer  = Color(0xFFEDEEEF);
-  static const onSurface         = Color(0xFF191C1D);
-  static const onSurfaceVariant  = Color(0xFF45474D);
-  static const outline           = Color(0xFF75777D);
-  static const outlineVariant    = Color(0xFFC5C6CD);
-  static const error             = Color(0xFFBA1A1A);
-  static const errorContainer    = Color(0xFFFFDAD6);
-  static const success           = Color(0xFF15803D);
-  static const warning           = Color(0xFFB45309);
+  // ── Light mode ──────────────────────────────────────────────────────────
+  static const primary           = Color(0xFF1E3A8A); // academic blue
+  static const primaryContainer  = Color(0xFF1B2B5E);
+  static const navy              = Color(0xFF1E3A8A);
+  static const gold              = Color(0xFFF59E0B); // amber accent
+  static const goldLight         = Color(0xFFFBBF24);
+  static const secondary         = Color(0xFF475569); // sub-text
+  static const secondaryContainer= Color(0xFFE2E8F0);
+  static const surface           = Color(0xFFF8FAFC); // page background
+  static const surfaceContainer  = Color(0xFFEEF2F7);
+  static const onSurface         = Color(0xFF0F172A); // headings
+  static const onSurfaceVariant  = Color(0xFF475569);
+  static const outline           = Color(0xFF64748B);
+  static const outlineVariant    = Color(0xFFCBD5E1);
+  static const error             = Color(0xFFEF4444);
+  static const errorContainer    = Color(0xFFFEE2E2);
+  static const success           = Color(0xFF10B981);
+  static const warning           = Color(0xFFF59E0B);
 
-  // role accent colors (match web role badges)
-  static const roleAdmin       = Color(0xFFDC3232);
-  static const roleTeacher     = Color(0xFF3296DC);
-  static const roleStudent     = Color(0xFF32B464);
-  static const roleCoordinator = Color(0xFFB464DC);
-  static const roleGate        = Color(0xFF787878);
+  // ── Dark mode ───────────────────────────────────────────────────────────
+  static const dPrimary          = Color(0xFF60A5FA); // readable on dark
+  static const dGold             = Color(0xFFFBBF24);
+  static const dBackground       = Color(0xFF0F172A); // near-black navy
+  static const dSurface          = Color(0xFF1E293B); // cards
+  static const dOnSurface        = Color(0xFFF8FAFC); // headings
+  static const dOnSurfaceVariant = Color(0xFF94A3B8); // sub-text
+  static const dSuccess          = Color(0xFF34D399);
+  static const dError            = Color(0xFFF87171);
+
+  // role accent colors (badges)
+  static const roleAdmin       = Color(0xFFEF4444);
+  static const roleTeacher     = Color(0xFF3B82F6);
+  static const roleStudent     = Color(0xFF10B981);
+  static const roleCoordinator = Color(0xFF8B5CF6);
+  static const roleGate        = Color(0xFF64748B);
 }
 
 class ShamelTheme {
@@ -116,5 +127,41 @@ class ShamelTheme {
       case 'gate': return 'بوابة';
       default: return role;
     }
+  }
+
+  /// Dark theme using the high-contrast dark palette.
+  static ThemeData dark() {
+    final base = ThemeData.dark(useMaterial3: true);
+    return base.copyWith(
+      scaffoldBackgroundColor: ShamelColors.dBackground,
+      colorScheme: ColorScheme.fromSeed(
+        brightness: Brightness.dark,
+        seedColor: ShamelColors.dPrimary,
+        primary: ShamelColors.dPrimary,
+        secondary: ShamelColors.dGold,
+        surface: ShamelColors.dSurface,
+        error: ShamelColors.dError,
+      ),
+      cardTheme: CardThemeData(
+        color: ShamelColors.dSurface,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Color(0xFF334155)),
+        ),
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: ShamelColors.dBackground,
+        foregroundColor: ShamelColors.dOnSurface,
+        elevation: 0,
+      ),
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: ShamelColors.dSurface,
+        selectedItemColor: ShamelColors.dPrimary,
+        unselectedItemColor: ShamelColors.dOnSurfaceVariant,
+        type: BottomNavigationBarType.fixed,
+        showUnselectedLabels: true,
+      ),
+    );
   }
 }

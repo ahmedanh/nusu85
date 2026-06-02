@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../auth.dart';
 import '../theme.dart';
+import '../theme_controller.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -72,6 +73,26 @@ class ProfileScreen extends StatelessWidget {
             if (u['batch'] != null) ...[const Divider(height: 1), row('الدفعة', u['batch'])],
           ]),
         ),
+        const SizedBox(height: 16),
+        // ── Dark mode toggle ──
+        Builder(builder: (ctx) {
+          final tc = ctx.watch<ThemeController>();
+          return Container(
+            decoration: BoxDecoration(
+              color: Theme.of(ctx).cardColor,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE8EAED)),
+            ),
+            child: SwitchListTile(
+              value: tc.isDark,
+              onChanged: (_) => ctx.read<ThemeController>().toggle(),
+              activeThumbColor: ShamelColors.gold,
+              secondary: Icon(tc.isDark ? Icons.dark_mode : Icons.light_mode,
+                  color: tc.isDark ? ShamelColors.goldLight : ShamelColors.gold),
+              title: const Text('الوضع الداكن', style: TextStyle(fontWeight: FontWeight.w700)),
+            ),
+          );
+        }),
         const SizedBox(height: 24),
         SizedBox(
           width: double.infinity,
