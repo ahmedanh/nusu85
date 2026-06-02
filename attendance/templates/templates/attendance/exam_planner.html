@@ -21,18 +21,18 @@
     <table class="w-full text-sm">
       <thead class="bg-slate-50 dark:bg-slate-900/40 border-b border-slate-100 dark:border-slate-700">
         <tr>
-          <th class="text-right px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">المادة</th>
-          <th class="text-right px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">النوع</th>
-          <th class="text-right px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">التاريخ والوقت</th>
-          <th class="text-right px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">القاعة</th>
-          <th class="text-right px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">المقاعد</th>
+          <th class="text-right px-5 py-3 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">المادة</th>
+          <th class="text-right px-5 py-3 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">النوع</th>
+          <th class="text-right px-5 py-3 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">التاريخ والوقت</th>
+          <th class="text-right px-5 py-3 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">القاعة</th>
+          <th class="text-right px-5 py-3 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">المقاعد</th>
           <th class="px-5 py-3"></th>
         </tr>
       </thead>
       <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
         {% for exam in exams %}
         <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
-          <td class="px-5 py-4 font-semibold text-slate-900 dark:text-white">{{ exam.course.title }}</td>
+          <td class="px-5 py-4 font-semibold text-slate-900 dark:text-white">{{ exam.course.title|default:"—" }}</td>
           <td class="px-5 py-4">
             <span class="text-xs font-bold px-2 py-1 rounded-full
               {% if exam.exam_type == 'final' %}bg-red-100 text-red-700
@@ -41,8 +41,8 @@
               {{ exam.get_exam_type_display }}
             </span>
           </td>
-          <td class="px-5 py-4 text-slate-600 dark:text-slate-300">{{ exam.exam_date }} | {{ exam.start_time|time:"H:i" }}–{{ exam.end_time|time:"H:i" }}</td>
-          <td class="px-5 py-4 text-slate-600 dark:text-slate-300">{{ exam.classroom.name }}</td>
+          <td class="px-5 py-4 text-slate-600 dark:text-slate-300">{{ exam.exam_date|default:"—" }} | {{ exam.start_time|time:"H:i" }}–{{ exam.end_time|time:"H:i" }}</td>
+          <td class="px-5 py-4 text-slate-600 dark:text-slate-300">{{ exam.classroom.name|default:"—" }}</td>
           <td class="px-5 py-4">
             <span class="text-xs font-bold text-slate-500">{{ exam.seats.count }} مقعد</span>
           </td>

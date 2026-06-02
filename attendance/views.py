@@ -961,27 +961,43 @@ def courses_list(request):
 
 @login_required
 def add_course(request):
+    coordinator = Coordinator.objects.filter(auth_user=request.user).first()
+    is_admin = request.user.is_staff or request.user.is_superuser
+    if not (is_admin or coordinator):
+        messages.error(request, 'غير مصرح.')
+        return redirect('courses_list')
+
     if request.method == 'POST':
-        coordinator = Coordinator.objects.filter(auth_user=request.user).first()
-        is_admin = request.user.is_staff or request.user.is_superuser
-        if not (is_admin or coordinator):
-            messages.error(request, 'غير مصرح.')
-            return redirect('courses_list')
         try:
             college_id = request.POST.get('college_id') or (coordinator.college_id if coordinator else None)
             Course.objects.create(
                 course_code=request.POST.get('course_code', '').strip(),
                 title=request.POST.get('title', '').strip(),
-                credits=int(request.POST.get('credits', 3)),
-                total_hours=int(request.POST.get('total_hours', 3)),
+                credits=int(request.POST.get('credits') or 3),
+                total_hours=int(request.POST.get('total_hours') or 3),
                 college_id=college_id,
                 department_id=request.POST.get('department_id') or None,
                 year_level=request.POST.get('year_level') or None,
             )
             messages.success(request, 'تمت إضافة المادة.')
+            return redirect('courses_list')
         except Exception as e:
             messages.error(request, f'خطأ: {e}')
-    return redirect('courses_list')
+            # fall through and re-render the form with the error message
+
+    # GET (or POST validation error) → render the add-course form page
+    if coordinator and not is_admin:
+        departments = Department.objects.filter(college=coordinator.college)
+    else:
+        departments = Department.objects.all()
+    return render(request, 'attendance/add_course.html', {
+        'colleges': College.objects.all(),
+        'departments': departments,
+        'year_choices': range(1, 6),
+        'course_types': [('theory', 'نظري'), ('practical', 'عملي'), ('lab', 'معملي'), ('seminar', 'سمنار')],
+        'coordinator': coordinator,
+        'is_admin': is_admin,
+    })
 
 
 @login_required

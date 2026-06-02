@@ -256,6 +256,109 @@ tailwind = {
   .dark [style*="color:#0B2545"], .dark [style*="color: #0B2545"],
   .dark [style*="color:#051125"], .dark [style*="color:#1E3A8A"],
   .dark [style*="color:#0F172A"], .dark [style*="color:#191C1D"] { color:#F1F5F9 !important; }
+
+  /* ════════════════════════════════════════════════════════════════
+     TABLE ENHANCEMENTS — sticky first column + horizontal scroll
+     (applied to every <table> automatically by enhanceTables() below)
+     ════════════════════════════════════════════════════════════════ */
+  .tbl-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  table.sticky-col th:first-child,
+  table.sticky-col td:first-child {
+    position:sticky; inset-inline-start:0; z-index:2; background-color:#FFFFFF;
+  }
+  table.sticky-col thead th:first-child { z-index:3; background-color:#F8FAFC; }
+  .dark table.sticky-col th:first-child,
+  .dark table.sticky-col td:first-child { background-color:#1E293B; }
+  .dark table.sticky-col thead th:first-child { background-color:#1E293B; }
+  /* subtle separator so the frozen column is distinguishable when scrolled */
+  table.sticky-col th:first-child::after,
+  table.sticky-col td:first-child::after {
+    content:""; position:absolute; top:0; bottom:0; inset-inline-end:0;
+    width:1px; background:rgba(15,23,42,.08); pointer-events:none;
+  }
+  .dark table.sticky-col th:first-child::after,
+  .dark table.sticky-col td:first-child::after { background:rgba(255,255,255,.10); }
+
+  /* ── Pagination control bar ── */
+  .tbl-pager { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem;
+    padding:.6rem .25rem; font-size:.8rem; }
+  .tbl-pager .pg-btn { min-width:2rem; height:2rem; padding:0 .55rem;
+    border:1px solid #E2E8F0; border-radius:.5rem; background:#fff; color:#0B2545;
+    font-weight:700; cursor:pointer; transition:.15s; display:inline-flex;
+    align-items:center; justify-content:center; }
+  .tbl-pager .pg-btn:hover:not(:disabled) { background:#F1F5F9; border-color:#CBD5E1; }
+  .tbl-pager .pg-btn.active { background:#1E3A8A; color:#fff; border-color:#1E3A8A; }
+  .tbl-pager .pg-btn:disabled { opacity:.4; cursor:not-allowed; }
+  .tbl-pager select { height:2rem; border:1px solid #E2E8F0; border-radius:.5rem;
+    background:#fff; color:#0B2545; padding:0 .4rem; font-weight:600; cursor:pointer; }
+  .tbl-pager .pg-info { color:#64748B; }
+  .dark .tbl-pager .pg-btn { background:#1E293B; border-color:#334155; color:#E2E8F0; }
+  .dark .tbl-pager .pg-btn:hover:not(:disabled) { background:#334155; }
+  .dark .tbl-pager .pg-btn.active { background:#60A5FA; color:#0F172A; border-color:#60A5FA; }
+  .dark .tbl-pager select { background:#1E293B; border-color:#334155; color:#E2E8F0; }
+  .dark .tbl-pager .pg-info { color:#94A3B8; }
+
+  /* ════════════════════════════════════════════════════════════════
+     SKELETON LOADERS — shimmer placeholders (replace spinners)
+     ════════════════════════════════════════════════════════════════ */
+  @keyframes shimmer { 0%{background-position:-468px 0} 100%{background-position:468px 0} }
+  .skeleton { position:relative; overflow:hidden; border-radius:.5rem;
+    background:#E9EEF5; background-image:linear-gradient(90deg,#E9EEF5 0px,#F4F7FB 80px,#E9EEF5 160px);
+    background-size:600px 100%; animation:shimmer 1.3s linear infinite; }
+  .dark .skeleton { background:#1E293B;
+    background-image:linear-gradient(90deg,#1E293B 0px,#293548 80px,#1E293B 160px); }
+  .skeleton-line { height:.85rem; margin:.35rem 0; }
+  .skeleton-line.w-1\/2 { width:50%; } .skeleton-line.w-3\/4 { width:75%; }
+  .skeleton-circle { border-radius:9999px; }
+  /* skeleton table cell wrapper */
+  td.skel-cell { padding:.85rem 1rem; }
+  td.skel-cell .skeleton { height:.8rem; }
+
+  /* real-time validation tick (wizard) */
+  .valid-tick { color:#10B981; opacity:0; transform:scale(.6);
+    transition:.18s ease; font-weight:900; }
+  .field-ok .valid-tick { opacity:1; transform:scale(1); }
+  .field-bad input, .field-bad select, .field-bad textarea { border-color:#EF4444 !important; }
+  .field-ok input, .field-ok select, .field-ok textarea { border-color:#10B981 !important; }
+  .shmwiz-err { color:#EF4444; font-size:.72rem; margin-top:.2rem; min-height:.9rem; display:block; }
+  /* wizard step dots */
+  .shmwiz-step { display:flex; align-items:center; gap:.4rem; }
+  .shmwiz-dot { width:2rem; height:2rem; border-radius:9999px; display:flex;
+    align-items:center; justify-content:center; font-weight:800; font-size:.85rem;
+    background:#E2E8F0; color:#64748B; transition:.2s; flex:0 0 auto; }
+  .shmwiz-dot.active { background:#1E3A8A; color:#fff; }
+  .shmwiz-dot.done { background:#10B981; color:#fff; }
+  .shmwiz-bar { flex:1; height:3px; background:#E2E8F0; border-radius:9999px; }
+  .shmwiz-bar.done { background:#10B981; }
+  .dark .shmwiz-dot { background:#334155; color:#94A3B8; }
+  .dark .shmwiz-bar { background:#334155; }
+
+  /* ════════════════════════════════════════════════════════════════
+     FORM COMPONENT CLASSES — defined as real CSS (NOT @apply) so they
+     work with the Tailwind CDN. Several add/edit templates declared
+     .inp/.label-xs/.tab-btn via @apply inside a plain <style>, which the
+     Play CDN never compiles → unstyled, width-less inputs. These global
+     definitions fix every one of those forms at once.
+     ════════════════════════════════════════════════════════════════ */
+  .inp {
+    width:100%; border-radius:.75rem; background-color:#F8FAFC;
+    border:1px solid #E2E8F0; padding:.75rem 1rem;
+    font-size:.875rem; line-height:1.25rem; font-weight:500;
+    outline:none; transition:all .15s; color:#0F172A;
+  }
+  .inp:focus { box-shadow:0 0 0 2px rgba(30,58,138,.2); border-color:#1E3A8A; }
+  .dark .inp { background-color:#334155; border-color:#475569; color:#fff; }
+  .label-xs {
+    display:block; font-size:.75rem; line-height:1rem; font-weight:700;
+    color:#64748B; text-transform:uppercase; letter-spacing:.05em; margin-bottom:.375rem;
+  }
+  .dark .label-xs { color:#94A3B8; }
+  .tab-btn { color:#64748B; transition:all .15s; }
+  .tab-btn:hover { color:#1E293B; }
+  .dark .tab-btn { color:#94A3B8; }
+  .dark .tab-btn:hover { color:#fff; }
+  .tab-btn.active { background:#fff; color:#1E3A8A; box-shadow:0 1px 2px rgba(0,0,0,.05); }
+  .dark .tab-btn.active { background:#334155; color:#60A5FA; }
 </style>
 </head>
 
@@ -1195,6 +1298,276 @@ document.addEventListener('keydown', function(e) {
     var input = form.querySelector('input[name=csrfmiddlewaretoken]');
     if (input) input.value = tok;
   }, true);
+})();
+</script>
+
+<script>
+/* ════════════════════════════════════════════════════════════════
+   SHAMEL table enhancements — applied to EVERY <table> automatically:
+     • sticky/frozen first column (RTL-aware) inside a scroll wrapper
+     • pagination bar: rows-per-page selector + numbered prev/next
+   Plus window.ShamelSkeleton helpers (shimmer loaders for AJAX views).
+   Re-runnable after AJAX swaps via window.ShamelTables.refresh(root).
+   ════════════════════════════════════════════════════════════════ */
+(function () {
+  function lang(){ try { return localStorage.getItem('acdc_lang') || 'ar'; } catch(e){ return 'ar'; } }
+  var AR = lang() === 'ar';
+  var T = {
+    rows:    AR ? 'صفوف:' : 'Rows:',
+    all:     AR ? 'الكل' : 'All',
+    prev:    AR ? '‹ السابق' : '‹ Prev',
+    next:    AR ? 'التالي ›' : 'Next ›',
+    of:      AR ? 'من' : 'of',
+    showing: AR ? 'عرض' : 'Showing'
+  };
+
+  function dataRows(tbody){
+    return Array.prototype.filter.call(tbody.rows, function(r){
+      return !r.hasAttribute('data-skeleton');
+    });
+  }
+  function mkBtn(txt){ var b=document.createElement('button'); b.type='button'; b.className='pg-btn'; b.textContent=txt; return b; }
+
+  function paginate(table){
+    if (table.__paged) return;
+    var tbody = table.tBodies[0];
+    if (!tbody) return;
+    var rows = dataRows(tbody);
+    if (rows.length <= 12) return;            // too small to paginate
+    table.__paged = true;
+
+    var perPage = 25, page = 1;
+    var bar = document.createElement('div'); bar.className = 'tbl-pager';
+    var lbl = document.createElement('span'); lbl.className='pg-info'; lbl.textContent=T.rows;
+    var sel = document.createElement('select');
+    [10,25,50,100].forEach(function(n){
+      var o=document.createElement('option'); o.value=n; o.textContent=n;
+      if(n===perPage)o.selected=true; sel.appendChild(o);
+    });
+    var oAll=document.createElement('option'); oAll.value=999999; oAll.textContent=T.all; sel.appendChild(oAll);
+    var info=document.createElement('span'); info.className='pg-info'; info.style.marginInlineStart='auto';
+    var prev=mkBtn(T.prev), next=mkBtn(T.next);
+    var nums=document.createElement('span'); nums.style.display='inline-flex'; nums.style.gap='.3rem';
+    bar.appendChild(lbl); bar.appendChild(sel); bar.appendChild(info);
+    bar.appendChild(prev); bar.appendChild(nums); bar.appendChild(next);
+
+    var anchor = table.closest('.tbl-scroll') || table;
+    anchor.parentNode.insertBefore(bar, anchor.nextSibling);
+
+    function totalPages(){ return Math.max(1, Math.ceil(rows.length/perPage)); }
+    function addEllipsis(){ var s=document.createElement('span'); s.textContent='…'; s.className='pg-info'; s.style.padding='0 .2rem'; nums.appendChild(s); }
+    function addNum(p){
+      var b=mkBtn(String(p)); if(p===page)b.classList.add('active');
+      b.addEventListener('click',function(){ page=p; render(); });
+      nums.appendChild(b);
+    }
+    function render(){
+      var tp=totalPages(); if(page>tp)page=tp; if(page<1)page=1;
+      var start=(page-1)*perPage, end=start+perPage;
+      rows.forEach(function(r,i){ r.style.display=(i>=start&&i<end)?'':'none'; });
+      nums.innerHTML='';
+      var from=Math.max(1,page-2), to=Math.min(tp,page+2);
+      if(from>1){ addNum(1); if(from>2) addEllipsis(); }
+      for(var p=from;p<=to;p++) addNum(p);
+      if(to<tp){ if(to<tp-1) addEllipsis(); addNum(tp); }
+      prev.disabled=(page<=1); next.disabled=(page>=tp);
+      info.textContent=T.showing+' '+(rows.length?start+1:0)+'–'+Math.min(end,rows.length)+' '+T.of+' '+rows.length;
+    }
+    sel.addEventListener('change',function(){ perPage=parseInt(sel.value,10)||25; page=1; render(); });
+    prev.addEventListener('click',function(){ if(page>1){page--;render();} });
+    next.addEventListener('click',function(){ if(page<totalPages()){page++;render();} });
+    render();
+  }
+
+  function enhanceTables(root){
+    root = root || document;
+    Array.prototype.forEach.call(root.querySelectorAll('table'), function(t){
+      if(t.closest('.no-enhance')) return;
+      t.classList.add('sticky-col');                       // freeze first column
+      if(!t.closest('.tbl-scroll')){                       // ensure scroll wrapper
+        var p=t.parentElement, ox=p?getComputedStyle(p).overflowX:'visible';
+        if(ox!=='auto' && ox!=='scroll'){
+          var wrap=document.createElement('div'); wrap.className='tbl-scroll';
+          t.parentNode.insertBefore(wrap,t); wrap.appendChild(t);
+        } else { p.classList.add('tbl-scroll'); }
+      }
+      if(!t.classList.contains('no-pager')) paginate(t);   // add pager
+    });
+  }
+
+  window.ShamelSkeleton = {
+    table: function(tbody, rows, cols){
+      if(!tbody) return;
+      rows = rows || 6;
+      if(!cols){
+        var tbl=tbody.closest('table');
+        cols=(tbl && tbl.tHead && tbl.tHead.rows[0]) ? tbl.tHead.rows[0].cells.length : 4;
+      }
+      var html='';
+      for(var r=0;r<rows;r++){ html+='<tr data-skeleton="1">';
+        for(var c=0;c<cols;c++){ html+='<td class="skel-cell"><div class="skeleton skeleton-line"></div></td>'; }
+        html+='</tr>'; }
+      tbody.innerHTML=html;
+    },
+    cards: function(container, n){
+      if(!container) return; n=n||4; var html='';
+      for(var i=0;i<n;i++){ html+='<div class="skeleton" style="height:84px;margin:.5rem 0"></div>'; }
+      container.innerHTML=html;
+    }
+  };
+
+  window.ShamelTables = { refresh: enhanceTables };
+  if(document.readyState!=='loading') enhanceTables();
+  else document.addEventListener('DOMContentLoaded', function(){ enhanceTables(); });
+})();
+</script>
+
+<script>
+/* ════════════════════════════════════════════════════════════════
+   SHAMEL multi-step form wizard + real-time validation.
+   Activate: add `data-wizard` to a <form>, wrap each step's fields in
+   <div data-step="عنوان الخطوة"> … </div>, and tag the submit row with
+   data-wizard-actions data-submit-label="نص الزر".
+   Each control shows a live green ✓ when valid; Next is blocked until
+   the current step's required fields pass.
+   ════════════════════════════════════════════════════════════════ */
+(function () {
+  function lang(){ try{return localStorage.getItem('acdc_lang')||'ar';}catch(e){return 'ar';} }
+  var AR = lang()==='ar';
+  var L = {
+    next: AR?'التالي ‹':'Next ›', back: AR?'› السابق':'‹ Back',
+    req:  AR?'هذا الحقل مطلوب':'This field is required',
+    email:AR?'بريد إلكتروني غير صالح':'Invalid email address'
+  };
+  var EMAIL=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  function controls(scope){ return Array.prototype.slice.call(scope.querySelectorAll('input,select,textarea')); }
+  function container(ctrl){
+    var d=ctrl.closest('[data-field]'); if(d) return d;
+    var p=ctrl.parentElement;
+    while(p && p!==document.body){
+      if(p.tagName==='DIV' && p.querySelector('label')) return p;
+      p=p.parentElement;
+    }
+    return ctrl.parentElement;
+  }
+  function evaluate(ctrl){
+    if(ctrl.type==='hidden' || ctrl.disabled || ctrl.classList.contains('hidden')) return 'skip';
+    var v=(ctrl.value||'').trim();
+    var required=ctrl.hasAttribute('required');
+    if(!v) return required?'empty':'neutral';
+    if(ctrl.type==='email' && !EMAIL.test(v)) return 'bad-email';
+    if(ctrl.dataset.pattern && !(new RegExp(ctrl.dataset.pattern)).test(v)) return 'bad';
+    return 'ok';
+  }
+  function paint(ctrl, showErrors){
+    var st=evaluate(ctrl); if(st==='skip') return true;
+    var box=container(ctrl); if(!box) return true;
+    var err=box.querySelector('.shmwiz-err');
+    box.classList.remove('field-ok','field-bad');
+    if(st==='ok'){ box.classList.add('field-ok'); if(err)err.textContent=''; return true; }
+    if(st==='neutral'){ if(err)err.textContent=''; return true; }
+    if(showErrors){
+      box.classList.add('field-bad');
+      if(err) err.textContent = (st==='bad-email')?L.email:L.req;
+    }
+    return false;
+  }
+  function ensureDecor(form){
+    controls(form).forEach(function(c){
+      if(c.type==='hidden') return;
+      var box=container(c); if(!box||box.__decor) return; box.__decor=true;
+      var label=box.querySelector('label');
+      if(label && !label.querySelector('.valid-tick')){
+        var t=document.createElement('span'); t.className='valid-tick'; t.textContent=' ✓'; label.appendChild(t);
+      }
+      if(!box.querySelector('.shmwiz-err')){
+        var e=document.createElement('span'); e.className='shmwiz-err'; box.appendChild(e);
+      }
+    });
+  }
+
+  function initWizard(form){
+    var steps=Array.prototype.slice.call(form.querySelectorAll('[data-step]'));
+    if(steps.length<2) return;
+    ensureDecor(form);
+    var titles=steps.map(function(s){ return s.getAttribute('data-step')||''; });
+    var cur=0;
+
+    var head=document.createElement('div');
+    head.className='shmwiz-head flex items-center gap-1 px-6 py-5 border-b border-slate-100 dark:border-slate-700';
+    var dots=[];
+    titles.forEach(function(t,i){
+      if(i>0){ var bar=document.createElement('div'); bar.className='shmwiz-bar'; head.appendChild(bar); }
+      var wrap=document.createElement('div'); wrap.className='shmwiz-step';
+      var dot=document.createElement('div'); dot.className='shmwiz-dot'; dot.textContent=String(i+1);
+      var lab=document.createElement('span'); lab.className='text-xs font-bold text-slate-600 dark:text-slate-300 hidden sm:inline'; lab.textContent=t;
+      wrap.appendChild(dot); wrap.appendChild(lab); head.appendChild(wrap);
+      dots.push(dot);
+    });
+    form.insertBefore(head, form.firstChild);
+
+    var origActions=form.querySelector('[data-wizard-actions]');
+    var submitText=origActions ? (origActions.getAttribute('data-submit-label')||'') : '';
+    if(origActions) origActions.style.display='none';
+
+    var nav=document.createElement('div'); nav.className='px-6 pb-6 pt-2 flex items-center gap-3';
+    var back=document.createElement('button'); back.type='button'; back.setAttribute('data-wiz-back','1');
+    back.className='inline-flex items-center gap-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-sm px-5 py-3 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-all';
+    back.textContent=L.back;
+    var next=document.createElement('button'); next.type='button'; next.setAttribute('data-wiz-next','1');
+    next.className='inline-flex items-center gap-2 bg-primary hover:bg-primary-container text-white font-bold text-sm px-6 py-3 rounded-xl transition-all shadow-sm ms-auto';
+    next.textContent=L.next;
+    nav.appendChild(back); nav.appendChild(next);
+    form.appendChild(nav);
+
+    function bars(){ return head.querySelectorAll('.shmwiz-bar'); }
+    function validateStep(idx, showErrors){
+      var ok=true;
+      controls(steps[idx]).forEach(function(c){ if(!paint(c, showErrors)) ok=false; });
+      return ok;
+    }
+    function show(idx){
+      steps.forEach(function(s,i){ s.style.display = (i===idx)?'':'none'; });
+      dots.forEach(function(d,i){
+        d.classList.remove('active','done');
+        if(i<idx){ d.classList.add('done'); d.innerHTML='✓'; }
+        else { if(i===idx) d.classList.add('active'); d.textContent=String(i+1); }
+      });
+      Array.prototype.forEach.call(bars(),function(b,i){ b.classList.toggle('done', i<idx); });
+      back.style.visibility=(idx===0)?'hidden':'visible';
+      next.textContent = (idx===steps.length-1) ? (submitText||L.next) : L.next;
+      cur=idx;
+      controls(steps[idx]).forEach(function(c){ paint(c,false); });
+      try{ form.scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){}
+    }
+    back.addEventListener('click', function(){ if(cur>0) show(cur-1); });
+    // `next` stays type=button; we submit programmatically so the browser
+    // never auto-submits as a click default action (avoids skipping steps).
+    next.addEventListener('click', function(){
+      if(cur<steps.length-1){
+        if(validateStep(cur,true)) show(cur+1);
+      } else {
+        var allOk=true;
+        for(var i=0;i<steps.length;i++){ if(!validateStep(i,true)){ allOk=false; show(i); break; } }
+        if(allOk){ if(form.requestSubmit){ form.requestSubmit(); } else { form.submit(); } }
+      }
+    });
+    form.addEventListener('submit', function(e){
+      for(var i=0;i<steps.length;i++){
+        if(!validateStep(i,true)){ e.preventDefault(); show(i); return; }
+      }
+    });
+    form.addEventListener('input', function(e){ if(e.target.matches('input,select,textarea')) paint(e.target,false); });
+    form.addEventListener('change', function(e){ if(e.target.matches('input,select,textarea')) paint(e.target,true); });
+    form.addEventListener('blur', function(e){ if(e.target.matches('input,select,textarea')) paint(e.target,true); }, true);
+
+    show(0);
+  }
+
+  function boot(){ Array.prototype.forEach.call(document.querySelectorAll('form[data-wizard]'), initWizard); }
+  if(document.readyState!=='loading') boot();
+  else document.addEventListener('DOMContentLoaded', boot);
 })();
 </script>
 </body>
