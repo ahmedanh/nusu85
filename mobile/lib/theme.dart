@@ -40,6 +40,32 @@ class ShamelColors {
 }
 
 class ShamelTheme {
+  /// Cairo variable font covers Arabic + Latin with proper bold weights.
+  /// Falls back to system Arabic fonts if Cairo is unavailable.
+  static const _arabicFont = 'Cairo';
+
+  /// Arabic-optimised TextTheme — heavier weights for headings to match
+  /// the visual density of the Manrope headings used on the web side.
+  static TextTheme _arabicTextTheme(TextTheme base, Color bodyColor, Color displayColor) {
+    return base.copyWith(
+      displayLarge:  base.displayLarge?.copyWith(fontFamily: _arabicFont, fontWeight: FontWeight.w800, color: displayColor),
+      displayMedium: base.displayMedium?.copyWith(fontFamily: _arabicFont, fontWeight: FontWeight.w800, color: displayColor),
+      displaySmall:  base.displaySmall?.copyWith(fontFamily: _arabicFont, fontWeight: FontWeight.w700, color: displayColor),
+      headlineLarge: base.headlineLarge?.copyWith(fontFamily: _arabicFont, fontWeight: FontWeight.w800, color: displayColor),
+      headlineMedium:base.headlineMedium?.copyWith(fontFamily: _arabicFont, fontWeight: FontWeight.w700, color: displayColor),
+      headlineSmall: base.headlineSmall?.copyWith(fontFamily: _arabicFont, fontWeight: FontWeight.w700, color: displayColor),
+      titleLarge:    base.titleLarge?.copyWith(fontFamily: _arabicFont, fontWeight: FontWeight.w700, color: displayColor),
+      titleMedium:   base.titleMedium?.copyWith(fontFamily: _arabicFont, fontWeight: FontWeight.w600, color: bodyColor),
+      titleSmall:    base.titleSmall?.copyWith(fontFamily: _arabicFont, fontWeight: FontWeight.w600, color: bodyColor),
+      bodyLarge:     base.bodyLarge?.copyWith(fontFamily: _arabicFont, color: bodyColor),
+      bodyMedium:    base.bodyMedium?.copyWith(fontFamily: _arabicFont, color: bodyColor),
+      bodySmall:     base.bodySmall?.copyWith(fontFamily: _arabicFont, color: bodyColor),
+      labelLarge:    base.labelLarge?.copyWith(fontFamily: _arabicFont, fontWeight: FontWeight.w700),
+      labelMedium:   base.labelMedium?.copyWith(fontFamily: _arabicFont, fontWeight: FontWeight.w600),
+      labelSmall:    base.labelSmall?.copyWith(fontFamily: _arabicFont),
+    );
+  }
+
   static ThemeData light() {
     final base = ThemeData.light(useMaterial3: true);
     return base.copyWith(
@@ -51,11 +77,7 @@ class ShamelTheme {
         surface: Colors.white,
         error: ShamelColors.error,
       ),
-      textTheme: base.textTheme.apply(
-        bodyColor: ShamelColors.onSurface,
-        displayColor: ShamelColors.primary,
-        fontFamily: 'Roboto',
-      ),
+      textTheme: _arabicTextTheme(base.textTheme, ShamelColors.onSurface, ShamelColors.primary),
       appBarTheme: const AppBarTheme(
         backgroundColor: ShamelColors.primary,
         foregroundColor: Colors.white,
@@ -142,6 +164,7 @@ class ShamelTheme {
         surface: ShamelColors.dSurface,
         error: ShamelColors.dError,
       ),
+      textTheme: _arabicTextTheme(base.textTheme, ShamelColors.dOnSurface, ShamelColors.dOnSurface),
       cardTheme: CardThemeData(
         color: ShamelColors.dSurface,
         elevation: 0,

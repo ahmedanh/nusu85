@@ -38,7 +38,13 @@ class _FormScaffoldState extends State<_FormScaffold> {
       if (!mounted) return;
       if (r['ok'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تم الحفظ بنجاح'), backgroundColor: ShamelColors.success));
+          const SnackBar(
+            content: Text('تم الحفظ بنجاح'),
+            backgroundColor: ShamelColors.success,
+            behavior: SnackBarBehavior.floating,
+            margin: EdgeInsets.all(12),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
+          ));
         Navigator.pop(context, true);
       } else {
         setState(() { _busy = false; _error = (r['message'] ?? 'فشل الحفظ') as String; });
