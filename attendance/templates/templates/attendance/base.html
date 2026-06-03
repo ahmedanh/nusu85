@@ -203,6 +203,36 @@ tailwind = {
   html:not(.dark) .bg-slate-800 { background-color: #F8FAFC !important; }
   html:not(.dark) .bg-slate-900 { background-color: #F1F5F9 !important; }
   html:not(.dark) .text-white { color: #0B2545 !important; }
+
+  /* ════════ LIGHT-MODE TEXT FLOOR — guarantee readable text in light mode ════════
+     Forces dark text for every common Tailwind text utility so no content
+     ever renders light-on-light. Scoped to #main-canvas + #topbar so the
+     always-dark sidebar is untouched. */
+  html:not(.dark) #main-canvas .text-slate-900,
+  html:not(.dark) #main-canvas .text-slate-800,
+  html:not(.dark) #main-canvas .text-gray-900,
+  html:not(.dark) #main-canvas .text-gray-800,
+  html:not(.dark) #main-canvas .text-black,
+  html:not(.dark) #topbar .text-slate-900,
+  html:not(.dark) #topbar .text-slate-800 { color:#0B2545 !important; }
+
+  html:not(.dark) #main-canvas .text-slate-700,
+  html:not(.dark) #main-canvas .text-slate-600,
+  html:not(.dark) #main-canvas .text-gray-700,
+  html:not(.dark) #main-canvas .text-gray-600 { color:#334155 !important; }
+
+  html:not(.dark) #main-canvas .text-slate-500,
+  html:not(.dark) #main-canvas .text-slate-400,
+  html:not(.dark) #main-canvas .text-gray-500,
+  html:not(.dark) #main-canvas .text-gray-400 { color:#64748B !important; }
+
+  /* dark:text-* utilities must NOT apply in light mode (Tailwind CDN edge case) */
+  html:not(.dark) #main-canvas [class*="dark:text-white"],
+  html:not(.dark) #main-canvas [class*="dark:text-slate-100"],
+  html:not(.dark) #main-canvas [class*="dark:text-slate-200"] { color:#0B2545 !important; }
+  /* but keep elements that ALSO carry a muted light-mode class readable-muted */
+  html:not(.dark) #main-canvas .text-slate-500[class*="dark:text-white"],
+  html:not(.dark) #main-canvas .text-slate-400[class*="dark:text-white"] { color:#64748B !important; }
   /* Exception: sidebar is always dark */
   html:not(.dark) #sidebar { background: #0B2545 !important; }
   html:not(.dark) #sidebar .text-white { color: #ffffff !important; }

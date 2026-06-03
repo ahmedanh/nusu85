@@ -142,6 +142,28 @@ tailwind.config = {
   .dark [style*="color:#0B2545"], .dark [style*="color: #0B2545"],
   .dark [style*="color:#051125"], .dark [style*="color:#1E3A8A"],
   .dark [style*="color:#0F172A"], .dark [style*="color:#191C1D"] { color:#F1F5F9 !important; }
+  .dark [style*="background:#FFFFFF"], .dark [style*="background: #FFFFFF"] { background:#1E293B !important; }
+  .dark [style*="color:#64748B"] { color:#94A3B8 !important; }
+
+  /* ════ LIGHT-MODE TEXT FLOOR — guarantee readable text in light mode ════ */
+  html:not(.dark) #main-canvas .text-slate-900,
+  html:not(.dark) #main-canvas .text-slate-800,
+  html:not(.dark) #main-canvas .text-gray-900,
+  html:not(.dark) #main-canvas .text-gray-800,
+  html:not(.dark) #main-canvas .text-black,
+  html:not(.dark) #main-canvas [class*="dark:text-white"],
+  html:not(.dark) #main-canvas [class*="dark:text-slate-100"],
+  html:not(.dark) #main-canvas [class*="dark:text-slate-200"] { color:#0B2545 !important; }
+  html:not(.dark) #main-canvas .text-slate-700,
+  html:not(.dark) #main-canvas .text-slate-600,
+  html:not(.dark) #main-canvas .text-gray-700,
+  html:not(.dark) #main-canvas .text-gray-600 { color:#334155 !important; }
+  html:not(.dark) #main-canvas .text-slate-500,
+  html:not(.dark) #main-canvas .text-slate-400,
+  html:not(.dark) #main-canvas .text-gray-500,
+  html:not(.dark) #main-canvas .text-gray-400 { color:#64748B !important; }
+  html:not(.dark) #main-canvas .text-slate-500[class*="dark:text-white"],
+  html:not(.dark) #main-canvas .text-slate-400[class*="dark:text-white"] { color:#64748B !important; }
 </style>
 </head>
 
