@@ -258,6 +258,13 @@ tailwind = {
   .dark [style*="color:#0B2545"], .dark [style*="color: #0B2545"],
   .dark [style*="color:#051125"], .dark [style*="color:#1E3A8A"],
   .dark [style*="color:#0F172A"], .dark [style*="color:#191C1D"] { color:#F1F5F9 !important; }
+  /* inline white backgrounds -> dark card in dark mode */
+  .dark [style*="background:#FFFFFF"], .dark [style*="background: #FFFFFF"],
+  .dark [style*="background:#ffffff"], .dark [style*="background:white"] {
+    background:#1E293B !important; border-color:#334155 !important;
+  }
+  /* inline muted text -> readable in dark mode */
+  .dark [style*="color:#64748B"] { color:#94A3B8 !important; }
 
   /* ════════════════════════════════════════════════════════════════
      TABLE ENHANCEMENTS — sticky first column + horizontal scroll
