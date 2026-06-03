@@ -1398,22 +1398,30 @@ def teacher_attendance_report(request):
     if teacher_q:
         sessions_qs = sessions_qs.filter(schedule__teacher__name__icontains=teacher_q)
 
+    # ── N+1 fix: group sessions by teacher_id in Python once (O(S)) ──
+    from collections import defaultdict
+    session_list = list(sessions_qs)   # single DB hit
+    by_teacher   = defaultdict(list)
+    for s in session_list:
+        if s.schedule_id:
+            by_teacher[s.schedule.teacher_id].append(s)
+
     data = []
     for t in teachers_qs:
-        t_sessions = [s for s in sessions_qs if s.schedule and s.schedule.teacher_id == t.teacher_id]
+        t_sessions    = by_teacher.get(t.teacher_id, [])
         total_minutes = sum((s.duration_minutes or 0) for s in t_sessions)
         data.append({
-            'teacher': t,
-            'sessions': len(t_sessions),
+            'teacher':       t,
+            'sessions':      len(t_sessions),
             'total_minutes': total_minutes,
-            'session_list': t_sessions[:5],
+            'session_list':  t_sessions[:5],
         })
 
     return render(request, 'attendance/reports/teacher_report.html', {
-        'data': data,
-        'teacher_q': teacher_q,
-        'date_from': date_from,
-        'date_to': date_to,
+        'data':           data,
+        'teacher_q':      teacher_q,
+        'date_from':      date_from,
+        'date_to':        date_to,
         'total_sessions': sum(d['sessions'] for d in data),
     })
 
@@ -1652,7 +1660,7 @@ def coordinator_students(request):
         return _redirect_by_role(request)
     students = Student.objects.filter(
         department__college=coordinator.college
-    ).select_related('department').order_by('name')
+    ).select_related('department', 'department__college', 'auth_user').order_by('name')
     q = request.GET.get('q', '')
     dept_f = request.GET.get('dept', '')
     if q:

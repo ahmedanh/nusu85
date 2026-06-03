@@ -34,15 +34,21 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ShamelColors.primary,
+      resizeToAvoidBottomInset: true,  // keyboard pushes content up (fixes black screen)
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.only(
+              left: 24, right: 24, top: 24,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 24, // extra pad above keyboard
+            ),
             child: Container(
               constraints: const BoxConstraints(maxWidth: 420),
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? const Color(0xFF1E293B)
+                    : Colors.white,
                 borderRadius: BorderRadius.circular(24),
               ),
               child: Column(

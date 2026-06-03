@@ -235,66 +235,26 @@
   }
 
 
-  /* ── Install prompt (Add to Home Screen) ─────────────── */
+  /* ── Install prompt (Add to Home Screen) — SUPPRESSED ───
+     Banner was disruptive; we silence the native prompt so
+     the browser does not show the "Add to Home Screen" chip.
+     Users can still install via the browser's address-bar icon.
+     To re-enable: set localStorage.shamel_install_prompt = '1'
+     ─────────────────────────────────────────────────────────── */
   let deferredPrompt = null;
-  let installBtn     = null;
 
   window.addEventListener('beforeinstallprompt', event => {
-    event.preventDefault();
-    deferredPrompt = event;
-    showInstallButton();
+    event.preventDefault();          // prevent the native mini-infobar
+    deferredPrompt = event;          // save for opt-in trigger if ever needed
+    // showInstallButton() intentionally not called
   });
 
   window.addEventListener('appinstalled', () => {
     deferredPrompt = null;
-    if (installBtn) installBtn.remove();
-    console.log('[PWA] App installed!');
   });
 
-  function showInstallButton() {
-    if (installBtn) return; /* already shown */
-
-    installBtn = document.createElement('button');
-    installBtn.id = 'shamel-install-btn';
-    installBtn.innerHTML = `
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
-      </svg>
-      تثبيت التطبيق
-    `;
-
-    const style = document.createElement('style');
-    style.textContent = `
-      #shamel-install-btn {
-        position: fixed; top: 1rem; left: 1rem; z-index: 9998;
-        background: #c9a84c; color: #0f172a;
-        border: none; border-radius: .75rem;
-        padding: .6rem 1rem; cursor: pointer;
-        font-family: 'Tajawal', sans-serif;
-        font-weight: 700; font-size: .85rem;
-        display: flex; align-items: center; gap: .5rem;
-        box-shadow: 0 4px 12px rgba(0,0,0,.3);
-        direction: rtl;
-        animation: bounce-in .4s ease;
-      }
-      #shamel-install-btn:hover { opacity: .9; transform: scale(1.03); }
-      @keyframes bounce-in {
-        0%   { transform: scale(.8); opacity: 0; }
-        100% { transform: scale(1);  opacity: 1; }
-      }
-    `;
-    document.head.appendChild(style);
-
-    installBtn.addEventListener('click', async () => {
-      if (!deferredPrompt) return;
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      deferredPrompt = null;
-      if (outcome === 'accepted') installBtn.remove();
-    });
-
-    document.body.appendChild(installBtn);
-  }
+  // Expose manual trigger for future settings toggle:
+  // window.shamelShowInstallPrompt = () => deferredPrompt && deferredPrompt.prompt();
 
 
   /* ── Update banner ───────────────────────────────────── */
