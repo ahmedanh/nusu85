@@ -25,48 +25,48 @@
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
 
   <!-- Total Students -->
-  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-6">
+  <div class="rounded-2xl shadow-sm p-6" style="background:#FFFFFF;border:1px solid #E2E8F0">
     <div class="flex items-start justify-between mb-4">
-      <div class="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center">
-        <span class="material-symbols-outlined text-blue-600 dark:text-blue-400">school</span>
+      <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background:#EFF6FF">
+        <span class="material-symbols-outlined" style="color:#2563EB;direction:ltr">school</span>
       </div>
-      <span class="text-xs font-bold bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-2.5 py-1 rounded-full">+12% MoM</span>
+      <span class="text-xs font-bold px-2.5 py-1 rounded-full" style="background:#D1FAE5;color:#065F46">+12% MoM</span>
     </div>
-    <p id="total-students-count" class="text-3xl font-extrabold font-headline"
-       style="color:#0B2545">{{ total_students }}</p>
-    <p class="text-sm font-medium mt-1 dark:text-slate-400" style="color:#64748B">Registered Students</p>
-    <div class="mt-4 h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-      <div class="h-full bg-blue-500 rounded-full" style="width:85%"></div>
+    <p id="total-students-count" class="text-3xl font-extrabold font-headline" style="color:#0B2545">{{ total_students }}</p>
+    <p class="text-sm font-medium mt-1" style="color:#64748B">Registered Students</p>
+    <div class="mt-4 h-1.5 rounded-full overflow-hidden" style="background:#E2E8F0">
+      <div class="h-full rounded-full" style="width:85%;background:#3B82F6"></div>
     </div>
   </div>
 
   <!-- Active Faculty -->
-  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-6">
+  <div class="rounded-2xl shadow-sm p-6" style="background:#FFFFFF;border:1px solid #E2E8F0">
     <div class="flex items-start justify-between mb-4">
-      <div class="w-11 h-11 rounded-xl bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center">
-        <span class="material-symbols-outlined text-purple-600 dark:text-purple-400">supervisor_account</span>
+      <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background:#F5F3FF">
+        <span class="material-symbols-outlined" style="color:#7C3AED;direction:ltr">supervisor_account</span>
       </div>
-      <span class="text-xs font-bold text-slate-400 dark:text-slate-500">98% Verified</span>
+      <span class="text-xs font-bold" style="color:#94A3B8">98% Verified</span>
     </div>
-    <p class="text-3xl font-extrabold font-headline"
-       style="color:#0B2545">{{ active_faculty }}</p>
-    <p class="text-sm font-medium mt-1 dark:text-slate-400" style="color:#64748B">Active Faculty Members</p>
+    <p class="text-3xl font-extrabold font-headline" style="color:#0B2545">{{ active_faculty }}</p>
+    <p class="text-sm font-medium mt-1" style="color:#64748B">Active Faculty Members</p>
     <div class="mt-4 flex gap-1">
-      <div class="h-1.5 bg-purple-500 flex-1 rounded-full"></div>
-      <div class="h-1.5 bg-purple-500 flex-1 rounded-full"></div>
-      <div class="h-1.5 bg-purple-500 flex-1 rounded-full"></div>
-      <div class="h-1.5 bg-slate-100 dark:bg-slate-700 flex-1 rounded-full"></div>
+      <div class="h-1.5 flex-1 rounded-full" style="background:#7C3AED"></div>
+      <div class="h-1.5 flex-1 rounded-full" style="background:#7C3AED"></div>
+      <div class="h-1.5 flex-1 rounded-full" style="background:#7C3AED"></div>
+      <div class="h-1.5 flex-1 rounded-full" style="background:#E2E8F0"></div>
     </div>
   </div>
 
-  <!-- AI Engine -->
-  <div class="bg-primary rounded-2xl shadow-lg p-6 relative overflow-hidden sm:col-span-2 lg:col-span-1">
+  <!-- AI Engine — always deep-navy background regardless of theme class -->
+  <div class="rounded-2xl shadow-lg p-6 relative overflow-hidden sm:col-span-2 lg:col-span-1"
+       style="background:linear-gradient(135deg,#1E3A8A 0%,#1B2B5E 100%);">
     <div class="relative z-10">
       <div class="flex items-start justify-between mb-4">
-        <div class="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center border border-white/20">
-          <span class="material-symbols-outlined text-white">face</span>
+        <div class="w-11 h-11 rounded-xl flex items-center justify-center"
+             style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2)">
+          <span class="material-symbols-outlined" style="color:#ffffff;direction:ltr">face</span>
         </div>
-        <span class="flex items-center gap-1.5 text-[11px] font-bold text-emerald-300">
+        <span class="flex items-center gap-1.5 text-[11px] font-bold" style="color:#6EE7B7">
           <span class="relative flex h-2 w-2">
             <span class="animate-ping absolute inset-0 rounded-full bg-emerald-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -74,21 +74,21 @@
           AI Online
         </span>
       </div>
-      <p id="ai-accuracy" class="text-3xl font-extrabold text-white font-headline">94.2%</p>
-      <p class="text-sm text-white/70 font-medium mt-1">Face Recognition Accuracy</p>
+      <p id="ai-accuracy" class="text-3xl font-extrabold font-headline" style="color:#ffffff">94.2%</p>
+      <p class="text-sm font-medium mt-1" style="color:rgba(255,255,255,0.65)">Face Recognition Accuracy</p>
       <div class="mt-4">
-        <div class="flex justify-between text-[11px] font-semibold text-white/60 mb-1.5">
+        <div class="flex justify-between text-[11px] font-semibold mb-1.5" style="color:rgba(255,255,255,0.5)">
           <span>Training Progress</span>
           <span id="training-percent">{{ training_progress }}%</span>
         </div>
-        <div class="h-1.5 bg-white/10 rounded-full overflow-hidden">
+        <div class="h-1.5 rounded-full overflow-hidden" style="background:rgba(255,255,255,0.1)">
           <div id="training-bar" class="h-full bg-emerald-400 rounded-full transition-all duration-700"
             style="width:{{ training_progress }}%"></div>
         </div>
       </div>
     </div>
     <div class="absolute -right-6 -bottom-6 opacity-10">
-      <span class="material-symbols-outlined text-[100px]" style="font-variation-settings:'wght' 100">android_fingerprint</span>
+      <span class="material-symbols-outlined text-[100px]" style="font-variation-settings:'wght' 100;color:#fff;direction:ltr">android_fingerprint</span>
     </div>
   </div>
 </div>
@@ -101,7 +101,8 @@
     <div class="px-6 py-4 border-b border-slate-50 dark:border-slate-700 flex items-center justify-between">
       <h2 class="font-bold text-slate-800 dark:text-slate-100 font-headline">Faculty Management</h2>
       <a href="{% url 'faculty_management' %}"
-        class="text-xs font-bold text-primary hover:underline flex items-center gap-1">
+         class="text-xs font-bold flex items-center gap-1 hover:underline"
+         style="color:#1E3A8A">
         View all <span class="material-symbols-outlined text-sm">arrow_forward</span>
       </a>
     </div>
@@ -191,15 +192,17 @@
       </div>
       <div class="p-3 space-y-2 max-h-64 overflow-y-auto">
         {% for room in classrooms %}
-        <div class="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
-          <div class="w-1 h-8 rounded-full {% if room.is_occupied %}bg-red-500{% else %}bg-emerald-500{% endif %} flex-shrink-0"></div>
+        <div class="flex items-center gap-3 p-2.5 rounded-xl transition-colors"
+             style="background:#F8FAFC">
+          <div class="w-1 h-8 rounded-full flex-shrink-0"
+               style="background:{% if room.is_occupied %}#EF4444{% else %}#10B981{% endif %}"></div>
           <div class="flex-1 min-w-0">
-            <p class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{{ room.name }}</p>
-            <p class="text-[10px] text-slate-400 dark:text-slate-500">{{ room.location }}</p>
+            <p class="text-xs font-bold truncate" style="color:#0B2545">{{ room.name }}</p>
+            <p class="text-[10px]" style="color:#94A3B8">{{ room.location|default:"المبنى الرئيسي" }}</p>
           </div>
-          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0
-            {% if room.is_occupied %}bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400{% else %}bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400{% endif %}">
-            {% if room.is_occupied %}Busy{% else %}Free{% endif %}
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0"
+                style="{% if room.is_occupied %}background:#FEE2E2;color:#991B1B{% else %}background:#D1FAE5;color:#065F46{% endif %}">
+            {% if room.is_occupied %}مشغولة{% else %}Free{% endif %}
           </span>
         </div>
         {% empty %}
@@ -208,8 +211,9 @@
       </div>
       <div class="px-4 pb-4 pt-2">
         <a href="{% url 'classrooms_status' %}"
-          class="block w-full text-center text-xs font-bold text-primary bg-primary/5 hover:bg-primary/10 py-2.5 rounded-xl transition-colors">
-          View all rooms
+           class="block w-full text-center text-xs font-bold py-2.5 rounded-xl transition-colors"
+           style="color:#1E3A8A;background:rgba(30,58,138,0.06)">
+          View all rooms →
         </a>
       </div>
     </div>
