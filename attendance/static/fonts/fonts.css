@@ -3,8 +3,11 @@
   font-family: 'Material Symbols Outlined';
   font-weight: 100 700;
   font-style: normal;
-  font-display: block;
+  font-display: block;   /* block prevents FOUT — ligature renders on first paint */
   src: url('material-symbols.ttf') format('truetype');
+  /* unicode-range covers only the Private Use Area used by Material Symbols
+     so Arabic/Latin text is never accidentally rendered with this font */
+  unicode-range: U+E000-F8FF, U+1F000-1F9FF;
 }
 
 .material-symbols-outlined {
@@ -18,7 +21,10 @@
   display: inline-block;
   white-space: nowrap;
   word-wrap: normal;
-  direction: ltr;
+  direction: ltr !important;   /* critical: RTL page-dir must not affect icon ligatures */
+  -webkit-font-feature-settings: 'liga';
+  font-feature-settings: 'liga';
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }

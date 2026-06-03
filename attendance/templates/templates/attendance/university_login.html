@@ -30,6 +30,25 @@
   @keyframes spin { to{transform:rotate(360deg)} }
   @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:.35} }
   .status-dot { animation:pulse-dot 2.2s ease-in-out infinite; }
+  /* Default (light mode) text colours */
+  .login-heading  { color: #0B2545; }
+  .login-subtext  { color: #6B7FA3; }
+  /* Dark mode: card background + text → readable on dark card */
+  @media (prefers-color-scheme: dark) {
+    .card           { background: rgba(15,25,45,0.97) !important; }
+    .login-heading  { color: #E2E8F0 !important; }
+    .login-subtext  { color: #94A3B8 !important; }
+    .field          { background: #0D1A33; border-color: #1A2F50; color: #E8EDF8; }
+    .field::placeholder { color: #4A6080; }
+    .field:focus    { background: #091528; border-color: #F0C040; }
+  }
+  /* JS-toggled dark mode (localStorage theme=dark) */
+  body.dark-mode .card           { background: rgba(15,25,45,0.97) !important; }
+  body.dark-mode .login-heading  { color: #E2E8F0 !important; }
+  body.dark-mode .login-subtext  { color: #94A3B8 !important; }
+  body.dark-mode .field          { background: #0D1A33; border-color: #1A2F50; color: #E8EDF8; }
+  body.dark-mode .field::placeholder { color: #4A6080; }
+  body.dark-mode .field:focus    { background: #091528; border-color: #F0C040; }
 </style>
 </head>
 
@@ -43,9 +62,9 @@
            class="h-24 object-contain mb-5"
            alt="SHAMEL">
       <div class="gold-line w-28 mb-4"></div>
-      <h1 class="text-2xl font-extrabold" style="color:#0B2545; font-family:'Manrope','Segoe UI',sans-serif;"
+      <h1 class="text-2xl font-extrabold login-heading" style="font-family:'Manrope','Segoe UI',sans-serif;"
           data-en="Welcome back" data-ar="مرحباً بعودتك">Welcome back</h1>
-      <p class="text-sm mt-1" style="color:#6B7FA3;"
+      <p class="text-sm mt-1 login-subtext"
          data-en="Sign in to access your academic portal." data-ar="سجّل دخولك للوصول إلى البوابة الأكاديمية.">Sign in to access your academic portal.</p>
     </div>
 
@@ -119,6 +138,14 @@
 <script>
 /* ── i18n for standalone login page ─────────────────────────── */
 (function(){
+  // Apply dark mode from localStorage
+  try {
+    var theme = localStorage.getItem('theme') || localStorage.getItem('acdc_theme');
+    if(theme === 'dark' || window.matchMedia('(prefers-color-scheme:dark)').matches) {
+      document.body.classList.add('dark-mode');
+    }
+  } catch(e){}
+
   var lang = 'ar';
   try { lang = localStorage.getItem('acdc_lang') || new URLSearchParams(location.search).get('lang') || 'ar'; } catch(e){}
   if(lang !== 'ar') return; // already English by default

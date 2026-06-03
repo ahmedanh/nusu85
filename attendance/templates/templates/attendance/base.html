@@ -63,6 +63,8 @@ tailwind = {
 </script>
 <!-- ③ CDN now sees tailwind.config already set -->
 <script src="https://cdn.tailwindcss.com"></script>
+<!-- Preload Material Symbols font so ligatures render before first paint (fixes _ROGNITION broken icon) -->
+<link rel="preload" href="{% static 'fonts/material-symbols.ttf' %}" as="font" type="font/ttf" crossorigin="anonymous">
 <link href="{% static 'fonts/fonts.css' %}" rel="stylesheet"/>
 
 <style>
