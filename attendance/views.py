@@ -685,6 +685,12 @@ def upload_face(request, user_type, user_id):
 
 @login_required
 def toggle_user_access(request, user_type, user_id):
+    """
+    Gate-entry toggle.
+    STUDENTS only: toggled based on registration status / fees / disciplinary.
+    TEACHERS: always allowed entry — they are employed staff, not enrollees.
+              Do NOT toggle teacher access; return 400 if attempted.
+    """
     if user_type == 'student':
         obj = get_object_or_404(Student, pk=user_id)
         obj.is_allowed_entry = not obj.is_allowed_entry
@@ -696,11 +702,13 @@ def toggle_user_access(request, user_type, user_id):
                 notify_student_ineligible(obj)
             except Exception:
                 pass
+        log_audit(request, 'TOGGLE_STUDENT_ACCESS', user_type, user_id)
     elif user_type == 'teacher':
-        obj = get_object_or_404(Teacher, pk=user_id)
-        obj.is_allowed_entry = not obj.is_allowed_entry
-        obj.save(update_fields=['is_allowed_entry'])
-    log_audit(request, 'TOGGLE_ACCESS', user_type, user_id)
+        # Teachers are always permitted entry — access toggle does not apply.
+        messages.warning(request,
+            'الأساتذة لا يخضعون لنظام التصاريح. الدخول مضمون دائماً بحكم عقد التوظيف.')
+    else:
+        messages.error(request, 'نوع مستخدم غير معروف.')
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
 
@@ -1607,7 +1615,24 @@ def coordinator_dashboard(request):
     attendance_today = AIAttendanceLog.objects.filter(
         schedule__course__college=coordinator.college, timestamp__date=today
     ).count()
-    open_tickets = SupportTicket.objects.filter(status='open').count()
+    # Coordinator sees college-scoped tickets, not global system tickets
+    open_tickets = SupportTicket.objects.filter(
+        status='open',
+        created_by__student__department__college=coordinator.college
+    ).count() + SupportTicket.objects.filter(
+        status='open',
+        created_by__teacher__college=coordinator.college
+    ).count()
+
+    # Academic-specific KPIs (not shown to admin)
+    pending_excuses  = MedicalExcuse.objects.filter(
+        student__department__college=coordinator.college,
+        status='pending'
+    ).count()
+    ungraded_courses = Course.objects.filter(
+        college=coordinator.college,
+        is_graded=False
+    ).count() if hasattr(Course, 'is_graded') else 0
 
     # College-wide attendance percentage (last 30 days)
     from datetime import timedelta
@@ -1638,16 +1663,19 @@ def coordinator_dashboard(request):
 
     return render(request, 'attendance/coordinator_dashboard.html', {
         'coordinator':            coordinator,
-        # legacy names
+        'college_name':           coordinator.college.college_name if coordinator.college else '',
+        # Academic stats (college-scoped only)
         'students_count':         students_count,
         'teachers_count':         teachers_count,
         'courses_count':          courses_count,
         'attendance_today':       attendance_today,
         'open_tickets':           open_tickets,
-        # names expected by template
         'total_students':         students_count,
         'total_teachers':         teachers_count,
         'college_attendance_pct': college_attendance_pct,
+        # Academic KPIs (coordinator-specific, not shown to admin)
+        'pending_excuses':        pending_excuses,
+        'ungraded_courses':       ungraded_courses,
         'low_attendance_students': low_attendance_students,
     })
 
