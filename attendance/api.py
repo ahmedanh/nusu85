@@ -24,9 +24,30 @@ from django.db.models import Count, Q
 from .models import (
     Student, Teacher, Coordinator, Schedule, LectureSession,
     AIAttendanceLog, Notification, Course, Classroom,
+    Department, College, SupportTicket,
 )
 
 User = get_user_model()
+
+
+def _is_staff(user):
+    return user.is_superuser or user.is_staff
+
+
+def api_staff(view):
+    """Require an authenticated staff/admin user."""
+    @functools.wraps(view)
+    def wrapper(request, *args, **kwargs):
+        token = _bearer(request)
+        user = _user_from_token(token) if token else None
+        if not user:
+            return JsonResponse({'ok': False, 'error': 'unauthorized'}, status=401)
+        if not _is_staff(user):
+            return JsonResponse({'ok': False, 'error': 'forbidden',
+                                 'message': 'هذه الصفحة للمشرفين فقط'}, status=403)
+        request.api_user = user
+        return view(request, *args, **kwargs)
+    return wrapper
 
 TOKEN_SALT = 'shamel.api.token.v1'
 TOKEN_MAX_AGE = 60 * 60 * 24 * 14  # 14 days
