@@ -359,6 +359,136 @@ tailwind = {
   .dark .tab-btn:hover { color:#fff; }
   .tab-btn.active { background:#fff; color:#1E3A8A; box-shadow:0 1px 2px rgba(0,0,0,.05); }
   .dark .tab-btn.active { background:#334155; color:#60A5FA; }
+
+  /* ════════════════════════════════════════════════════════════════
+     FIX-BATCH — discovered via Full Screen Inventory PDF audit
+     ════════════════════════════════════════════════════════════════
+
+     1. RESPONSIVE TABLES → cards on mobile (<640px)
+        Wrap any <table> with class "resp-table" for card transform.
+        ShamelTables() auto-adds this to all enhanced tables.        */
+  @media(max-width:639px){
+    .resp-table { display:block; overflow:visible !important; }
+    .resp-table thead { display:none; }
+    .resp-table tbody, .resp-table tr {
+      display:block; width:100%;
+    }
+    .resp-table tr {
+      background:#fff; border-radius:1rem; margin-bottom:.75rem;
+      padding:.25rem .5rem;
+      box-shadow:0 1px 4px rgba(11,37,69,.08), 0 0 0 1px rgba(11,37,69,.05);
+    }
+    .dark .resp-table tr {
+      background:#1E293B;
+      box-shadow:0 0 0 1px rgba(255,255,255,.06);
+    }
+    .resp-table td {
+      display:flex; align-items:flex-start; gap:.5rem;
+      padding:.55rem .75rem; border:none !important;
+      font-size:.8125rem; line-height:1.4;
+      border-bottom:1px solid #F1F5F9 !important;
+    }
+    .dark .resp-table td { border-bottom-color:#334155 !important; }
+    .resp-table td:last-child { border-bottom:none !important; }
+    /* Show column header as label prefix */
+    .resp-table td::before {
+      content: attr(data-label);
+      font-weight:700; font-size:.7rem; color:#64748B;
+      min-width:6rem; flex-shrink:0; padding-top:.1rem;
+      text-transform:uppercase; letter-spacing:.04em;
+    }
+    .dark .resp-table td::before { color:#64748B; }
+    /* sticky-col has no meaning on card layout */
+    .resp-table.sticky-col th:first-child,
+    .resp-table.sticky-col td:first-child { position:static; }
+  }
+
+  /* 2. FAB / button overlap fix on mobile forms
+        Forms with a fixed bottom-bar or floating action button get
+        bottom padding so the last input isn't hidden behind them.   */
+  @media(max-width:639px){
+    form .form-mobile-pad { padding-bottom:5rem; }
+    /* auto-apply to common create/add forms */
+    form[data-wizard] { padding-bottom:5rem; }
+  }
+
+  /* 3. DARK MODE — Dropdown <select> options background
+        Chrome/Windows renders <option> with OS-native bg, which
+        can be white even inside dark-themed <select>.              */
+  .dark select option {
+    background-color:#1E293B !important;
+    color:#E2E8F0 !important;
+  }
+
+  /* 4. DARK MODE — Modal / dialog backgrounds                      */
+  .dark dialog, .dark [role="dialog"],
+  .dark .modal-box, .dark .dropdown-content {
+    background-color:#1E293B !important;
+    border-color:#334155 !important;
+    color:#E2E8F0 !important;
+  }
+  /* Any white card inside a dark modal */
+  .dark .modal-box .bg-white { background-color:#0D1A33 !important; }
+
+  /* 5. RTL — Icon alignment inside flex buttons
+        When dir=rtl, row-reverses icon+label so icon appears on
+        the inline-end (right) side, matching Arabic reading flow.  */
+  html[dir="rtl"] .btn-icon-row,
+  html[dir="rtl"] button > .flex.items-center,
+  html[dir="rtl"] a > .flex.items-center {
+    flex-direction:row-reverse;
+  }
+  /* Specifically fix export / action buttons with leading icons */
+  html[dir="rtl"] .material-symbols-outlined + span,
+  html[dir="rtl"] .material-symbols-outlined + * {
+    margin-inline-start:.375rem; margin-inline-end:0;
+  }
+
+  /* 6. ARABIC TEXT — table header truncation fix
+        Arabic col headers are wider; allow wrap so they don't clip */
+  th {
+    white-space:normal !important;
+    word-break:keep-all;
+    hyphens:none;
+  }
+  /* But keep action/number columns narrow */
+  th.col-actions, th.col-num, th[data-nowrap] { white-space:nowrap !important; }
+
+  /* 7. EMPTY STATE COMPONENT
+        .empty-state inside a <tbody> td or a container div renders
+        a friendly illustration + message when no data exists.      */
+  .empty-state {
+    display:flex; flex-direction:column; align-items:center;
+    justify-content:center; gap:.75rem;
+    padding:3rem 1.5rem; text-align:center;
+  }
+  .empty-state .es-icon {
+    width:4rem; height:4rem; border-radius:1.25rem;
+    background:rgba(30,58,138,.07);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .dark .empty-state .es-icon { background:rgba(96,165,250,.1); }
+  .empty-state .es-icon .material-symbols-outlined {
+    font-size:2rem; color:#1E3A8A; opacity:.6;
+  }
+  .dark .empty-state .es-icon .material-symbols-outlined { color:#60A5FA; }
+  .empty-state p { color:#64748B; font-size:.875rem; max-width:22rem; }
+  .dark .empty-state p { color:#64748B; }
+  .empty-state strong { color:#0F172A; font-size:1rem; font-weight:700; display:block; }
+  .dark .empty-state strong { color:#E2E8F0; }
+
+  /* 8. PROGRESS BAR / CHART — dark mode colour tokens
+        Individual charts override these via JS (see initChartDefaults()).
+        These CSS vars give a baseline for any non-JS progress elements. */
+  .dark progress::-webkit-progress-bar   { background:#1E293B; }
+  .dark progress::-webkit-progress-value { background:#60A5FA; }
+  .dark progress { background:#1E293B; accent-color:#60A5FA; }
+
+  /* 9. OFFLINE PAGE — mobile fix: constrain signal SVG size         */
+  @media(max-width:639px){
+    .signal { width:56px; height:56px; margin-bottom:1.25rem; }
+    .signal svg { width:56px; height:56px; }
+  }
 </style>
 </head>
 
@@ -1384,6 +1514,23 @@ document.addEventListener('keydown', function(e) {
     Array.prototype.forEach.call(root.querySelectorAll('table'), function(t){
       if(t.closest('.no-enhance')) return;
       t.classList.add('sticky-col');                       // freeze first column
+      t.classList.add('resp-table');                       // mobile card layout
+
+      // Auto-stamp data-label on every <td> from its column <th>
+      var headers = [];
+      if(t.tHead && t.tHead.rows[0]){
+        Array.prototype.forEach.call(t.tHead.rows[0].cells, function(th){ headers.push(th.textContent.trim()); });
+      }
+      if(headers.length){
+        Array.prototype.forEach.call(t.tBodies, function(tb){
+          Array.prototype.forEach.call(tb.rows, function(tr){
+            Array.prototype.forEach.call(tr.cells, function(td, i){
+              if(!td.hasAttribute('data-label') && headers[i]) td.setAttribute('data-label', headers[i]);
+            });
+          });
+        });
+      }
+
       if(!t.closest('.tbl-scroll')){                       // ensure scroll wrapper
         var p=t.parentElement, ox=p?getComputedStyle(p).overflowX:'visible';
         if(ox!=='auto' && ox!=='scroll'){
@@ -1391,9 +1538,38 @@ document.addEventListener('keydown', function(e) {
           t.parentNode.insertBefore(wrap,t); wrap.appendChild(t);
         } else { p.classList.add('tbl-scroll'); }
       }
-      if(!t.classList.contains('no-pager')) paginate(t);   // add pager
+      if(!t.classList.contains('no-pager')) paginate(t);  // add pager
+
+      // Empty state: if tbody has 0 data rows → inject .empty-state row
+      injectEmptyState(t);
     });
   }
+
+  function injectEmptyState(t){
+    var tb = t.tBodies[0];
+    if(!tb) return;
+    var dataRows = Array.prototype.filter.call(tb.rows, function(r){ return !r.dataset.skeleton && !r.dataset.emptyState; });
+    if(dataRows.length > 0){
+      // remove any previously injected empty state
+      Array.prototype.forEach.call(tb.querySelectorAll('[data-empty-state]'), function(r){ r.parentNode.removeChild(r); });
+      return;
+    }
+    if(tb.querySelector('[data-empty-state]')) return; // already present
+    var cols = (t.tHead && t.tHead.rows[0]) ? t.tHead.rows[0].cells.length : 4;
+    var lang = document.documentElement.getAttribute('data-lang') || 'ar';
+    var msg  = lang === 'ar' ? 'لا توجد بيانات لعرضها' : 'No data to display';
+    var row  = document.createElement('tr');
+    row.setAttribute('data-empty-state','1');
+    row.innerHTML = '<td colspan="'+cols+'">'
+      + '<div class="empty-state">'
+      + '<div class="es-icon"><span class="material-symbols-outlined">inbox</span></div>'
+      + '<strong>' + (lang==='ar' ? 'لا توجد نتائج' : 'No results') + '</strong>'
+      + '<p>' + msg + '</p>'
+      + '</div></td>';
+    tb.appendChild(row);
+  }
+  // re-run empty-state injection after pagination switches pages
+  document.addEventListener('shamel:page-changed', function(e){ if(e.detail && e.detail.table) injectEmptyState(e.detail.table); });
 
   window.ShamelSkeleton = {
     table: function(tbody, rows, cols){
@@ -1568,6 +1744,111 @@ document.addEventListener('keydown', function(e) {
   function boot(){ Array.prototype.forEach.call(document.querySelectorAll('form[data-wizard]'), initWizard); }
   if(document.readyState!=='loading') boot();
   else document.addEventListener('DOMContentLoaded', boot);
+})();
+</script>
+
+<script>
+/* ════════════════════════════════════════════════════════════════
+   FIX-BATCH: Chart.js dark-mode defaults + RTL icon flip
+   Runs after DOMContentLoaded; safe if Chart.js isn't on the page.
+   ════════════════════════════════════════════════════════════════ */
+(function(){
+  var isDark = document.documentElement.classList.contains('dark');
+
+  /* ── Chart.js global defaults (dark mode) ───────────────────── */
+  function applyChartDefaults(){
+    if(typeof Chart === 'undefined') return;
+    var cd = Chart.defaults;
+    if(isDark){
+      cd.color            = '#94A3B8';   // axis labels / legend text
+      cd.borderColor      = '#1E293B';   // grid lines (subtle)
+      cd.backgroundColor  = 'rgba(96,165,250,0.15)';
+      if(cd.plugins && cd.plugins.legend && cd.plugins.legend.labels)
+        cd.plugins.legend.labels.color = '#94A3B8';
+      if(cd.plugins && cd.plugins.tooltip){
+        cd.plugins.tooltip.backgroundColor = '#1E293B';
+        cd.plugins.tooltip.titleColor       = '#E2E8F0';
+        cd.plugins.tooltip.bodyColor        = '#94A3B8';
+        cd.plugins.tooltip.borderColor      = '#334155';
+        cd.plugins.tooltip.borderWidth      = 1;
+      }
+      if(cd.scale){
+        if(cd.scale.grid)  cd.scale.grid.color  = '#1A2535';
+        if(cd.scale.ticks) cd.scale.ticks.color = '#64748B';
+      }
+      /* Override scales for all registered scale types */
+      ['linear','category','logarithmic','radialLinear','time'].forEach(function(k){
+        var s = cd.scales && cd.scales[k];
+        if(!s) return;
+        if(s.grid)  s.grid.color  = '#1A2535';
+        if(s.ticks) s.ticks.color = '#64748B';
+      });
+    } else {
+      cd.color = '#334155';
+      if(cd.plugins && cd.plugins.legend && cd.plugins.legend.labels)
+        cd.plugins.legend.labels.color = '#334155';
+    }
+  }
+
+  /* ── RTL: flip icon+text order inside action buttons ────────── */
+  function fixRtlIcons(){
+    var dir = document.documentElement.getAttribute('dir');
+    if(dir !== 'rtl') return;
+    document.querySelectorAll('button, a.btn, a[class*="btn"]').forEach(function(el){
+      // only target buttons that contain BOTH an icon AND text
+      var icon = el.querySelector('.material-symbols-outlined');
+      if(!icon) return;
+      var txt  = Array.prototype.find
+        ? Array.from(el.childNodes).find(function(n){ return n.nodeType===3 && n.textContent.trim(); })
+        : null;
+      if(!txt && !el.querySelector('span:not(.material-symbols-outlined)')) return;
+      // set gap and reverse flex for RTL
+      if(getComputedStyle(el).display.indexOf('flex') === -1){
+        el.style.display = 'inline-flex';
+        el.style.alignItems = 'center';
+      }
+      el.style.flexDirection = 'row-reverse';
+      el.style.gap = el.style.gap || '.375rem';
+    });
+  }
+
+  /* ── Empty-state: also watch for dynamically loaded content ─── */
+  if(window.MutationObserver){
+    var mo = new MutationObserver(function(muts){
+      muts.forEach(function(m){
+        m.addedNodes.forEach(function(n){
+          if(n.nodeType!==1) return;
+          n.querySelectorAll && n.querySelectorAll('table').forEach(function(t){
+            if(window.ShamelTables) window.ShamelTables.refresh(n);
+          });
+        });
+      });
+    });
+    document.addEventListener('DOMContentLoaded', function(){
+      mo.observe(document.body, {childList:true, subtree:true});
+    });
+  }
+
+  /* ── Theme-change listener: reapply defaults when toggled ───── */
+  var themeObs = new MutationObserver(function(){
+    isDark = document.documentElement.classList.contains('dark');
+    applyChartDefaults();
+    /* Re-render all live charts */
+    if(typeof Chart !== 'undefined' && Chart.instances){
+      Object.values(Chart.instances).forEach(function(c){ try{ c.update(); }catch(e){} });
+    }
+  });
+  themeObs.observe(document.documentElement, {attributes:true, attributeFilter:['class']});
+
+  function init(){
+    applyChartDefaults();
+    fixRtlIcons();
+  }
+  if(document.readyState !== 'loading') init();
+  else document.addEventListener('DOMContentLoaded', init);
+
+  /* Re-run after Chart.js finishes registering (it may load after this script) */
+  window.addEventListener('load', applyChartDefaults);
 })();
 </script>
 </body>

@@ -43,8 +43,10 @@
            class="h-24 object-contain mb-5"
            alt="SHAMEL">
       <div class="gold-line w-28 mb-4"></div>
-      <h1 class="text-2xl font-extrabold" style="color:#0B2545; font-family:'Manrope','Segoe UI',sans-serif;">Welcome back</h1>
-      <p class="text-sm mt-1" style="color:#6B7FA3;">Sign in to access your academic portal.</p>
+      <h1 class="text-2xl font-extrabold" style="color:#0B2545; font-family:'Manrope','Segoe UI',sans-serif;"
+          data-en="Welcome back" data-ar="مرحباً بعودتك">Welcome back</h1>
+      <p class="text-sm mt-1" style="color:#6B7FA3;"
+         data-en="Sign in to access your academic portal." data-ar="سجّل دخولك للوصول إلى البوابة الأكاديمية.">Sign in to access your academic portal.</p>
     </div>
 
     <!-- Error alert -->
@@ -58,28 +60,37 @@
     <!-- Face ID -->
     <a href="{% url 'face_login' %}" class="btn-gold mb-3">
       <span class="material-symbols-outlined" style="font-size:22px">face</span>
-      Sign in with Face ID
+      <span data-en="Sign in with Face ID" data-ar="تسجيل الدخول بالوجه">Sign in with Face ID</span>
     </a>
-    <p class="text-center text-xs mb-5 font-medium" style="color:#9BA8C5;">
+    <p class="text-center text-xs mb-5 font-medium" style="color:#9BA8C5;"
+       data-en="Recommended — use your enrolled face to sign in instantly."
+       data-ar="موصى به — استخدم وجهك المسجل لتسجيل الدخول فوراً.">
       Recommended — use your enrolled face to sign in instantly.
     </p>
 
     <!-- Divider -->
     <div class="divider mb-5">
-      <span class="text-xs font-bold uppercase tracking-widest whitespace-nowrap" style="color:#9BA8C5;">or sign in with password</span>
+      <span class="text-xs font-bold uppercase tracking-widest whitespace-nowrap" style="color:#9BA8C5;"
+            data-en="or sign in with password" data-ar="أو سجّل بكلمة المرور">or sign in with password</span>
     </div>
 
     <!-- Password form -->
     <form method="POST" action="{% url 'login' %}" id="login-form" class="space-y-4">
       {% csrf_token %}
       <div>
-        <label class="block text-xs font-bold uppercase tracking-wider mb-1.5" style="color:#6B7FA3;">University ID or Email</label>
-        <input name="username" type="text" required autocomplete="username" placeholder="Enter your username or email" class="field"/>
+        <label class="block text-xs font-bold uppercase tracking-wider mb-1.5" style="color:#6B7FA3;"
+               data-en="University ID or Email" data-ar="الرقم الجامعي أو البريد">University ID or Email</label>
+        <input name="username" type="text" required autocomplete="username"
+               data-placeholder-en="Enter your username or email" data-placeholder-ar="أدخل اسم المستخدم أو البريد"
+               placeholder="Enter your username or email" class="field"/>
       </div>
       <div>
-        <label class="block text-xs font-bold uppercase tracking-wider mb-1.5" style="color:#6B7FA3;">Password</label>
+        <label class="block text-xs font-bold uppercase tracking-wider mb-1.5" style="color:#6B7FA3;"
+               data-en="Password" data-ar="كلمة المرور">Password</label>
         <div class="relative">
-          <input name="password" id="pw" type="password" required autocomplete="current-password" placeholder="Enter your password" class="field" style="padding-right:46px"/>
+          <input name="password" id="pw" type="password" required autocomplete="current-password"
+                 data-placeholder-en="Enter your password" data-placeholder-ar="أدخل كلمة المرور"
+                 placeholder="Enter your password" class="field" style="padding-right:46px"/>
           <button type="button" class="eye-btn" onclick="togglePw()" aria-label="Toggle password visibility">
             <span id="eye-icon" class="material-symbols-outlined" style="font-size:20px">visibility</span>
           </button>
@@ -87,7 +98,7 @@
       </div>
       <button type="submit" id="submit-btn" class="btn-navy" style="margin-top:6px">
         <span class="material-symbols-outlined" style="font-size:20px">login</span>
-        Sign In
+        <span data-en="Sign In" data-ar="تسجيل الدخول">Sign In</span>
       </button>
     </form>
 
@@ -95,7 +106,8 @@
     <div class="mt-6 flex items-center justify-between">
       <div class="flex items-center gap-2">
         <span class="w-2 h-2 rounded-full bg-emerald-400 status-dot inline-block"></span>
-        <span class="text-xs font-medium" style="color:#9BA8C5;">System Online</span>
+        <span class="text-xs font-medium" style="color:#9BA8C5;"
+              data-en="System Online" data-ar="النظام متصل">System Online</span>
       </div>
       <span class="text-xs font-medium" style="color:#9BA8C5;">SHAMEL v4.2</span>
     </div>
@@ -105,16 +117,33 @@
 </body>
 
 <script>
+/* ── i18n for standalone login page ─────────────────────────── */
+(function(){
+  var lang = 'ar';
+  try { lang = localStorage.getItem('acdc_lang') || new URLSearchParams(location.search).get('lang') || 'ar'; } catch(e){}
+  if(lang !== 'ar') return; // already English by default
+  document.documentElement.setAttribute('lang','ar');
+  document.documentElement.setAttribute('dir','rtl');
+  document.querySelectorAll('[data-ar]').forEach(function(el){
+    el.textContent = el.getAttribute('data-ar');
+  });
+  document.querySelectorAll('[data-placeholder-ar]').forEach(function(el){
+    el.placeholder = el.getAttribute('data-placeholder-ar');
+  });
+})();
+
 function togglePw() {
-  const inp = document.getElementById('pw');
+  const inp  = document.getElementById('pw');
   const icon = document.getElementById('eye-icon');
   inp.type = inp.type === 'password' ? 'text' : 'password';
   icon.textContent = inp.type === 'password' ? 'visibility' : 'visibility_off';
 }
 document.getElementById('login-form').addEventListener('submit', function() {
-  const btn = document.getElementById('submit-btn');
+  const btn  = document.getElementById('submit-btn');
+  const lang = document.documentElement.getAttribute('lang');
+  const txt  = lang === 'ar' ? 'جارٍ تسجيل الدخول…' : 'Signing in…';
   btn.disabled = true;
-  btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:20px;animation:spin 1s linear infinite">progress_activity</span> Signing in…';
+  btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:20px;animation:spin 1s linear infinite">progress_activity</span> ' + txt;
 });
 </script>
 </html>
