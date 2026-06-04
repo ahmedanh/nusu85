@@ -41,9 +41,9 @@ from PIL import Image
 
 BASE_URL = "http://127.0.0.1:8000"
 # Use C:\shamel_inv\ to avoid Arabic characters in path (Windows cp1252 safe)
-_WORK_DIR = Path("C:/shamel_inv")
+_WORK_DIR = Path("C:/shamel_inv_light")
 _WORK_DIR.mkdir(parents=True, exist_ok=True)
-OUTPUT_PDF = _WORK_DIR / "Shamel_Full_Inventory.pdf"
+OUTPUT_PDF = _WORK_DIR / "Shamel_Inventory_Light.pdf"
 TMP_DIR    = _WORK_DIR / "tmp_png"
 TMP_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -66,7 +66,7 @@ VIEWPORTS = {
 }
 
 # ── Theme tokens ──────────────────────────────────────────────────────────────
-THEMES = ["Light", "Dark"]
+THEMES = ["Light"]   # Light theme only for this documentation pass
 
 # ── Language / direction tokens ───────────────────────────────────────────────
 LANGS = ["Arabic", "English"]   # Arabic → ?lang=ar (RTL), English → ?lang=en (LTR)
@@ -1253,11 +1253,13 @@ def main() -> None:
             roles_count[role] = role_shots
             print(f"    -> {role_shots} shots captured for {role}\n")
 
-    # ── Flutter mobile capture (ADB) ───────────────────────────────────────────
-    flutter_shots = capture_flutter_screens()
-    all_shots.extend(flutter_shots)
-    if flutter_shots:
-        roles_count["flutter"] = len(flutter_shots)
+    # ── Flutter mobile capture (ADB) — DISABLED for light-theme web pass ──────
+    CAPTURE_FLUTTER = False
+    if CAPTURE_FLUTTER:
+        flutter_shots = capture_flutter_screens()
+        all_shots.extend(flutter_shots)
+        if flutter_shots:
+            roles_count["flutter"] = len(flutter_shots)
 
     # ── Build PDF ──────────────────────────────────────────────────────────────
     print("  Building PDF …")

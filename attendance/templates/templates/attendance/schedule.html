@@ -80,11 +80,12 @@
 
 <!-- ── Teacher info banner ───────────────────────────────────────────── -->
 {% if role == 'teacher' and teacher_obj %}
-<div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl p-4 mb-5 flex items-center gap-3 text-sm">
-  <span class="material-symbols-outlined text-blue-500">info</span>
+<div class="rounded-2xl p-4 mb-5 flex items-center gap-3 text-sm"
+     style="background:var(--s-gold-dim);border:1px solid rgba(201,162,39,0.3);">
+  <span class="material-symbols-outlined" style="color:var(--s-gold);">info</span>
   <div>
-    <p class="font-semibold text-blue-800 dark:text-blue-300">تعرض هذه الصفحة الجداول المخصصة لك فقط</p>
-    <p class="text-blue-600 dark:text-blue-400 text-xs">لا يمكنك رؤية أو تعديل جداول الأساتذة الآخرين</p>
+    <p class="font-semibold" style="color:var(--s-text);">تعرض هذه الصفحة الجداول المخصصة لك فقط</p>
+    <p class="text-xs" style="color:var(--s-text-2);">لا يمكنك رؤية أو تعديل جداول الأساتذة الآخرين</p>
   </div>
 </div>
 {% endif %}

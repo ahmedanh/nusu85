@@ -782,6 +782,49 @@ tailwind = {
       transition-duration: 1ms !important;
     }
   }
+
+  /* ════════════════════════════════════════════════════════════════
+     GLOBAL BLUE → NAVY+GOLD REMAP
+     Converts stray Tailwind blue utilities across all templates to
+     the SHAMEL navy+gold design system. Applied via #main-canvas
+     so it never touches the always-dark sidebar.
+     ════════════════════════════════════════════════════════════════ */
+
+  /* Light-mode blue info blocks → gold tint */
+  html:not(.dark) #main-canvas .bg-blue-50   { background: var(--s-gold-dim)      !important; }
+  html:not(.dark) #main-canvas .bg-blue-100  { background: rgba(201,162,39,0.18)  !important; }
+  html:not(.dark) #main-canvas .border-blue-100,
+  html:not(.dark) #main-canvas .border-blue-200 { border-color: rgba(201,162,39,0.30) !important; }
+
+  /* Dark-mode blue blocks → navy surface */
+  html.dark #main-canvas .bg-blue-900  { background: var(--s-surface-alt)  !important; }
+  html.dark #main-canvas .bg-blue-800  { background: var(--s-surface)       !important; }
+
+  /* Blue text → navy or gold depending on context */
+  #main-canvas .text-blue-700,
+  #main-canvas .text-blue-800  { color: var(--s-text)   !important; }
+  #main-canvas .text-blue-600  { color: var(--s-text-2) !important; }
+  #main-canvas .text-blue-500,
+  #main-canvas .text-blue-400  { color: var(--s-text-3) !important; }
+  #main-canvas .text-blue-300  { color: var(--s-gold)   !important; }
+
+  /* Blue action buttons / links → gold */
+  #main-canvas a.text-blue-600,
+  #main-canvas button.text-blue-600  { color: var(--s-gold) !important; }
+  html.dark #main-canvas a.text-blue-400,
+  html.dark #main-canvas button.text-blue-400 { color: var(--s-gold) !important; }
+
+  /* Indigo / purple (wizard active steps etc.) → gold */
+  html:not(.dark) #main-canvas .bg-indigo-600,
+  html:not(.dark) #main-canvas .bg-indigo-500  { background: var(--s-gold)  !important; color: var(--s-navy) !important; }
+  html:not(.dark) #main-canvas .text-indigo-600 { color: var(--s-text-2) !important; }
+  html.dark #main-canvas .text-indigo-400       { color: var(--s-gold)   !important; }
+
+  /* Tailwind `primary` utilities — remap to gold (Tailwind config registered gold as primary) */
+  .text-primary { color: var(--s-gold)  !important; }
+  .bg-primary   { background: var(--s-gold) !important; color: var(--s-navy) !important; }
+  .border-primary { border-color: var(--s-gold) !important; }
+  .bg-primary\/5, .bg-primary\/10 { background: var(--s-gold-dim) !important; }
 </style>
 </head>
 
@@ -1030,10 +1073,7 @@ tailwind = {
       <span class="material-symbols-outlined text-[18px]">person</span>
       <span data-en="My Profile" data-ar="ملفي">My Profile</span>
     </a>
-    <a href="{% url 'teacher_permissions' %}" class="nav-link {% if request.resolver_match.url_name == 'teacher_permissions' %}active{% endif %}">
-      <span class="material-symbols-outlined text-[18px]">lock_open</span>
-      <span data-en="Room Permissions" data-ar="صلاحيات القاعات">Room Permissions</span>
-    </a>
+    {# Room Permissions removed — teachers have implicit access to all rooms #}
 
     <p class="nav-section" data-en="System" data-ar="النظام">System</p>
     <a href="{% url 'notifications_view' %}" class="nav-link {% if request.resolver_match.url_name == 'notifications_view' %}active{% endif %}">

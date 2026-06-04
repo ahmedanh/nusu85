@@ -156,7 +156,7 @@
               <p class="text-xs text-slate-400 mt-0.5">{{ c.course_code }}</p>
             </div>
             <span class="shrink-0 text-[10px] font-bold px-2 py-1 rounded-lg
-              {% if c.course_type_val == 'mandatory' %}bg-navy/10 text-navy dark:bg-blue-900/30 dark:text-blue-300
+              {% if c.course_type_val == 'mandatory' %}bg-primary/10 text-navy dark:text-primary
               {% elif c.course_type_val == 'elective' %}bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300
               {% elif c.course_type_val == 'lab' %}bg-orange-50 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300
               {% else %}bg-slate-100 text-slate-500{% endif %}">
@@ -188,9 +188,10 @@
       {% endfor %}
     </div>
     {% else %}
-    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-12 text-center">
-      <span class="material-symbols-outlined text-5xl text-slate-200 dark:text-slate-600">search_off</span>
-      <p class="text-slate-400 font-semibold mt-3">لا توجد مقررات تطابق البحث</p>
+    <div class="rounded-2xl p-12 text-center empty-state" style="background:var(--s-surface);border:1px solid var(--s-border);">
+      <div class="es-icon mx-auto mb-3"><span class="material-symbols-outlined">search_off</span></div>
+      <strong>لا توجد مقررات</strong>
+      <p>لا توجد مقررات تطابق البحث الحالي</p>
     </div>
     {% endif %}
   </div>

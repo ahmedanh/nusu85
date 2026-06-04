@@ -243,13 +243,13 @@
 
     <!-- Open Tickets summary -->
     {% if open_tickets %}
-    <div class="bg-amber-50 dark:bg-amber-900/20 rounded-2xl border border-amber-100 dark:border-amber-800/40 p-5">
+    <div class="rounded-2xl p-5" style="background:var(--s-gold-dim);border:1.5px solid var(--s-gold);">
       <div class="flex items-center gap-3 mb-2">
-        <span class="material-symbols-outlined text-amber-600 dark:text-amber-400">support_agent</span>
-        <h3 class="font-bold text-amber-800 dark:text-amber-300 text-sm">Open Tickets</h3>
+        <span class="material-symbols-outlined" style="color:var(--s-gold);">support_agent</span>
+        <h3 class="font-bold text-sm" style="color:var(--s-text);" data-en="Open Tickets" data-ar="التذاكر المفتوحة">Open Tickets</h3>
       </div>
-      <p class="text-2xl font-extrabold text-amber-700 dark:text-amber-300 font-headline">{{ open_tickets }}</p>
-      <a href="{% url 'admin_tickets' %}" class="mt-2 block text-xs font-bold text-amber-600 dark:text-amber-400 hover:underline">View all tickets →</a>
+      <p class="text-2xl font-extrabold font-headline" style="color:var(--s-text);">{{ open_tickets }}</p>
+      <a href="{% url 'admin_tickets' %}" class="mt-2 block text-xs font-bold hover:underline" style="color:var(--s-warning);" data-en="View all tickets →" data-ar="← عرض جميع التذاكر">View all tickets →</a>
     </div>
     {% endif %}
 

@@ -1,0 +1,64 @@
+Watching for file changes with StatReloader
+D:\مهم\ACDC_FINAL-main\attendance\views.py changed, reloading.
+Watching for file changes with StatReloader
+D:\مهم\ACDC_FINAL-main\attendance\views.py changed, reloading.
+Watching for file changes with StatReloader
+D:\مهم\ACDC_FINAL-main\attendance\views.py changed, reloading.
+Watching for file changes with StatReloader
+D:\مهم\ACDC_FINAL-main\attendance\views.py changed, reloading.
+Watching for file changes with StatReloader
+D:\مهم\ACDC_FINAL-main\attendance\views.py changed, reloading.
+Watching for file changes with StatReloader
+D:\مهم\ACDC_FINAL-main\attendance\views.py changed, reloading.
+Watching for file changes with StatReloader
+D:\مهم\ACDC_FINAL-main\attendance\views.py changed, reloading.
+Watching for file changes with StatReloader
+D:\مهم\ACDC_FINAL-main\attendance\views.py changed, reloading.
+Watching for file changes with StatReloader
+D:\مهم\ACDC_FINAL-main\attendance\views.py changed, reloading.
+Watching for file changes with StatReloader
+D:\مهم\ACDC_FINAL-main\attendance\views.py changed, reloading.
+Watching for file changes with StatReloader
+D:\مهم\ACDC_FINAL-main\attendance\views.py changed, reloading.
+Watching for file changes with StatReloader
+D:\مهم\ACDC_FINAL-main\attendance\views.py changed, reloading.
+Watching for file changes with StatReloader
+D:\مهم\ACDC_FINAL-main\attendance\views.py changed, reloading.
+Watching for file changes with StatReloader
+D:\مهم\ACDC_FINAL-main\attendance\views.py changed, reloading.
+Watching for file changes with StatReloader
+D:\مهم\ACDC_FINAL-main\attendance\views.py changed, reloading.
+Watching for file changes with StatReloader
+D:\مهم\ACDC_FINAL-main\attendance\views.py changed, reloading.
+Watching for file changes with StatReloader
+D:\مهم\ACDC_FINAL-main\attendance\urls.py changed, reloading.
+Watching for file changes with StatReloader
+D:\مهم\ACDC_FINAL-main\acdc_config\settings.py changed, reloading.
+Watching for file changes with StatReloader
+D:\مهم\ACDC_FINAL-main\attendance\api.py changed, reloading.
+Watching for file changes with StatReloader
+Job "check_attendance_compliance (trigger: cron[hour='8', minute='0'], next run at: 2026-06-02 08:00:00 CAT)" raised an exception
+Traceback (most recent call last):
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\apscheduler\executors\base.py", line 131, in run_job
+    retval = job.func(*job.args, **job.kwargs)
+  File "D:\مهم\ACDC_FINAL-main\attendance\tasks.py", line 93, in check_attendance_compliance
+    Notification.objects.create(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        user=admin,
+        ^^^^^^^^^^^
+        message=f"{student.name}: {pct:.1f}% attendance — {level.upper()}",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        notif_type=level
+        ^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\query.py", line 667, in create
+    obj = self.model(**kwargs)
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\base.py", line 590, in __init__
+    raise TypeError(
+    ...<2 lines>...
+    )
+TypeError: Notification() got unexpected keyword arguments: 'message', 'notif_type'
