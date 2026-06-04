@@ -34,7 +34,7 @@ Section _courses() => Section('المواد الدراسية', Icons.menu_book_o
 
 Section _classrooms() => Section('القاعات', Icons.meeting_room_outlined, () => ResourceListScreen(
       title: 'القاعات', endpoint: '/api/v1/classrooms', listKey: 'classrooms',
-      icon: Icons.meeting_room_outlined, accent: ShamelColors.primary,
+      icon: Icons.meeting_room_outlined, accent: ShamelColors.gold,
       titleOf: (m) => _s(m, 'name'),
       subtitleOf: (m) => '${_s(m, 'location')} • سعة ${_s(m, 'capacity')}',
       trailingOf: (m) => m['is_busy'] == true ? 'مشغولة' : 'متاحة',
@@ -60,8 +60,7 @@ Section _teachers() => Section('الأساتذة', Icons.groups_outlined, () => 
       icon: Icons.groups_outlined, accent: ShamelColors.roleTeacher, searchable: true,
       titleOf: (m) => _s(m, 'name'),
       subtitleOf: (m) => '${_s(m, 'degree')} • ${_s(m, 'department')}',
-      onTap: (ctx, m) => Navigator.push(ctx, MaterialPageRoute(
-          builder: (_) => TeacherDetailScreen(teacherId: m['id'] as int))),
+      onTap: (ctx, m) => Navigator.push(ctx, ShamelPageRoute(page: TeacherDetailScreen(teacherId: m['id'] as int))),
     ));
 
 Section _students() => Section('الطلاب', Icons.school_outlined, () => ResourceListScreen(
@@ -69,8 +68,7 @@ Section _students() => Section('الطلاب', Icons.school_outlined, () => Reso
       icon: Icons.school_outlined, accent: ShamelColors.roleStudent, searchable: true,
       titleOf: (m) => _s(m, 'name'),
       subtitleOf: (m) => '${_s(m, 'code')} • ${_s(m, 'department')}',
-      onTap: (ctx, m) => Navigator.push(ctx, MaterialPageRoute(
-          builder: (_) => StudentDetailScreen(studentId: m['id'] as int))),
+      onTap: (ctx, m) => Navigator.push(ctx, ShamelPageRoute(page: StudentDetailScreen(studentId: m['id'] as int))),
     ));
 
 Section _coordStudents() => Section('طلاب الكلية', Icons.school_outlined, () => ResourceListScreen(
@@ -78,8 +76,7 @@ Section _coordStudents() => Section('طلاب الكلية', Icons.school_outlin
       icon: Icons.school_outlined, accent: ShamelColors.roleStudent, searchable: false,
       titleOf: (m) => _s(m, 'name'),
       subtitleOf: (m) => '${_s(m, 'code')} • ${_s(m, 'department')}',
-      onTap: (ctx, m) => Navigator.push(ctx, MaterialPageRoute(
-          builder: (_) => StudentDetailScreen(studentId: m['id'] as int))),
+      onTap: (ctx, m) => Navigator.push(ctx, ShamelPageRoute(page: StudentDetailScreen(studentId: m['id'] as int))),
     ));
 
 Section _attendanceLogs() => Section('سجلات الحضور', Icons.fact_check_outlined,
@@ -94,7 +91,7 @@ Section _gateLogs() => Section('سجلات البوابة', Icons.door_sliding_o
 
 Section _exams() => Section('الامتحانات', Icons.event_note_outlined, () => ResourceListScreen(
       title: 'الامتحانات', endpoint: '/api/v1/exams', listKey: 'exams',
-      icon: Icons.event_note_outlined, accent: ShamelColors.warning,
+      icon: Icons.event_note_outlined, accent: ShamelColors.warningText,
       titleOf: (m) => _s(m, 'course'),
       subtitleOf: (m) => '${_s(m, 'type')} • ${_s(m, 'date')}',
       trailingOf: (m) => _s(m, 'classroom'),
@@ -102,7 +99,7 @@ Section _exams() => Section('الامتحانات', Icons.event_note_outlined, (
 
 Section _auditLog() => Section('سجل التدقيق', Icons.history_outlined, () => ResourceListScreen(
       title: 'سجل التدقيق', endpoint: '/api/v1/audit-log', listKey: 'entries',
-      icon: Icons.history_outlined, accent: ShamelColors.secondary,
+      icon: Icons.history_outlined, accent: ShamelColors.text2Light,
       titleOf: (m) => '${_s(m, 'action')} — ${_s(m, 'target')}',
       subtitleOf: (m) => '${_s(m, 'user')} • ${_s(m, 'timestamp')}',
     ));
@@ -113,8 +110,7 @@ Section _tickets() => Section('البلاغات والدعم', Icons.support_age
       titleOf: (m) => _s(m, 'subject'),
       subtitleOf: (m) => '${_s(m, 'user')} • ${_s(m, 'priority')}',
       trailingOf: (m) => _s(m, 'status'),
-      onTap: (ctx, m) => Navigator.push(ctx, MaterialPageRoute(
-          builder: (_) => TicketDetailScreen(ticketId: m['id'] as int))),
+      onTap: (ctx, m) => Navigator.push(ctx, ShamelPageRoute(page: TicketDetailScreen(ticketId: m['id'] as int))),
       fab: const _AddFab(CreateTicketScreen()),
     ));
 
@@ -128,7 +124,7 @@ Section _schedule() => Section('الجدول الدراسي', Icons.calendar_mon
 
 Section _deanEval() => Section('تقييمات العميد', Icons.star_outline, () => ResourceListScreen(
       title: 'تقييمات المقررات', endpoint: '/api/v1/dean-evaluations', listKey: 'evaluations',
-      icon: Icons.star_outline, accent: ShamelColors.warning,
+      icon: Icons.star_outline, accent: ShamelColors.warningText,
       titleOf: (m) => _s(m, 'course'),
       subtitleOf: (m) => '${_s(m, 'student')} • ${_s(m, 'comment')}',
       trailingOf: (m) => '⭐ ${_s(m, 'rating')}',
@@ -213,8 +209,8 @@ class _AddFab extends StatelessWidget {
   @override
   Widget build(BuildContext context) => FloatingActionButton(
         backgroundColor: ShamelColors.gold,
-        foregroundColor: ShamelColors.primary,
-        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => target)),
+        foregroundColor: ShamelColors.gold,
+        onPressed: () => Navigator.push(context, ShamelPageRoute(page: target)),
         child: const Icon(Icons.add),
       );
 }

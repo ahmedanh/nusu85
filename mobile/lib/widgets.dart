@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'theme.dart';
 
-/// Reusable stat card — mirrors the web dashboard metric cards.
+/// KPI stat card — mirrors web dashboard metric cards.
 class StatCard extends StatelessWidget {
   final String label;
   final String value;
@@ -11,13 +11,20 @@ class StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = accent ?? ShamelColors.primary;
-    return Container(
+    final dark  = Theme.of(context).brightness == Brightness.dark;
+    final c     = accent ?? ShamelColors.gold;
+    final bg    = dark ? ShamelColors.surfaceDark : ShamelColors.surfaceLight;
+    final bdr   = dark ? ShamelColors.borderDark  : ShamelColors.borderLight;
+    final lbl   = dark ? ShamelColors.text3Dark   : ShamelColors.text3Light;
+
+    return AnimatedContainer(
+      duration: ShamelMotion.base,
+      curve: ShamelMotion.easeOut,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: bg,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE8EAED)),
+        border: Border.all(color: bdr),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -25,16 +32,21 @@ class StatCard extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(7),
-            decoration: BoxDecoration(color: c.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
+            decoration: BoxDecoration(
+              color: c.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
             child: Icon(icon, color: c, size: 18),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(value, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: c, height: 1.1)),
-              Text(label, maxLines: 1, overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 11, color: ShamelColors.secondary, fontWeight: FontWeight.w600)),
+              Text(value,
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: c, height: 1.1)),
+              Text(label,
+                  maxLines: 1, overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 11, color: lbl, fontWeight: FontWeight.w600)),
             ],
           ),
         ],
@@ -47,14 +59,21 @@ class SectionTitle extends StatelessWidget {
   final String title;
   const SectionTitle(this.title, {super.key});
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: 12, top: 4),
-        child: Text(title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: ShamelColors.primary)),
-      );
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12, top: 4),
+      child: Text(title,
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w800,
+            color: dark ? ShamelColors.goldDark : ShamelColors.navy,
+          )),
+    );
+  }
 }
 
-/// Animated shimmer wrapper — sweeps a highlight band across grey
-/// placeholder boxes. No external package; uses a ShaderMask.
+/// Shimmer skeleton — respects reduced-motion via MediaQuery.
 class Shimmer extends StatefulWidget {
   final Widget child;
   const Shimmer({super.key, required this.child});
@@ -63,8 +82,20 @@ class Shimmer extends StatefulWidget {
 }
 
 class _ShimmerState extends State<Shimmer> with SingleTickerProviderStateMixin {
-  late final AnimationController _c =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 1300))..repeat();
+  late final AnimationController _c;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Respect reduced-motion: freeze the shimmer at start position.
+    final disable = MediaQuery.of(context).disableAnimations;
+    _c = AnimationController(
+      vsync: this,
+      duration: disable ? Duration.zero : const Duration(milliseconds: 1600),
+    );
+    if (!disable) _c.repeat();
+  }
+
   @override
   void dispose() {
     _c.dispose();
@@ -74,18 +105,20 @@ class _ShimmerState extends State<Shimmer> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    final base = dark ? const Color(0xFF1E293B) : const Color(0xFFE9EEF5);
-    final hi = dark ? const Color(0xFF334155) : const Color(0xFFF6F9FC);
+    // Use navy tokens, not slate
+    final base = dark ? ShamelColors.surfaceAltDark : const Color(0xFFE8EEF7);
+    final hi   = dark ? ShamelColors.surfaceDark    : const Color(0xFFF5F8FF);
+
     return AnimatedBuilder(
       animation: _c,
       child: widget.child,
-      builder: (context, child) => ShaderMask(
+      builder: (_, child) => ShaderMask(
         blendMode: BlendMode.srcATop,
         shaderCallback: (rect) => LinearGradient(
           colors: [base, hi, base],
           stops: const [0.25, 0.5, 0.75],
           begin: Alignment(-1.0 - 2.0 * _c.value, 0),
-          end: Alignment(1.0 - 2.0 * _c.value, 0),
+          end:   Alignment( 1.0 - 2.0 * _c.value, 0),
           tileMode: TileMode.clamp,
         ).createShader(rect),
         child: child,
@@ -94,12 +127,13 @@ class _ShimmerState extends State<Shimmer> with SingleTickerProviderStateMixin {
   }
 }
 
-/// A single grey placeholder block.
+/// Single grey placeholder block.
 class SkeletonBox extends StatelessWidget {
   final double? width;
   final double height;
   final double radius;
   const SkeletonBox({super.key, this.width, this.height = 12, this.radius = 8});
+
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
@@ -107,20 +141,24 @@ class SkeletonBox extends StatelessWidget {
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: dark ? const Color(0xFF1E293B) : const Color(0xFFE9EEF5),
+        color: dark ? ShamelColors.surfaceAltDark : const Color(0xFFE8EEF7),
         borderRadius: BorderRadius.circular(radius),
       ),
     );
   }
 }
 
-/// Shimmering placeholder list — mirrors the card rows used across the app.
-/// Drop-in replacement for a CircularProgressIndicator while data loads.
+/// Shimmer placeholder list — replaces CircularProgressIndicator.
 class SkeletonList extends StatelessWidget {
   final int count;
   const SkeletonList({super.key, this.count = 7});
+
   @override
   Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final bdr  = dark ? ShamelColors.borderDark : ShamelColors.borderLight;
+    final bg   = dark ? ShamelColors.surfaceDark : ShamelColors.surfaceLight;
+
     return Shimmer(
       child: ListView.builder(
         padding: const EdgeInsets.all(12),
@@ -131,11 +169,11 @@ class SkeletonList extends StatelessWidget {
           margin: const EdgeInsets.only(bottom: 8),
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
+            color: bg,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0x14000000)),
+            border: Border.all(color: bdr),
           ),
-          child: Row(children: const [
+          child: const Row(children: [
             SkeletonBox(width: 38, height: 38, radius: 12),
             SizedBox(width: 12),
             Expanded(
@@ -162,26 +200,37 @@ class LoadingOrError extends StatelessWidget {
   final VoidCallback? onRetry;
   final bool skeleton;
   const LoadingOrError({super.key, required this.loading, this.error, this.onRetry, this.skeleton = true});
+
   @override
   Widget build(BuildContext context) {
+    final dark  = Theme.of(context).brightness == Brightness.dark;
+    final muted = dark ? ShamelColors.text3Dark : ShamelColors.text3Light;
+    final gold  = dark ? ShamelColors.goldDark  : ShamelColors.gold;
+
     if (loading) {
       return skeleton
           ? const SkeletonList()
-          : const Padding(
-              padding: EdgeInsets.all(40),
-              child: Center(child: CircularProgressIndicator(color: ShamelColors.gold)),
+          : Padding(
+              padding: const EdgeInsets.all(40),
+              child: Center(child: CircularProgressIndicator(color: gold)),
             );
     }
     return Padding(
       padding: const EdgeInsets.all(32),
       child: Column(children: [
-        const Icon(Icons.cloud_off, size: 48, color: ShamelColors.outline),
+        Icon(Icons.cloud_off, size: 48, color: muted),
         const SizedBox(height: 12),
-        Text(error ?? 'تعذّر تحميل البيانات', textAlign: TextAlign.center,
-            style: const TextStyle(color: ShamelColors.secondary)),
+        Text(error ?? 'تعذّر تحميل البيانات',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: muted)),
         if (onRetry != null) ...[
           const SizedBox(height: 12),
-          OutlinedButton.icon(onPressed: onRetry, icon: const Icon(Icons.refresh), label: const Text('إعادة المحاولة')),
+          OutlinedButton.icon(
+            onPressed: onRetry,
+            icon: Icon(Icons.refresh, color: gold),
+            label: Text('إعادة المحاولة', style: TextStyle(color: gold)),
+            style: OutlinedButton.styleFrom(side: BorderSide(color: gold)),
+          ),
         ],
       ]),
     );
