@@ -3,20 +3,24 @@
    Offline-first + Background Sync + SQLite-compatible
    ====================================================== */
 
-const VERSION = 'shamel-v1.3'; /* 2026-06-04: fix CSRF — NETWORK_ONLY checked before POST intercept */
+const VERSION = 'shamel-v1.4'; /* 2026-06-04: fix SW self-caching + explicit network passthrough */
 const CACHE_SHELL  = `${VERSION}-shell`;
 const CACHE_DATA   = `${VERSION}-data`;
 const CACHE_PAGES  = `${VERSION}-pages`;
 const SYNC_TAG     = 'shamel-sync';
 
-/* ── Pages that MUST bypass the cache (network-only) ─────
-   Auth / form pages set the Django CSRF cookie via response headers.
-   Serving them from cache means the browser never receives the fresh
-   Set-Cookie: csrftoken → POST then fails with "CSRF cookie not set".
-   These always go straight to the network. */
+/* ── URLs that MUST bypass the cache (network-only) ──────
+   1. Auth pages: set Django CSRF cookie via Set-Cookie response header.
+      Caching them = stale CSRF token → 403 on POST.
+   2. sw.js itself: NEVER cache the service worker file. If the SW caches
+      itself from /static/, the browser fetches the old version when checking
+      for updates and never picks up changes → SW stuck forever on old version.
+   These are evaluated BEFORE the method check so POST /login/ is never
+   intercepted by handlePostOffline. */
 const NETWORK_ONLY = [
   /\/login\//, /\/login\/face\//, /\/logout\//,
   /\/django-admin\//, /\/admin\//,
+  /\/static\/pwa\/sw\.js/,   /* Never cache the SW file itself */
 ];
 
 /* ── Pages & assets cached immediately on install ─────── */
@@ -104,7 +108,8 @@ self.addEventListener('fetch', event => {
      intercepted. Previously this was only applied to GET requests, causing POST
      /login/ to go through handlePostOffline → CSRF cookie mismatch → 403. */
   if (NETWORK_ONLY.some(p => p.test(url.pathname))) {
-    /* Let the browser handle it natively — no service worker involvement. */
+    /* Explicit network pass-through — more reliable than `return` for POST. */
+    event.respondWith(fetch(request, { credentials: 'same-origin' }));
     return;
   }
 
