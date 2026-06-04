@@ -3,7 +3,7 @@
    Offline-first + Background Sync + SQLite-compatible
    ====================================================== */
 
-const VERSION = 'shamel-v1.2';
+const VERSION = 'shamel-v1.3'; /* 2026-06-04: fix CSRF — NETWORK_ONLY checked before POST intercept */
 const CACHE_SHELL  = `${VERSION}-shell`;
 const CACHE_DATA   = `${VERSION}-data`;
 const CACHE_PAGES  = `${VERSION}-pages`;
@@ -99,17 +99,20 @@ self.addEventListener('fetch', event => {
   const { request } = event;
   const url = new URL(request.url);
 
-  /* Skip non-GET or cross-origin non-static */
+  /* Auth / CSRF-sensitive pages — ALWAYS go straight to network, no SW interference.
+     MUST be checked FIRST, before any method check, so POST /login/ is never
+     intercepted. Previously this was only applied to GET requests, causing POST
+     /login/ to go through handlePostOffline → CSRF cookie mismatch → 403. */
+  if (NETWORK_ONLY.some(p => p.test(url.pathname))) {
+    /* Let the browser handle it natively — no service worker involvement. */
+    return;
+  }
+
+  /* Non-GET: only intercept POST for offline queueing on non-auth routes */
   if (request.method !== 'GET') {
     if (request.method === 'POST') {
       event.respondWith(handlePostOffline(request));
     }
-    return;
-  }
-
-  /* Auth / form pages — NEVER cache (CSRF cookie must reach the browser) */
-  if (NETWORK_ONLY.some(p => p.test(url.pathname))) {
-    event.respondWith(fetch(request));
     return;
   }
 

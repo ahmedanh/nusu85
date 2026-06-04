@@ -304,8 +304,16 @@ def login_view(request):
             if next_url:
                 return redirect(next_url)
             return _redirect_by_role(request)
-        return render(request, 'attendance/university_login.html', {'error': 'Incorrect username or password. Please try again.'})
-    return render(request, 'attendance/university_login.html')
+        resp = render(request, 'attendance/university_login.html',
+                      {'error': 'Incorrect username or password. Please try again.'})
+        resp['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+        return resp
+    resp = render(request, 'attendance/university_login.html')
+    # Prevent browser/PWA from caching the login page — a cached page
+    # carries a stale CSRF token which causes "403 CSRF token incorrect".
+    resp['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+    resp['Pragma'] = 'no-cache'
+    return resp
 
 
 def logout_view(request):

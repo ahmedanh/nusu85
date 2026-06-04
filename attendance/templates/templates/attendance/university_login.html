@@ -165,7 +165,28 @@ function togglePw() {
   inp.type = inp.type === 'password' ? 'text' : 'password';
   icon.textContent = inp.type === 'password' ? 'visibility' : 'visibility_off';
 }
-document.getElementById('login-form').addEventListener('submit', function() {
+/* Always read live CSRF from cookie — never trust baked HTML token (PWA cache). */
+function getLiveCsrf() {
+  var m = document.cookie.match('(^|;)\\s*csrftoken\\s*=\\s*([^;]+)');
+  return m ? decodeURIComponent(m.pop()) : null;
+}
+
+document.getElementById('login-form').addEventListener('submit', function(e) {
+  /* Refresh the CSRF token from the live cookie before submitting.
+     This fixes 403 when the page is served from PWA cache with a stale token. */
+  var live = getLiveCsrf();
+  if (live) {
+    var hidden = this.querySelector('input[name=csrfmiddlewaretoken]');
+    if (hidden) hidden.value = live;
+  } else {
+    /* No cookie at all — fetch a fresh login page to get a new token, then retry. */
+    e.preventDefault();
+    fetch(location.href, { credentials: 'same-origin', cache: 'no-store' })
+      .then(function() { document.getElementById('login-form').submit(); })
+      .catch(function() { location.reload(); });
+    return;
+  }
+
   const btn  = document.getElementById('submit-btn');
   const lang = document.documentElement.getAttribute('lang');
   const txt  = lang === 'ar' ? 'جارٍ تسجيل الدخول…' : 'Signing in…';
