@@ -146,12 +146,20 @@
     canvas.getContext('2d').drawImage(video, 0, 0);
     const imageData = canvas.toDataURL('image/jpeg', 0.85);
 
+    /* Always read csrftoken from the live cookie — never use the baked
+       Django template value which becomes stale in PWA/browser cache. */
+    const csrfLive = (document.cookie.match('(^|;)\\s*csrftoken\\s*=\\s*([^;]+)') || [,''])[2];
+    const csrfVal  = csrfLive ? decodeURIComponent(csrfLive) : '{{ csrf_token }}';
+
     const formData = new FormData();
     formData.append('image_data', imageData);
-    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    formData.append('csrfmiddlewaretoken', csrfVal);
 
     try {
-      const resp = await fetch('{% url "face_login" %}', { method: 'POST', body: formData });
+      const resp = await fetch('{% url "face_login" %}', {
+        method: 'POST', body: formData,
+        headers: { 'X-CSRFToken': csrfVal },
+      });
       const data = await resp.json();
 
       if (data.status === 'success') {
