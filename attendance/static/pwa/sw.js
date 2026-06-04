@@ -3,7 +3,7 @@
    Offline-first + Background Sync + SQLite-compatible
    ====================================================== */
 
-const VERSION = 'shamel-v1.4'; /* 2026-06-04: fix SW self-caching + explicit network passthrough */
+const VERSION = 'shamel-v1.5'; /* 2026-06-04: NETWORK_ONLY bare return — browser owns Set-Cookie */
 const CACHE_SHELL  = `${VERSION}-shell`;
 const CACHE_DATA   = `${VERSION}-data`;
 const CACHE_PAGES  = `${VERSION}-pages`;
@@ -108,8 +108,10 @@ self.addEventListener('fetch', event => {
      intercepted. Previously this was only applied to GET requests, causing POST
      /login/ to go through handlePostOffline → CSRF cookie mismatch → 403. */
   if (NETWORK_ONLY.some(p => p.test(url.pathname))) {
-    /* Explicit network pass-through — more reliable than `return` for POST. */
-    event.respondWith(fetch(request, { credentials: 'same-origin' }));
+    /* Do NOT call event.respondWith() — let the browser handle completely
+       natively. This is the only way to guarantee Set-Cookie headers are
+       committed to the cookie jar (fetch() from SW can drop Set-Cookie
+       in Chrome, breaking CSRF cookie delivery on /login/). */
     return;
   }
 
