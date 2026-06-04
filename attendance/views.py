@@ -1805,13 +1805,19 @@ def coordinator_register_user(request):
 
 # ── PDF exports ──────────────────────────────────────────────────────────────
 
-def _pdf_response(html_string, filename):
+def _pdf_logo_url(request):
+    """Absolute URL to the dark logo for PDF headers (WeasyPrint needs absolute URLs)."""
+    from django.templatetags.static import static as _static
+    return request.build_absolute_uri(_static('images/logo_dark.svg'))
+
+
+def _pdf_response(html_string, filename, base_url=None):
     """Render HTML → PDF. Tries weasyprint (best CSS, Linux/VPS), then
     xhtml2pdf (pure-Python, works on Windows), then a printable-HTML fallback."""
     # 1) weasyprint — full CSS, needs GTK/cairo (usually only on Linux VPS)
     try:
         from weasyprint import HTML as WeasyprintHTML
-        pdf_bytes = WeasyprintHTML(string=html_string).write_pdf()
+        pdf_bytes = WeasyprintHTML(string=html_string, base_url=base_url).write_pdf()
         resp = HttpResponse(pdf_bytes, content_type='application/pdf')
         resp['Content-Disposition'] = f'attachment; filename="{filename}"'
         return resp
@@ -1883,8 +1889,9 @@ def export_student_report_pdf(request):
         'logs': logs, 'chart_data': chart_data,
         'total': total, 'present': present, 'absent': absent, 'late': late,
         'pct_overall': pct_overall,
-        'pct_remaining': 100 - pct_overall,  # for SVG donut (template can't negate inline)
+        'pct_remaining': 100 - pct_overall,
         'generated_at': timezone.now(),
+        'logo_url': _pdf_logo_url(request),
         **meta,
     }).content.decode('utf-8')
     # Notify admins about report generation
@@ -1894,7 +1901,7 @@ def export_student_report_pdf(request):
             notify_admin_new_report(admin_user.email, 'تقرير حضور الطلاب', request.user.get_full_name() or request.user.username)
     except Exception:
         pass
-    return _pdf_response(html, f'SHAMEL_StudentReport_{_date.today()}.pdf')
+    return _pdf_response(html, f'SHAMEL_StudentReport_{_date.today()}.pdf', base_url=request.build_absolute_uri('/'))
 
 
 @login_required
@@ -1935,6 +1942,7 @@ def export_teacher_report_pdf(request):
         'total_student_records': total_att_all,
         'overall_pct': overall_pct,
         'generated_at': timezone.now(),
+        'logo_url': _pdf_logo_url(request),
     }).content.decode('utf-8')
     # Notify admins about report generation
     try:
@@ -1943,7 +1951,7 @@ def export_teacher_report_pdf(request):
             notify_admin_new_report(admin_user.email, 'تقرير حضور الأساتذة', request.user.get_full_name() or request.user.username)
     except Exception:
         pass
-    return _pdf_response(html, f'SHAMEL_TeacherReport_{_date.today()}.pdf')
+    return _pdf_response(html, f'SHAMEL_TeacherReport_{_date.today()}.pdf', base_url=request.build_absolute_uri('/'))
 
 
 @login_required
@@ -2043,8 +2051,9 @@ def export_analytics_pdf(request):
         'top_courses': top_courses,
         'top_students': top_students,
         'generated_at': timezone.now(),
+        'logo_url': _pdf_logo_url(request),
     }).content.decode('utf-8')
-    return _pdf_response(html, f'SHAMEL_Analytics_{_date.today()}.pdf')
+    return _pdf_response(html, f'SHAMEL_Analytics_{_date.today()}.pdf', base_url=request.build_absolute_uri('/'))
 
 
 @login_required
@@ -2056,10 +2065,11 @@ def export_grades_pdf(request):
     grades = Grade.objects.filter(student=student).select_related('course')
     html = render(request, 'attendance/reports/grades_pdf.html', {
         'student': student, 'grades': grades,
+        'logo_url': _pdf_logo_url(request),
     }).content.decode('utf-8')
     from datetime import date
     sname = student.name.replace(' ', '_')[:25] if student.name else 'Student'
-    return _pdf_response(html, f'SHAMEL_{sname}_Grades_{date.today()}.pdf')
+    return _pdf_response(html, f'SHAMEL_{sname}_Grades_{date.today()}.pdf', base_url=request.build_absolute_uri('/'))
 
 
 # ── Medical Excuses ──────────────────────────────────────────────────────────
@@ -2787,9 +2797,10 @@ def export_search_pdf(request):
     html = render(request, 'attendance/reports/search_pdf.html', {
         'query': query, 'results': results, 'total': total,
         'generated_at': timezone.now(),
+        'logo_url': _pdf_logo_url(request),
     }).content.decode('utf-8')
     safe_q = query.replace(' ', '_')[:20] if query else 'all'
-    return _pdf_response(html, f'SHAMEL_Search_{safe_q}_{_date.today()}.pdf')
+    return _pdf_response(html, f'SHAMEL_Search_{safe_q}_{_date.today()}.pdf', base_url=request.build_absolute_uri('/'))
 
 
 def global_search(request):

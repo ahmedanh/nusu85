@@ -47,7 +47,8 @@
 
 <div class="pdf-header">
   <div class="logo-area">
-    <div class="logo-shield">S</div>
+    {% if logo_url %}<img src="{{ logo_url }}" style="height:42px;width:auto;object-fit:contain;" alt="SHAMEL"/>
+    {% else %}<div class="logo-shield">S</div>{% endif %}
     <div class="logo-text">
       <div class="name">SHAMEL</div>
       <div class="tagline">Secure Academic Management &amp; Entry Logic</div>
