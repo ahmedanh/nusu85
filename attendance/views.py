@@ -97,6 +97,12 @@ known_face_encodings = []
 known_face_names = []
 _face_lock = threading.Lock()
 
+# ── Camera stop-flag registry ─────────────────────────────────────────────────
+# Maps camera_index → threading.Event.  gen_frames() checks this every frame.
+# stop_camera_stream() sets the event → gen_frames exits cleanly → cap.release().
+_camera_stop_flags: dict = {}
+_camera_flags_lock = threading.Lock()
+
 # ── Stub models that may not exist in all migrations ────────────────────────
 # ClassroomPermission and GateEntryLog are referenced in helper scripts.
 # Provide safe stubs so the module imports without error.
@@ -293,17 +299,26 @@ def gen_frames(camera_index=0):
     if not CV2_AVAILABLE:
         return
     actual_index = _find_best_camera(camera_index)
+
+    # Register a stop-event for this camera index.
+    # Any previous generator for this camera is signalled to stop.
+    with _camera_flags_lock:
+        old_event = _camera_stop_flags.get(camera_index)
+        if old_event:
+            old_event.set()  # stop previous stream for same camera
+        stop_event = threading.Event()
+        _camera_stop_flags[camera_index] = stop_event
+
     cap = cv2.VideoCapture(actual_index, cv2.CAP_DSHOW)
-    # Consecutive read failures before giving up (avoids infinite loop on dead camera)
-    _fail_count = 0
-    _MAX_FAILS = 30
-    # Only run face recognition every N frames to prevent CPU saturation / crash
+    cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)  # minimal buffer = faster stop response
+
+    _fail_count   = 0
+    _MAX_FAILS    = 30
     _frame_counter = 0
-    _FACE_EVERY_N = 5
-    # Cache last-computed overlays so skipped frames still show boxes
-    _last_overlays = []  # list of (top,right,bottom,left,color,label)
+    _FACE_EVERY_N  = 5
+    _last_overlays = []
     try:
-        while True:
+        while not stop_event.is_set():
             success, frame = cap.read()
             if not success:
                 _fail_count += 1
@@ -313,10 +328,14 @@ def gen_frames(camera_index=0):
             _fail_count = 0
             _frame_counter += 1
 
-            # Face detection via InsightFace — every _FACE_EVERY_N frames only
+            # Check stop flag AFTER read so we exit immediately next iteration
+            if stop_event.is_set():
+                break
+
+            # Face detection — every _FACE_EVERY_N frames
             if FACE_ENGINE_AVAILABLE and CV2_AVAILABLE and NUMPY_AVAILABLE and (_frame_counter % _FACE_EVERY_N == 0):
                 try:
-                    rgb_frame = frame[:, :, ::-1]  # BGR → RGB for InsightFace
+                    rgb_frame = frame[:, :, ::-1]
                     app = _fe._get_insightface()
                     new_overlays = []
                     if app is not None:
@@ -324,23 +343,19 @@ def gen_frames(camera_index=0):
                         for face in faces:
                             x1, y1, x2, y2 = [int(v) for v in face.bbox]
                             probe = [float(x) for x in face.normed_embedding]
-                            name = 'Unknown'
+                            name = 'غير معروف'
                             if known_face_encodings:
                                 idx, score = _fe.match(
                                     [e.tolist() for e in known_face_encodings], probe
                                 )
                                 if idx >= 0:
                                     name = known_face_names[idx]
-                            if name == 'Unknown':
-                                color, label = (0, 0, 220), 'Not Registered'
-                            else:
-                                color, label = (0, 220, 0), name
-                            new_overlays.append((y1, x2, y2, x1, color, label))
+                            color = (0, 0, 220) if name == 'غير معروف' else (0, 220, 0)
+                            new_overlays.append((y1, x2, y2, x1, color, name))
                     _last_overlays = new_overlays
                 except Exception:
                     pass
 
-            # Paint cached overlays on every frame (smooth box display)
             for (top, right, bottom, left, color, label) in _last_overlays:
                 cv2.rectangle(frame, (left, top), (right, bottom), color, 2)
                 cv2.putText(frame, label, (left, top - 10),
@@ -352,11 +367,17 @@ def gen_frames(camera_index=0):
             yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' +
                    buffer.tobytes() + b'\r\n')
     except GeneratorExit:
-        pass  # client disconnected cleanly
+        pass
     except Exception:
-        pass  # any unexpected error — release camera below
+        pass
     finally:
+        stop_event.set()   # mark as stopped in case something else checks
         cap.release()
+        cap.release()      # call twice — some CAP_DSHOW handles need double-release
+        del cap            # force Python GC release of DirectShow handle
+        with _camera_flags_lock:
+            if _camera_stop_flags.get(camera_index) is stop_event:
+                del _camera_stop_flags[camera_index]
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -467,16 +488,37 @@ def video_feed(request):
     except (ValueError, TypeError):
         camera_index = 0
     if not CV2_AVAILABLE:
-        from django.http import HttpResponse
         return HttpResponse(status=503)
     try:
-        return StreamingHttpResponse(
+        response = StreamingHttpResponse(
             gen_frames(camera_index),
             content_type='multipart/x-mixed-replace; boundary=frame'
         )
+        # Tell browser not to cache the stream
+        response['Cache-Control'] = 'no-cache, no-store'
+        return response
     except Exception:
-        from django.http import HttpResponse
         return HttpResponse(status=503)
+
+
+@csrf_exempt
+def stop_camera(request):
+    """Called via navigator.sendBeacon() when the user leaves the scan page.
+    Sets the stop-event for the requested camera so gen_frames exits immediately."""
+    cam_param = request.POST.get('camera', '0') or request.GET.get('camera', '0')
+    try:
+        camera_index = int(cam_param)
+    except (ValueError, TypeError):
+        camera_index = 0
+    with _camera_flags_lock:
+        event = _camera_stop_flags.get(camera_index)
+        if event:
+            event.set()
+    # Stop ALL active cameras (belt-and-suspenders)
+    with _camera_flags_lock:
+        for evt in list(_camera_stop_flags.values()):
+            evt.set()
+    return HttpResponse(status=204)
 
 
 @login_required

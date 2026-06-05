@@ -41,7 +41,13 @@ tailwind.config = {
 // ── Apply saved theme & language BEFORE render (prevents flash) ──
 (function(){
   const theme = localStorage.getItem('acdc_theme') || 'light';
-  const lang  = localStorage.getItem('acdc_lang')  || 'ar';
+  // One-time migration: reset any old stored 'en' to 'ar'.
+  // SHAMEL is Arabic-first — 'ar' is the canonical default.
+  if (!localStorage.getItem('shamel_lang_reset_v1')) {
+    localStorage.setItem('acdc_lang', 'ar');
+    localStorage.setItem('shamel_lang_reset_v1', '1');
+  }
+  const lang = localStorage.getItem('acdc_lang') || 'ar';
   if (theme === 'dark') document.documentElement.classList.add('dark');
   document.documentElement.lang = lang;
   document.documentElement.dir  = lang === 'ar' ? 'rtl' : 'ltr';

@@ -3,216 +3,84 @@
 <html lang="ar" dir="rtl" class="">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="csrf-token" content="{{ csrf_token }}"/>
 <title>{% block title %}SHAMEL{% endblock %}</title>
-
-<!-- PWA -->
-<link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#1e3a5f">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="SHAMEL">
-<link rel="apple-touch-icon" href="/static/pwa/icons/icon-192.png">
-<link rel="apple-touch-icon" sizes="152x152" href="/static/pwa/icons/icon-152.png">
-<link rel="apple-touch-icon" sizes="144x144" href="/static/pwa/icons/icon-144.png">
-<link rel="icon" type="image/png" sizes="192x192" href="/static/pwa/icons/icon-192.png">
-<link rel="icon" type="image/png" sizes="96x96"  href="/static/pwa/icons/icon-96.png">
-<meta name="msapplication-TileImage" content="/static/pwa/icons/icon-144.png">
-<meta name="msapplication-TileColor" content="#1e3a5f">
-<!-- ① Tailwind config MUST come before CDN script so darkMode:"class" is honoured -->
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="{% static 'fonts/fonts.css' %}" rel="stylesheet"/>
 <script>
-tailwind = {
-  config: {
-    darkMode: "class",
-    theme: {
-      extend: {
-        colors: {
-          /* Gold accent */
-          "primary":     "#C9A227",
-          "primary-hi":  "#E8B84B",
-          "primary-dim": "rgba(201,162,39,0.13)",
-          /* Navy family */
-          "navy":        "#0B2545",
-          "navy-deep":   "#071B38",
-          "navy-hover":  "#0d2f5e",
-          /* Light surfaces */
-          "surface":     "#EBF0F9",
-          "surface-card":"#FFFFFF",
-          "surface-alt": "#F3F7FF",
-          /* Text */
-          "ink":         "#09193A",
-          "ink-2":       "#374F70",
-          "ink-3":       "#6A85A8",
-          /* Semantic */
-          "s-success":      "#10B981",
-          "s-success-text": "#166534",
-          "s-error":        "#EF4444",
-          "s-error-text":   "#B91C1C",
-          "s-warning":   "#B88000",
-        },
-        fontFamily: {
-          headline: ["Manrope","Segoe UI","system-ui","sans-serif"],
-          body:     ["Inter","Segoe UI","system-ui","sans-serif"],
-        },
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "primary":               "#1E3A8A",
+        "accent":                "#F59E0B",
+        "success":               "#10B981",
+        "danger":                "#EF4444",
+        "primary-container":     "#1B2B5E",
+        "on-primary":            "#ffffff",
+        "secondary":             "#5a5e69",
+        "secondary-container":   "#dcdfec",
+        "surface":               "#f8f9fa",
+        "surface-container":     "#edeeef",
+        "on-surface":            "#191c1d",
+        "on-surface-variant":    "#45474d",
+        "outline":               "#75777d",
+        "outline-variant":       "#c5c6cd",
+        "error":                 "#ba1a1a",
+        "error-container":       "#ffdad6",
+      },
+      fontFamily: {
+        headline: ["Manrope","Segoe UI","system-ui","sans-serif"],
+        body:     ["Inter","Segoe UI","system-ui","sans-serif"],
       },
     },
-  }
-};
-// ② Apply theme class before render to prevent flash
+  },
+}
+// ── Apply saved theme & language BEFORE render (prevents flash) ──
 (function(){
   const theme = localStorage.getItem('acdc_theme') || 'light';
-  const lang  = localStorage.getItem('acdc_lang')  || 'ar';
+  // One-time migration: reset any old stored 'en' to 'ar'.
+  // SHAMEL is Arabic-first — 'ar' is the canonical default.
+  if (!localStorage.getItem('shamel_lang_reset_v1')) {
+    localStorage.setItem('acdc_lang', 'ar');
+    localStorage.setItem('shamel_lang_reset_v1', '1');
+  }
+  const lang = localStorage.getItem('acdc_lang') || 'ar';
   if (theme === 'dark') document.documentElement.classList.add('dark');
   document.documentElement.lang = lang;
   document.documentElement.dir  = lang === 'ar' ? 'rtl' : 'ltr';
   document.documentElement.setAttribute('data-lang', lang);
 })();
 </script>
-<!-- ③ CDN now sees tailwind.config already set -->
-<script src="https://cdn.tailwindcss.com"></script>
-<!-- Preload Material Symbols font so ligatures render before first paint (fixes _ROGNITION broken icon) -->
-<link rel="preload" href="{% static 'fonts/material-symbols.ttf' %}" as="font" type="font/ttf" crossorigin="anonymous">
-<link href="{% static 'fonts/fonts.css' %}" rel="stylesheet"/>
 
 <style>
-  /* ═══════════════════════════════════════════════════════════════════
-     SHAMEL DESIGN TOKENS  — single source of truth for every color,
-     shadow, and motion value in the entire UI.
-     Navy family only. Zero slate. Zero stray blue accents.
-     ═══════════════════════════════════════════════════════════════════ */
-  :root {
-    /* Surfaces */
-    --s-bg:           #EBF0F9;   /* page background — cool blue wash */
-    --s-surface:      #FFFFFF;   /* card / panel surface */
-    --s-surface-alt:  #F3F7FF;   /* table headers, secondary panels */
-    --s-surface-hi:   #FFFFFF;   /* hover elevated surface */
-
-    /* Borders */
-    --s-border:       #D8E2F0;
-    --s-border-hi:    #BFD0E8;
-
-    /* Typography — all pass WCAG AA on white (#FFFFFF) */
-    --s-text:         #09193A;   /* 17.4:1 — primary */
-    --s-text-2:       #374F70;   /* 7.8:1  — secondary */
-    --s-text-3:       #4B5563;   /* 7.2:1  — muted (was #6A85A8 = 3.8:1 FAIL for small text) */
-    --s-text-inv:     #FFFFFF;   /* on dark surfaces (sidebar) */
-
-    /* Gold accent */
-    --s-gold:         #C9A227;
-    --s-gold-hi:      #E8B84B;
-    --s-gold-dim:     rgba(201,162,39,0.13);
-    --s-gold-glow:    rgba(201,162,39,0.32);
-    --s-gold-text:    #09193A;   /* text ON gold buttons */
-
-    /* Always-dark navy (sidebar) */
-    --s-navy:         #0B2545;
-    --s-navy-deep:    #071B38;
-
-    /* Semantic — split: *-icon for decorative, *-text for readable copy */
-    --s-success:      #10B981;   /* icons, badges, borders only (2.54:1 — decorative OK) */
-    --s-success-text: #166534;   /* 5.9:1 — WCAG AA for all text sizes */
-    --s-error:        #EF4444;   /* large text (>18px/bold 14px) only (3.76:1) */
-    --s-error-text:   #B91C1C;   /* 5.9:1 — WCAG AA for small text */
-    --s-warning:      #B88000;   /* 4.6:1 — passes AA on white */
-    --s-info:         #1A6FAD;   /* 4.8:1 — passes AA on white */
-
-    /* Shadows */
-    --s-shadow:       0 1px 4px rgba(9,25,58,0.06), 0 4px 18px rgba(9,25,58,0.05);
-    --s-shadow-lg:    0 6px 28px rgba(9,25,58,0.11), 0 0 0 1px rgba(9,25,58,0.05);
-    --s-shadow-gold:  0 4px 20px rgba(201,162,39,0.30);
-
-    /* Glass */
-    --s-glass-light:  rgba(255,255,255,0.78);
-    --s-glass-border: rgba(255,255,255,0.55);
-    --s-blur:         blur(22px) saturate(200%);
-
-    /* Motion — research-backed values for academic/institutional UI
-       Standard interactive: 300ms easeOutCubic (ScienceDirect 2024)
-       Gate / Face Scan: 150ms — security guard workflow, no delay tolerance
-       Bounce/elastic BANNED — unprofessional in academic context (W3C WCAG 2.3.3)  */
-    --ease-out:       cubic-bezier(0.33,1,0.68,1);   /* easeOutCubic — standard */
-    --ease-in-out:    cubic-bezier(0.4,0,0.2,1);
-    --ease-enter:     cubic-bezier(0.22,1,0.36,1);   /* page-in / reveals */
-    --dur-gate:       150ms;   /* gate + face scan — fast feedback */
-    --dur-fast:       150ms;   /* micro-interactions */
-    --dur-base:       300ms;   /* standard interactive (golden duration) */
-    --dur-slow:       400ms;   /* page entry, large reveals */
-  }
-
-  /* Dark-mode token overrides — navy family, no slate */
-  html.dark {
-    --s-bg:           #030D1F;
-    --s-surface:      #071527;
-    --s-surface-alt:  #0B1E38;
-    --s-surface-hi:   #0F2542;
-    --s-border:       #12264A;
-    --s-border-hi:    #1A3560;
-    --s-text:         #C5D8F5;
-    --s-text-2:       #7496BF;
-    --s-text-3:       #435E80;
-    --s-gold:         #E8B84B;
-    --s-gold-hi:      #F5CA6A;
-    --s-gold-dim:     rgba(232,184,75,0.11);
-    --s-gold-glow:    rgba(232,184,75,0.26);
-    --s-shadow:       0 2px 12px rgba(0,0,0,0.40);
-    --s-shadow-lg:    0 8px 36px rgba(0,0,0,0.55);
-    --s-shadow-gold:  0 4px 20px rgba(232,184,75,0.22);
-    --s-glass-light:  rgba(5,16,40,0.80);
-    --s-glass-border: rgba(255,255,255,0.06);
-    --s-success:      #10B981;       /* icons/badges in dark mode */
-    --s-success-text: #34D399;       /* 4.6:1 on dark surface — WCAG AA */
-    --s-error:        #F87171;       /* large text on dark surface */
-    --s-error-text:   #FCA5A5;       /* readable on dark (decorative borders) */
-    --s-warning:      #FCD34D;       /* 4.8:1 on dark surface */
-    --s-info:         #60A5FA;       /* 4.7:1 on dark surface */
-  }
-
-  /* ── Base typography ── */
   body { font-family:'Inter','Segoe UI',system-ui,sans-serif; }
   h1,h2,h3,.font-headline { font-family:'Manrope','Segoe UI',system-ui,sans-serif; }
   .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24; }
   .fill-icon { font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
 
-  /* ── Sidebar nav links ── */
+  /* ── Sidebar link styles ── */
   .nav-link {
     display:flex; align-items:center; gap:0.625rem;
     padding:0.5rem 0.875rem; border-radius:0.75rem;
     font-size:0.8125rem; font-weight:600;
-    cursor:pointer; text-decoration:none; position:relative;
-    transition: background var(--dur-fast) var(--ease-out),
-                color     var(--dur-fast) var(--ease-out);
+    transition:all .15s ease; cursor:pointer; text-decoration:none;
   }
-  /* Sidebar is always dark navy — white text at two opacities */
-  .nav-link:not(.active)       { color:rgba(255,255,255,0.60); }
-  .nav-link:not(.active):hover { background:rgba(255,255,255,0.09); color:rgba(255,255,255,0.92); }
-  .nav-link.active {
-    background: var(--s-gold-dim);
-    color: var(--s-gold);
-  }
-  .dark .nav-link.active {
-    background: var(--s-gold-dim);
-    color: var(--s-gold);
-  }
-
-  /* Sliding gold left-border indicator */
-  .nav-link::before {
-    content:''; position:absolute;
-    inset-inline-start:0; top:20%; bottom:20%;
-    width:3px; border-radius:0 3px 3px 0;
-    background: var(--s-gold);
-    transform:scaleY(0);
-    transform-origin: center;
-    transition: transform var(--dur-base) var(--ease-out);
-  }
-  .nav-link.active::before            { transform:scaleY(1); }
-  .nav-link:not(.active):hover::before{ transform:scaleY(0.35); opacity:0.45; }
+  .nav-link:not(.active) { color:#64748b; }
+  .nav-link:not(.active):hover { background:#f1f5f9; color:#1e293b; }
+  .nav-link.active { background:#051125; color:#fff; }
+  .dark .nav-link:not(.active) { color:#94a3b8; }
+  .dark .nav-link:not(.active):hover { background:#1e293b; color:#e2e8f0; }
+  .dark .nav-link.active { background:#1b263b; color:#fff; }
 
   .nav-section {
-    font-size:.625rem; font-weight:700; letter-spacing:.09em;
-    text-transform:uppercase; color:rgba(255,255,255,0.30);
+    font-size:.625rem; font-weight:700; letter-spacing:.08em;
+    text-transform:uppercase; color:#94a3b8;
     padding:.875rem .875rem .375rem;
   }
+  .dark .nav-section { color:#475569; }
 
   /* ── Sidebar positioning ── */
   #sidebar {
@@ -242,593 +110,70 @@ tailwind = {
 
   /* ── Toasts ── */
   #toast-container { pointer-events:none; }
-  .toast { animation:s-slideIn .32s var(--ease-out), s-fadeOut .4s var(--ease-in-out) 3.6s forwards; pointer-events:auto; }
-  @keyframes s-slideIn { from{opacity:0;transform:translateY(14px) scale(0.97)} to{opacity:1;transform:translateY(0) scale(1)} }
-  @keyframes s-fadeOut  { to{opacity:0;transform:translateY(-6px)} }
+  .toast { animation:slideIn .3s ease, fadeOut .4s ease 3.6s forwards; pointer-events:auto; }
+  @keyframes slideIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes fadeOut  { to{opacity:0;transform:translateY(-6px)} }
 
   /* ── Scrollbar ── */
   ::-webkit-scrollbar { width:4px; height:4px; }
   ::-webkit-scrollbar-track { background:transparent; }
-  ::-webkit-scrollbar-thumb { background:var(--s-border-hi); border-radius:9999px; }
-  html.dark ::-webkit-scrollbar-thumb { background:var(--s-border); }
+  ::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:9999px; }
+  .dark ::-webkit-scrollbar-thumb { background:#334155; }
 
-  /* ══ GLOBAL SURFACE & BACKGROUND ══════════════════════════════════ */
-  body, #main-canvas { background-color: var(--s-bg) !important; color: var(--s-text) !important; }
+  /* CONTRAST FLOOR — ensure muted/secondary text stays readable (WCAG AA) */
+  .text-slate-400 { color:#64748B; }            /* light mode: slate-400 -> slate-500 */
+  .dark .text-slate-400 { color:#94A3B8; }      /* dark mode keeps lighter for contrast */
+  .text-slate-300 { color:#94A3B8; }
 
-  /* ── Sidebar — always-dark navy in both modes ── */
-  #sidebar {
-    background: var(--s-navy) !important;
-    border-inline-end: 1px solid rgba(255,255,255,0.07) !important;
-  }
-  html.dark #sidebar { background: var(--s-navy-deep) !important; }
-  #sidebar .text-white { color:#ffffff !important; }
-  #sidebar .nav-link:not(.active) { color:rgba(255,255,255,0.60) !important; }
+  /* ── DARK MODE CONTRAST OVERRIDE (applies to every page via base.html) ── */
+  .dark body { background:#0F172A; color:#E2E8F0; }
+  /* surfaces: white/light cards -> dark slate */
+  .dark .bg-white { background-color:#1E293B !important; }
+  .dark .bg-slate-50, .dark .bg-gray-50 { background-color:#0F172A !important; }
+  .dark .bg-slate-100, .dark .bg-gray-100 { background-color:#1E293B !important; }
+  /* borders */
+  .dark .border-slate-100, .dark .border-slate-200, .dark .border-gray-100, .dark .border-gray-200 { border-color:#334155 !important; }
+  /* headings / strong text -> light */
+  .dark .text-slate-900, .dark .text-slate-800, .dark .text-gray-900, .dark .text-gray-800, .dark .text-black { color:#F1F5F9 !important; }
+  /* body text */
+  .dark .text-slate-700, .dark .text-slate-600 { color:#CBD5E1 !important; }
+  /* muted/secondary text (already in contrast floor, reinforce here) */
+  .dark .text-slate-500, .dark .text-gray-500, .dark .text-gray-400 { color:#94A3B8 !important; }
+  /* tables */
+  .dark thead, .dark th.bg-slate-50, .dark .bg-slate-50 th { background-color:#1E293B !important; }
+  .dark th { color:#CBD5E1 !important; }
+  .dark td { color:#E2E8F0; }
+  .dark table tr { border-color:#334155 !important; }
+  /* inline-styled dark headings (color:#0B2545 / #051125 / #1E3A8A) -> light in dark mode */
+  .dark [style*="color:#0B2545"], .dark [style*="color: #0B2545"],
+  .dark [style*="color:#051125"], .dark [style*="color:#1E3A8A"],
+  .dark [style*="color:#0F172A"], .dark [style*="color:#191C1D"] { color:#F1F5F9 !important; }
+  .dark [style*="background:#FFFFFF"], .dark [style*="background: #FFFFFF"] { background:#1E293B !important; }
+  .dark [style*="color:#64748B"] { color:#94A3B8 !important; }
 
-  /* ── Topbar — Liquid Glass ── */
-  #topbar {
-    background: var(--s-glass-light) !important;
-    backdrop-filter: var(--s-blur) !important;
-    -webkit-backdrop-filter: var(--s-blur) !important;
-    border-bottom: 1px solid var(--s-glass-border) !important;
-    box-shadow: 0 1px 0 var(--s-glass-border), 0 4px 24px rgba(9,25,58,0.07) !important;
-    transition: box-shadow var(--dur-base) var(--ease-out) !important;
-  }
-  body.scrolled #topbar {
-    box-shadow: 0 2px 0 var(--s-glass-border), 0 8px 36px rgba(9,25,58,0.12) !important;
-  }
-
-  /* ── Cards / white surfaces ── */
-  html:not(.dark) .bg-white {
-    background-color: var(--s-surface) !important;
-    box-shadow: var(--s-shadow) !important;
-    border: 1px solid var(--s-border) !important;
-  }
-  html.dark .bg-white {
-    background-color: var(--s-surface) !important;
-    box-shadow: var(--s-shadow) !important;
-    border: 1px solid var(--s-border) !important;
-  }
-
-  /* Slate bg fallbacks → surface tokens */
-  html:not(.dark) .bg-slate-800,
-  html:not(.dark) .bg-slate-900 { background-color: var(--s-surface-alt) !important; }
-  html.dark .bg-slate-50, html.dark .bg-gray-50  { background-color: var(--s-bg) !important; }
-  html.dark .bg-slate-100, html.dark .bg-gray-100{ background-color: var(--s-surface) !important; }
-
-  /* ── Text floor — remap Tailwind utilities to token values ── */
-  /* Light mode: dark text on light bg */
-  html:not(.dark) #main-canvas .text-white,
-  html:not(.dark) #main-canvas .text-slate-900, html:not(.dark) #main-canvas .text-gray-900,
-  html:not(.dark) #main-canvas .text-slate-800, html:not(.dark) #main-canvas .text-gray-800,
+  /* ════ LIGHT-MODE TEXT FLOOR — guarantee readable text in light mode ════ */
+  html:not(.dark) #main-canvas .text-slate-900,
+  html:not(.dark) #main-canvas .text-slate-800,
+  html:not(.dark) #main-canvas .text-gray-900,
+  html:not(.dark) #main-canvas .text-gray-800,
   html:not(.dark) #main-canvas .text-black,
-  html:not(.dark) #topbar .text-slate-900, html:not(.dark) #topbar .text-slate-800
-    { color: var(--s-text) !important; }
-
-  html:not(.dark) #main-canvas .text-slate-700, html:not(.dark) #main-canvas .text-gray-700,
-  html:not(.dark) #main-canvas .text-slate-600, html:not(.dark) #main-canvas .text-gray-600
-    { color: var(--s-text-2) !important; }
-
-  html:not(.dark) #main-canvas .text-slate-500, html:not(.dark) #main-canvas .text-gray-500,
-  html:not(.dark) #main-canvas .text-slate-400, html:not(.dark) #main-canvas .text-gray-400
-    { color: var(--s-text-3) !important; }
-
-  /* Dark:text-* utilities must NOT leak into light mode */
   html:not(.dark) #main-canvas [class*="dark:text-white"],
-  html:not(.dark) #main-canvas [class*="dark:text-slate-1"],
-  html:not(.dark) #main-canvas [class*="dark:text-slate-2"] { color: var(--s-text) !important; }
+  html:not(.dark) #main-canvas [class*="dark:text-slate-100"],
+  html:not(.dark) #main-canvas [class*="dark:text-slate-200"] { color:#0B2545 !important; }
+  html:not(.dark) #main-canvas .text-slate-700,
+  html:not(.dark) #main-canvas .text-slate-600,
+  html:not(.dark) #main-canvas .text-gray-700,
+  html:not(.dark) #main-canvas .text-gray-600 { color:#334155 !important; }
+  html:not(.dark) #main-canvas .text-slate-500,
+  html:not(.dark) #main-canvas .text-slate-400,
+  html:not(.dark) #main-canvas .text-gray-500,
+  html:not(.dark) #main-canvas .text-gray-400 { color:#64748B !important; }
   html:not(.dark) #main-canvas .text-slate-500[class*="dark:text-white"],
-  html:not(.dark) #main-canvas .text-slate-400[class*="dark:text-white"] { color: var(--s-text-3) !important; }
-
-  /* Dark mode text */
-  html.dark .text-slate-900, html.dark .text-gray-900,
-  html.dark .text-slate-800, html.dark .text-gray-800, html.dark .text-black
-    { color: var(--s-text) !important; }
-  html.dark .text-slate-700, html.dark .text-slate-600 { color: var(--s-text-2) !important; }
-  html.dark .text-slate-500, html.dark .text-gray-500,
-  html.dark .text-slate-400, html.dark .text-gray-400 { color: var(--s-text-3) !important; }
-
-  /* Borders */
-  html.dark .border-slate-100, html.dark .border-slate-200,
-  html.dark .border-gray-100,  html.dark .border-gray-200 { border-color: var(--s-border) !important; }
-
-  /* Tables — dark mode */
-  html.dark table { color: var(--s-text); }
-  html.dark th { background: var(--s-surface-alt) !important; color: var(--s-text-2) !important; border-color: var(--s-border) !important; }
-  html.dark td { border-color: var(--s-border) !important; color: var(--s-text); }
-  html.dark table tr { border-color: var(--s-border) !important; }
-  html.dark thead, html.dark th.bg-slate-50, html.dark .bg-slate-50 th { background: var(--s-surface-alt) !important; }
-
-  /* Inline-style overrides — inline navy/blue text → readable in dark mode */
-  html.dark [style*="color:#0B2545"], html.dark [style*="color: #0B2545"],
-  html.dark [style*="color:#051125"], html.dark [style*="color:#1E3A8A"],
-  html.dark [style*="color:#0F172A"], html.dark [style*="color:#191C1D"]
-    { color: var(--s-text) !important; }
-  html.dark [style*="color:#64748B"] { color: var(--s-text-3) !important; }
-
-  /* Inline white backgrounds → dark surface */
-  html.dark [style*="background:#FFFFFF"], html.dark [style*="background: #FFFFFF"],
-  html.dark [style*="background:#ffffff"], html.dark [style*="background:white"]
-    { background: var(--s-surface) !important; border-color: var(--s-border) !important; }
-
-  /* ── Form inputs ── */
-  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
-  select, textarea {
-    color: var(--s-text) !important;
-    background-color: var(--s-surface-alt) !important;
-    border: 1.5px solid var(--s-border) !important;
-    border-radius: 10px;
-    transition: border-color var(--dur-fast) var(--ease-out),
-                box-shadow   var(--dur-fast) var(--ease-out),
-                background   var(--dur-fast) var(--ease-out) !important;
-  }
-  input::placeholder, textarea::placeholder { color: var(--s-text-3) !important; }
-  input:focus:not([type="checkbox"]):not([type="radio"]),
-  select:focus, textarea:focus {
-    border-color: var(--s-gold) !important;
-    background-color: var(--s-surface) !important;
-    outline: none !important;
-    box-shadow: 0 0 0 3px var(--s-gold-dim) !important;
-  }
-
-  /* ── Buttons ── */
-  .gold-accent { color: var(--s-gold); }
-  .btn-gold {
-    background: linear-gradient(135deg, var(--s-gold) 0%, var(--s-gold-hi) 100%);
-    color: var(--s-gold-text); font-weight:700;
-    box-shadow: var(--s-shadow-gold);
-    transition: transform var(--dur-fast) var(--ease-out),
-                box-shadow var(--dur-fast) var(--ease-out);
-  }
-  .btn-gold:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 28px var(--s-gold-glow);
-  }
-  .btn-navy {
-    background: var(--s-navy); color:#fff; font-weight:700;
-    box-shadow: 0 4px 16px rgba(11,37,69,0.28);
-    transition: transform var(--dur-fast) var(--ease-out),
-                box-shadow var(--dur-fast) var(--ease-out);
-  }
-  .btn-navy:hover { background:#0d2f5e; transform:translateY(-1px); }
-
-  /* Button micro-press */
-  button:active, a[class*="btn"]:active {
-    transform: scale(0.97) translateY(0) !important;
-    transition: transform 80ms !important;
-  }
-
-  /* ── Muted text contrast floor ── */
-  .text-slate-400, .text-slate-300 { color: var(--s-text-3) !important; }
-  html.dark .text-slate-400, html.dark .text-slate-300 { color: var(--s-text-2) !important; }
-
-  /* Dropdown select options */
-  html.dark select option { background-color: var(--s-surface-alt) !important; color: var(--s-text) !important; }
-
-  /* Modal / dialog */
-  html.dark dialog, html.dark [role="dialog"],
-  html.dark .modal-box, html.dark .dropdown-content {
-    background-color: var(--s-surface) !important;
-    border-color: var(--s-border) !important;
-    color: var(--s-text) !important;
-  }
-  html.dark .modal-box .bg-white { background-color: var(--s-surface-alt) !important; }
-
-  /* ════════════════════════════════════════════════════════════════
-     TABLE ENHANCEMENTS — sticky first column + horizontal scroll
-     (applied to every <table> automatically by enhanceTables() below)
-     ════════════════════════════════════════════════════════════════ */
-  .tbl-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
-  table.sticky-col th:first-child,
-  table.sticky-col td:first-child {
-    position:sticky; inset-inline-start:0; z-index:2;
-    background-color: var(--s-surface);
-  }
-  table.sticky-col thead th:first-child {
-    z-index:3; background-color: var(--s-surface-alt);
-  }
-  /* subtle separator so the frozen column is distinguishable when scrolled */
-  table.sticky-col th:first-child::after,
-  table.sticky-col td:first-child::after {
-    content:""; position:absolute; top:0; bottom:0; inset-inline-end:0;
-    width:1px; background:rgba(15,23,42,.08); pointer-events:none;
-  }
-  .dark table.sticky-col th:first-child::after,
-  .dark table.sticky-col td:first-child::after { background:rgba(255,255,255,.10); }
-
-  /* ── Pagination control bar ── */
-  .tbl-pager { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem;
-    padding:.6rem .25rem; font-size:.8rem; }
-  .tbl-pager .pg-btn { min-width:2rem; height:2rem; padding:0 .55rem;
-    border:1px solid var(--s-border); border-radius:.5rem;
-    background:var(--s-surface); color:var(--s-text);
-    font-weight:700; cursor:pointer;
-    transition: background var(--dur-fast) var(--ease-out),
-                border-color var(--dur-fast) var(--ease-out),
-                transform var(--dur-fast) var(--ease-out);
-    display:inline-flex; align-items:center; justify-content:center; }
-  .tbl-pager .pg-btn:hover:not(:disabled) {
-    background:var(--s-surface-alt); border-color:var(--s-border-hi); }
-  .tbl-pager .pg-btn:active:not(:disabled) { transform:scale(0.94); }
-  .tbl-pager .pg-btn.active {
-    background: var(--s-gold); color: var(--s-gold-text);
-    border-color: var(--s-gold);
-    box-shadow: 0 2px 8px var(--s-gold-dim); }
-  .tbl-pager .pg-btn:disabled { opacity:.38; cursor:not-allowed; }
-  .tbl-pager select { height:2rem; border:1px solid var(--s-border); border-radius:.5rem;
-    background:var(--s-surface); color:var(--s-text); padding:0 .4rem; font-weight:600; cursor:pointer; }
-  .tbl-pager .pg-info { color:var(--s-text-3); }
-
-  /* ════════════════════════════════════════════════════════════════
-     SKELETON LOADERS
-     ════════════════════════════════════════════════════════════════ */
-  @keyframes shimmer {
-    0%   { background-position:-800px 0 }
-    100% { background-position: 800px 0 }
-  }
-  .skeleton {
-    position:relative; overflow:hidden; border-radius:.5rem;
-    background: var(--s-surface-alt);
-    background-image: linear-gradient(
-      90deg,
-      var(--s-surface-alt) 0px,
-      var(--s-surface-hi)  200px,
-      var(--s-surface-alt) 400px
-    );
-    background-size:1600px 100%;
-    animation: shimmer 1.8s ease-in-out infinite;
-  }
-  .skeleton-line { height:.85rem; margin:.35rem 0; }
-  .skeleton-line.w-1\/2 { width:50%; } .skeleton-line.w-3\/4 { width:75%; }
-  .skeleton-circle { border-radius:9999px; }
-  td.skel-cell { padding:.85rem 1rem; }
-  td.skel-cell .skeleton { height:.8rem; }
-
-  /* Validation ticks & wizard */
-  .valid-tick { color:var(--s-success-text); opacity:0; transform:scale(.6);
-    transition: opacity var(--dur-fast) var(--ease-out),
-                transform var(--dur-fast) var(--ease-out); font-weight:900; }
-  .field-ok .valid-tick { opacity:1; transform:scale(1); }
-  .field-bad input, .field-bad select, .field-bad textarea { border-color:var(--s-error) !important; }
-  .field-ok  input, .field-ok  select, .field-ok  textarea { border-color:var(--s-success) !important; }
-  .shmwiz-err { color:var(--s-error-text); font-size:.72rem; margin-top:.2rem; min-height:.9rem; display:block; }
-
-  /* Wizard step dots — gold accent, zero blue */
-  .shmwiz-step { display:flex; align-items:center; gap:.4rem; }
-  .shmwiz-dot {
-    width:2rem; height:2rem; border-radius:9999px; display:flex;
-    align-items:center; justify-content:center; font-weight:800; font-size:.85rem;
-    background:var(--s-surface-alt); color:var(--s-text-3);
-    transition: background var(--dur-base) var(--ease-out),
-                transform  var(--dur-base) var(--ease-out);
-    flex:0 0 auto; border:1.5px solid var(--s-border);
-  }
-  .shmwiz-dot.active {
-    background:var(--s-gold); color:var(--s-gold-text);
-    border-color:var(--s-gold); transform:scale(1.08);
-    box-shadow:0 2px 10px var(--s-gold-dim);
-  }
-  .shmwiz-dot.done  { background:var(--s-success); color:#fff; border-color:var(--s-success); }
-  .shmwiz-bar { flex:1; height:3px; background:var(--s-border); border-radius:9999px;
-    transition: background var(--dur-slow) var(--ease-out); }
-  .shmwiz-bar.done  { background:var(--s-success); }
-
-  /* ════════════════════════════════════════════════════════════════
-     FORM COMPONENT CLASSES — defined as real CSS (NOT @apply) so they
-     work with the Tailwind CDN. Several add/edit templates declared
-     .inp/.label-xs/.tab-btn via @apply inside a plain <style>, which the
-     Play CDN never compiles → unstyled, width-less inputs. These global
-     definitions fix every one of those forms at once.
-     ════════════════════════════════════════════════════════════════ */
-  .inp {
-    width:100%; border-radius:.75rem;
-    background-color:var(--s-surface-alt); border:1.5px solid var(--s-border);
-    padding:.75rem 1rem; font-size:.875rem; line-height:1.25rem; font-weight:500;
-    outline:none; color:var(--s-text);
-    transition: border-color var(--dur-fast) var(--ease-out),
-                box-shadow   var(--dur-fast) var(--ease-out);
-  }
-  .inp:focus {
-    box-shadow: 0 0 0 3px var(--s-gold-dim);
-    border-color: var(--s-gold);
-    background-color: var(--s-surface);
-  }
-  .label-xs {
-    display:block; font-size:.75rem; line-height:1rem; font-weight:700;
-    color:var(--s-text-3); text-transform:uppercase; letter-spacing:.055em; margin-bottom:.375rem;
-  }
-  .tab-btn {
-    color:var(--s-text-3);
-    transition: color var(--dur-fast) var(--ease-out),
-                background var(--dur-fast) var(--ease-out);
-  }
-  .tab-btn:hover { color:var(--s-text); }
-  .tab-btn.active {
-    background:var(--s-surface); color:var(--s-gold);
-    box-shadow:0 1px 4px rgba(9,25,58,0.10);
-    border-bottom:2px solid var(--s-gold);
-  }
-
-  /* ════════════════════════════════════════════════════════════════
-     FIX-BATCH — discovered via Full Screen Inventory PDF audit
-     ════════════════════════════════════════════════════════════════
-
-     1. RESPONSIVE TABLES → cards on mobile (<640px)
-        Wrap any <table> with class "resp-table" for card transform.
-        ShamelTables() auto-adds this to all enhanced tables.        */
-  @media(max-width:639px){
-    .resp-table { display:block; overflow:visible !important; }
-    .resp-table thead { display:none; }
-    .resp-table tbody, .resp-table tr { display:block; width:100%; }
-    .resp-table tr {
-      background:var(--s-surface); border-radius:1rem; margin-bottom:.75rem;
-      padding:.25rem .5rem; border:1px solid var(--s-border);
-      box-shadow:var(--s-shadow);
-    }
-    .resp-table td {
-      display:flex; align-items:flex-start; gap:.5rem;
-      padding:.55rem .75rem; border:none !important;
-      font-size:.8125rem; line-height:1.4; color:var(--s-text);
-      border-bottom:1px solid var(--s-border) !important;
-    }
-    .resp-table td:last-child { border-bottom:none !important; }
-    .resp-table td::before {
-      content: attr(data-label);
-      font-weight:700; font-size:.7rem; color:var(--s-text-3);
-      min-width:6rem; flex-shrink:0; padding-top:.1rem;
-      text-transform:uppercase; letter-spacing:.04em;
-    }
-    .resp-table.sticky-col th:first-child,
-    .resp-table.sticky-col td:first-child { position:static; }
-  }
-
-  /* 2. FAB / button overlap fix on mobile forms
-        Forms with a fixed bottom-bar or floating action button get
-        bottom padding so the last input isn't hidden behind them.   */
-  @media(max-width:639px){
-    form .form-mobile-pad { padding-bottom:5rem; }
-    /* auto-apply to common create/add forms */
-    form[data-wizard] { padding-bottom:5rem; }
-  }
-
-  /* 3. DARK MODE — Dropdown <select> options background
-        Chrome/Windows renders <option> with OS-native bg, which
-        can be white even inside dark-themed <select>.              */
-  .dark select option {
-    background-color: var(--s-surface-alt) !important;
-    color: var(--s-text) !important;
-  }
-
-  /* 4. DARK MODE — Modal / dialog backgrounds */
-  .dark dialog, .dark [role="dialog"],
-  .dark .modal-box, .dark .dropdown-content {
-    background-color: var(--s-surface) !important;
-    border-color: var(--s-border) !important;
-    color: var(--s-text) !important;
-  }
-  .dark .modal-box .bg-white { background-color: var(--s-surface-alt) !important; }
-
-  /* 5. RTL — Icon alignment inside flex buttons
-        When dir=rtl, row-reverses icon+label so icon appears on
-        the inline-end (right) side, matching Arabic reading flow.  */
-  html[dir="rtl"] .btn-icon-row,
-  html[dir="rtl"] button > .flex.items-center,
-  html[dir="rtl"] a > .flex.items-center {
-    flex-direction:row-reverse;
-  }
-  /* Specifically fix export / action buttons with leading icons */
-  html[dir="rtl"] .material-symbols-outlined + span,
-  html[dir="rtl"] .material-symbols-outlined + * {
-    margin-inline-start:.375rem; margin-inline-end:0;
-  }
-
-  /* 6. ARABIC TEXT — table header truncation fix
-        Arabic col headers are wider; allow wrap so they don't clip */
-  th {
-    white-space:normal !important;
-    word-break:keep-all;
-    hyphens:none;
-  }
-  /* But keep action/number columns narrow */
-  th.col-actions, th.col-num, th[data-nowrap] { white-space:nowrap !important; }
-
-  /* 7. EMPTY STATE COMPONENT */
-  .empty-state {
-    display:flex; flex-direction:column; align-items:center;
-    justify-content:center; gap:.75rem;
-    padding:3rem 1.5rem; text-align:center;
-  }
-  .empty-state .es-icon {
-    width:4rem; height:4rem; border-radius:1.25rem;
-    background: var(--s-gold-dim);
-    display:flex; align-items:center; justify-content:center;
-    transition: transform var(--dur-base) var(--ease-out);
-  }
-  .empty-state:hover .es-icon { transform: scale(1.08); }
-  .empty-state .es-icon .material-symbols-outlined { font-size:2rem; color:var(--s-gold); opacity:.85; }
-  .empty-state p { color:var(--s-text-3); font-size:.875rem; max-width:22rem; }
-  .empty-state strong { color:var(--s-text); font-size:1rem; font-weight:700; display:block; }
-
-  /* 8. PROGRESS / CHART dark mode */
-  html.dark progress::-webkit-progress-bar   { background:var(--s-surface-alt); }
-  html.dark progress::-webkit-progress-value { background:var(--s-gold); }
-  html.dark progress { background:var(--s-surface-alt); accent-color:var(--s-gold); }
-
-  /* 9. OFFLINE PAGE — mobile fix: constrain signal SVG size         */
-  @media(max-width:639px){
-    .signal { width:56px; height:56px; margin-bottom:1.25rem; }
-    .signal svg { width:56px; height:56px; }
-  }
-
-  /* ════════════════════════════════════════════════════════════════
-     LIQUID GLASS — contextual, not everywhere
-     Applied only where depth matters: topbar, dropdowns, modals.
-     Content cards are solid + shadow (glass on everything = no glass).
-     ════════════════════════════════════════════════════════════════ */
-
-  /* Floating dropdowns */
-  #notif-menu, #search-results {
-    backdrop-filter: blur(28px) saturate(220%) !important;
-    -webkit-backdrop-filter: blur(28px) saturate(220%) !important;
-    border-radius: 1.25rem !important;
-  }
-  #notif-menu {
-    background: rgba(248,251,255,0.94) !important;
-    border: 1px solid var(--s-border) !important;
-    box-shadow: var(--s-shadow-lg) !important;
-  }
-  html.dark #notif-menu {
-    background: rgba(6,18,42,0.93) !important;
-    border-color: var(--s-border) !important;
-  }
-  #search-results {
-    background: rgba(252,254,255,0.96) !important;
-    box-shadow: var(--s-shadow-lg) !important;
-    border: 1px solid var(--s-border) !important;
-  }
-  html.dark #search-results {
-    background: rgba(5,15,38,0.96) !important;
-    border-color: var(--s-border) !important;
-  }
-
-  /* Explicit glass card class */
-  .glass-card {
-    background: var(--s-glass-light) !important;
-    backdrop-filter: blur(18px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(18px) saturate(180%) !important;
-    border: 1px solid var(--s-glass-border) !important;
-    box-shadow: var(--s-shadow) !important;
-  }
-
-  /* Gold stripe utility */
-  .gold-top { border-top: 2px solid var(--s-gold) !important; }
-
-  /* ════════════════════════════════════════════════════════════════
-     MOTION SYSTEM — professional spring, 60fps, no gratuitous fx
-     ════════════════════════════════════════════════════════════════ */
-
-  /* Page-level entry — spring easing, subtle Y travel */
-  @keyframes s-page-in {
-    from { opacity:0; transform:translateY(12px); }
-    to   { opacity:1; transform:translateY(0); }
-  }
-  #main-canvas > * {
-    animation: s-page-in var(--dur-slow) var(--ease-enter) both;
-  }
-  #main-canvas > *:nth-child(1) { animation-delay:  0ms; }
-  #main-canvas > *:nth-child(2) { animation-delay: 40ms; }
-  #main-canvas > *:nth-child(3) { animation-delay: 70ms; }
-  #main-canvas > *:nth-child(4) { animation-delay:100ms; }
-  #main-canvas > *:nth-child(5) { animation-delay:125ms; }
-  #main-canvas > *:nth-child(6) { animation-delay:145ms; }
-
-  /* Card hover — restrained lift, gold border glow */
-  .bg-white, .glass-card {
-    transition:
-      transform  var(--dur-base) var(--ease-out),
-      box-shadow var(--dur-base) var(--ease-out),
-      border-color var(--dur-base) var(--ease-out) !important;
-  }
-  .bg-white:hover, .glass-card:hover {
-    transform: translateY(-3px) !important;
-    box-shadow: var(--s-shadow-lg) !important;
-    border-color: var(--s-border-hi) !important;
-  }
-  html.dark .bg-white:hover, html.dark .glass-card:hover {
-    border-color: rgba(232,184,75,0.18) !important;
-  }
-
-  /* Table row hover */
-  tbody tr {
-    transition: background var(--dur-fast) var(--ease-out);
-  }
-  html:not(.dark) tbody tr:hover { background: var(--s-surface-alt) !important; }
-  html.dark tbody tr:hover { background: var(--s-surface-hi) !important; }
-
-  /* Focus ring — gold, consistent */
-  *:focus-visible {
-    outline: 2px solid var(--s-gold) !important;
-    outline-offset: 2px !important;
-    border-radius: 4px;
-  }
-
-  /* KPI stat number counter animation */
-  @keyframes s-count-in {
-    from { opacity:0; transform:translateY(8px) scale(0.95); }
-    to   { opacity:1; transform:translateY(0)   scale(1); }
-  }
-  .kpi-value, [class*="text-4xl"], [class*="text-3xl"] {
-    animation: s-count-in var(--dur-slow) var(--ease-enter) both;
-    animation-delay: 100ms;
-  }
-
-  /* Badge pulse — notification dot */
-  @keyframes s-pulse {
-    0%,100% { transform:scale(1);   opacity:1; }
-    50%      { transform:scale(1.4); opacity:.6; }
-  }
-  .animate-ping { animation: s-pulse 2s ease-in-out infinite !important; }
-
-  /* Mobile topbar logo */
-  #topbar-logo { display:none; }
-  @media(max-width:1023px){
-    #topbar-logo { display:flex; align-items:center; }
-  }
-
-  /* Reduced-motion: collapse all non-essential animations */
-  @media(prefers-reduced-motion: reduce){
-    *, *::before, *::after {
-      animation-duration: 1ms !important;
-      animation-delay:    0ms !important;
-      transition-duration: 1ms !important;
-    }
-  }
-
-  /* ════════════════════════════════════════════════════════════════
-     GLOBAL BLUE → NAVY+GOLD REMAP
-     Converts stray Tailwind blue utilities across all templates to
-     the SHAMEL navy+gold design system. Applied via #main-canvas
-     so it never touches the always-dark sidebar.
-     ════════════════════════════════════════════════════════════════ */
-
-  /* Light-mode blue info blocks → gold tint */
-  html:not(.dark) #main-canvas .bg-blue-50   { background: var(--s-gold-dim)      !important; }
-  html:not(.dark) #main-canvas .bg-blue-100  { background: rgba(201,162,39,0.18)  !important; }
-  html:not(.dark) #main-canvas .border-blue-100,
-  html:not(.dark) #main-canvas .border-blue-200 { border-color: rgba(201,162,39,0.30) !important; }
-
-  /* Dark-mode blue blocks → navy surface */
-  html.dark #main-canvas .bg-blue-900  { background: var(--s-surface-alt)  !important; }
-  html.dark #main-canvas .bg-blue-800  { background: var(--s-surface)       !important; }
-
-  /* Blue text → navy or gold depending on context */
-  #main-canvas .text-blue-700,
-  #main-canvas .text-blue-800  { color: var(--s-text)   !important; }
-  #main-canvas .text-blue-600  { color: var(--s-text-2) !important; }
-  #main-canvas .text-blue-500,
-  #main-canvas .text-blue-400  { color: var(--s-text-3) !important; }
-  #main-canvas .text-blue-300  { color: var(--s-gold)   !important; }
-
-  /* Blue action buttons / links → gold */
-  #main-canvas a.text-blue-600,
-  #main-canvas button.text-blue-600  { color: var(--s-gold) !important; }
-  html.dark #main-canvas a.text-blue-400,
-  html.dark #main-canvas button.text-blue-400 { color: var(--s-gold) !important; }
-
-  /* Indigo / purple (wizard active steps etc.) → gold */
-  html:not(.dark) #main-canvas .bg-indigo-600,
-  html:not(.dark) #main-canvas .bg-indigo-500  { background: var(--s-gold)  !important; color: var(--s-navy) !important; }
-  html:not(.dark) #main-canvas .text-indigo-600 { color: var(--s-text-2) !important; }
-  html.dark #main-canvas .text-indigo-400       { color: var(--s-gold)   !important; }
-
-  /* Tailwind `primary` utilities — remap to gold (Tailwind config registered gold as primary) */
-  .text-primary { color: var(--s-gold)  !important; }
-  .bg-primary   { background: var(--s-gold) !important; color: var(--s-navy) !important; }
-  .border-primary { border-color: var(--s-gold) !important; }
-  .bg-primary\/5, .bg-primary\/10 { background: var(--s-gold-dim) !important; }
+  html:not(.dark) #main-canvas .text-slate-400[class*="dark:text-white"] { color:#64748B !important; }
 </style>
 </head>
 
-<body class="antialiased" style="background:var(--s-bg);color:var(--s-text);">
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 antialiased">
 
 <!-- ── Mobile overlay ── -->
 <div id="overlay" onclick="closeSidebar()"
@@ -838,27 +183,21 @@ tailwind = {
      SIDEBAR
 ════════════════════════════════════════════ -->
 <aside id="sidebar"
-  class="border-r border-white/10"
-  style="background:var(--s-navy);">
+  class="bg-white dark:bg-slate-800 border-r border-slate-100 dark:border-slate-700">
 
   <!-- Logo bar -->
-  <div class="flex items-center justify-between px-4 h-16 border-b border-white/10 flex-shrink-0">
-    <a href="/" class="flex items-center" id="sidebar-logo-link">
-      <!-- Single adaptive logo — CSS filter makes it visible on dark sidebar -->
-      <img id="sidebar-logo-img"
-           src="{% static 'images/logo.svg' %}"
-           class="h-12 w-auto object-contain flex-shrink-0"
-           style="filter: brightness(0) invert(1);"
-           alt="SHAMEL"
-           onerror="this.style.display='none'; document.getElementById('sidebar-logo-fallback').style.display='flex'">
-      <!-- Fallback — shown only when image fails -->
-      <span id="sidebar-logo-fallback" style="display:none;" class="items-center gap-2 flex">
-        <span class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 font-black text-lg"
-              style="background:linear-gradient(135deg,#C9A227,#E8C040); color:#0B2545;">S</span>
-        <span class="text-white font-extrabold text-base font-headline tracking-widest">SHAMEL</span>
-      </span>
-    </a>
-    <button onclick="closeSidebar()" class="lg:hidden p-1.5 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-colors">
+  <div class="flex items-center gap-3 px-4 h-16 border-b border-slate-100 dark:border-slate-700 flex-shrink-0">
+    <img src="{% static 'images/logo.svg' %}"
+         class="h-10 w-auto object-contain flex-shrink-0"
+         style="filter: brightness(0) invert(1);"
+         alt="SHAMEL">
+    <div class="leading-tight flex-1 min-w-0">
+      <p class="text-xs font-extrabold text-slate-900 dark:text-white font-headline truncate"
+         data-en="SHAMEL" data-ar="الجامعة الوطنية">SHAMEL</p>
+      <p class="text-[10px] text-slate-400 uppercase tracking-wider"
+         data-en="SHAMEL Portal" data-ar="بوابة SHAMEL">SHAMEL Portal</p>
+    </div>
+    <button onclick="closeSidebar()" class="lg:hidden p-1 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700">
       <span class="material-symbols-outlined text-lg">close</span>
     </button>
   </div>
@@ -915,69 +254,11 @@ tailwind = {
       <span data-en="Gate Logs" data-ar="سجلات البوابة">Gate Logs</span>
     </a>
 
-    <p class="nav-section" data-en="Advanced" data-ar="متقدم">Advanced</p>
-    <a href="{% url 'courses_list' %}" class="nav-link {% if request.resolver_match.url_name == 'courses_list' %}active{% endif %}">
-      <span class="material-symbols-outlined text-[18px]">menu_book</span>
-      <span data-en="Courses" data-ar="المقررات">Courses</span>
-    </a>
-    <a href="{% url 'classrooms_list' %}" class="nav-link {% if request.resolver_match.url_name == 'classrooms_list' %}active{% endif %}">
-      <span class="material-symbols-outlined text-[18px]">domain</span>
-      <span data-en="Classrooms (List)" data-ar="القاعات (قائمة)">Classrooms (List)</span>
-    </a>
-    <a href="{% url 'departments_view' %}" class="nav-link {% if request.resolver_match.url_name == 'departments_view' %}active{% endif %}">
-      <span class="material-symbols-outlined text-[18px]">account_tree</span>
-      <span data-en="Departments" data-ar="الأقسام">Departments</span>
-    </a>
-    <a href="{% url 'audit_log' %}" class="nav-link {% if request.resolver_match.url_name == 'audit_log' %}active{% endif %}">
-      <span class="material-symbols-outlined text-[18px]">manage_search</span>
-      <span data-en="Audit Log" data-ar="سجل التدقيق">Audit Log</span>
-    </a>
-    <a href="{% url 'global_search' %}" class="nav-link {% if request.resolver_match.url_name == 'global_search' %}active{% endif %}">
-      <span class="material-symbols-outlined text-[18px]">search</span>
-      <span data-en="Search" data-ar="البحث">Search</span>
-    </a>
-
-    <p class="nav-section" data-en="Exams" data-ar="الامتحانات">Exams</p>
-    <a href="{% url 'exam_planner' %}" class="nav-link {% if request.resolver_match.url_name == 'exam_planner' %}active{% endif %}">
-      <span class="material-symbols-outlined text-[18px]">event_note</span>
-      <span data-en="Exam Planner" data-ar="مخطط الامتحانات">Exam Planner</span>
-    </a>
-    <a href="{% url 'exam_seating_chart' %}" class="nav-link {% if request.resolver_match.url_name == 'exam_seating_chart' %}active{% endif %}">
-      <span class="material-symbols-outlined text-[18px]">chair</span>
-      <span data-en="Seating Chart" data-ar="خريطة الجلوس">Seating Chart</span>
-    </a>
-    <a href="{% url 'exam_gate_verify' %}" class="nav-link {% if request.resolver_match.url_name == 'exam_gate_verify' %}active{% endif %}">
-      <span class="material-symbols-outlined text-[18px]">verified_user</span>
-      <span data-en="Exam Gate" data-ar="بوابة الامتحان">Exam Gate</span>
-    </a>
-
-    <p class="nav-section" data-en="Workspace" data-ar="مساحة العمل">Workspace</p>
-    <a href="{% url 'dean_evaluation_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dean_evaluation_dashboard' %}active{% endif %}">
-      <span class="material-symbols-outlined text-[18px]">leaderboard</span>
-      <span data-en="Dean Evaluation" data-ar="تقييم العميد">Dean Evaluation</span>
-    </a>
-    <a href="{% url 'faculty_timeline' %}" class="nav-link {% if request.resolver_match.url_name == 'faculty_timeline' %}active{% endif %}">
-      <span class="material-symbols-outlined text-[18px]">timeline</span>
-      <span data-en="Faculty Timeline" data-ar="الجدول الزمني">Faculty Timeline</span>
-    </a>
-    <a href="{% url 'excuse_approval_board' %}" class="nav-link {% if request.resolver_match.url_name == 'excuse_approval_board' %}active{% endif %}">
-      <span class="material-symbols-outlined text-[18px]">how_to_reg</span>
-      <span data-en="Excuse Board" data-ar="لوحة الأعذار">Excuse Board</span>
-    </a>
-    <a href="{% url 'onboarding_wizard' %}" class="nav-link {% if request.resolver_match.url_name == 'onboarding_wizard' %}active{% endif %}">
-      <span class="material-symbols-outlined text-[18px]">rocket_launch</span>
-      <span data-en="Onboarding" data-ar="الإعداد الأولي">Onboarding</span>
-    </a>
-
     <p class="nav-section" data-en="System" data-ar="النظام">System</p>
     <a href="{% url 'admin_notifications' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_notifications' %}active{% endif %}">
       <span class="material-symbols-outlined text-[18px]">notifications</span>
       <span data-en="Notifications" data-ar="الإشعارات">Notifications</span>
       {% if notifications %}<span class="ml-auto bg-red-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0">{{ notifications|length }}</span>{% endif %}
-    </a>
-    <a href="{% url 'admin_tickets' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_tickets' %}active{% endif %}">
-      <span class="material-symbols-outlined text-[18px]">confirmation_number</span>
-      <span data-en="Tickets" data-ar="تذاكر الدعم">Tickets</span>
     </a>
     <a href="{% url 'settings_page' %}" class="nav-link {% if request.resolver_match.url_name == 'settings_page' %}active{% endif %}">
       <span class="material-symbols-outlined text-[18px]">settings</span>
@@ -1016,23 +297,9 @@ tailwind = {
       <span class="material-symbols-outlined text-[18px]">assessment</span>
       <span data-en="Attendance Report" data-ar="تقرير الحضور">Attendance Report</span>
     </a>
-    <a href="{% url 'coordinator_grading' %}" class="nav-link {% if request.resolver_match.url_name == 'coordinator_grading' %}active{% endif %}">
-      <span class="material-symbols-outlined text-[18px]">grade</span>
-      <span data-en="Grading" data-ar="الدرجات">Grading</span>
-    </a>
     <a href="{% url 'export_coordinator_csv' %}" class="nav-link {% if request.resolver_match.url_name == 'export_coordinator_csv' %}active{% endif %}">
       <span class="material-symbols-outlined text-[18px]">download</span>
       <span data-en="Export Students" data-ar="تصدير بيانات الطلاب">Export Students</span>
-    </a>
-
-    <p class="nav-section" data-en="System" data-ar="النظام">System</p>
-    <a href="{% url 'notifications_view' %}" class="nav-link {% if request.resolver_match.url_name == 'notifications_view' %}active{% endif %}">
-      <span class="material-symbols-outlined text-[18px]">notifications</span>
-      <span data-en="Notifications" data-ar="الإشعارات">Notifications</span>
-    </a>
-    <a href="{% url 'tickets_list' %}" class="nav-link {% if request.resolver_match.url_name == 'tickets_list' %}active{% endif %}">
-      <span class="material-symbols-outlined text-[18px]">confirmation_number</span>
-      <span data-en="Tickets" data-ar="تذاكر الدعم">Tickets</span>
     </a>
 
     <!-- ══ TEACHER ══ -->
@@ -1073,16 +340,9 @@ tailwind = {
       <span class="material-symbols-outlined text-[18px]">person</span>
       <span data-en="My Profile" data-ar="ملفي">My Profile</span>
     </a>
-    {# Room Permissions removed — teachers have implicit access to all rooms #}
-
-    <p class="nav-section" data-en="System" data-ar="النظام">System</p>
-    <a href="{% url 'notifications_view' %}" class="nav-link {% if request.resolver_match.url_name == 'notifications_view' %}active{% endif %}">
-      <span class="material-symbols-outlined text-[18px]">notifications</span>
-      <span data-en="Notifications" data-ar="الإشعارات">Notifications</span>
-    </a>
-    <a href="{% url 'tickets_list' %}" class="nav-link {% if request.resolver_match.url_name == 'tickets_list' %}active{% endif %}">
-      <span class="material-symbols-outlined text-[18px]">confirmation_number</span>
-      <span data-en="Support Tickets" data-ar="تذاكر الدعم">Support Tickets</span>
+    <a href="{% url 'teacher_permissions' %}" class="nav-link {% if request.resolver_match.url_name == 'teacher_permissions' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">lock_open</span>
+      <span data-en="Room Permissions" data-ar="صلاحيات القاعات">Room Permissions</span>
     </a>
 
     <!-- ══ STUDENT ══ -->
@@ -1112,27 +372,10 @@ tailwind = {
       <span data-en="Classrooms" data-ar="القاعات">Classrooms</span>
     </a>
 
-    <a href="{% url 'student_schedule' %}" class="nav-link {% if request.resolver_match.url_name == 'student_schedule' %}active{% endif %}">
-      <span class="material-symbols-outlined text-[18px]">event</span>
-      <span data-en="My Schedule" data-ar="جدولي">My Schedule</span>
-    </a>
-    <a href="{% url 'excuse_portal' %}" class="nav-link {% if request.resolver_match.url_name == 'excuse_portal' %}active{% endif %}">
-      <span class="material-symbols-outlined text-[18px]">assignment_late</span>
-      <span data-en="Excuse Portal" data-ar="بوابة الأعذار">Excuse Portal</span>
-    </a>
-
     <p class="nav-section" data-en="Support" data-ar="الدعم">Support</p>
     <a href="{% url 'student_support' %}" class="nav-link {% if request.resolver_match.url_name == 'student_support' %}active{% endif %}">
       <span class="material-symbols-outlined text-[18px]">support_agent</span>
       <span data-en="Help & Support" data-ar="المساعدة والدعم">Help & Support</span>
-    </a>
-    <a href="{% url 'notifications_view' %}" class="nav-link {% if request.resolver_match.url_name == 'notifications_view' %}active{% endif %}">
-      <span class="material-symbols-outlined text-[18px]">notifications</span>
-      <span data-en="Notifications" data-ar="الإشعارات">Notifications</span>
-    </a>
-    <a href="{% url 'tickets_list' %}" class="nav-link {% if request.resolver_match.url_name == 'tickets_list' %}active{% endif %}">
-      <span class="material-symbols-outlined text-[18px]">confirmation_number</span>
-      <span data-en="Support Tickets" data-ar="تذاكر الدعم">Support Tickets</span>
     </a>
 
     <!-- ══ GATE STAFF ══ -->
@@ -1153,26 +396,25 @@ tailwind = {
   </nav>
 
   <!-- ── User card ── -->
-  <div class="p-2.5 border-t border-white/10 flex-shrink-0">
-    <div class="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/8 transition-colors group" style="--tw-bg-opacity:1">
-      <div class="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-sm flex-shrink-0 text-[#0B2545]"
-           style="background:linear-gradient(135deg,#C9A227,#E8C040);">
+  <div class="p-2.5 border-t border-slate-100 dark:border-slate-700 flex-shrink-0">
+    <div class="flex items-center gap-2.5 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group">
+      <div class="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-sm flex-shrink-0">
         {{ request.user.get_full_name|first|upper|default:request.user.username|first|upper }}
       </div>
       <div class="flex-1 min-w-0">
-        <p class="text-xs font-bold text-white/90 truncate">
+        <p class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
           {{ request.user.get_full_name|default:request.user.username }}
         </p>
-        <p class="text-[10px] text-white/45 truncate">
-          {% if request.user.is_superuser %}<span data-en="Admin" data-ar="مدير النظام">Admin</span>
-          {% elif coordinator_profile %}<span data-en="Coordinator" data-ar="منسق">Coordinator</span>
-          {% elif teacher_profile %}<span data-en="Teacher" data-ar="أستاذ">Teacher</span>
-          {% elif student_profile %}<span data-en="Student" data-ar="طالب">Student</span>
+        <p class="text-[10px] text-slate-400 truncate">
+          {% if request.user.is_superuser %}Admin
+          {% elif coordinator_profile %}Coordinator
+          {% elif teacher_profile %}Teacher
+          {% elif student_profile %}Student
           {% else %}{{ request.user.email|default:"User" }}{% endif %}
         </p>
       </div>
       <a href="{% url 'logout' %}" title="Sign out"
-        class="p-1.5 rounded-lg text-white/30 hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100">
+        class="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors opacity-0 group-hover:opacity-100">
         <span class="material-symbols-outlined text-base">logout</span>
       </a>
     </div>
@@ -1183,44 +425,24 @@ tailwind = {
      TOP BAR
 ════════════════════════════════════════════ -->
 <header id="topbar"
-  class="flex items-center px-4 gap-3">
+  class="bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700 flex items-center px-4 gap-3">
 
   <!-- Mobile hamburger -->
-  <button onclick="openSidebar()" class="lg:hidden p-2 rounded-xl transition-colors"
-    style="color:var(--s-text-3);background:transparent;"
-    onmouseenter="this.style.background='var(--s-surface-alt)'"
-    onmouseleave="this.style.background='transparent'">
+  <button onclick="openSidebar()" class="lg:hidden p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
     <span class="material-symbols-outlined">menu</span>
   </button>
 
-  <!-- Mobile logo (hidden on desktop — sidebar shows it there) -->
-  <a href="/" id="topbar-logo" class="lg:hidden">
-    <img src="{% static 'images/logo.svg' %}"
-         class="h-8 w-auto object-contain"
-         style="filter: brightness(0) saturate(100%) invert(15%) sepia(60%) saturate(800%) hue-rotate(195deg) brightness(80%);"
-         alt="SHAMEL"
-         onerror="this.style.display='none'">
-  </a>
-
   <!-- Search -->
   <div class="relative flex-1 max-w-sm group">
-    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg pointer-events-none"
-          style="color:var(--s-text-3);">search</span>
+    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none">search</span>
     <input id="main-search" type="text" autocomplete="off"
       data-en-placeholder="Search students, faculty…" data-ar-placeholder="البحث عن طلاب، أساتذة…"
       placeholder="Search students, faculty…"
-      style="width:100%;padding:.5rem 1rem .5rem 2.5rem;border-radius:.875rem;
-             background:var(--s-surface-alt);color:var(--s-text);
-             border:1.5px solid transparent;font-size:.875rem;outline:none;
-             transition:border-color var(--dur-fast) var(--ease-out),
-                        box-shadow var(--dur-fast) var(--ease-out),
-                        background var(--dur-fast) var(--ease-out);"
-      onfocus="this.style.borderColor='var(--s-gold)';this.style.background='var(--s-surface)';this.style.boxShadow='0 0 0 3px var(--s-gold-dim)'"
-      onblur="this.style.borderColor='transparent';this.style.background='var(--s-surface-alt)';this.style.boxShadow='none'"/>
+      class="w-full pl-9 pr-4 py-2 text-sm bg-slate-100 dark:bg-slate-700 dark:text-slate-200 dark:placeholder-slate-500 rounded-xl border border-transparent focus:border-primary/30 focus:bg-white dark:focus:bg-slate-600 focus:outline-none transition-all"/>
     <div id="search-results"
-      class="absolute top-full mt-2 left-0 w-full hidden z-50 overflow-hidden">
+      class="absolute top-full mt-2 left-0 w-full bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 hidden z-50 overflow-hidden">
       <div id="results-container" class="max-h-64 overflow-y-auto p-2">
-        <p class="text-xs p-2" style="color:var(--s-text-3);" data-en="Start typing…" data-ar="ابدأ الكتابة…">Start typing…</p>
+        <p class="text-xs text-slate-400 p-2" data-en="Start typing…" data-ar="ابدأ الكتابة…">Start typing…</p>
       </div>
     </div>
   </div>
@@ -1229,25 +451,20 @@ tailwind = {
 
     <!-- Language toggle -->
     <button onclick="toggleLang()" id="lang-btn" title="Switch language"
-      class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors"
-      style="color:#0B2545; background:#EEF1F8; border:1.5px solid #D0D7E8;">
+      class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-600">
       <span class="material-symbols-outlined text-base">translate</span>
       <span id="lang-label">EN</span>
     </button>
 
     <!-- Theme toggle -->
     <button onclick="toggleTheme()" id="theme-btn" title="Toggle theme"
-      class="p-2 rounded-xl transition-colors"
-      style="color:#C9A227; background:rgba(201,162,39,0.1); border:1.5px solid rgba(201,162,39,0.25);">
+      class="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
       <span class="material-symbols-outlined text-xl" id="theme-icon">light_mode</span>
     </button>
 
     <!-- Notifications -->
     <div class="relative" id="notif-wrap">
-      <button onclick="toggleNotif()" class="relative p-2 rounded-xl transition-colors"
-        style="color:var(--s-text-3);"
-        onmouseenter="this.style.background='var(--s-surface-alt)'"
-        onmouseleave="this.style.background='transparent'">
+      <button onclick="toggleNotif()" class="relative p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
         <span class="material-symbols-outlined">notifications</span>
         {% if notifications %}
         <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500">
@@ -1256,47 +473,41 @@ tailwind = {
         {% endif %}
       </button>
       <div id="notif-menu"
-        class="absolute right-0 top-14 w-80 hidden z-50 overflow-hidden rounded-2xl"
-        style="background:var(--s-surface);border:1px solid var(--s-border);box-shadow:var(--s-shadow-lg);backdrop-filter:blur(28px) saturate(200%);-webkit-backdrop-filter:blur(28px) saturate(200%);">
-        <div class="flex items-center justify-between px-4 py-3" style="border-bottom:1px solid var(--s-border);">
-          <h3 class="text-sm font-bold" style="color:var(--s-text);"
+        class="absolute right-0 top-14 w-80 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 hidden z-50 overflow-hidden">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-slate-50 dark:border-slate-700">
+          <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200"
               data-en="Notifications" data-ar="الإشعارات">Notifications</h3>
           {% if notifications %}
-          <span class="text-[10px] bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 font-bold px-2 py-0.5 rounded-full">{{ notifications|length }} <span data-en="new" data-ar="جديد">new</span></span>
+          <span class="text-[10px] bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 font-bold px-2 py-0.5 rounded-full">{{ notifications|length }} new</span>
           {% endif %}
         </div>
         <div class="max-h-72 overflow-y-auto">
           {% for n in notifications %}
-          <div class="flex gap-3 px-4 py-3 last:border-0 transition-colors"
-               style="border-bottom:1px solid var(--s-border);"
-               onmouseenter="this.style.background='var(--s-surface-alt)'"
-               onmouseleave="this.style.background='transparent'">
-            <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
-              style="background:{% if n.level == 'success' %}rgba(15,138,94,0.12){% elif n.level == 'warning' %}rgba(184,128,0,0.12){% elif n.level == 'danger' %}rgba(192,57,43,0.12){% else %}var(--s-gold-dim){% endif %};
-                     color:{% if n.level == 'success' %}var(--s-success){% elif n.level == 'warning' %}var(--s-warning){% elif n.level == 'danger' %}var(--s-error){% else %}var(--s-gold){% endif %};">
+          <div class="flex gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 border-b border-slate-50 dark:border-slate-700 last:border-0 transition-colors">
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5
+              {% if n.level == 'success' %}bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600
+              {% elif n.level == 'warning' %}bg-amber-100 dark:bg-amber-900/40 text-amber-600
+              {% elif n.level == 'danger' %}bg-red-100 dark:bg-red-900/40 text-red-600
+              {% else %}bg-blue-100 dark:bg-blue-900/40 text-blue-600{% endif %}">
               <span class="material-symbols-outlined text-sm">
                 {% if n.level == 'success' %}check_circle{% elif n.level == 'warning' %}warning{% elif n.level == 'danger' %}error{% else %}info{% endif %}
               </span>
             </div>
             <div class="flex-1 min-w-0">
-              <p class="text-xs font-medium leading-snug" style="color:var(--s-text);">{{ n.title }}</p>
-              {% if n.body %}<p class="text-[10px] leading-snug" style="color:var(--s-text-3);">{{ n.body|truncatechars:60 }}</p>{% endif %}
-              <p class="text-[10px] mt-0.5" style="color:var(--s-text-3);">{{ n.created_at|timesince }} ago</p>
+              <p class="text-xs font-medium text-slate-800 dark:text-slate-200 leading-snug">{{ n.title }}</p>
+              <p class="text-[10px] text-slate-400 mt-0.5">{{ n.created_at|timesince }} ago</p>
             </div>
           </div>
           {% empty %}
           <div class="py-10 text-center">
-            <span class="material-symbols-outlined text-4xl" style="color:var(--s-border-hi);">notifications_off</span>
-            <p class="text-xs mt-2" style="color:var(--s-text-3);" data-en="All caught up!" data-ar="لا توجد إشعارات">All caught up!</p>
+            <span class="material-symbols-outlined text-4xl text-slate-200 dark:text-slate-600">notifications_off</span>
+            <p class="text-xs text-slate-400 mt-2" data-en="All caught up!" data-ar="لا توجد إشعارات">All caught up!</p>
           </div>
           {% endfor %}
         </div>
         {% if request.user.is_staff %}
         <a href="{% url 'admin_notifications' %}"
-          class="block py-2.5 text-center text-xs font-bold transition-colors"
-          style="color:var(--s-gold);border-top:1px solid var(--s-border);"
-          onmouseenter="this.style.background='var(--s-surface-alt)'"
-          onmouseleave="this.style.background='transparent'"
+          class="block py-2.5 text-center text-xs font-bold text-primary dark:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-700 border-t border-slate-50 dark:border-slate-700 transition-colors"
           data-en="View all →" data-ar="← عرض الكل">View all →</a>
         {% endif %}
       </div>
@@ -1305,43 +516,33 @@ tailwind = {
     <!-- Profile dropdown -->
     <div class="relative" id="profile-wrap">
       <button onclick="toggleProfile()"
-        class="flex items-center gap-2 pl-2 pr-1 py-1 rounded-xl transition-colors"
-        onmouseenter="this.style.background='var(--s-surface-alt)'"
-        onmouseleave="this.style.background='transparent'">
+        class="flex items-center gap-2 pl-2 pr-1 py-1 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
         <div class="hidden sm:block text-right">
-          <p class="text-xs font-bold leading-tight" style="color:var(--s-text);">
+          <p class="text-xs font-bold text-slate-800 dark:text-slate-200 leading-tight">
             {{ request.user.get_full_name|default:request.user.username }}</p>
-          <p class="text-[10px]" style="color:var(--s-text-3);">
-            {% if request.user.is_superuser %}<span data-en="Admin" data-ar="مدير النظام">Admin</span>{% elif coordinator_profile %}<span data-en="Coordinator" data-ar="منسق">Coordinator</span>{% elif teacher_profile %}<span data-en="Teacher" data-ar="أستاذ">Teacher</span>{% elif student_profile %}<span data-en="Student" data-ar="طالب">Student</span>{% else %}<span data-en="User" data-ar="مستخدم">User</span>{% endif %}
+          <p class="text-[10px] text-slate-400">
+            {% if request.user.is_superuser %}Admin{% elif coordinator_profile %}Coordinator{% elif teacher_profile %}Teacher{% elif student_profile %}Student{% else %}User{% endif %}
           </p>
         </div>
-        <div class="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-sm flex-shrink-0"
-             style="background:linear-gradient(135deg,var(--s-gold),var(--s-gold-hi));color:var(--s-navy);">
+        <div class="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-sm flex-shrink-0">
           {{ request.user.get_full_name|first|upper|default:request.user.username|first|upper }}
         </div>
-        <span class="material-symbols-outlined text-lg" style="color:var(--s-text-3);">expand_more</span>
+        <span class="material-symbols-outlined text-slate-400 text-lg">expand_more</span>
       </button>
       <div id="profile-menu"
-        class="absolute right-0 top-14 w-52 rounded-2xl py-1.5 hidden z-50"
-        style="background:var(--s-surface);border:1px solid var(--s-border);box-shadow:var(--s-shadow-lg);backdrop-filter:blur(28px) saturate(200%);-webkit-backdrop-filter:blur(28px) saturate(200%);">
-        <div class="px-4 py-2.5 mb-1" style="border-bottom:1px solid var(--s-border);">
-          <p class="text-xs font-bold" style="color:var(--s-text);">{{ request.user.get_full_name|default:request.user.username }}</p>
-          <p class="text-[10px] truncate" style="color:var(--s-text-3);">{{ request.user.email }}</p>
+        class="absolute right-0 top-14 w-52 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 py-1.5 hidden z-50">
+        <div class="px-4 py-2.5 border-b border-slate-50 dark:border-slate-700 mb-1">
+          <p class="text-xs font-bold text-slate-800 dark:text-slate-200">{{ request.user.get_full_name|default:request.user.username }}</p>
+          <p class="text-[10px] text-slate-400 truncate">{{ request.user.email }}</p>
         </div>
         {% if request.user.is_staff %}
-        <a href="/admin/" class="flex items-center gap-2 px-4 py-2 text-xs transition-colors"
-           style="color:var(--s-text-2);"
-           onmouseenter="this.style.background='var(--s-surface-alt)'"
-           onmouseleave="this.style.background='transparent'">
+        <a href="/admin/" class="flex items-center gap-2 px-4 py-2 text-xs text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
           <span class="material-symbols-outlined text-base">admin_panel_settings</span>
           <span data-en="Django Admin" data-ar="لوحة الإدارة">Django Admin</span>
         </a>
         {% endif %}
         <a href="{% url 'logout' %}"
-          class="flex items-center gap-2 px-4 py-2 text-xs transition-colors"
-          style="color:var(--s-error-text);"
-          onmouseenter="this.style.background='rgba(185,28,28,0.08)'"
-          onmouseleave="this.style.background='transparent'">
+          class="flex items-center gap-2 px-4 py-2 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
           <span class="material-symbols-outlined text-base">logout</span>
           <span data-en="Sign Out" data-ar="تسجيل الخروج">Sign Out</span>
         </a>
@@ -1354,18 +555,18 @@ tailwind = {
 <!-- ════════════════════════════════════════════
      MAIN CONTENT
 ════════════════════════════════════════════ -->
-<main id="main-canvas">
+<main id="main-canvas" class="bg-slate-50 dark:bg-slate-900">
   <div class="p-5 lg:p-8">
 
     <!-- Django messages → inline alerts -->
     {% if messages %}
     <div class="mb-6 space-y-2">
       {% for message in messages %}
-      <div class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold shadow-sm"
-        style="{% if message.tags == 'success' %}background:rgba(16,185,129,0.10);color:var(--s-success-text);border:1px solid rgba(16,185,129,0.22);
-               {% elif message.tags == 'error' %}background:rgba(185,28,28,0.10);color:var(--s-error-text);border:1px solid rgba(185,28,28,0.22);
-               {% elif message.tags == 'warning' %}background:rgba(184,128,0,0.10);color:var(--s-warning);border:1px solid rgba(184,128,0,0.22);
-               {% else %}background:var(--s-gold-dim);color:var(--s-text);border:1px solid rgba(201,162,39,0.22);{% endif %}">
+      <div class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold shadow-sm border
+        {% if message.tags == 'success' %}bg-emerald-50 dark:bg-emerald-900/20 text-emerald-800 dark:text-emerald-300 border-emerald-100 dark:border-emerald-800
+        {% elif message.tags == 'error' %}bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 border-red-100 dark:border-red-800
+        {% elif message.tags == 'warning' %}bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-300 border-amber-100 dark:border-amber-800
+        {% else %}bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 border-blue-100 dark:border-blue-800{% endif %}">
         <span class="material-symbols-outlined fill-icon text-xl">
           {% if message.tags == 'success' %}check_circle{% elif message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}
         </span>
@@ -1419,236 +620,25 @@ document.addEventListener('click', function(e) {
 });
 
 // ── Dark / Light theme ───────────────────────
-// Single logo — always white via filter (sidebar is always dark navy)
-function _updateSidebarLogo(theme) {
-  // No-op: logo.svg uses CSS filter brightness(0) invert(1) to appear white on dark sidebar
-}
-
-function _updateTopbarButtons(theme) {
-  /* Read live CSS tokens so buttons always match the current design system */
-  const st  = getComputedStyle(document.documentElement);
-  const gold     = st.getPropertyValue('--s-gold').trim();
-  const goldDim  = st.getPropertyValue('--s-gold-dim').trim();
-  const surface  = st.getPropertyValue('--s-surface-alt').trim();
-  const border   = st.getPropertyValue('--s-border').trim();
-  const text     = st.getPropertyValue('--s-text').trim();
-
-  const themeBtn = document.getElementById('theme-btn');
-  const langBtn  = document.getElementById('lang-btn');
-  if (themeBtn) {
-    themeBtn.style.color      = gold;
-    themeBtn.style.background = goldDim;
-    themeBtn.style.border     = `1.5px solid ${gold}40`;
-  }
-  if (langBtn) {
-    langBtn.style.color      = text;
-    langBtn.style.background = surface;
-    langBtn.style.border     = `1.5px solid ${border}`;
-  }
-}
-
 function applyTheme(theme) {
   localStorage.setItem('acdc_theme', theme);
   if (theme === 'dark') {
     document.documentElement.classList.add('dark');
-    document.getElementById('theme-icon').textContent = 'light_mode';
+    document.getElementById('theme-icon').textContent = 'dark_mode';
   } else {
     document.documentElement.classList.remove('dark');
-    document.getElementById('theme-icon').textContent = 'dark_mode';
+    document.getElementById('theme-icon').textContent = 'light_mode';
   }
-  /* Let CSS variables settle before reading them */
-  requestAnimationFrame(function() {
-    _updateSidebarLogo(theme);
-    _updateTopbarButtons(theme);
-    applyChartDefaults();
-  });
 }
 function toggleTheme() {
   const isDark = document.documentElement.classList.contains('dark');
   applyTheme(isDark ? 'light' : 'dark');
 }
-// Init icon + logo on load
+// Init icon on load
 (function(){
   const t = localStorage.getItem('acdc_theme') || 'light';
-  document.getElementById('theme-icon').textContent = t === 'dark' ? 'light_mode' : 'dark_mode';
-  _updateSidebarLogo(t);
-  _updateTopbarButtons(t);
+  document.getElementById('theme-icon').textContent = t === 'dark' ? 'dark_mode' : 'light_mode';
 })();
-
-// Topbar scroll shadow
-(function(){
-  const onScroll = () => {
-    document.body.classList.toggle('scrolled', window.scrollY > 8);
-  };
-  window.addEventListener('scroll', onScroll, {passive:true});
-})();
-
-// ── Arabic translation dictionary ────────────
-const AR = {
-  'Live biometric & academic infrastructure overview':'نظرة عامة حية على البنية الأكاديمية والبيومترية',
-  'TEACHERS':'عدد الأساتذة',
-  'TOTAL SESSIONS':'إجمالي الجلسات',
-  'TOTAL MINUTES':'إجمالي الدقائق',
-  'Sign in with Face ID':'تسجيل الدخول ببصمة الوجه',
-  'Recommended — use your enrolled face to sign in instantly.':'موصى به — استخدم وجهك المسجّل لتسجيل الدخول فوراً.',
-  'OR SIGN IN WITH PASSWORD':'أو سجّل الدخول بكلمة المرور',
-  'Welcome back':'مرحباً بعودتك',
-  'Sign in to access your academic portal.':'سجّل الدخول للوصول إلى بوابتك الأكاديمية.',
-  'Chancellor Control Panel':'لوحة تحكم المستشار',
-  'Registered Students':'الطلاب المسجّلون',
-  'Active Faculty Members':'أعضاء هيئة التدريس النشطون',
-  'Face Recognition Accuracy':'دقة التعرف على الوجه',
-  'Faculty Session Summary':'ملخص جلسات الأساتذة',
-  'Teacher Attendance Report':'تقرير حضور الأساتذة',
-  'Attendance Report':'تقرير الحضور',
-  'Room Status':'حالة القاعات',
-  'Room Availability':'توفر القاعات',
-  'Open Tickets':'التذاكر المفتوحة',
-  'Session Control':'التحكم بالجلسة',
-  'Stop Session':'إيقاف الجلسة',
-  'No Active Session':'لا توجد جلسة نشطة',
-  'No more sessions today':'لا مزيد من الجلسات اليوم',
-  'Upcoming Next':'التالي قادم',
-  'Started':'بدأت',
-  'Live':'مباشر',
-  'System Online':'النظام متصل',
-  'System Standby':'النظام في وضع الاستعداد',
-  'All Clear':'كل شيء سليم',
-  'At Risk':'في خطر',
-  'Low Attendance Warnings':'تحذيرات انخفاض الحضور',
-  'Verified':'موثّق',
-  'Verified Students Present':'الطلاب الموثّقون الحاضرون',
-  'Not checked in':'لم يسجّل دخوله',
-  'Sessions Held':'الجلسات المنعقدة',
-  'Sessions held by faculty members':'الجلسات التي عقدها الأساتذة',
-  'Total Sessions':'إجمالي الجلسات',
-  'Total Minutes':'إجمالي الدقائق',
-  'Teacher Name':'اسم الأستاذ',
-  'From Date':'من تاريخ',
-  'To Date':'إلى تاريخ',
-  'Training Progress':'تقدّم التدريب',
-  'Register New User':'تسجيل مستخدم جديد',
-  'Registration Form':'نموذج التسجيل',
-  'User Type':'نوع المستخدم',
-  'Full Name':'الاسم الكامل',
-  'Initial Password':'كلمة المرور المبدئية',
-  'Department / Specialization':'القسم / التخصص',
-  'Major / Specialization':'التخصص',
-  'Academic Details':'التفاصيل الأكاديمية',
-  'Student Details':'تفاصيل الطالب',
-  'Current Semester':'الفصل الحالي',
-  'Faculty':'الكلية',
-  'Faculty Report':'تقرير الكلية',
-  'Student Report':'تقرير الطالب',
-  'Gate Logs':'سجلات البوابة',
-  'Export Courses':'تصدير المقررات',
-  'Timetables':'الجداول الزمنية',
-  'Attendance':'الحضور',
-  'Professor':'أستاذ',
-  'Associate Professor':'أستاذ مشارك',
-  'Member':'عضو',
-  'Section':'الشعبة',
-  'Teaching staff':'هيئة التدريس',
-  'Enrolled in your college':'مسجّل في كليتك',
-  'Busy':'مشغولة',
-  'Free':'متاحة',
-  'Missing':'مفقود',
-  // Page titles / headings
-  'Faculty Management':'إدارة الكليات','Professor Dashboard':'لوحة الأستاذ',
-  'Teacher Dashboard':'لوحة الأستاذ','Admin Control Panel':'لوحة التحكم',
-  'Control Panel':'لوحة التحكم','Gate Verification':'التحقق عند البوابة',
-  'Gate':'البوابة','Reports':'التقارير','Schedule':'الجدول الدراسي',
-  'Courses':'المقررات','Students':'الطلاب','Teachers':'الأساتذة',
-  'Classrooms':'القاعات','Settings':'الإعدادات','Dashboard':'لوحة المعلومات',
-  'Attendance Logs':'سجلات الحضور','Notifications':'الإشعارات',
-  'Exam Planner':'مخطط الامتحانات','Departments':'الأقسام',
-  'Search Results':'نتائج البحث','My Profile':'ملفي الشخصي',
-  'Audit Log':'سجل التدقيق','Tickets':'التذاكر','Grading':'التقييم',
-  'Batch Grading':'التقييم الجماعي','Excuse Portal':'بوابة الأعذار',
-  'Course Analytics':'تحليلات المقرر','Classrooms Status':'حالة القاعات',
-  'Classroom Status':'حالة القاعة','Gate Reports':'تقارير البوابة',
-  'Onboarding':'الإعداد الأولي','Register User':'تسجيل مستخدم',
-  'Faculty Timeline':'الجدول الزمني للكلية','Teacher Permissions':'صلاحيات الأستاذ',
-  'Teacher Attendance Records':'سجل حضور الأستاذ',
-  'Student Schedule':'جدول الطالب','Course Evaluation':'تقييم المقرر',
-  'Exam Seating Chart':'خريطة جلوس الامتحان','Excuse Approval':'موافقة الأعذار',
-  // Actions
-  'Add Student':'إضافة طالب','Add Teacher':'إضافة أستاذ',
-  'Add Course':'إضافة مقرر','Add Classroom':'إضافة قاعة',
-  'Add Schedule':'إضافة جدول','Register Student':'تسجيل طالب',
-  'Register Teacher':'تسجيل أستاذ','Edit Student':'تعديل بيانات الطالب',
-  'Edit Teacher':'تعديل بيانات الأستاذ','Edit Course':'تعديل المقرر',
-  'Edit Classroom':'تعديل القاعة','Edit Schedule':'تعديل الجدول',
-  'Save Changes':'حفظ التغييرات','Save':'حفظ','Cancel':'إلغاء',
-  'Delete':'حذف','Edit':'تعديل','Search':'بحث','Export':'تصدير',
-  'Submit':'إرسال','Back':'رجوع','View':'عرض','Manage':'إدارة',
-  'Verify':'التحقق','Approve':'موافقة','Reject':'رفض','Filter':'تصفية',
-  'Add New':'إضافة جديد','Create':'إنشاء','Update':'تحديث','Reset':'إعادة تعيين',
-  'Confirm':'تأكيد','Close':'إغلاق','Print':'طباعة','Download':'تنزيل',
-  'Upload':'رفع','Enroll Face':'تسجيل الوجه','Take Photo':'التقاط صورة',
-  'Scan Face':'مسح الوجه',
-  // Table headers
-  'Name':'الاسم','Code':'الرمز','Email':'البريد الإلكتروني',
-  'Phone':'الهاتف','Department':'القسم','College':'الكلية',
-  'Status':'الحالة','Actions':'الإجراءات','Date':'التاريخ',
-  'Time':'الوقت','Day':'اليوم','Start Time':'وقت البداية',
-  'End Time':'وقت النهاية','Day of Week':'يوم الأسبوع',
-  'Batch':'الدفعة','Credits':'الساعات','Total':'الإجمالي',
-  'Present':'حاضر','Absent':'غائب','Excused':'معذور',
-  'Grade':'الدرجة','Semester':'الفصل','Year':'السنة',
-  'Gender':'الجنس','Major':'التخصص','Degree':'الدرجة العلمية',
-  'Blood Type':'فصيلة الدم','Nationality':'الجنسية','Location':'الموقع',
-  'Capacity':'السعة','Course Code':'رمز المقرر','Student Code':'رمز الطالب',
-  'Teacher ID':'معرف الأستاذ','Course Type':'نوع المقرر',
-  'Total Hours':'إجمالي الساعات','Year Level':'السنة الدراسية',
-  'Attendance Rate':'نسبة الحضور','Last Seen':'آخر ظهور',
-  'Registered':'مسجل','Trained':'مدرب','Allowed':'مسموح',
-  'Created':'تاريخ الإنشاء','Updated':'تاريخ التحديث',
-  // Status labels
-  'Active':'نشط','Inactive':'غير نشط','Pending':'قيد الانتظار',
-  'Approved':'مقبول','Rejected':'مرفوض','Blocked':'محظور',
-  'Online':'متصل','Offline':'غير متصل','Open':'مفتوح','Closed':'مغلق',
-  'Enabled':'مفعّل','Disabled':'معطّل',
-  // Common labels
-  'Student':'طالب','Teacher':'أستاذ','Course':'مقرر','Classroom':'قاعة',
-  'All':'الكل','Male':'ذكر','Female':'أنثى','No data found':'لا توجد بيانات',
-  'No results found':'لا توجد نتائج','Loading...':'جاري التحميل...',
-  'Error':'خطأ','Success':'نجاح','Warning':'تحذير','Info':'معلومات',
-  'Yes':'نعم','No':'لا','N/A':'غير متاح','None':'لا يوجد',
-  'Select':'اختر','Select All':'اختر الكل','Clear':'مسح',
-  'Total Students':'إجمالي الطلاب','Total Teachers':'إجمالي الأساتذة',
-  'Total Courses':'إجمالي المقررات','Total Classrooms':'إجمالي القاعات',
-  'Scheduled Lectures':'المحاضرات المجدولة','Today':'اليوم',
-  'This Week':'هذا الأسبوع','This Month':'هذا الشهر',
-  'Monday':'الاثنين','Tuesday':'الثلاثاء','Wednesday':'الأربعاء',
-  'Thursday':'الخميس','Friday':'الجمعة','Saturday':'السبت','Sunday':'الأحد',
-  'January':'يناير','February':'فبراير','March':'مارس','April':'أبريل',
-  'May':'مايو','June':'يونيو','July':'يوليو','August':'أغسطس',
-  'September':'سبتمبر','October':'أكتوبر','November':'نوفمبر','December':'ديسمبر',
-  // Gate specific
-  'Entry Allowed':'الدخول مسموح','Entry Denied':'الدخول محظور',
-  'Face Recognized':'تم التعرف على الوجه','Face Not Recognized':'لم يتم التعرف على الوجه',
-  'Scan Complete':'اكتمل المسح','Verifying...':'جاري التحقق...',
-  'Grant Access':'منح الوصول','Deny Access':'رفض الوصول',
-  // Booking rules / info
-  'Booking Rules':'قواعد الحجز','Current Assignments':'التعيينات الحالية',
-  'New Assignment':'تعيين جديد','Course Assignment':'تعيين المقررات',
-  // Settings
-  'Language':'اللغة','Theme':'المظهر','Dark Mode':'الوضع الداكن',
-  'Light Mode':'الوضع الفاتح','Profile':'الملف الشخصي',
-  'Password':'كلمة المرور','Change Password':'تغيير كلمة المرور',
-  'Security':'الأمان','Notifications':'الإشعارات','Appearance':'المظهر',
-  // Misc
-  'Academic Degree':'الدرجة العلمية','Specialization':'التخصص',
-  'Phone Number':'رقم الهاتف','University Email':'البريد الجامعي',
-  'Profile Photo':'الصورة الشخصية','Face Image':'صورة الوجه',
-  'Enroll':'تسجيل','Attendance Record':'سجل الحضور',
-  'View Details':'عرض التفاصيل','Details':'التفاصيل',
-  'Statistics':'الإحصائيات','Overview':'نظرة عامة',
-  'Recent Activity':'النشاط الأخير','Quick Actions':'الإجراءات السريعة',
-  'Face Enrollment':'تسجيل الوجه','Access Control':'التحكم في الوصول',
-  'System Settings':'إعدادات النظام','User Management':'إدارة المستخدمين',
-};
 
 // ── Language EN / AR ─────────────────────────
 function applyLang(lang) {
@@ -1658,7 +648,7 @@ function applyLang(lang) {
   html.dir  = lang === 'ar' ? 'rtl' : 'ltr';
   html.setAttribute('data-lang', lang);
 
-  // Switch all [data-en] / [data-ar] TEXT nodes (explicit markup)
+  // Switch all [data-en] / [data-ar] TEXT nodes
   document.querySelectorAll('[data-en]').forEach(el => {
     if (el.tagName !== 'INPUT') {
       el.textContent = lang === 'ar' ? (el.dataset.ar || el.dataset.en) : el.dataset.en;
@@ -1672,56 +662,10 @@ function applyLang(lang) {
       : el.dataset.enPlaceholder;
   });
 
-  // ── Dictionary-based auto-translation ────────
-  // Translate text nodes in headings, labels, buttons, table headers
-  // that are NOT already handled by data-en/data-ar
-  if (lang === 'ar') {
-    // Comprehensive leaf-node translation: walk every text-bearing element
-    // whose trimmed text exactly matches a dictionary entry. Leaf-only
-    // (no element children) keeps it safe — we never touch layout containers.
-    const scope = 'h1,h2,h3,h4,h5,h6,p,span,th,td,label,button,a,li,small,strong,b,div,option';
-    document.querySelectorAll(scope).forEach(el => {
-      if (el.closest('[data-en]')) return;           // explicit bilingual block
-      if (el.children.length > 0) return;            // leaf nodes only
-      const txt = el.textContent.trim();
-      if (txt && AR[txt]) {
-        if (!el.hasAttribute('data-orig-text')) el.setAttribute('data-orig-text', el.textContent);
-        el.textContent = el.textContent.replace(txt, AR[txt]);
-      }
-    });
-    // Translate placeholders too (search bars, inputs)
-    document.querySelectorAll('input[placeholder],textarea[placeholder]').forEach(el => {
-      const p = el.getAttribute('placeholder').trim();
-      if (AR[p]) {
-        if (!el.hasAttribute('data-orig-ph')) el.setAttribute('data-orig-ph', el.getAttribute('placeholder'));
-        el.setAttribute('placeholder', AR[p]);
-      }
-    });
-    // Also translate page <title>
-    const titleEl = document.querySelector('title');
-    if (titleEl) {
-      const t = titleEl.textContent;
-      for (const [en, ar] of Object.entries(AR)) {
-        if (t.includes(en)) {
-          titleEl.textContent = t.replace(en, ar);
-          break;
-        }
-      }
-    }
-  } else {
-    // Restore original English text + placeholders
-    document.querySelectorAll('[data-orig-text]').forEach(el => {
-      el.textContent = el.getAttribute('data-orig-text');
-      el.removeAttribute('data-orig-text');
-    });
-    document.querySelectorAll('[data-orig-ph]').forEach(el => {
-      el.setAttribute('placeholder', el.getAttribute('data-orig-ph'));
-      el.removeAttribute('data-orig-ph');
-    });
-  }
-
   // Update lang button label
   document.getElementById('lang-label').textContent = lang === 'ar' ? 'AR' : 'EN';
+
+  // Notification badge "new" text stays numeric — skip
 }
 function toggleLang() {
   const cur = localStorage.getItem('acdc_lang') || 'ar';
@@ -1800,486 +744,24 @@ document.addEventListener('keydown', function(e) {
 });
 </script>
 
-<!-- PWA init -->
-<script src="/static/pwa/pwa-init.js" defer></script>
-
 <script>
-/* ── CSRF hardening ─────────────────────────────────────────────────────
-   Two layers of protection against "CSRF token from POST incorrect":
-
-   1. FORM SUBMIT — refreshes the hidden csrfmiddlewaretoken field from
-      the live cookie just before submission. Fixes stale PWA-cached HTML.
-
-   2. FETCH INTERCEPTOR — wraps window.fetch so every same-origin POST/PUT/
-      PATCH/DELETE automatically carries X-CSRFToken. Covers all AJAX calls
-      in enroll_face, exam_gate_verify, face_login, and any future pages.
-   ──────────────────────────────────────────────────────────────────────── */
+/* Global CSRF hardening: before any POST form submits, copy the LIVE
+   csrftoken cookie into its hidden csrfmiddlewaretoken field. This keeps the
+   token in sync with the cookie even when the page HTML was served from a
+   stale PWA/browser cache — eliminates "CSRF token from POST incorrect". */
 (function () {
-  /* Read the live csrftoken cookie — always fresh, never cached. */
-  function getCsrf() {
-    var m = document.cookie.match('(^|;)\\s*csrftoken\\s*=\\s*([^;]+)');
+  function getCookie(name) {
+    var m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
     return m ? decodeURIComponent(m.pop()) : '';
   }
-
-  /* 1. Form submit — refresh hidden input from cookie. */
   document.addEventListener('submit', function (e) {
     var form = e.target;
     if (!form || (form.method || '').toLowerCase() !== 'post') return;
-    var tok = getCsrf();
+    var tok = getCookie('csrftoken');
     if (!tok) return;
     var input = form.querySelector('input[name=csrfmiddlewaretoken]');
     if (input) input.value = tok;
   }, true);
-
-  /* 2. Fetch interceptor — add X-CSRFToken to mutating same-origin requests. */
-  var _origFetch = window.fetch;
-  window.fetch = function (input, init) {
-    init = init || {};
-    var method = (init.method || 'GET').toUpperCase();
-    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
-      /* Only apply to same-origin — never send CSRF to third-party URLs. */
-      var url = (typeof input === 'string') ? input : (input.url || '');
-      var isSameOrigin = !url.startsWith('http') || url.startsWith(location.origin);
-      if (isSameOrigin) {
-        var tok = getCsrf();
-        if (tok) {
-          var headers = new Headers(init.headers || {});
-          if (!headers.has('X-CSRFToken')) headers.set('X-CSRFToken', tok);
-          init = Object.assign({}, init, { headers: headers });
-        }
-      }
-    }
-    return _origFetch.call(this, input, init);
-  };
-})();
-</script>
-
-<script>
-/* ════════════════════════════════════════════════════════════════
-   SHAMEL table enhancements — applied to EVERY <table> automatically:
-     • sticky/frozen first column (RTL-aware) inside a scroll wrapper
-     • pagination bar: rows-per-page selector + numbered prev/next
-   Plus window.ShamelSkeleton helpers (shimmer loaders for AJAX views).
-   Re-runnable after AJAX swaps via window.ShamelTables.refresh(root).
-   ════════════════════════════════════════════════════════════════ */
-(function () {
-  function lang(){ try { return localStorage.getItem('acdc_lang') || 'ar'; } catch(e){ return 'ar'; } }
-  var AR = lang() === 'ar';
-  var T = {
-    rows:    AR ? 'صفوف:' : 'Rows:',
-    all:     AR ? 'الكل' : 'All',
-    prev:    AR ? '‹ السابق' : '‹ Prev',
-    next:    AR ? 'التالي ›' : 'Next ›',
-    of:      AR ? 'من' : 'of',
-    showing: AR ? 'عرض' : 'Showing'
-  };
-
-  function dataRows(tbody){
-    return Array.prototype.filter.call(tbody.rows, function(r){
-      return !r.hasAttribute('data-skeleton');
-    });
-  }
-  function mkBtn(txt){ var b=document.createElement('button'); b.type='button'; b.className='pg-btn'; b.textContent=txt; return b; }
-
-  function paginate(table){
-    if (table.__paged) return;
-    var tbody = table.tBodies[0];
-    if (!tbody) return;
-    var rows = dataRows(tbody);
-    if (rows.length <= 12) return;            // too small to paginate
-    table.__paged = true;
-
-    var perPage = 25, page = 1;
-    var bar = document.createElement('div'); bar.className = 'tbl-pager';
-    var lbl = document.createElement('span'); lbl.className='pg-info'; lbl.textContent=T.rows;
-    var sel = document.createElement('select');
-    [10,25,50,100].forEach(function(n){
-      var o=document.createElement('option'); o.value=n; o.textContent=n;
-      if(n===perPage)o.selected=true; sel.appendChild(o);
-    });
-    var oAll=document.createElement('option'); oAll.value=999999; oAll.textContent=T.all; sel.appendChild(oAll);
-    var info=document.createElement('span'); info.className='pg-info'; info.style.marginInlineStart='auto';
-    var prev=mkBtn(T.prev), next=mkBtn(T.next);
-    var nums=document.createElement('span'); nums.style.display='inline-flex'; nums.style.gap='.3rem';
-    bar.appendChild(lbl); bar.appendChild(sel); bar.appendChild(info);
-    bar.appendChild(prev); bar.appendChild(nums); bar.appendChild(next);
-
-    var anchor = table.closest('.tbl-scroll') || table;
-    anchor.parentNode.insertBefore(bar, anchor.nextSibling);
-
-    function totalPages(){ return Math.max(1, Math.ceil(rows.length/perPage)); }
-    function addEllipsis(){ var s=document.createElement('span'); s.textContent='…'; s.className='pg-info'; s.style.padding='0 .2rem'; nums.appendChild(s); }
-    function addNum(p){
-      var b=mkBtn(String(p)); if(p===page)b.classList.add('active');
-      b.addEventListener('click',function(){ page=p; render(); });
-      nums.appendChild(b);
-    }
-    function render(){
-      var tp=totalPages(); if(page>tp)page=tp; if(page<1)page=1;
-      var start=(page-1)*perPage, end=start+perPage;
-      rows.forEach(function(r,i){ r.style.display=(i>=start&&i<end)?'':'none'; });
-      nums.innerHTML='';
-      var from=Math.max(1,page-2), to=Math.min(tp,page+2);
-      if(from>1){ addNum(1); if(from>2) addEllipsis(); }
-      for(var p=from;p<=to;p++) addNum(p);
-      if(to<tp){ if(to<tp-1) addEllipsis(); addNum(tp); }
-      prev.disabled=(page<=1); next.disabled=(page>=tp);
-      info.textContent=T.showing+' '+(rows.length?start+1:0)+'–'+Math.min(end,rows.length)+' '+T.of+' '+rows.length;
-    }
-    sel.addEventListener('change',function(){ perPage=parseInt(sel.value,10)||25; page=1; render(); });
-    prev.addEventListener('click',function(){ if(page>1){page--;render();} });
-    next.addEventListener('click',function(){ if(page<totalPages()){page++;render();} });
-    render();
-  }
-
-  function enhanceTables(root){
-    root = root || document;
-    Array.prototype.forEach.call(root.querySelectorAll('table'), function(t){
-      if(t.closest('.no-enhance')) return;
-      t.classList.add('sticky-col');                       // freeze first column
-      t.classList.add('resp-table');                       // mobile card layout
-
-      // Auto-stamp data-label on every <td> from its column <th>
-      var headers = [];
-      if(t.tHead && t.tHead.rows[0]){
-        Array.prototype.forEach.call(t.tHead.rows[0].cells, function(th){ headers.push(th.textContent.trim()); });
-      }
-      if(headers.length){
-        Array.prototype.forEach.call(t.tBodies, function(tb){
-          Array.prototype.forEach.call(tb.rows, function(tr){
-            Array.prototype.forEach.call(tr.cells, function(td, i){
-              if(!td.hasAttribute('data-label') && headers[i]) td.setAttribute('data-label', headers[i]);
-            });
-          });
-        });
-      }
-
-      if(!t.closest('.tbl-scroll')){                       // ensure scroll wrapper
-        var p=t.parentElement, ox=p?getComputedStyle(p).overflowX:'visible';
-        if(ox!=='auto' && ox!=='scroll'){
-          var wrap=document.createElement('div'); wrap.className='tbl-scroll';
-          t.parentNode.insertBefore(wrap,t); wrap.appendChild(t);
-        } else { p.classList.add('tbl-scroll'); }
-      }
-      if(!t.classList.contains('no-pager')) paginate(t);  // add pager
-
-      // Empty state: if tbody has 0 data rows → inject .empty-state row
-      injectEmptyState(t);
-    });
-  }
-
-  function injectEmptyState(t){
-    var tb = t.tBodies[0];
-    if(!tb) return;
-    var dataRows = Array.prototype.filter.call(tb.rows, function(r){ return !r.dataset.skeleton && !r.dataset.emptyState; });
-    if(dataRows.length > 0){
-      // remove any previously injected empty state
-      Array.prototype.forEach.call(tb.querySelectorAll('[data-empty-state]'), function(r){ r.parentNode.removeChild(r); });
-      return;
-    }
-    if(tb.querySelector('[data-empty-state]')) return; // already present
-    var cols = (t.tHead && t.tHead.rows[0]) ? t.tHead.rows[0].cells.length : 4;
-    var lang = document.documentElement.getAttribute('data-lang') || 'ar';
-    var msg  = lang === 'ar' ? 'لا توجد بيانات لعرضها' : 'No data to display';
-    var row  = document.createElement('tr');
-    row.setAttribute('data-empty-state','1');
-    row.innerHTML = '<td colspan="'+cols+'">'
-      + '<div class="empty-state">'
-      + '<div class="es-icon"><span class="material-symbols-outlined">inbox</span></div>'
-      + '<strong>' + (lang==='ar' ? 'لا توجد نتائج' : 'No results') + '</strong>'
-      + '<p>' + msg + '</p>'
-      + '</div></td>';
-    tb.appendChild(row);
-  }
-  // re-run empty-state injection after pagination switches pages
-  document.addEventListener('shamel:page-changed', function(e){ if(e.detail && e.detail.table) injectEmptyState(e.detail.table); });
-
-  window.ShamelSkeleton = {
-    table: function(tbody, rows, cols){
-      if(!tbody) return;
-      rows = rows || 6;
-      if(!cols){
-        var tbl=tbody.closest('table');
-        cols=(tbl && tbl.tHead && tbl.tHead.rows[0]) ? tbl.tHead.rows[0].cells.length : 4;
-      }
-      var html='';
-      for(var r=0;r<rows;r++){ html+='<tr data-skeleton="1">';
-        for(var c=0;c<cols;c++){ html+='<td class="skel-cell"><div class="skeleton skeleton-line"></div></td>'; }
-        html+='</tr>'; }
-      tbody.innerHTML=html;
-    },
-    cards: function(container, n){
-      if(!container) return; n=n||4; var html='';
-      for(var i=0;i<n;i++){ html+='<div class="skeleton" style="height:84px;margin:.5rem 0"></div>'; }
-      container.innerHTML=html;
-    }
-  };
-
-  window.ShamelTables = { refresh: enhanceTables };
-  if(document.readyState!=='loading') enhanceTables();
-  else document.addEventListener('DOMContentLoaded', function(){ enhanceTables(); });
-})();
-</script>
-
-<script>
-/* ════════════════════════════════════════════════════════════════
-   SHAMEL multi-step form wizard + real-time validation.
-   Activate: add `data-wizard` to a <form>, wrap each step's fields in
-   <div data-step="عنوان الخطوة"> … </div>, and tag the submit row with
-   data-wizard-actions data-submit-label="نص الزر".
-   Each control shows a live green ✓ when valid; Next is blocked until
-   the current step's required fields pass.
-   ════════════════════════════════════════════════════════════════ */
-(function () {
-  function lang(){ try{return localStorage.getItem('acdc_lang')||'ar';}catch(e){return 'ar';} }
-  var AR = lang()==='ar';
-  var L = {
-    next: AR?'التالي ‹':'Next ›', back: AR?'› السابق':'‹ Back',
-    req:  AR?'هذا الحقل مطلوب':'This field is required',
-    email:AR?'بريد إلكتروني غير صالح':'Invalid email address'
-  };
-  var EMAIL=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-  function controls(scope){ return Array.prototype.slice.call(scope.querySelectorAll('input,select,textarea')); }
-  function container(ctrl){
-    var d=ctrl.closest('[data-field]'); if(d) return d;
-    var p=ctrl.parentElement;
-    while(p && p!==document.body){
-      if(p.tagName==='DIV' && p.querySelector('label')) return p;
-      p=p.parentElement;
-    }
-    return ctrl.parentElement;
-  }
-  function evaluate(ctrl){
-    if(ctrl.type==='hidden' || ctrl.disabled || ctrl.classList.contains('hidden')) return 'skip';
-    var v=(ctrl.value||'').trim();
-    var required=ctrl.hasAttribute('required');
-    if(!v) return required?'empty':'neutral';
-    if(ctrl.type==='email' && !EMAIL.test(v)) return 'bad-email';
-    if(ctrl.dataset.pattern && !(new RegExp(ctrl.dataset.pattern)).test(v)) return 'bad';
-    return 'ok';
-  }
-  function paint(ctrl, showErrors){
-    var st=evaluate(ctrl); if(st==='skip') return true;
-    var box=container(ctrl); if(!box) return true;
-    var err=box.querySelector('.shmwiz-err');
-    box.classList.remove('field-ok','field-bad');
-    if(st==='ok'){ box.classList.add('field-ok'); if(err)err.textContent=''; return true; }
-    if(st==='neutral'){ if(err)err.textContent=''; return true; }
-    if(showErrors){
-      box.classList.add('field-bad');
-      if(err) err.textContent = (st==='bad-email')?L.email:L.req;
-    }
-    return false;
-  }
-  function ensureDecor(form){
-    controls(form).forEach(function(c){
-      if(c.type==='hidden') return;
-      var box=container(c); if(!box||box.__decor) return; box.__decor=true;
-      var label=box.querySelector('label');
-      if(label && !label.querySelector('.valid-tick')){
-        var t=document.createElement('span'); t.className='valid-tick'; t.textContent=' ✓'; label.appendChild(t);
-      }
-      if(!box.querySelector('.shmwiz-err')){
-        var e=document.createElement('span'); e.className='shmwiz-err'; box.appendChild(e);
-      }
-    });
-  }
-
-  function initWizard(form){
-    var steps=Array.prototype.slice.call(form.querySelectorAll('[data-step]'));
-    if(steps.length<2) return;
-    ensureDecor(form);
-    var titles=steps.map(function(s){ return s.getAttribute('data-step')||''; });
-    var cur=0;
-
-    var head=document.createElement('div');
-    head.className='shmwiz-head flex items-center gap-1 px-6 py-5 border-b border-slate-100 dark:border-slate-700';
-    var dots=[];
-    titles.forEach(function(t,i){
-      if(i>0){ var bar=document.createElement('div'); bar.className='shmwiz-bar'; head.appendChild(bar); }
-      var wrap=document.createElement('div'); wrap.className='shmwiz-step';
-      var dot=document.createElement('div'); dot.className='shmwiz-dot'; dot.textContent=String(i+1);
-      var lab=document.createElement('span'); lab.className='text-xs font-bold text-slate-600 dark:text-slate-300 hidden sm:inline'; lab.textContent=t;
-      wrap.appendChild(dot); wrap.appendChild(lab); head.appendChild(wrap);
-      dots.push(dot);
-    });
-    form.insertBefore(head, form.firstChild);
-
-    var origActions=form.querySelector('[data-wizard-actions]');
-    var submitText=origActions ? (origActions.getAttribute('data-submit-label')||'') : '';
-    if(origActions) origActions.style.display='none';
-
-    var nav=document.createElement('div'); nav.className='px-6 pb-6 pt-2 flex items-center gap-3';
-    var back=document.createElement('button'); back.type='button'; back.setAttribute('data-wiz-back','1');
-    back.className='inline-flex items-center gap-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-sm px-5 py-3 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-all';
-    back.textContent=L.back;
-    var next=document.createElement('button'); next.type='button'; next.setAttribute('data-wiz-next','1');
-    next.className='inline-flex items-center gap-2 bg-primary hover:bg-primary-container text-white font-bold text-sm px-6 py-3 rounded-xl transition-all shadow-sm ms-auto';
-    next.textContent=L.next;
-    nav.appendChild(back); nav.appendChild(next);
-    form.appendChild(nav);
-
-    function bars(){ return head.querySelectorAll('.shmwiz-bar'); }
-    function validateStep(idx, showErrors){
-      var ok=true;
-      controls(steps[idx]).forEach(function(c){ if(!paint(c, showErrors)) ok=false; });
-      return ok;
-    }
-    function show(idx){
-      steps.forEach(function(s,i){ s.style.display = (i===idx)?'':'none'; });
-      dots.forEach(function(d,i){
-        d.classList.remove('active','done');
-        if(i<idx){ d.classList.add('done'); d.innerHTML='✓'; }
-        else { if(i===idx) d.classList.add('active'); d.textContent=String(i+1); }
-      });
-      Array.prototype.forEach.call(bars(),function(b,i){ b.classList.toggle('done', i<idx); });
-      back.style.visibility=(idx===0)?'hidden':'visible';
-      next.textContent = (idx===steps.length-1) ? (submitText||L.next) : L.next;
-      cur=idx;
-      controls(steps[idx]).forEach(function(c){ paint(c,false); });
-      try{ form.scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){}
-    }
-    back.addEventListener('click', function(){ if(cur>0) show(cur-1); });
-    // `next` stays type=button; we submit programmatically so the browser
-    // never auto-submits as a click default action (avoids skipping steps).
-    next.addEventListener('click', function(){
-      if(cur<steps.length-1){
-        if(validateStep(cur,true)) show(cur+1);
-      } else {
-        var allOk=true;
-        for(var i=0;i<steps.length;i++){ if(!validateStep(i,true)){ allOk=false; show(i); break; } }
-        if(allOk){ if(form.requestSubmit){ form.requestSubmit(); } else { form.submit(); } }
-      }
-    });
-    form.addEventListener('submit', function(e){
-      for(var i=0;i<steps.length;i++){
-        if(!validateStep(i,true)){ e.preventDefault(); show(i); return; }
-      }
-    });
-    form.addEventListener('input', function(e){ if(e.target.matches('input,select,textarea')) paint(e.target,false); });
-    form.addEventListener('change', function(e){ if(e.target.matches('input,select,textarea')) paint(e.target,true); });
-    form.addEventListener('blur', function(e){ if(e.target.matches('input,select,textarea')) paint(e.target,true); }, true);
-
-    show(0);
-  }
-
-  function boot(){ Array.prototype.forEach.call(document.querySelectorAll('form[data-wizard]'), initWizard); }
-  if(document.readyState!=='loading') boot();
-  else document.addEventListener('DOMContentLoaded', boot);
-})();
-</script>
-
-<script>
-/* ════════════════════════════════════════════════════════════════
-   FIX-BATCH: Chart.js dark-mode defaults + RTL icon flip
-   Runs after DOMContentLoaded; safe if Chart.js isn't on the page.
-   ════════════════════════════════════════════════════════════════ */
-(function(){
-  var isDark = document.documentElement.classList.contains('dark');
-
-  /* ── Chart.js global defaults (dark mode) ───────────────────── */
-  function applyChartDefaults(){
-    if(typeof Chart === 'undefined') return;
-    var cd = Chart.defaults;
-    /* Read live CSS token values so charts always match the design system */
-    var st = getComputedStyle(document.documentElement);
-    var textMuted  = st.getPropertyValue('--s-text-3').trim()  || (isDark ? '#7A9ABF' : '#6A85A8');
-    var textPrim   = st.getPropertyValue('--s-text-2').trim()  || (isDark ? '#7496BF' : '#374F70');
-    var surfaceAlt = st.getPropertyValue('--s-surface-alt').trim() || (isDark ? '#0B1E38' : '#F3F7FF');
-    var border     = st.getPropertyValue('--s-border').trim()  || (isDark ? '#12264A' : '#D8E2F0');
-    var gold       = st.getPropertyValue('--s-gold').trim()    || '#C9A227';
-
-    cd.color           = textMuted;
-    cd.borderColor     = border;
-    cd.backgroundColor = isDark ? 'rgba(232,184,75,0.10)' : 'rgba(201,162,39,0.10)';
-
-    if(cd.plugins?.legend?.labels)
-      cd.plugins.legend.labels.color = textPrim;
-
-    if(cd.plugins?.tooltip){
-      cd.plugins.tooltip.backgroundColor = surfaceAlt;
-      cd.plugins.tooltip.titleColor       = isDark ? '#C5D8F5' : '#09193A';
-      cd.plugins.tooltip.bodyColor        = textMuted;
-      cd.plugins.tooltip.borderColor      = border;
-      cd.plugins.tooltip.borderWidth      = 1;
-      cd.plugins.tooltip.cornerRadius     = 10;
-      cd.plugins.tooltip.padding          = {x:12, y:8};
-    }
-
-    var gridColor  = isDark ? 'rgba(18,38,74,0.8)' : 'rgba(216,226,240,0.7)';
-    var tickColor  = textMuted;
-    if(cd.scale){
-      if(cd.scale.grid)  cd.scale.grid.color  = gridColor;
-      if(cd.scale.ticks) cd.scale.ticks.color = tickColor;
-    }
-    ['linear','category','logarithmic','radialLinear','time'].forEach(function(k){
-      var s = cd.scales && cd.scales[k];
-      if(!s) return;
-      if(s.grid)  s.grid.color  = gridColor;
-      if(s.ticks) s.ticks.color = tickColor;
-    });
-  }
-
-  /* ── RTL: flip icon+text order inside action buttons ────────── */
-  function fixRtlIcons(){
-    var dir = document.documentElement.getAttribute('dir');
-    if(dir !== 'rtl') return;
-    document.querySelectorAll('button, a.btn, a[class*="btn"]').forEach(function(el){
-      // only target buttons that contain BOTH an icon AND text
-      var icon = el.querySelector('.material-symbols-outlined');
-      if(!icon) return;
-      var txt  = Array.prototype.find
-        ? Array.from(el.childNodes).find(function(n){ return n.nodeType===3 && n.textContent.trim(); })
-        : null;
-      if(!txt && !el.querySelector('span:not(.material-symbols-outlined)')) return;
-      // set gap and reverse flex for RTL
-      if(getComputedStyle(el).display.indexOf('flex') === -1){
-        el.style.display = 'inline-flex';
-        el.style.alignItems = 'center';
-      }
-      el.style.flexDirection = 'row-reverse';
-      el.style.gap = el.style.gap || '.375rem';
-    });
-  }
-
-  /* ── Empty-state: also watch for dynamically loaded content ─── */
-  if(window.MutationObserver){
-    var mo = new MutationObserver(function(muts){
-      muts.forEach(function(m){
-        m.addedNodes.forEach(function(n){
-          if(n.nodeType!==1) return;
-          n.querySelectorAll && n.querySelectorAll('table').forEach(function(t){
-            if(window.ShamelTables) window.ShamelTables.refresh(n);
-          });
-        });
-      });
-    });
-    document.addEventListener('DOMContentLoaded', function(){
-      mo.observe(document.body, {childList:true, subtree:true});
-    });
-  }
-
-  /* ── Theme-change listener: reapply defaults when toggled ───── */
-  var themeObs = new MutationObserver(function(){
-    isDark = document.documentElement.classList.contains('dark');
-    applyChartDefaults();
-    /* Re-render all live charts */
-    if(typeof Chart !== 'undefined' && Chart.instances){
-      Object.values(Chart.instances).forEach(function(c){ try{ c.update(); }catch(e){} });
-    }
-  });
-  themeObs.observe(document.documentElement, {attributes:true, attributeFilter:['class']});
-
-  function init(){
-    applyChartDefaults();
-    fixRtlIcons();
-  }
-  if(document.readyState !== 'loading') init();
-  else document.addEventListener('DOMContentLoaded', init);
-
-  /* Re-run after Chart.js finishes registering (it may load after this script) */
-  window.addEventListener('load', applyChartDefaults);
 })();
 </script>
 </body>

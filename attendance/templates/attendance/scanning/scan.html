@@ -115,19 +115,32 @@
 
 <script>
     // ── Camera lifecycle management ───────────────────────────────────────────
-    // Kill the MJPEG stream immediately when user leaves this page.
-    // Setting src='' aborts the HTTP connection → Django's gen_frames()
-    // receives GeneratorExit → cap.release() is called inside finally block.
+    // Two-layer stop:
+    //   1. sendBeacon → Django sets stop_event → gen_frames exits at next frame check
+    //   2. img.src='' → browser aborts HTTP → GeneratorExit at next yield
+    // Both together guarantee the camera releases quickly on page leave.
+    const _camIndex = document.getElementById('camera-select')?.value || '0';
+
     function stopCameraStream() {
+        // Layer 1: tell server to stop (works even during page unload)
+        navigator.sendBeacon('/attendance/stop_camera/?camera=' + _camIndex);
+        // Layer 2: abort the img stream connection
         const videoStream = document.getElementById('main-video-stream');
         if (videoStream) { videoStream.src = ''; }
     }
 
-    // Three complementary hooks to catch all navigation scenarios
-    window.addEventListener('beforeunload', stopCameraStream);   // tab close / F5
-    window.addEventListener('pagehide',     stopCameraStream);   // bfcache navigation
+    // Four complementary hooks for all navigation scenarios
+    window.addEventListener('beforeunload',    stopCameraStream); // tab close / F5
+    window.addEventListener('pagehide',        stopCameraStream); // bfcache navigation
     document.addEventListener('visibilitychange', function () {
         if (document.visibilityState === 'hidden') stopCameraStream();
+    });
+    // SPA navigation (sidebar clicks)
+    document.addEventListener('click', function(e) {
+        const link = e.target.closest('a[href]');
+        if (link && !link.href.includes('/scan/') && !link.href.startsWith('#')) {
+            stopCameraStream();
+        }
     });
 
     function updateCamera() {

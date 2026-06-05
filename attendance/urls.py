@@ -48,6 +48,7 @@ urlpatterns = [
     # Scanning / Camera
     path('scan/', views.scan_page, name='scan_page'),
     path('video_feed/', views.video_feed, name='video_feed'),
+    path('stop_camera/', views.stop_camera, name='stop_camera'),
     path('check-status/', views.check_status, name='check_status'),
     path('recent-scans/', views.recent_scans, name='recent_scans'),
     path('live-stats/', views.live_stats, name='live_stats'),
