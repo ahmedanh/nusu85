@@ -976,20 +976,29 @@ def add_schedule(request):
 
     if request.method == 'POST':
         try:
-            teacher_id = request.POST.get('teacher_id') or None
-            total_lec = request.POST.get('total_lectures_required', '').strip()
+            from django.db import IntegrityError
+            teacher_id   = request.POST.get('teacher_id', '').strip() or None
+            classroom_id = request.POST.get('classroom_id', '').strip() or None
+            course_id    = request.POST.get('course_id', '').strip()
+            total_lec    = request.POST.get('total_lectures_required', '28').strip()
+
+            # Basic validation — course is mandatory
+            if not course_id:
+                messages.error(request, 'يجب اختيار المادة الدراسية.')
+                return redirect('add_schedule')
+
             sched = Schedule.objects.create(
-                course_id                = request.POST.get('course_id'),
-                teacher_id               = teacher_id,
-                classroom_id             = request.POST.get('classroom_id') or None,
-                day_of_week              = request.POST.get('day_of_week'),
-                start_time               = request.POST.get('start_time'),
-                end_time                 = request.POST.get('end_time'),
-                batch                    = request.POST.get('batch', ''),
-                semester                 = request.POST.get('semester', ''),
-                total_lectures_required  = int(total_lec) if total_lec.isdigit() else 28,
+                course_id               = course_id,
+                teacher_id              = teacher_id,      # nullable: OK if not selected
+                classroom_id            = classroom_id,    # nullable: OK if not selected
+                day_of_week             = request.POST.get('day_of_week'),
+                start_time              = request.POST.get('start_time'),
+                end_time                = request.POST.get('end_time'),
+                batch                   = request.POST.get('batch', ''),
+                semester                = request.POST.get('semester', ''),
+                total_lectures_required = int(total_lec) if total_lec.isdigit() else 28,
             )
-            # Email teacher about assignment
+            # Notify teacher about new assignment
             if teacher_id:
                 try:
                     from .email_utils import notify_teacher_assignment
@@ -997,9 +1006,11 @@ def add_schedule(request):
                     notify_teacher_assignment(teacher_obj, sched)
                 except Exception:
                     pass
-            messages.success(request, 'تمت إضافة الحصة الدراسية.')
+            messages.success(request, 'تمت إضافة الحصة الدراسية بنجاح.')
+        except IntegrityError as e:
+            messages.error(request, 'تعذّر حفظ الحصة — تأكد من اكتمال جميع الحقول المطلوبة.')
         except Exception as e:
-            messages.error(request, f'خطأ: {e}')
+            messages.error(request, f'خطأ غير متوقع: {e}')
         return redirect('schedule')
 
     # GET — render form
