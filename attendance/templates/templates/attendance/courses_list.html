@@ -96,7 +96,7 @@
             </td>
             <td class="px-4 py-3.5 text-center">
               <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10 text-primary dark:text-blue-300 text-xs font-extrabold">
-                {{ course.year_level }}
+                {{ course.year_level|default:"—" }}
               </span>
             </td>
             <td class="px-4 py-3.5 text-center hidden sm:table-cell">

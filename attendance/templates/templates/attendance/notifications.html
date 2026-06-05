@@ -52,12 +52,12 @@
       <div class="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center mt-0.5
         {% if n.level == 'success' %}bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600
         {% elif n.level == 'warning' %}bg-amber-100 dark:bg-amber-900/40 text-amber-600
-        {% elif n.level == 'error' %}bg-red-100 dark:bg-red-900/40 text-red-600
+        {% elif n.level == 'danger' %}bg-red-100 dark:bg-red-900/40 text-red-600
         {% else %}bg-blue-100 dark:bg-blue-900/40 text-blue-600{% endif %}">
         <span class="material-symbols-outlined text-base">
           {% if n.level == 'success' %}check_circle
           {% elif n.level == 'warning' %}warning
-          {% elif n.level == 'error' %}error
+          {% elif n.level == 'danger' %}error
           {% else %}info{% endif %}
         </span>
       </div>
@@ -65,9 +65,9 @@
       <!-- Content -->
       <div class="flex-1 min-w-0">
         <p class="text-sm font-{% if not n.is_read %}bold{% else %}medium{% endif %} text-slate-800 dark:text-slate-200 leading-relaxed">
-          {{ n.title }}{% if n.body %} — {{ n.body }}{% endif %}
+          {{ n.title }}{% if n.body %}<span class="text-slate-500 font-normal"> — {{ n.body }}</span>{% endif %}
         </p>
-        <p class="text-xs text-slate-400 mt-1">منذ {{ n.created_at|timesince }}</p>
+        <p class="text-xs text-slate-400 mt-1">{{ n.created_at|date:"d/m/Y H:i" }}</p>
       </div>
 
       <!-- Unread dot -->

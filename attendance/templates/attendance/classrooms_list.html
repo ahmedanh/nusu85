@@ -54,7 +54,7 @@
             </span>
           </div>
           <div>
-            <p class="font-bold text-slate-800 dark:text-slate-200 text-sm">{{ room.name }}</p>
+            <p class="font-bold text-slate-800 dark:text-slate-200 text-sm">{{ room.name|default:"(بدون اسم)" }}</p>
             <p class="text-[10px] text-slate-400">{{ room.building|default:"—" }}{% if room.floor %} · Floor {{ room.floor }}{% endif %}</p>
           </div>
         </div>

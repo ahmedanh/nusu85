@@ -1,0 +1,2555 @@
+[04/Jun/2026 07:28:56] "GET /admin-panel/exam-seating/ HTTP/1.1" 200 101027
+[04/Jun/2026 07:28:56] "GET /api/ping/?_=1780550936752 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:28:58] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:28:58] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 07:29:00] "GET /admin-panel/exam-gate/ HTTP/1.1" 200 103837
+[04/Jun/2026 07:29:00] "GET /api/ping/?_=1780550940436 HTTP/1.1" 200 32
+[04/Jun/2026 07:29:02] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:29:03] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:29:04] "GET /admin-panel/dean-evaluation/ HTTP/1.1" 200 101510
+[04/Jun/2026 07:29:04] "GET /api/ping/?_=1780550944401 HTTP/1.1" 200 32
+[04/Jun/2026 07:29:06] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:29:08] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:29:13] "GET /admin-panel/faculty-timeline/ HTTP/1.1" 200 101123
+[04/Jun/2026 07:29:13] "GET /api/ping/?_=1780550953491 HTTP/1.1" 200 32
+[04/Jun/2026 07:29:15] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 07:29:16] "GET /admin-panel/faculty-timeline/?teacher_id=13 HTTP/1.1" 200 102419
+[04/Jun/2026 07:29:16] "GET /api/ping/?_=1780550956807 HTTP/1.1" 200 32
+[04/Jun/2026 07:29:18] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:29:19] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:29:20] "GET /admin-panel/faculty-timeline/?teacher_id=17 HTTP/1.1" 200 102419
+[04/Jun/2026 07:29:20] "GET /api/ping/?_=1780550960258 HTTP/1.1" 200 32
+[04/Jun/2026 07:29:21] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 07:29:23] "GET /admin-panel/excuse-board/ HTTP/1.1" 200 100494
+[04/Jun/2026 07:29:23] "GET /api/ping/?_=1780550963635 HTTP/1.1" 200 32
+[04/Jun/2026 07:29:25] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:29:29] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:29:31] "GET /admin-panel/onboarding/ HTTP/1.1" 200 109592
+[04/Jun/2026 07:29:31] "GET /api/ping/?_=1780550971521 HTTP/1.1" 200 32
+[04/Jun/2026 07:29:31] "GET /manifest.json HTTP/1.1" 200 2977
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:29:32] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:29:33] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:29:39] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:29:40] "GET /admin-panel/notifications/ HTTP/1.1" 200 126904
+[04/Jun/2026 07:29:40] "GET /api/ping/?_=1780550980920 HTTP/1.1" 200 32
+[04/Jun/2026 07:29:42] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:29:45] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:29:52] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:29:54] "GET /admin-panel/tickets/ HTTP/1.1" 200 164416
+[04/Jun/2026 07:29:54] "GET /api/ping/?_=1780550994369 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:29:55] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:29:56] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 07:29:59] "GET /settings/ HTTP/1.1" 200 118153
+[04/Jun/2026 07:29:59] "GET /api/ping/?_=1780550999487 HTTP/1.1" 200 32
+[04/Jun/2026 07:30:01] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:30:01] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:30:06] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:30:06] "GET /logout/ HTTP/1.1" 302 0
+[04/Jun/2026 07:30:06] "GET /login/ HTTP/1.1" 200 10997
+[04/Jun/2026 07:30:09] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 07:30:37] "POST /login/ HTTP/1.1" 302 0
+[04/Jun/2026 07:30:37] "GET /professor-dashboard/ HTTP/1.1" 200 108024
+[04/Jun/2026 07:30:38] "GET /api/ping/?_=1780551038007 HTTP/1.1" 200 32
+[04/Jun/2026 07:30:38] "GET /manifest.json HTTP/1.1" 200 2977
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:30:39] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:30:39] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:30:44] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:30:46] "GET /teacher/timeline/ HTTP/1.1" 200 95769
+[04/Jun/2026 07:30:46] "GET /manifest.json HTTP/1.1" 200 2977
+[04/Jun/2026 07:30:46] "GET /api/ping/?_=1780551046334 HTTP/1.1" 200 32
+[04/Jun/2026 07:30:47] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:30:49] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:30:54] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:30:54] "GET /schedule/ HTTP/1.1" 200 96497
+[04/Jun/2026 07:30:54] "GET /manifest.json HTTP/1.1" 200 2977
+[04/Jun/2026 07:30:54] "GET /api/ping/?_=1780551054935 HTTP/1.1" 200 32
+[04/Jun/2026 07:30:56] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:30:59] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:31:00] "GET /classrooms/status/ HTTP/1.1" 200 137781
+[04/Jun/2026 07:31:00] "GET /api/ping/?_=1780551060198 HTTP/1.1" 200 32
+[04/Jun/2026 07:31:01] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 07:31:03] "GET /teacher/attendance-records/ HTTP/1.1" 200 96645
+[04/Jun/2026 07:31:04] "GET /api/ping/?_=1780551064003 HTTP/1.1" 200 32
+[04/Jun/2026 07:31:05] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:31:05] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:31:11] "GET /teacher/profile/ HTTP/1.1" 200 99338
+[04/Jun/2026 07:31:12] "GET /api/ping/?_=1780551072103 HTTP/1.1" 200 32
+[04/Jun/2026 07:31:13] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:31:16] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:31:21] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:31:23] "GET /teacher/permissions/ HTTP/1.1" 200 95630
+[04/Jun/2026 07:31:23] "GET /api/ping/?_=1780551083486 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:31:24] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:31:25] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 07:31:28] "GET /notifications/ HTTP/1.1" 200 95280
+[04/Jun/2026 07:31:28] "GET /api/ping/?_=1780551088563 HTTP/1.1" 200 32
+[04/Jun/2026 07:31:30] "GET /tickets/ HTTP/1.1" 200 99338
+[04/Jun/2026 07:31:30] "GET /api/ping/?_=1780551090143 HTTP/1.1" 200 32
+[04/Jun/2026 07:31:30] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:31:31] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:31:31] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 07:31:33] "GET /logout/ HTTP/1.1" 302 0
+[04/Jun/2026 07:31:33] "GET /login/ HTTP/1.1" 200 10997
+[04/Jun/2026 07:31:35] "GET /sw.js HTTP/1.1" 200 13566
+AXES: New login failure by {username: "********************", ip_address: "********************", user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36", path_info: "/login/"}. Created new record in the database.
+[04/Jun/2026 07:31:52] "POST /login/ HTTP/1.1" 200 11337
+[04/Jun/2026 07:31:54] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 07:32:12] "POST /login/ HTTP/1.1" 302 0
+[04/Jun/2026 07:32:12] "GET /student/dashboard/ HTTP/1.1" 200 98248
+[04/Jun/2026 07:32:12] "GET /manifest.json HTTP/1.1" 200 2977
+[04/Jun/2026 07:32:12] "GET /api/ping/?_=1780551132535 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:32:12] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:32:14] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:32:15] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:32:18] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:32:23] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:32:26] "GET /student/courses/ HTTP/1.1" 200 97866
+[04/Jun/2026 07:32:26] "GET /api/ping/?_=1780551146605 HTTP/1.1" 200 32
+[04/Jun/2026 07:32:26] "GET /manifest.json HTTP/1.1" 200 2977
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:32:26] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:32:28] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:32:29] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:32:31] "GET /schedule/ HTTP/1.1" 302 0
+[04/Jun/2026 07:32:31] "GET /student/schedule/ HTTP/1.1" 200 94927
+[04/Jun/2026 07:32:31] "GET /api/ping/?_=1780551151805 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:32:32] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:32:33] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:32:34] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:32:37] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:32:37] "GET /student/excuse/ HTTP/1.1" 200 98733
+[04/Jun/2026 07:32:37] "GET /api/ping/?_=1780551157944 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:32:38] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:32:39] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:32:40] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:32:42] "GET /student/support/ HTTP/1.1" 200 97964
+[04/Jun/2026 07:32:42] "GET /api/ping/?_=1780551162746 HTTP/1.1" 200 32
+[04/Jun/2026 07:32:42] "GET /manifest.json HTTP/1.1" 200 2977
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:32:43] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:32:44] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:32:45] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:32:47] "GET /notifications/ HTTP/1.1" 200 95079
+[04/Jun/2026 07:32:47] "GET /api/ping/?_=1780551167882 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:32:48] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:32:48] "GET /tickets/ HTTP/1.1" 200 100850
+[04/Jun/2026 07:32:48] "GET /api/ping/?_=1780551168942 HTTP/1.1" 200 32
+[04/Jun/2026 07:32:49] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:32:50] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:32:50] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 07:32:51] "GET /logout/ HTTP/1.1" 302 0
+[04/Jun/2026 07:32:51] "GET /login/ HTTP/1.1" 200 10997
+[04/Jun/2026 07:32:53] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 07:33:12] "POST /login/ HTTP/1.1" 302 0
+[04/Jun/2026 07:33:12] "GET /gate/ HTTP/1.1" 200 13928
+[04/Jun/2026 07:33:13] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 07:33:20] "GET /login/ HTTP/1.1" 302 0
+[04/Jun/2026 07:33:20] "GET /gate/ HTTP/1.1" 200 13928
+[04/Jun/2026 07:33:21] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 07:44:40] "GET /tickets/ HTTP/1.1" 200 95892
+[04/Jun/2026 07:44:40] "GET /api/ping/?_=1780551880616 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:44:40] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:44:42] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:44:43] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:44:45] "GET / HTTP/1.1" 302 0
+[04/Jun/2026 07:44:45] "GET /gate/ HTTP/1.1" 200 13928
+[04/Jun/2026 07:44:47] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 07:44:48] "GET /tickets/ HTTP/1.1" 200 95892
+[04/Jun/2026 07:44:48] "GET /api/ping/?_=1780551888138 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:44:48] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:44:49] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:44:50] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:44:54] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:44:57] "GET /logout/ HTTP/1.1" 302 0
+[04/Jun/2026 07:44:57] "GET /login/ HTTP/1.1" 200 10997
+[04/Jun/2026 07:44:59] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 07:45:03] "POST /login/ HTTP/1.1" 302 0
+[04/Jun/2026 07:45:03] "GET /admin-panel/ HTTP/1.1" 200 142328
+[04/Jun/2026 07:45:03] "GET /api/ping/?_=1780551903310 HTTP/1.1" 200 32
+[04/Jun/2026 07:45:03] "GET /manifest.json HTTP/1.1" 200 2977
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:45:03] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:45:05] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:45:06] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:45:09] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:45:14] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:45:18] "GET /api/ping/?_=1780551918911 HTTP/1.1" 200 32
+[04/Jun/2026 07:45:18] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:45:22] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:45:33] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:45:33] "GET /api/ping/?_=1780551933920 HTTP/1.1" 200 32
+[04/Jun/2026 07:45:33] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+[04/Jun/2026 07:45:48] "GET /api/ping/?_=1780551948912 HTTP/1.1" 200 32
+[04/Jun/2026 07:45:48] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:45:49] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:46:03] "GET /api/ping/?_=1780551963912 HTTP/1.1" 200 32
+[04/Jun/2026 07:46:03] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:46:13] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:46:18] "GET /api/ping/?_=1780551978920 HTTP/1.1" 200 32
+[04/Jun/2026 07:46:18] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+[04/Jun/2026 07:46:33] "GET /api/ping/?_=1780551993910 HTTP/1.1" 200 32
+[04/Jun/2026 07:46:33] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:46:44] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:46:58] "GET /api/ping/?_=1780552018924 HTTP/1.1" 200 32
+[04/Jun/2026 07:46:58] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:47:15] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:47:46] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:47:58] "GET /api/ping/?_=1780552078917 HTTP/1.1" 200 32
+[04/Jun/2026 07:47:58] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+[04/Jun/2026 07:48:04] "GET /api/ping/?_=1780552084507 HTTP/1.1" 200 32
+[04/Jun/2026 07:48:04] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:48:17] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:48:18] "GET /api/ping/?_=1780552098920 HTTP/1.1" 200 32
+[04/Jun/2026 07:48:18] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+[04/Jun/2026 07:48:33] "GET /api/ping/?_=1780552113911 HTTP/1.1" 200 32
+[04/Jun/2026 07:48:33] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:48:48] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:48:48] "GET /api/ping/?_=1780552128918 HTTP/1.1" 200 32
+[04/Jun/2026 07:48:48] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+[04/Jun/2026 07:49:03] "GET /api/ping/?_=1780552143911 HTTP/1.1" 200 32
+[04/Jun/2026 07:49:03] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:49:19] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:49:25] "GET /api/ping/?_=1780552165152 HTTP/1.1" 200 32
+[04/Jun/2026 07:49:25] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+[04/Jun/2026 07:49:33] "GET /api/ping/?_=1780552173917 HTTP/1.1" 200 32
+[04/Jun/2026 07:49:33] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+[04/Jun/2026 07:49:48] "GET /api/ping/?_=1780552188918 HTTP/1.1" 200 32
+[04/Jun/2026 07:49:48] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:49:50] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:50:03] "GET /api/ping/?_=1780552203923 HTTP/1.1" 200 32
+[04/Jun/2026 07:50:03] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+[04/Jun/2026 07:50:18] "GET /api/ping/?_=1780552218919 HTTP/1.1" 200 32
+[04/Jun/2026 07:50:18] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:50:21] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:50:33] "GET /api/ping/?_=1780552233913 HTTP/1.1" 200 32
+[04/Jun/2026 07:50:33] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+[04/Jun/2026 07:50:48] "GET /api/ping/?_=1780552248910 HTTP/1.1" 200 32
+[04/Jun/2026 07:50:48] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:50:52] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:51:23] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:51:54] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:51:58] "GET /api/ping/?_=1780552318916 HTTP/1.1" 200 32
+[04/Jun/2026 07:51:58] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:52:25] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:52:56] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:52:58] "GET /api/ping/?_=1780552378921 HTTP/1.1" 200 32
+[04/Jun/2026 07:52:58] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:53:27] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:53:58] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:53:58] "GET /api/ping/?_=1780552438916 HTTP/1.1" 200 32
+[04/Jun/2026 07:53:58] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:54:29] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:54:58] "GET /api/ping/?_=1780552498912 HTTP/1.1" 200 32
+[04/Jun/2026 07:54:58] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:55:00] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:55:31] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:55:58] "GET /api/ping/?_=1780552558921 HTTP/1.1" 200 32
+[04/Jun/2026 07:55:58] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:56:02] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:56:33] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:56:58] "GET /api/ping/?_=1780552618916 HTTP/1.1" 200 32
+[04/Jun/2026 07:56:58] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:57:04] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:57:35] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:57:58] "GET /api/ping/?_=1780552678921 HTTP/1.1" 200 32
+[04/Jun/2026 07:57:58] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:58:06] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:58:37] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:58:58] "GET /api/ping/?_=1780552738909 HTTP/1.1" 200 32
+[04/Jun/2026 07:58:58] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:59:08] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 07:59:39] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 07:59:58] "GET /api/ping/?_=1780552798922 HTTP/1.1" 200 32
+[04/Jun/2026 07:59:58] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+Job "check_attendance_compliance (trigger: cron[hour='8', minute='0'], next run at: 2026-06-05 08:00:00 CAT)" raised an exception
+Traceback (most recent call last):
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\apscheduler\executors\base.py", line 131, in run_job
+    retval = job.func(*job.args, **job.kwargs)
+  File "D:\\u0645\u0647\u0645\ACDC_FINAL-main\attendance\tasks.py", line 93, in check_attendance_compliance
+    Notification.objects.create(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        user=admin,
+        ^^^^^^^^^^^
+        message=f"{student.name}: {pct:.1f}% attendance — {level.upper()}",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        notif_type=level
+        ^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\query.py", line 667, in create
+    obj = self.model(**kwargs)
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\base.py", line 590, in __init__
+    raise TypeError(
+    ...<2 lines>...
+    )
+TypeError: Notification() got unexpected keyword arguments: 'message', 'notif_type'
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:00:10] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:00:41] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:00:58] "GET /api/ping/?_=1780552858911 HTTP/1.1" 200 32
+[04/Jun/2026 08:00:58] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:01:12] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:01:43] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:01:58] "GET /api/ping/?_=1780552918918 HTTP/1.1" 200 32
+[04/Jun/2026 08:01:58] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:02:14] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:02:45] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:02:58] "GET /api/ping/?_=1780552978918 HTTP/1.1" 200 32
+[04/Jun/2026 08:02:58] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:03:16] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:03:47] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:03:58] "GET /api/ping/?_=1780553038921 HTTP/1.1" 200 32
+[04/Jun/2026 08:03:58] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:04:18] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:04:49] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:04:58] "GET /api/ping/?_=1780553098910 HTTP/1.1" 200 32
+[04/Jun/2026 08:04:58] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:05:20] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:05:51] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:05:58] "GET /api/ping/?_=1780553158914 HTTP/1.1" 200 32
+[04/Jun/2026 08:05:58] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:06:22] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:06:53] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:06:58] "GET /api/ping/?_=1780553218921 HTTP/1.1" 200 32
+[04/Jun/2026 08:06:58] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:07:24] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:07:55] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:07:58] "GET /api/ping/?_=1780553278922 HTTP/1.1" 200 32
+[04/Jun/2026 08:07:58] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:08:26] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:08:57] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:08:59] "GET /api/ping/?_=1780553338922 HTTP/1.1" 200 32
+[04/Jun/2026 08:08:59] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:09:28] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:09:58] "GET /api/ping/?_=1780553398911 HTTP/1.1" 200 32
+[04/Jun/2026 08:09:58] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:09:59] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:10:30] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:10:58] "GET /api/ping/?_=1780553458913 HTTP/1.1" 200 32
+[04/Jun/2026 08:10:58] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 200 107
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:11:01] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:11:32] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:11:58] "GET /api/ping/?_=1780553518922 HTTP/1.1" 200 32
+[04/Jun/2026 08:11:58] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 302 0
+[04/Jun/2026 08:11:58] "GET /attendance/login/?next=/attendance/api/chancellor-stats/ HTTP/1.1" 200 10997
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:12:03] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:12:34] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:12:58] "GET /api/ping/?_=1780553578920 HTTP/1.1" 200 32
+[04/Jun/2026 08:12:58] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 302 0
+[04/Jun/2026 08:12:58] "GET /attendance/login/?next=/attendance/api/chancellor-stats/ HTTP/1.1" 200 10997
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:13:05] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:13:36] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:13:58] "GET /api/ping/?_=1780553638922 HTTP/1.1" 200 32
+[04/Jun/2026 08:13:58] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 302 0
+[04/Jun/2026 08:13:58] "GET /attendance/login/?next=/attendance/api/chancellor-stats/ HTTP/1.1" 200 10997
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:14:07] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:14:38] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:14:58] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 302 0
+[04/Jun/2026 08:14:58] "GET /api/ping/?_=1780553698916 HTTP/1.1" 200 32
+[04/Jun/2026 08:14:58] "GET /attendance/login/?next=/attendance/api/chancellor-stats/ HTTP/1.1" 200 10997
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:15:09] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:15:40] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:15:58] "GET /api/ping/?_=1780553758908 HTTP/1.1" 200 32
+[04/Jun/2026 08:15:58] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 302 0
+[04/Jun/2026 08:15:58] "GET /attendance/login/?next=/attendance/api/chancellor-stats/ HTTP/1.1" 200 10997
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:16:11] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:16:42] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:16:58] "GET /attendance/api/chancellor-stats/ HTTP/1.1" 302 0
+[04/Jun/2026 08:16:58] "GET /api/ping/?_=1780553818911 HTTP/1.1" 200 32
+[04/Jun/2026 08:16:58] "GET /attendance/login/?next=/attendance/api/chancellor-stats/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:17:03] "GET /admin-panel/ HTTP/1.1" 302 0
+[04/Jun/2026 08:17:03] "GET /attendance/login/?next=/admin-panel/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:17:03] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:17:03] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:17:03] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+Not Found: /favicon.ico
+[04/Jun/2026 08:17:03] "GET /favicon.ico HTTP/1.1" 404 42696
+AXES: New login failure by {username: "********************", ip_address: "********************", user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36", path_info: "/login/"}. Created new record in the database.
+[04/Jun/2026 08:17:07] "POST /login/ HTTP/1.1" 200 11337
+[04/Jun/2026 08:17:10] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:17:10] "GET / HTTP/1.1" 200 10997
+[04/Jun/2026 08:17:10] "GET /offline/ HTTP/1.1" 200 8244
+AXES: Repeated login failure by {username: "********************", ip_address: "********************", user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36", path_info: "/login/"}. Updated existing record in the database.
+[04/Jun/2026 08:17:17] "POST /login/ HTTP/1.1" 200 11337
+[04/Jun/2026 08:17:19] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:17:56] "POST /login/ HTTP/1.1" 302 0
+[04/Jun/2026 08:17:56] "GET /admin-panel/ HTTP/1.1" 200 142363
+[04/Jun/2026 08:17:56] "GET /api/ping/?_=1780553876885 HTTP/1.1" 200 32
+[04/Jun/2026 08:17:57] "GET /manifest.json HTTP/1.1" 200 2977
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:17:57] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:17:58] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:17:59] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:18:02] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:18:07] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:18:08] "GET /scan/ HTTP/1.1" 200 108905
+[04/Jun/2026 08:18:08] "GET /manifest.json HTTP/1.1" 200 2977
+[04/Jun/2026 08:18:08] "GET /api/ping/?_=1780553888222 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:18:08] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:18:09] "GET /classrooms/status/ HTTP/1.1" 200 152299
+[04/Jun/2026 08:18:09] "GET /api/ping/?_=1780553889473 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:18:09] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:18:10] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:18:10] "GET /schedule/ HTTP/1.1" 200 229422
+[04/Jun/2026 08:18:10] "GET /manifest.json HTTP/1.1" 200 2977
+[04/Jun/2026 08:18:10] "GET /api/ping/?_=1780553890644 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:18:10] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:18:11] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:18:12] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:18:12] "GET /admin-panel/excuse-board/ HTTP/1.1" 200 100494
+[04/Jun/2026 08:18:12] "GET /api/ping/?_=1780553892531 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:18:12] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:18:13] "GET /reports/teachers/ HTTP/1.1" 200 126820
+[04/Jun/2026 08:18:13] "GET /api/ping/?_=1780553893800 HTTP/1.1" 200 32
+[04/Jun/2026 08:18:13] "GET /manifest.json HTTP/1.1" 200 2977
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:18:14] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:18:14] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:18:15] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:18:15] "GET /admin-panel/excuse-board/ HTTP/1.1" 200 100494
+[04/Jun/2026 08:18:15] "GET /api/ping/?_=1780553895907 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:18:16] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:18:16] "GET /admin-panel/exam-planner/ HTTP/1.1" 200 130243
+[04/Jun/2026 08:18:17] "GET /api/ping/?_=1780553897001 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:18:17] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:18:17] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:18:18] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:18:19] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:18:20] "GET /admin-panel/excuse-board/ HTTP/1.1" 200 100494
+[04/Jun/2026 08:18:20] "GET /api/ping/?_=1780553900674 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:18:21] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:18:22] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:18:22] "GET /admin-panel/onboarding/ HTTP/1.1" 200 109592
+[04/Jun/2026 08:18:22] "GET /manifest.json HTTP/1.1" 200 2977
+[04/Jun/2026 08:18:22] "GET /api/ping/?_=1780553902652 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:18:23] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:18:23] "GET /admin-panel/exam-gate/ HTTP/1.1" 200 103837
+[04/Jun/2026 08:18:23] "GET /api/ping/?_=1780553903622 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:18:23] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:18:24] "GET /reports/teachers/ HTTP/1.1" 200 126820
+[04/Jun/2026 08:18:24] "GET /manifest.json HTTP/1.1" 200 2977
+[04/Jun/2026 08:18:24] "GET /api/ping/?_=1780553904400 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:18:24] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:18:26] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:18:27] "GET /admin-panel/tickets/ HTTP/1.1" 200 174779
+[04/Jun/2026 08:18:27] "GET /api/ping/?_=1780553907201 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:18:27] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:18:29] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:18:29] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:18:33] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:18:38] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:18:42] "GET /api/ping/?_=1780553922911 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:18:46] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:18:57] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:18:57] "GET /api/ping/?_=1780553937921 HTTP/1.1" 200 32
+[04/Jun/2026 08:19:12] "GET /api/ping/?_=1780553952920 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:19:14] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:19:27] "GET /api/ping/?_=1780553967909 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:19:39] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:19:42] "GET /api/ping/?_=1780553982909 HTTP/1.1" 200 32
+[04/Jun/2026 08:19:57] "GET /api/ping/?_=1780553997915 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:20:11] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:20:42] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:20:58] "GET /api/ping/?_=1780554058912 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:21:13] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:21:44] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:21:58] "GET /api/ping/?_=1780554118919 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:22:15] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:22:46] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:22:58] "GET /api/ping/?_=1780554178914 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:23:17] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:23:48] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:23:58] "GET /api/ping/?_=1780554238911 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:24:19] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:24:50] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:24:58] "GET /api/ping/?_=1780554298908 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:25:21] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:25:52] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:25:58] "GET /api/ping/?_=1780554358914 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:26:23] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:26:54] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:26:58] "GET /api/ping/?_=1780554418922 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:27:25] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:27:56] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:27:58] "GET /api/ping/?_=1780554478911 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:28:27] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:28:58] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:28:58] "GET /api/ping/?_=1780554538910 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:29:29] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:29:47] "GET /login/ HTTP/1.1" 200 10997
+AXES: New login failure by {username: "********************", ip_address: "********************", user_agent: "Dart/3.11 (dart:io)", path_info: "/login/"}. Created new record in the database.
+[04/Jun/2026 08:29:48] "POST /login/ HTTP/1.1" 200 11337
+[04/Jun/2026 08:29:58] "GET /api/ping/?_=1780554598908 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:30:00] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:30:31] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:30:58] "GET /api/ping/?_=1780554658920 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:31:02] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:31:31] "GET /attendance/login/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:31:31,861] - Broken pipe from ('127.0.0.1', 62797)
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:31:33] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:31:54] "GET /attendance/login/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:31:54] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:31:54] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:31:55] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:31:57] "GET /attendance/login/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:31:58] "GET /api/ping/?_=1780554718908 HTTP/1.1" 200 32
+AXES: New login failure by {username: "********************", ip_address: "********************", user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.7778.96 Safari/537.36", path_info: "/login/"}. Created new record in the database.
+[04/Jun/2026 08:31:59] "POST /login/ HTTP/1.1" 200 11337
+[04/Jun/2026 08:31:59] "GET /attendance/admin-panel/ HTTP/1.1" 302 0
+[04/Jun/2026 08:31:59] "GET /attendance/login/?next=/attendance/admin-panel/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:00] "GET /attendance/gate/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:00] "GET /attendance/login/?next=/attendance/gate/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:00] "GET /attendance/faculty-management/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:00] "GET /attendance/login/?next=/attendance/faculty-management/ HTTP/1.1" 200 10997
+Not Found: /attendance/students/
+[04/Jun/2026 08:32:01] "GET /attendance/students/ HTTP/1.1" 404 83313
+[04/Jun/2026 08:32:01] "GET /attendance/courses/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:01] "GET /attendance/login/?next=/attendance/courses/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:02] "GET /attendance/classrooms/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:02] "GET /attendance/login/?next=/attendance/classrooms/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:03] "GET /attendance/classrooms/status/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:03] "GET /attendance/login/?next=/attendance/classrooms/status/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:03] "GET /attendance/schedule/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:03] "GET /attendance/login/?next=/attendance/schedule/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:04] "GET /attendance/schedule/calendar/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:04] "GET /attendance/login/?next=/attendance/schedule/calendar/ HTTP/1.1" 200 10997
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:32:04] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:32:04] "GET /attendance/reports/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:04] "GET /attendance/login/?next=/attendance/reports/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:05] "GET /attendance/reports/students/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:05] "GET /attendance/login/?next=/attendance/reports/students/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:05] "GET /attendance/reports/teachers/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:05] "GET /attendance/login/?next=/attendance/reports/teachers/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:06] "GET /attendance/search/ HTTP/1.1" 200 92622
+[04/Jun/2026 08:32:06] "GET /static/pwa/pwa-init.js HTTP/1.1" 200 16397
+[04/Jun/2026 08:32:06] "GET /api/ping/?_=1780554726522 HTTP/1.1" 200 32
+[04/Jun/2026 08:32:06] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:32:06] "GET / HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:06] "GET /offline/ HTTP/1.1" 200 8244
+[04/Jun/2026 08:32:06] "GET /static/pwa/manifest.json HTTP/1.1" 200 2620
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:32:06] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:32:07] "GET /attendance/login/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:07] "GET /attendance/search/ HTTP/1.1" 200 92622
+[04/Jun/2026 08:32:07,744] - Broken pipe from ('127.0.0.1', 51520)
+[04/Jun/2026 08:32:07] "GET /api/ping/?_=1780554727829 HTTP/1.1" 200 32
+[04/Jun/2026 08:32:08] "GET /attendance/settings/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:08] "GET /attendance/login/?next=/attendance/settings/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:10] "GET /attendance/notifications/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:10] "GET /attendance/login/?next=/attendance/notifications/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:11] "GET /attendance/tickets/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:11] "GET /attendance/login/?next=/attendance/tickets/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:11] "GET /attendance/scan/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:11] "GET /attendance/login/?next=/attendance/scan/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:11] "GET /attendance/attendance-logs/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:11] "GET /attendance/login/?next=/attendance/attendance-logs/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:12] "GET /attendance/recent-scans/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:12] "GET /attendance/login/?next=/attendance/recent-scans/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:13] "GET /attendance/login/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:13] "GET /sw.js HTTP/1.1" 200 13566
+AXES: New login failure by {username: "********************", ip_address: "********************", user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.7778.96 Safari/537.36", path_info: "/login/"}. Created new record in the database.
+AXES: Locking out {username: "********************", ip_address: "********************", user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.7778.96 Safari/537.36", path_info: "/login/"} after repeated login failures.
+Too Many Requests: /login/
+[04/Jun/2026 08:32:14] "POST /login/ HTTP/1.1" 429 64
+[04/Jun/2026 08:32:14] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:32:14] "GET /attendance/professor-dashboard/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:14] "GET /attendance/login/?next=/attendance/professor-dashboard/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:15] "GET /attendance/teacher/timeline/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:15] "GET /attendance/login/?next=/attendance/teacher/timeline/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:15] "GET /attendance/teacher/attendance-records/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:15] "GET /attendance/login/?next=/attendance/teacher/attendance-records/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:16] "GET /attendance/schedule/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:16] "GET /attendance/login/?next=/attendance/schedule/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:16] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:32:16] "GET /attendance/notifications/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:16] "GET /attendance/login/?next=/attendance/notifications/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:17] "GET /attendance/tickets/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:17] "GET /attendance/login/?next=/attendance/tickets/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:18] "GET /attendance/login/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:18] "GET /sw.js HTTP/1.1" 200 13566
+AXES: New login failure by {username: "********************", ip_address: "********************", user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.7778.96 Safari/537.36", path_info: "/login/"}. Created new record in the database.
+[04/Jun/2026 08:32:19] "POST /login/ HTTP/1.1" 200 11337
+[04/Jun/2026 08:32:19] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:32:19] "GET /attendance/student/dashboard/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:19] "GET /attendance/login/?next=/attendance/student/dashboard/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:20] "GET /attendance/student/courses/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:20] "GET /attendance/login/?next=/attendance/student/courses/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:21] "GET /attendance/student/schedule/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:21] "GET /attendance/login/?next=/attendance/student/schedule/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:21] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:32:21] "GET /attendance/student/excuse/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:21] "GET /attendance/login/?next=/attendance/student/excuse/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:22] "GET /attendance/student/profile/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:22] "GET /attendance/login/?next=/attendance/student/profile/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:22] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:32:22] "GET /attendance/notifications/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:22] "GET /attendance/login/?next=/attendance/notifications/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:23] "GET /attendance/tickets/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:23] "GET /attendance/login/?next=/attendance/tickets/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:23] "GET /attendance/student/support/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:23] "GET /attendance/login/?next=/attendance/student/support/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:24] "GET /attendance/login/ HTTP/1.1" 200 10997
+AXES: New login failure by {username: "********************", ip_address: "********************", user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.7778.96 Safari/537.36", path_info: "/login/"}. Created new record in the database.
+AXES: Locking out {username: "********************", ip_address: "********************", user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.7778.96 Safari/537.36", path_info: "/login/"} after repeated login failures.
+Too Many Requests: /login/
+[04/Jun/2026 08:32:25] "POST /login/ HTTP/1.1" 429 64
+[04/Jun/2026 08:32:25] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:32:26] "GET /attendance/coordinator/dashboard/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:26] "GET /attendance/login/?next=/attendance/coordinator/dashboard/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:26] "GET /attendance/coordinator/students/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:26] "GET /attendance/login/?next=/attendance/coordinator/students/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:27] "GET /attendance/coordinator/faculty/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:27] "GET /attendance/login/?next=/attendance/coordinator/faculty/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:27] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:32:27] "GET /attendance/coordinator/grading/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:27] "GET /attendance/login/?next=/attendance/coordinator/grading/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:28] "GET /attendance/coordinator/register/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:28] "GET /attendance/login/?next=/attendance/coordinator/register/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:28] "GET /attendance/coordinator/assignments/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:28] "GET /attendance/login/?next=/attendance/coordinator/assignments/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:29] "GET /attendance/login/ HTTP/1.1" 200 10997
+AXES: New login failure by {username: "********************", ip_address: "********************", user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.7778.96 Safari/537.36", path_info: "/login/"}. Created new record in the database.
+AXES: Locking out {username: "********************", ip_address: "********************", user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.7778.96 Safari/537.36", path_info: "/login/"} after repeated login failures.
+Too Many Requests: /login/
+[04/Jun/2026 08:32:30] "POST /login/ HTTP/1.1" 429 64
+[04/Jun/2026 08:32:30] "GET /attendance/gate/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:30] "GET /attendance/login/?next=/attendance/gate/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:31] "GET /attendance/scan/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:31] "GET /attendance/login/?next=/attendance/scan/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:31] "GET /attendance/attendance-logs/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:31] "GET /attendance/login/?next=/attendance/attendance-logs/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:31] "GET /attendance/recent-scans/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:31] "GET /attendance/login/?next=/attendance/recent-scans/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:32] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:32:32] "GET /attendance/login/ HTTP/1.1" 200 10997
+AXES: Repeated login failure by {username: "********************", ip_address: "********************", user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.7778.96 Safari/537.36", path_info: "/login/"}. Updated existing record in the database.
+AXES: Locking out {username: "********************", ip_address: "********************", user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.7778.96 Safari/537.36", path_info: "/login/"} after repeated login failures.
+Too Many Requests: /login/
+[04/Jun/2026 08:32:32] "POST /login/ HTTP/1.1" 429 64
+[04/Jun/2026 08:32:33] "GET /attendance/admin-panel/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:33] "GET /attendance/login/?next=/attendance/admin-panel/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:33] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:32:34] "GET /attendance/login/ HTTP/1.1" 200 10997
+AXES: Repeated login failure by {username: "********************", ip_address: "********************", user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.7778.96 Safari/537.36", path_info: "/login/"}. Updated existing record in the database.
+AXES: Locking out {username: "********************", ip_address: "********************", user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.7778.96 Safari/537.36", path_info: "/login/"} after repeated login failures.
+Too Many Requests: /login/
+[04/Jun/2026 08:32:34] "POST /login/ HTTP/1.1" 429 64
+[04/Jun/2026 08:32:35] "GET /attendance/student/dashboard/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:35] "GET /attendance/login/?next=/attendance/student/dashboard/ HTTP/1.1" 200 10997
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:32:35] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:32:35] "GET /attendance/login/ HTTP/1.1" 200 10997
+AXES: Repeated login failure by {username: "********************", ip_address: "********************", user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.7778.96 Safari/537.36", path_info: "/login/"}. Updated existing record in the database.
+AXES: Locking out {username: "********************", ip_address: "********************", user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.7778.96 Safari/537.36", path_info: "/login/"} after repeated login failures.
+Too Many Requests: /login/
+[04/Jun/2026 08:32:36] "POST /login/ HTTP/1.1" 429 64
+[04/Jun/2026 08:32:36] "GET /attendance/gate/ HTTP/1.1" 302 0
+[04/Jun/2026 08:32:36] "GET /attendance/login/?next=/attendance/gate/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:48] "GET /attendance/login/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:32:48] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:32:48] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:32:50] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:32:58] "GET /api/ping/?_=1780554778918 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:33:06] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:33:11] "GET /attendance/login/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:33:11] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:33:11] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:33:12] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+AXES: Repeated login failure by {username: "********************", ip_address: "********************", user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.7778.96 Safari/537.36", path_info: "/login/"}. Updated existing record in the database.
+AXES: Locking out {username: "********************", ip_address: "********************", user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.7778.96 Safari/537.36", path_info: "/login/"} after repeated login failures.
+Too Many Requests: /login/
+[04/Jun/2026 08:33:13] "POST /login/ HTTP/1.1" 429 64
+[04/Jun/2026 08:33:31] "GET /attendance/login/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:33:31] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:33:31] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:33:32] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:33:37] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:33:51] "GET /attendance/login/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:33:51] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:33:51] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:33:53] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+AXES: Repeated login failure by {username: "********************", ip_address: "********************", user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.7778.96 Safari/537.36", path_info: "/attendance/login/"}. Updated existing record in the database.
+AXES: Locking out {username: "********************", ip_address: "********************", user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.7778.96 Safari/537.36", path_info: "/attendance/login/"} after repeated login failures.
+Too Many Requests: /attendance/login/
+[04/Jun/2026 08:33:53] "POST /attendance/login/ HTTP/1.1" 429 64
+[04/Jun/2026 08:33:53] "GET /attendance/admin-panel/ HTTP/1.1" 302 0
+[04/Jun/2026 08:33:53] "GET /attendance/login/?next=/attendance/admin-panel/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:33:58] "GET /api/ping/?_=1780554838910 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:34:08] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:34:13] "GET /attendance/login/ HTTP/1.1" 200 10997
+AXES: New login failure by {username: "********************", ip_address: "********************", user_agent: "python-requests/2.31.0", path_info: "/attendance/login/"}. Created new record in the database.
+AXES: Locking out {username: "********************", ip_address: "********************", user_agent: "python-requests/2.31.0", path_info: "/attendance/login/"} after repeated login failures.
+Too Many Requests: /attendance/login/
+[04/Jun/2026 08:34:13] "POST /attendance/login/ HTTP/1.1" 429 64
+[04/Jun/2026 08:34:37] "GET /login/ HTTP/1.1" 200 10997
+AXES: New login failure by {username: "********************", ip_address: "********************", user_agent: "Dart/3.11 (dart:io)", path_info: "/login/"}. Created new record in the database.
+AXES: Locking out {username: "********************", ip_address: "********************", user_agent: "Dart/3.11 (dart:io)", path_info: "/login/"} after repeated login failures.
+Too Many Requests: /login/
+[04/Jun/2026 08:34:37] "POST /login/ HTTP/1.1" 429 64
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:34:39] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:34:58] "GET /api/ping/?_=1780554898909 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:35:10] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:35:13] "GET /attendance/api/v1/health HTTP/1.1" 200 92
+[04/Jun/2026 08:35:13] "GET /attendance/api/v1/health HTTP/1.1" 200 92
+Not Found: /favicon.ico
+[04/Jun/2026 08:35:14] "GET /favicon.ico HTTP/1.1" 404 42695
+AXES: New login failure by {username: "********************", ip_address: "********************", user_agent: "Python-urllib/3.13", path_info: "/attendance/api/v1/auth/login"}. Created new record in the database.
+AXES: Locking out {username: "********************", ip_address: "********************", user_agent: "Python-urllib/3.13", path_info: "/attendance/api/v1/auth/login"} after repeated login failures.
+Too Many Requests: /attendance/api/v1/auth/login
+[04/Jun/2026 08:35:15] "POST /attendance/api/v1/auth/login HTTP/1.1" 429 64
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:35:41] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:35:45] "POST /attendance/api/v1/auth/login HTTP/1.1" 200 467
+[04/Jun/2026 08:35:58] "GET /api/ping/?_=1780554958922 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:36:12] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:36:13] "GET /attendance/login/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:13] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:36:13] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:36:14] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:36:18] "GET /attendance/login/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:18] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:36:18] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:36:20] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:36:20] "GET /attendance/admin-panel/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:20] "GET /attendance/login/?next=/attendance/admin-panel/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:21] "GET /attendance/gate/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:21] "GET /attendance/login/?next=/attendance/gate/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:22] "GET /attendance/faculty-management/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:22] "GET /attendance/login/?next=/attendance/faculty-management/ HTTP/1.1" 200 10997
+Not Found: /attendance/students/
+[04/Jun/2026 08:36:22] "GET /attendance/students/ HTTP/1.1" 404 83313
+[04/Jun/2026 08:36:23] "GET /attendance/courses/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:23] "GET /attendance/login/?next=/attendance/courses/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:23] "GET /attendance/classrooms/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:23] "GET /attendance/login/?next=/attendance/classrooms/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:24] "GET /attendance/classrooms/status/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:24] "GET /attendance/login/?next=/attendance/classrooms/status/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:24] "GET /attendance/schedule/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:24] "GET /attendance/login/?next=/attendance/schedule/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:25] "GET /attendance/schedule/calendar/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:25] "GET /attendance/login/?next=/attendance/schedule/calendar/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:25] "GET /attendance/reports/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:25] "GET /attendance/login/?next=/attendance/reports/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:26] "GET /attendance/reports/students/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:26] "GET /attendance/login/?next=/attendance/reports/students/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:27] "GET /attendance/reports/teachers/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:27] "GET /attendance/login/?next=/attendance/reports/teachers/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:27] "GET /attendance/search/ HTTP/1.1" 200 92622
+[04/Jun/2026 08:36:27] "GET /static/pwa/pwa-init.js HTTP/1.1" 200 16397
+[04/Jun/2026 08:36:27] "GET /api/ping/?_=1780554987681 HTTP/1.1" 200 32
+[04/Jun/2026 08:36:27] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:36:27] "GET / HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:27] "GET /offline/ HTTP/1.1" 200 8244
+[04/Jun/2026 08:36:27] "GET /static/pwa/manifest.json HTTP/1.1" 200 2620
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:36:28] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:36:28] "GET /attendance/search/ HTTP/1.1" 200 92622
+[04/Jun/2026 08:36:28] "GET /api/ping/?_=1780554988798 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:36:29] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:36:29] "GET /attendance/settings/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:29] "GET /attendance/login/?next=/attendance/settings/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:31] "GET /attendance/notifications/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:31] "GET /attendance/login/?next=/attendance/notifications/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:31] "GET /attendance/tickets/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:31] "GET /attendance/login/?next=/attendance/tickets/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:32] "GET /attendance/scan/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:32] "GET /attendance/login/?next=/attendance/scan/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:32] "GET /attendance/attendance-logs/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:32] "GET /attendance/login/?next=/attendance/attendance-logs/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:33] "GET /attendance/recent-scans/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:33] "GET /attendance/login/?next=/attendance/recent-scans/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:34] "GET /attendance/login/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:34] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:36:34] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:36:35] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:36:35] "GET /attendance/professor-dashboard/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:35] "GET /attendance/login/?next=/attendance/professor-dashboard/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:35] "GET /attendance/teacher/timeline/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:35] "GET /attendance/login/?next=/attendance/teacher/timeline/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:36] "GET /attendance/teacher/attendance-records/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:36] "GET /attendance/login/?next=/attendance/teacher/attendance-records/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:36] "GET /attendance/schedule/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:36] "GET /attendance/login/?next=/attendance/schedule/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:37] "GET /attendance/notifications/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:37] "GET /attendance/login/?next=/attendance/notifications/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:38] "GET /attendance/tickets/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:38] "GET /attendance/login/?next=/attendance/tickets/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:39] "GET /attendance/login/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:39] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:36:39] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:36:40] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:36:40] "GET /attendance/student/dashboard/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:40] "GET /attendance/login/?next=/attendance/student/dashboard/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:40] "GET /attendance/student/courses/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:40] "GET /attendance/login/?next=/attendance/student/courses/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:41] "GET /attendance/student/schedule/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:41] "GET /attendance/login/?next=/attendance/student/schedule/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:41] "GET /attendance/student/excuse/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:41] "GET /attendance/login/?next=/attendance/student/excuse/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:42] "GET /attendance/student/profile/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:42] "GET /attendance/login/?next=/attendance/student/profile/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:43] "GET /attendance/notifications/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:43] "GET /attendance/login/?next=/attendance/notifications/ HTTP/1.1" 200 10997
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:36:43] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:36:43] "GET /attendance/tickets/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:43] "GET /attendance/login/?next=/attendance/tickets/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:44] "GET /attendance/student/support/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:44] "GET /attendance/login/?next=/attendance/student/support/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:45] "GET /attendance/login/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:45] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:36:45] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:36:51] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:36:51] "GET /attendance/coordinator/dashboard/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:51] "GET /attendance/login/?next=/attendance/coordinator/dashboard/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:52] "GET /attendance/coordinator/students/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:52] "GET /attendance/login/?next=/attendance/coordinator/students/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:52] "GET /attendance/coordinator/faculty/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:52] "GET /attendance/login/?next=/attendance/coordinator/faculty/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:53] "GET /attendance/coordinator/grading/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:53] "GET /attendance/login/?next=/attendance/coordinator/grading/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:53] "GET /attendance/coordinator/register/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:53] "GET /attendance/login/?next=/attendance/coordinator/register/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:54] "GET /attendance/coordinator/assignments/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:54] "GET /attendance/login/?next=/attendance/coordinator/assignments/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:55] "GET /attendance/login/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:55] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:36:55] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:36:56] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:36:56] "GET /attendance/gate/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:56] "GET /attendance/login/?next=/attendance/gate/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:56] "GET /attendance/scan/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:56] "GET /attendance/login/?next=/attendance/scan/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:56] "GET /attendance/attendance-logs/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:56] "GET /attendance/login/?next=/attendance/attendance-logs/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:57] "GET /attendance/recent-scans/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:57] "GET /attendance/login/?next=/attendance/recent-scans/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:58] "GET /attendance/login/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:36:58] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:36:58] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:36:58] "GET /api/ping/?_=1780555018931 HTTP/1.1" 200 32
+[04/Jun/2026 08:36:59] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:36:59] "GET /attendance/admin-panel/ HTTP/1.1" 302 0
+[04/Jun/2026 08:36:59] "GET /attendance/login/?next=/attendance/admin-panel/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:37:00] "GET /attendance/login/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:37:00] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:37:00] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:37:03] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:37:03] "GET /attendance/student/dashboard/ HTTP/1.1" 302 0
+[04/Jun/2026 08:37:03] "GET /attendance/login/?next=/attendance/student/dashboard/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:37:04] "GET /attendance/login/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:37:04] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:37:04] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:37:05] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:37:05] "GET /attendance/gate/ HTTP/1.1" 302 0
+[04/Jun/2026 08:37:05] "GET /attendance/login/?next=/attendance/gate/ HTTP/1.1" 200 10997
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:37:14] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:37:23] "GET /attendance/login/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:37:23] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:37:23] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:37:26] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:37:45] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:37:58] "GET /api/ping/?_=1780555078919 HTTP/1.1" 200 32
+[04/Jun/2026 08:38:02] "GET /attendance/login/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:38:02] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:38:02] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:38:03] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:38:06] "GET /attendance/login/ HTTP/1.1" 302 0
+[04/Jun/2026 08:38:06] "GET /admin-panel/ HTTP/1.1" 200 142363
+[04/Jun/2026 08:38:06] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:38:06] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:38:06] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:38:06] "GET /static/pwa/pwa-init.js HTTP/1.1" 200 16397
+[04/Jun/2026 08:38:07] "GET /api/ping/?_=1780555087402 HTTP/1.1" 200 32
+[04/Jun/2026 08:38:07] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:38:07] "GET / HTTP/1.1" 302 0
+[04/Jun/2026 08:38:07] "GET /offline/ HTTP/1.1" 200 8244
+[04/Jun/2026 08:38:07] "GET /static/pwa/manifest.json HTTP/1.1" 200 2620
+[04/Jun/2026 08:38:07] "GET /admin-panel/ HTTP/1.1" 200 142363
+[04/Jun/2026 08:38:07] "GET /attendance/admin-panel/ HTTP/1.1" 200 142363
+[04/Jun/2026 08:38:07] "GET /api/ping/?_=1780555087614 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:38:07] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:38:08] "GET /attendance/admin-panel/ HTTP/1.1" 200 142363
+[04/Jun/2026 08:38:08] "GET /api/ping/?_=1780555088680 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:38:09] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:38:09] "GET /attendance/gate/ HTTP/1.1" 200 13928
+[04/Jun/2026 08:38:10] "GET /attendance/faculty-management/ HTTP/1.1" 200 155598
+[04/Jun/2026 08:38:10] "GET /media/teacher_faces/WIN_20260531_21_46_28_Pro.jpg HTTP/1.1" 200 124417
+[04/Jun/2026 08:38:10] "GET /api/ping/?_=1780555090827 HTTP/1.1" 200 32
+[04/Jun/2026 08:38:10] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:38:11] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /attendance/students/
+[04/Jun/2026 08:38:12] "GET /attendance/students/ HTTP/1.1" 404 83313
+[04/Jun/2026 08:38:12] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:38:12] "GET /attendance/courses/ HTTP/1.1" 200 180017
+[04/Jun/2026 08:38:13] "GET /api/ping/?_=1780555093067 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:38:13] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:38:14] "GET /attendance/classrooms/ HTTP/1.1" 200 169309
+[04/Jun/2026 08:38:14] "GET /api/ping/?_=1780555094701 HTTP/1.1" 200 32
+[04/Jun/2026 08:38:14] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:38:15] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:38:16] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:38:16] "GET /attendance/classrooms/status/ HTTP/1.1" 200 152299
+[04/Jun/2026 08:38:16] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:38:16] "GET /api/ping/?_=1780555096420 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:38:16] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:38:17] "GET /attendance/schedule/ HTTP/1.1" 200 229422
+[04/Jun/2026 08:38:18] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:38:18] "GET /api/ping/?_=1780555098103 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:38:18] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:38:19] "GET /attendance/schedule/calendar/ HTTP/1.1" 200 118743
+[04/Jun/2026 08:38:19] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:38:19] "GET /api/ping/?_=1780555099934 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:38:20] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:38:21] "GET /attendance/reports/ HTTP/1.1" 200 106092
+[04/Jun/2026 08:38:21] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:38:23] "GET /api/ping/?_=1780555103252 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:38:23] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:38:24] "GET /attendance/reports/students/ HTTP/1.1" 200 199351
+[04/Jun/2026 08:38:24] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:38:24] "GET /api/ping/?_=1780555104996 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:38:25] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:38:26] "GET /attendance/reports/teachers/ HTTP/1.1" 200 126820
+[04/Jun/2026 08:38:26] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:38:26] "GET /api/ping/?_=1780555106684 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:38:27] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:38:28] "GET /attendance/search/ HTTP/1.1" 200 99913
+[04/Jun/2026 08:38:28] "GET /api/ping/?_=1780555108270 HTTP/1.1" 200 32
+[04/Jun/2026 08:38:28] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:38:28] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:38:29] "GET /attendance/settings/ HTTP/1.1" 200 118153
+[04/Jun/2026 08:38:29] "GET /api/ping/?_=1780555109850 HTTP/1.1" 200 32
+[04/Jun/2026 08:38:29] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:38:30] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:38:31] "GET /attendance/notifications/ HTTP/1.1" 200 133404
+[04/Jun/2026 08:38:31] "GET /api/ping/?_=1780555111407 HTTP/1.1" 200 32
+[04/Jun/2026 08:38:31] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:38:32] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:38:32] "GET /attendance/tickets/ HTTP/1.1" 200 176094
+[04/Jun/2026 08:38:33] "GET /api/ping/?_=1780555113003 HTTP/1.1" 200 32
+[04/Jun/2026 08:38:33] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:38:34] "GET /attendance/scan/ HTTP/1.1" 200 108905
+[04/Jun/2026 08:38:34] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:38:34] "GET /api/ping/?_=1780555114750 HTTP/1.1" 200 32
+[04/Jun/2026 08:38:35] "GET /attendance/attendance-logs/ HTTP/1.1" 200 304984
+[04/Jun/2026 08:38:35] "GET /api/ping/?_=1780555115876 HTTP/1.1" 200 32
+[04/Jun/2026 08:38:36] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:38:37] "GET /attendance/recent-scans/ HTTP/1.1" 200 4711
+[04/Jun/2026 08:38:37] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:38:39] "GET /attendance/login/ HTTP/1.1" 302 0
+[04/Jun/2026 08:38:39] "GET /professor-dashboard/ HTTP/1.1" 200 108107
+[04/Jun/2026 08:38:39] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:38:39] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:38:39] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:38:39] "GET /static/pwa/pwa-init.js HTTP/1.1" 200 16397
+[04/Jun/2026 08:38:39] "GET /api/ping/?_=1780555119982 HTTP/1.1" 200 32
+[04/Jun/2026 08:38:40] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:38:40] "GET /offline/ HTTP/1.1" 200 8244
+[04/Jun/2026 08:38:40] "GET /static/pwa/manifest.json HTTP/1.1" 200 2620
+[04/Jun/2026 08:38:40] "GET / HTTP/1.1" 302 0
+[04/Jun/2026 08:38:40] "GET /professor-dashboard/ HTTP/1.1" 200 108107
+[04/Jun/2026 08:38:40] "GET /attendance/professor-dashboard/ HTTP/1.1" 200 108107
+[04/Jun/2026 08:38:40] "GET /api/ping/?_=1780555120133 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:38:40] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:38:41] "GET /attendance/professor-dashboard/ HTTP/1.1" 200 108107
+[04/Jun/2026 08:38:41] "GET /api/ping/?_=1780555121351 HTTP/1.1" 200 32
+[04/Jun/2026 08:38:41] "GET /attendance/teacher/timeline/ HTTP/1.1" 200 128015
+[04/Jun/2026 08:38:41] "GET /api/ping/?_=1780555121765 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:38:42] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:38:43] "GET /attendance/teacher/attendance-records/ HTTP/1.1" 200 187778
+[04/Jun/2026 08:38:43] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:38:43] "GET /api/ping/?_=1780555123470 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:38:43] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:38:45] "GET /attendance/schedule/ HTTP/1.1" 200 100975
+[04/Jun/2026 08:38:45] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:38:45] "GET /api/ping/?_=1780555125144 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:38:45] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:38:46] "GET /attendance/notifications/ HTTP/1.1" 200 95363
+[04/Jun/2026 08:38:46] "GET /api/ping/?_=1780555126726 HTTP/1.1" 200 32
+[04/Jun/2026 08:38:46] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:38:47] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:38:47] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:38:48] "GET /attendance/tickets/ HTTP/1.1" 200 98189
+[04/Jun/2026 08:38:48] "GET /api/ping/?_=1780555128289 HTTP/1.1" 200 32
+[04/Jun/2026 08:38:48] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:38:48] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:38:50] "GET /attendance/login/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:38:50] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:38:50] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:38:54] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:38:54] "GET /attendance/student/dashboard/ HTTP/1.1" 302 0
+[04/Jun/2026 08:38:54] "GET /attendance/login/?next=/attendance/student/dashboard/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:38:55] "GET /attendance/student/courses/ HTTP/1.1" 302 0
+[04/Jun/2026 08:38:55] "GET /attendance/login/?next=/attendance/student/courses/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:38:55] "GET /attendance/student/schedule/ HTTP/1.1" 302 0
+[04/Jun/2026 08:38:55] "GET /attendance/login/?next=/attendance/student/schedule/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:38:56] "GET /attendance/student/excuse/ HTTP/1.1" 302 0
+[04/Jun/2026 08:38:56] "GET /attendance/login/?next=/attendance/student/excuse/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:38:56] "GET /attendance/student/profile/ HTTP/1.1" 302 0
+[04/Jun/2026 08:38:56] "GET /attendance/login/?next=/attendance/student/profile/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:38:57] "GET /attendance/notifications/ HTTP/1.1" 302 0
+[04/Jun/2026 08:38:57] "GET /attendance/login/?next=/attendance/notifications/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:38:57] "GET /attendance/tickets/ HTTP/1.1" 302 0
+[04/Jun/2026 08:38:57] "GET /attendance/login/?next=/attendance/tickets/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:38:58] "GET /attendance/student/support/ HTTP/1.1" 302 0
+[04/Jun/2026 08:38:58] "GET /attendance/login/?next=/attendance/student/support/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:38:59] "GET /api/ping/?_=1780555138921 HTTP/1.1" 200 32
+[04/Jun/2026 08:38:59] "GET /attendance/login/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:38:59] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:38:59] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:38:59] "GET /login/ HTTP/1.1" 200 10997
+AXES: New login failure by {username: "********************", ip_address: "********************", user_agent: "Dart/3.11 (dart:io)", path_info: "/login/"}. Created new record in the database.
+[04/Jun/2026 08:39:01] "POST /login/ HTTP/1.1" 200 11337
+[04/Jun/2026 08:39:02] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:39:02] "GET /attendance/coordinator/dashboard/ HTTP/1.1" 302 0
+[04/Jun/2026 08:39:02] "GET /attendance/login/?next=/attendance/coordinator/dashboard/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:39:02] "GET /attendance/coordinator/students/ HTTP/1.1" 302 0
+[04/Jun/2026 08:39:02] "GET /attendance/login/?next=/attendance/coordinator/students/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:39:03] "GET /attendance/coordinator/faculty/ HTTP/1.1" 302 0
+[04/Jun/2026 08:39:03] "GET /attendance/login/?next=/attendance/coordinator/faculty/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:39:04] "GET /attendance/coordinator/grading/ HTTP/1.1" 302 0
+[04/Jun/2026 08:39:04] "GET /attendance/login/?next=/attendance/coordinator/grading/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:39:04] "GET /attendance/coordinator/register/ HTTP/1.1" 302 0
+[04/Jun/2026 08:39:04] "GET /attendance/login/?next=/attendance/coordinator/register/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:39:05] "GET /attendance/coordinator/assignments/ HTTP/1.1" 302 0
+[04/Jun/2026 08:39:05] "GET /attendance/login/?next=/attendance/coordinator/assignments/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:39:06] "GET /attendance/login/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:39:06] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:39:06] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:39:08] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:39:08] "GET /attendance/gate/ HTTP/1.1" 302 0
+[04/Jun/2026 08:39:08] "GET /attendance/login/?next=/attendance/gate/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:39:09] "GET /attendance/scan/ HTTP/1.1" 302 0
+[04/Jun/2026 08:39:09] "GET /attendance/login/?next=/attendance/scan/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:39:09] "GET /attendance/attendance-logs/ HTTP/1.1" 302 0
+[04/Jun/2026 08:39:09] "GET /attendance/login/?next=/attendance/attendance-logs/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:39:10] "GET /attendance/recent-scans/ HTTP/1.1" 302 0
+[04/Jun/2026 08:39:10] "GET /attendance/login/?next=/attendance/recent-scans/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:39:11] "GET /attendance/login/ HTTP/1.1" 302 0
+[04/Jun/2026 08:39:11] "GET /admin-panel/ HTTP/1.1" 200 142363
+[04/Jun/2026 08:39:11] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:39:11] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:39:11] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:39:11] "GET /static/pwa/pwa-init.js HTTP/1.1" 200 16397
+[04/Jun/2026 08:39:11] "GET /api/ping/?_=1780555151866 HTTP/1.1" 200 32
+[04/Jun/2026 08:39:11] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:39:11] "GET / HTTP/1.1" 302 0
+[04/Jun/2026 08:39:11] "GET /offline/ HTTP/1.1" 200 8244
+[04/Jun/2026 08:39:11] "GET /static/pwa/manifest.json HTTP/1.1" 200 2620
+[04/Jun/2026 08:39:11] "GET /admin-panel/ HTTP/1.1" 200 142363
+[04/Jun/2026 08:39:11] "GET /attendance/admin-panel/ HTTP/1.1" 200 142363
+[04/Jun/2026 08:39:12] "GET /api/ping/?_=1780555152057 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:39:12] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:39:13] "GET /attendance/admin-panel/ HTTP/1.1" 200 142363
+[04/Jun/2026 08:39:13] "GET /api/ping/?_=1780555153508 HTTP/1.1" 200 32
+[04/Jun/2026 08:39:14] "GET /attendance/login/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:39:14] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:39:14] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:39:15] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:39:15] "GET /attendance/student/dashboard/ HTTP/1.1" 302 0
+[04/Jun/2026 08:39:15] "GET /attendance/login/?next=/attendance/student/dashboard/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:39:16] "GET /attendance/login/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:39:16] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:39:16] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:39:17] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:39:17] "GET /attendance/gate/ HTTP/1.1" 302 0
+[04/Jun/2026 08:39:17] "GET /attendance/login/?next=/attendance/gate/ HTTP/1.1" 200 10997
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:39:18] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:39:48] "GET /attendance/login/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:39:48] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:39:48] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:39:49] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:39:49] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:39:52] "GET /attendance/login/ HTTP/1.1" 302 0
+[04/Jun/2026 08:39:52] "GET /admin-panel/ HTTP/1.1" 200 142363
+[04/Jun/2026 08:39:52] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:39:52] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:39:52] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:39:52] "GET /static/pwa/pwa-init.js HTTP/1.1" 200 16397
+[04/Jun/2026 08:39:53] "GET /api/ping/?_=1780555193331 HTTP/1.1" 200 32
+[04/Jun/2026 08:39:53] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:39:53] "GET /offline/ HTTP/1.1" 200 8244
+[04/Jun/2026 08:39:53] "GET / HTTP/1.1" 302 0
+[04/Jun/2026 08:39:53] "GET /static/pwa/manifest.json HTTP/1.1" 200 2620
+[04/Jun/2026 08:39:53] "GET /admin-panel/ HTTP/1.1" 200 142363
+[04/Jun/2026 08:39:53] "GET /attendance/admin-panel/ HTTP/1.1" 200 142363
+[04/Jun/2026 08:39:53] "GET /api/ping/?_=1780555193548 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:39:53] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:39:54] "GET /attendance/admin-panel/ HTTP/1.1" 200 142363
+[04/Jun/2026 08:39:54] "GET /api/ping/?_=1780555194701 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:39:55] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:39:55] "GET /attendance/gate/ HTTP/1.1" 200 13928
+[04/Jun/2026 08:39:56] "GET /attendance/faculty-management/ HTTP/1.1" 200 155598
+[04/Jun/2026 08:39:56] "GET /media/teacher_faces/WIN_20260531_21_46_28_Pro.jpg HTTP/1.1" 200 124417
+[04/Jun/2026 08:39:56] "GET /api/ping/?_=1780555196794 HTTP/1.1" 200 32
+[04/Jun/2026 08:39:56] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:39:57] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /attendance/students/
+[04/Jun/2026 08:39:58] "GET /attendance/students/ HTTP/1.1" 404 83313
+[04/Jun/2026 08:39:58] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:39:58] "GET /attendance/courses/ HTTP/1.1" 200 180017
+[04/Jun/2026 08:39:58] "GET /api/ping/?_=1780555198917 HTTP/1.1" 200 32
+[04/Jun/2026 08:39:59] "GET /api/ping/?_=1780555199014 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:39:59] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:40:00] "GET /attendance/classrooms/ HTTP/1.1" 200 169309
+[04/Jun/2026 08:40:00] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:40:00] "GET /api/ping/?_=1780555200661 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:40:01] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:40:02] "GET /attendance/classrooms/status/ HTTP/1.1" 200 152299
+[04/Jun/2026 08:40:02] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:40:02] "GET /api/ping/?_=1780555202293 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:40:02] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:40:03] "GET /attendance/schedule/ HTTP/1.1" 200 229422
+[04/Jun/2026 08:40:03] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:40:03] "GET /api/ping/?_=1780555203956 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:40:04] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:40:05] "GET /attendance/schedule/calendar/ HTTP/1.1" 200 118743
+[04/Jun/2026 08:40:05] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:40:05] "GET /api/ping/?_=1780555205700 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:40:06] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:40:07] "GET /attendance/reports/ HTTP/1.1" 200 106092
+[04/Jun/2026 08:40:07] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:40:08] "GET /api/ping/?_=1780555208026 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:40:08] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:40:09] "GET /attendance/reports/students/ HTTP/1.1" 200 199351
+[04/Jun/2026 08:40:09] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:40:09] "GET /api/ping/?_=1780555209773 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:40:10] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:40:11] "GET /attendance/reports/teachers/ HTTP/1.1" 200 126820
+[04/Jun/2026 08:40:11] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:40:11] "GET /api/ping/?_=1780555211419 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:40:11] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:40:12] "GET /attendance/search/ HTTP/1.1" 200 99913
+[04/Jun/2026 08:40:12] "GET /api/ping/?_=1780555212978 HTTP/1.1" 200 32
+[04/Jun/2026 08:40:13] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:40:13] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:40:14] "GET /attendance/settings/ HTTP/1.1" 200 118153
+[04/Jun/2026 08:40:14] "GET /api/ping/?_=1780555214538 HTTP/1.1" 200 32
+[04/Jun/2026 08:40:14] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:40:15] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:40:16] "GET /attendance/notifications/ HTTP/1.1" 200 133404
+[04/Jun/2026 08:40:16] "GET /api/ping/?_=1780555216085 HTTP/1.1" 200 32
+[04/Jun/2026 08:40:16] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:40:16] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:40:17] "GET /attendance/tickets/ HTTP/1.1" 200 176094
+[04/Jun/2026 08:40:17] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:40:17] "GET /api/ping/?_=1780555217711 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:40:19] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:40:19] "GET /attendance/scan/ HTTP/1.1" 200 108905
+[04/Jun/2026 08:40:19] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:40:19] "GET /api/ping/?_=1780555219405 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:40:20] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:40:20] "GET /attendance/attendance-logs/ HTTP/1.1" 200 304984
+[04/Jun/2026 08:40:20] "GET /api/ping/?_=1780555220538 HTTP/1.1" 200 32
+[04/Jun/2026 08:40:21] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:40:22] "GET /attendance/recent-scans/ HTTP/1.1" 200 4711
+[04/Jun/2026 08:40:22] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:40:23] "GET /attendance/login/ HTTP/1.1" 302 0
+[04/Jun/2026 08:40:23] "GET /professor-dashboard/ HTTP/1.1" 200 108107
+[04/Jun/2026 08:40:23] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:40:23] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:40:23] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:40:23] "GET /static/pwa/pwa-init.js HTTP/1.1" 200 16397
+[04/Jun/2026 08:40:25] "GET /api/ping/?_=1780555225922 HTTP/1.1" 200 32
+[04/Jun/2026 08:40:25] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:40:25] "GET /offline/ HTTP/1.1" 200 8244
+[04/Jun/2026 08:40:25] "GET / HTTP/1.1" 302 0
+[04/Jun/2026 08:40:25] "GET /static/pwa/manifest.json HTTP/1.1" 200 2620
+[04/Jun/2026 08:40:25] "GET /professor-dashboard/ HTTP/1.1" 200 108107
+[04/Jun/2026 08:40:25] "GET /attendance/professor-dashboard/ HTTP/1.1" 200 108107
+[04/Jun/2026 08:40:26] "GET /api/ping/?_=1780555226067 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:40:26] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:40:27] "GET /attendance/professor-dashboard/ HTTP/1.1" 200 108107
+[04/Jun/2026 08:40:27] "GET /api/ping/?_=1780555227215 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:40:27] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:40:27] "GET /attendance/teacher/timeline/ HTTP/1.1" 200 128015
+[04/Jun/2026 08:40:27] "GET /api/ping/?_=1780555227629 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:40:27] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:40:29] "GET /attendance/teacher/attendance-records/ HTTP/1.1" 200 187778
+[04/Jun/2026 08:40:29] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:40:29] "GET /api/ping/?_=1780555229335 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:40:29] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:40:30] "GET /attendance/schedule/ HTTP/1.1" 200 100975
+[04/Jun/2026 08:40:30] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:40:30] "GET /api/ping/?_=1780555230969 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:40:31] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:40:32] "GET /attendance/notifications/ HTTP/1.1" 200 95363
+[04/Jun/2026 08:40:32] "GET /api/ping/?_=1780555232485 HTTP/1.1" 200 32
+[04/Jun/2026 08:40:32] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:40:32] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:40:33] "GET /attendance/tickets/ HTTP/1.1" 200 98189
+[04/Jun/2026 08:40:34] "GET /api/ping/?_=1780555234017 HTTP/1.1" 200 32
+[04/Jun/2026 08:40:34] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:40:34] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:40:35] "GET /attendance/login/ HTTP/1.1" 302 0
+[04/Jun/2026 08:40:35] "GET /student/dashboard/ HTTP/1.1" 200 103640
+[04/Jun/2026 08:40:35] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:40:35] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:40:35] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:40:35] "GET /static/pwa/pwa-init.js HTTP/1.1" 200 16397
+[04/Jun/2026 08:40:36] "GET /api/ping/?_=1780555236843 HTTP/1.1" 200 32
+[04/Jun/2026 08:40:36] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:40:36] "GET /attendance/student/dashboard/ HTTP/1.1" 200 103640
+[04/Jun/2026 08:40:36] "GET /offline/ HTTP/1.1" 200 8244
+[04/Jun/2026 08:40:36] "GET /static/pwa/manifest.json HTTP/1.1" 200 2620
+[04/Jun/2026 08:40:36] "GET / HTTP/1.1" 302 0
+[04/Jun/2026 08:40:37] "GET /student/dashboard/ HTTP/1.1" 200 103640
+[04/Jun/2026 08:40:37] "GET /api/ping/?_=1780555237103 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:40:37] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:40:38] "GET /attendance/student/dashboard/ HTTP/1.1" 200 103640
+[04/Jun/2026 08:40:38] "GET /api/ping/?_=1780555238160 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:40:38] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:40:38] "GET /attendance/student/courses/ HTTP/1.1" 200 100089
+[04/Jun/2026 08:40:38] "GET /api/ping/?_=1780555238792 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:40:39] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:40:40] "GET /attendance/student/schedule/ HTTP/1.1" 200 96159
+[04/Jun/2026 08:40:40] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:40:40] "GET /api/ping/?_=1780555240442 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:40:40] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:40:42] "GET /attendance/student/excuse/ HTTP/1.1" 200 99934
+[04/Jun/2026 08:40:42] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:40:42] "GET /api/ping/?_=1780555242150 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:40:42] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:40:43] "GET /attendance/student/profile/ HTTP/1.1" 200 101347
+[04/Jun/2026 08:40:43] "GET /api/ping/?_=1780555243715 HTTP/1.1" 200 32
+[04/Jun/2026 08:40:43] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:40:44] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:40:45] "GET /attendance/notifications/ HTTP/1.1" 200 104896
+[04/Jun/2026 08:40:45] "GET /api/ping/?_=1780555245335 HTTP/1.1" 200 32
+[04/Jun/2026 08:40:45] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:40:45] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:40:46] "GET /attendance/tickets/ HTTP/1.1" 200 99106
+[04/Jun/2026 08:40:46] "GET /api/ping/?_=1780555246899 HTTP/1.1" 200 32
+[04/Jun/2026 08:40:46] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:40:47] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:40:48] "GET /attendance/student/support/ HTTP/1.1" 200 97657
+[04/Jun/2026 08:40:48] "GET /api/ping/?_=1780555248453 HTTP/1.1" 200 32
+[04/Jun/2026 08:40:48] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:40:48] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:40:50] "GET /attendance/login/ HTTP/1.1" 302 0
+Internal Server Error: /coordinator/dashboard/
+Traceback (most recent call last):
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "D:\\u0645\u0647\u0645\ACDC_FINAL-main\attendance\views.py", line 1619, in coordinator_dashboard
+    students_count = Student.objects.filter(department__college=coordinator.college).count()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    today          = timezone.now().date()
+    ^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\query.py", line 1542, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\query.py", line 1560, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\query.py", line 1570, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\sql\query.py", line 1671, in add_q
+    clause, _ = self._add_q(q_object, can_reuse)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\sql\query.py", line 1703, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\sql\query.py", line 1551, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\sql\query.py", line 1358, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\sql\query.py", line 1832, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'created_by' into field. Choices are: admin_reply, body, created_at, id, priority, status, subject, updated_at, user, user_id
+[04/Jun/2026 08:40:50] "GET /coordinator/dashboard/ HTTP/1.1" 500 137865
+Internal Server Error: /attendance/coordinator/dashboard/
+Traceback (most recent call last):
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "D:\\u0645\u0647\u0645\ACDC_FINAL-main\attendance\views.py", line 1619, in coordinator_dashboard
+    students_count = Student.objects.filter(department__college=coordinator.college).count()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    today          = timezone.now().date()
+    ^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\query.py", line 1542, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\query.py", line 1560, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\query.py", line 1570, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\sql\query.py", line 1671, in add_q
+    clause, _ = self._add_q(q_object, can_reuse)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\sql\query.py", line 1703, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\sql\query.py", line 1551, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\sql\query.py", line 1358, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\sql\query.py", line 1832, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'created_by' into field. Choices are: admin_reply, body, created_at, id, priority, status, subject, updated_at, user, user_id
+[04/Jun/2026 08:40:50] "GET /attendance/coordinator/dashboard/ HTTP/1.1" 500 137986
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:40:51] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:40:52] "GET /attendance/coordinator/students/ HTTP/1.1" 200 112545
+[04/Jun/2026 08:40:52] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:40:52] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:40:52] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:40:52] "GET /static/pwa/pwa-init.js HTTP/1.1" 200 16397
+[04/Jun/2026 08:40:54] "GET /api/ping/?_=1780555254275 HTTP/1.1" 200 32
+[04/Jun/2026 08:40:54] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:40:54] "GET /offline/ HTTP/1.1" 200 8244
+[04/Jun/2026 08:40:54] "GET / HTTP/1.1" 302 0
+[04/Jun/2026 08:40:54] "GET /static/pwa/manifest.json HTTP/1.1" 200 2620
+Internal Server Error: /coordinator/dashboard/
+Traceback (most recent call last):
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "D:\\u0645\u0647\u0645\ACDC_FINAL-main\attendance\views.py", line 1619, in coordinator_dashboard
+    students_count = Student.objects.filter(department__college=coordinator.college).count()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    today          = timezone.now().date()
+    ^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\query.py", line 1542, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\query.py", line 1560, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\query.py", line 1570, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\sql\query.py", line 1671, in add_q
+    clause, _ = self._add_q(q_object, can_reuse)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\sql\query.py", line 1703, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\sql\query.py", line 1551, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\sql\query.py", line 1358, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\sql\query.py", line 1832, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'created_by' into field. Choices are: admin_reply, body, created_at, id, priority, status, subject, updated_at, user, user_id
+[04/Jun/2026 08:40:54] "GET /coordinator/dashboard/ HTTP/1.1" 500 137075
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:40:54] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:40:55] "GET /attendance/coordinator/students/ HTTP/1.1" 200 112545
+[04/Jun/2026 08:40:55] "GET /api/ping/?_=1780555255608 HTTP/1.1" 200 32
+[04/Jun/2026 08:40:55] "GET /attendance/coordinator/faculty/ HTTP/1.1" 200 99162
+[04/Jun/2026 08:40:56] "GET /api/ping/?_=1780555256057 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:40:56] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:40:57] "GET /attendance/coordinator/grading/ HTTP/1.1" 200 182452
+[04/Jun/2026 08:40:57] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:40:57] "GET /api/ping/?_=1780555257836 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:40:58] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:40:58] "GET /api/ping/?_=1780555258921 HTTP/1.1" 200 32
+[04/Jun/2026 08:40:59] "GET /attendance/coordinator/register/ HTTP/1.1" 200 105654
+[04/Jun/2026 08:40:59] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:40:59] "GET /api/ping/?_=1780555259693 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:41:00] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:41:01] "GET /attendance/coordinator/assignments/ HTTP/1.1" 200 99672
+[04/Jun/2026 08:41:01] "GET /api/ping/?_=1780555261362 HTTP/1.1" 200 32
+[04/Jun/2026 08:41:01] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:41:01] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:41:03] "GET /attendance/login/ HTTP/1.1" 302 0
+[04/Jun/2026 08:41:03] "GET /gate/ HTTP/1.1" 200 13928
+[04/Jun/2026 08:41:03] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:41:04] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:41:04] "GET /attendance/gate/ HTTP/1.1" 200 13928
+[04/Jun/2026 08:41:05] "GET /attendance/scan/ HTTP/1.1" 200 102157
+[04/Jun/2026 08:41:05] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:41:06] "GET /static/pwa/pwa-init.js HTTP/1.1" 200 16397
+[04/Jun/2026 08:41:06] "GET /api/ping/?_=1780555266171 HTTP/1.1" 200 32
+[04/Jun/2026 08:41:06] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:41:06] "GET /offline/ HTTP/1.1" 200 8244
+[04/Jun/2026 08:41:06] "GET / HTTP/1.1" 302 0
+[04/Jun/2026 08:41:06] "GET /static/pwa/manifest.json HTTP/1.1" 200 2620
+[04/Jun/2026 08:41:06] "GET /gate/ HTTP/1.1" 200 13928
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:41:06] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:41:07] "GET /attendance/scan/ HTTP/1.1" 200 102157
+[04/Jun/2026 08:41:07] "GET /api/ping/?_=1780555267832 HTTP/1.1" 200 32
+[04/Jun/2026 08:41:07] "GET /attendance/attendance-logs/ HTTP/1.1" 200 298236
+[04/Jun/2026 08:41:08] "GET /api/ping/?_=1780555268278 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:41:08] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[ WARN:3@8452.463] global cap.cpp:480 cv::VideoCapture::open VIDEOIO(DSHOW): backend is generally available but can't be used to capture by index
+[ WARN:3@8452.488] global cap.cpp:480 cv::VideoCapture::open VIDEOIO(DSHOW): backend is generally available but can't be used to capture by index
+[ WARN:3@8452.491] global cap.cpp:480 cv::VideoCapture::open VIDEOIO(DSHOW): backend is generally available but can't be used to capture by index
+[ WARN:3@8452.987] global cap.cpp:459 cv::VideoCapture::open VIDEOIO(DSHOW): raised unknown C++ exception!
+
+
+[ WARN:3@8452.988] global cap.cpp:480 cv::VideoCapture::open VIDEOIO(DSHOW): backend is generally available but can't be used to capture by index
+[04/Jun/2026 08:41:10] "GET /attendance/recent-scans/ HTTP/1.1" 200 4711
+[04/Jun/2026 08:41:10] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:41:11] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:41:12] "GET /attendance/login/ HTTP/1.1" 302 0
+[04/Jun/2026 08:41:12] "GET /admin-panel/ HTTP/1.1" 200 142363
+[04/Jun/2026 08:41:12] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:41:12] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:41:12] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:41:12] "GET /static/pwa/pwa-init.js HTTP/1.1" 200 16397
+[04/Jun/2026 08:41:13] "GET /api/ping/?_=1780555273804 HTTP/1.1" 200 32
+[04/Jun/2026 08:41:13] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:41:13] "GET / HTTP/1.1" 302 0
+[04/Jun/2026 08:41:13] "GET /offline/ HTTP/1.1" 200 8244
+[04/Jun/2026 08:41:13] "GET /static/pwa/manifest.json HTTP/1.1" 200 2620
+[04/Jun/2026 08:41:13] "GET /attendance/admin-panel/ HTTP/1.1" 200 142363
+[04/Jun/2026 08:41:13] "GET /admin-panel/ HTTP/1.1" 200 142363
+[04/Jun/2026 08:41:14] "GET /api/ping/?_=1780555274194 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:41:14] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:41:14] "GET /attendance/admin-panel/ HTTP/1.1" 200 142363
+[04/Jun/2026 08:41:15] "GET /api/ping/?_=1780555275186 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:41:15] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:41:16] "GET /attendance/login/ HTTP/1.1" 302 0
+[04/Jun/2026 08:41:16] "GET /student/dashboard/ HTTP/1.1" 200 103640
+[04/Jun/2026 08:41:16] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:41:16] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:41:16] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:41:16] "GET /static/pwa/pwa-init.js HTTP/1.1" 200 16397
+[04/Jun/2026 08:41:17] "GET /api/ping/?_=1780555277324 HTTP/1.1" 200 32
+[04/Jun/2026 08:41:17] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:41:17] "GET /offline/ HTTP/1.1" 200 8244
+[04/Jun/2026 08:41:17] "GET /static/pwa/manifest.json HTTP/1.1" 200 2620
+[04/Jun/2026 08:41:17] "GET / HTTP/1.1" 302 0
+[04/Jun/2026 08:41:17] "GET /attendance/student/dashboard/ HTTP/1.1" 200 103640
+[04/Jun/2026 08:41:17] "GET /student/dashboard/ HTTP/1.1" 200 103640
+[04/Jun/2026 08:41:17] "GET /api/ping/?_=1780555277575 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:41:17] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:41:18] "GET /attendance/student/dashboard/ HTTP/1.1" 200 103640
+[04/Jun/2026 08:41:18] "GET /api/ping/?_=1780555278786 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:41:19] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:41:19] "GET /attendance/login/ HTTP/1.1" 302 0
+[04/Jun/2026 08:41:19] "GET /gate/ HTTP/1.1" 200 13928
+[04/Jun/2026 08:41:19] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:41:20] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:41:20] "GET /attendance/gate/ HTTP/1.1" 200 13928
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:41:22] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:41:49] "GET /attendance/login/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:41:50] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:41:50] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:41:51] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:41:53] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:41:54] "GET /attendance/login/ HTTP/1.1" 302 0
+[04/Jun/2026 08:41:54] "GET /admin-panel/ HTTP/1.1" 200 142363
+[04/Jun/2026 08:41:54] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:41:54] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:41:54] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:41:54] "GET /static/pwa/pwa-init.js HTTP/1.1" 200 16397
+[04/Jun/2026 08:41:58] "GET /api/ping/?_=1780555318917 HTTP/1.1" 200 32
+[04/Jun/2026 08:42:19] "GET /attendance/login/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:42:19,869] - Broken pipe from ('127.0.0.1', 52168)
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:42:24] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:42:53] "GET /attendance/login/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:42:53] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:42:53] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:42:54] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:42:55] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:42:57] "GET /attendance/login/ HTTP/1.1" 302 0
+[04/Jun/2026 08:42:57] "GET /admin-panel/ HTTP/1.1" 200 142363
+[04/Jun/2026 08:42:57] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:42:57] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:42:57] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:42:57] "GET /static/pwa/pwa-init.js HTTP/1.1" 200 16397
+[04/Jun/2026 08:42:58] "GET /api/ping/?_=1780555378493 HTTP/1.1" 200 32
+[04/Jun/2026 08:42:58] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:42:58] "GET / HTTP/1.1" 302 0
+[04/Jun/2026 08:42:58] "GET /offline/ HTTP/1.1" 200 8244
+[04/Jun/2026 08:42:58] "GET /static/pwa/manifest.json HTTP/1.1" 200 2620
+[04/Jun/2026 08:42:58] "GET /attendance/admin-panel/ HTTP/1.1" 200 142363
+[04/Jun/2026 08:42:58] "GET /admin-panel/ HTTP/1.1" 200 142363
+[04/Jun/2026 08:42:58] "GET /api/ping/?_=1780555378904 HTTP/1.1" 200 32
+[04/Jun/2026 08:42:58] "GET /api/ping/?_=1780555378933 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:42:59] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:42:59] "GET /attendance/admin-panel/ HTTP/1.1" 200 142363
+[04/Jun/2026 08:42:59] "GET /api/ping/?_=1780555379950 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:43:00] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:43:00] "GET /attendance/gate/ HTTP/1.1" 200 13928
+[04/Jun/2026 08:43:02] "GET /attendance/faculty-management/ HTTP/1.1" 200 155598
+[04/Jun/2026 08:43:02] "GET /media/teacher_faces/WIN_20260531_21_46_28_Pro.jpg HTTP/1.1" 200 124417
+[04/Jun/2026 08:43:02] "GET /api/ping/?_=1780555382325 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:43:02] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:43:02] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:43:04] "GET /attendance/faculty-management/register-student/ HTTP/1.1" 200 114049
+[04/Jun/2026 08:43:04] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:43:04] "GET /api/ping/?_=1780555384335 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:43:04] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:43:05] "GET /attendance/courses/ HTTP/1.1" 200 180017
+[04/Jun/2026 08:43:06] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:43:06] "GET /api/ping/?_=1780555386154 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:43:06] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:43:07] "GET /attendance/classrooms/ HTTP/1.1" 200 169309
+[04/Jun/2026 08:43:07] "GET /api/ping/?_=1780555387839 HTTP/1.1" 200 32
+[04/Jun/2026 08:43:07] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:43:08] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:43:09] "GET /attendance/classrooms/status/ HTTP/1.1" 200 152299
+[04/Jun/2026 08:43:09] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:43:09] "GET /api/ping/?_=1780555389549 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:43:09] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:43:11] "GET /attendance/schedule/ HTTP/1.1" 200 229422
+[04/Jun/2026 08:43:11] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:43:11] "GET /api/ping/?_=1780555391215 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:43:11] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:43:12] "GET /attendance/schedule/calendar/ HTTP/1.1" 200 118743
+[04/Jun/2026 08:43:12] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:43:13] "GET /api/ping/?_=1780555393030 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:43:13] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:43:14] "GET /attendance/reports/ HTTP/1.1" 200 106092
+[04/Jun/2026 08:43:14] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:43:15] "GET /api/ping/?_=1780555395527 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:43:15] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:43:17] "GET /attendance/reports/students/ HTTP/1.1" 200 199351
+[04/Jun/2026 08:43:17] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:43:17] "GET /api/ping/?_=1780555397285 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:43:17] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:43:18] "GET /attendance/reports/teachers/ HTTP/1.1" 200 126820
+[04/Jun/2026 08:43:18] "GET /api/ping/?_=1780555398931 HTTP/1.1" 200 32
+[04/Jun/2026 08:43:18] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:43:19] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:43:20] "GET /attendance/search/ HTTP/1.1" 200 99913
+[04/Jun/2026 08:43:20] "GET /api/ping/?_=1780555400499 HTTP/1.1" 200 32
+[04/Jun/2026 08:43:20] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:43:21] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:43:21] "GET /attendance/settings/ HTTP/1.1" 200 118153
+[04/Jun/2026 08:43:22] "GET /api/ping/?_=1780555402070 HTTP/1.1" 200 32
+[04/Jun/2026 08:43:22] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:43:23] "GET /attendance/notifications/ HTTP/1.1" 200 133406
+[04/Jun/2026 08:43:23] "GET /api/ping/?_=1780555403630 HTTP/1.1" 200 32
+[04/Jun/2026 08:43:23] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:43:25] "GET /attendance/tickets/ HTTP/1.1" 200 176095
+[04/Jun/2026 08:43:25] "GET /api/ping/?_=1780555405194 HTTP/1.1" 200 32
+[04/Jun/2026 08:43:25] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:43:26] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:43:26] "GET /attendance/scan/ HTTP/1.1" 200 108905
+[04/Jun/2026 08:43:26] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:43:26] "GET /api/ping/?_=1780555406944 HTTP/1.1" 200 32
+[04/Jun/2026 08:43:27] "GET /attendance/attendance-logs/ HTTP/1.1" 200 304984
+[04/Jun/2026 08:43:28] "GET /api/ping/?_=1780555408085 HTTP/1.1" 200 32
+[04/Jun/2026 08:43:28] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:43:29] "GET /attendance/recent-scans/ HTTP/1.1" 200 4711
+[04/Jun/2026 08:43:29] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:43:31] "GET /attendance/login/ HTTP/1.1" 302 0
+[04/Jun/2026 08:43:31] "GET /professor-dashboard/ HTTP/1.1" 200 108107
+[04/Jun/2026 08:43:31] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:43:31] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:43:31] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:43:31] "GET /static/pwa/pwa-init.js HTTP/1.1" 200 16397
+[04/Jun/2026 08:43:36] "GET /api/ping/?_=1780555416905 HTTP/1.1" 200 32
+[04/Jun/2026 08:43:36] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:43:36] "GET /offline/ HTTP/1.1" 200 8244
+[04/Jun/2026 08:43:36] "GET /static/pwa/manifest.json HTTP/1.1" 200 2620
+[04/Jun/2026 08:43:36] "GET / HTTP/1.1" 302 0
+[04/Jun/2026 08:43:36] "GET /professor-dashboard/ HTTP/1.1" 200 108107
+[04/Jun/2026 08:43:36] "GET /attendance/professor-dashboard/ HTTP/1.1" 200 108107
+[04/Jun/2026 08:43:37] "GET /api/ping/?_=1780555417092 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:43:37] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:43:38] "GET /attendance/professor-dashboard/ HTTP/1.1" 200 108107
+[04/Jun/2026 08:43:38] "GET /api/ping/?_=1780555418222 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:43:38] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:43:38] "GET /attendance/teacher/timeline/ HTTP/1.1" 200 128015
+[04/Jun/2026 08:43:38] "GET /api/ping/?_=1780555418704 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:43:39] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:43:40] "GET /attendance/teacher/attendance-records/ HTTP/1.1" 200 187778
+[04/Jun/2026 08:43:40] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:43:40] "GET /api/ping/?_=1780555420420 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:43:40] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:43:42] "GET /attendance/schedule/ HTTP/1.1" 200 100975
+[04/Jun/2026 08:43:42] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:43:42] "GET /api/ping/?_=1780555422066 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:43:42] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:43:43] "GET /attendance/notifications/ HTTP/1.1" 200 95363
+[04/Jun/2026 08:43:43] "GET /api/ping/?_=1780555423595 HTTP/1.1" 200 32
+[04/Jun/2026 08:43:43] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:43:43] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:43:45] "GET /attendance/tickets/ HTTP/1.1" 200 98189
+[04/Jun/2026 08:43:45] "GET /api/ping/?_=1780555425129 HTTP/1.1" 200 32
+[04/Jun/2026 08:43:45] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:43:45] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:43:46] "GET /attendance/login/ HTTP/1.1" 302 0
+[04/Jun/2026 08:43:47] "GET /student/dashboard/ HTTP/1.1" 200 103640
+[04/Jun/2026 08:43:47] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:43:47] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:43:47] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:43:47] "GET /static/pwa/pwa-init.js HTTP/1.1" 200 16397
+[04/Jun/2026 08:43:47] "GET /api/ping/?_=1780555427839 HTTP/1.1" 200 32
+[04/Jun/2026 08:43:47] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:43:47] "GET /offline/ HTTP/1.1" 200 8244
+[04/Jun/2026 08:43:47] "GET /static/pwa/manifest.json HTTP/1.1" 200 2620
+[04/Jun/2026 08:43:47] "GET / HTTP/1.1" 302 0
+[04/Jun/2026 08:43:47] "GET /student/dashboard/ HTTP/1.1" 200 103640
+[04/Jun/2026 08:43:47] "GET /attendance/student/dashboard/ HTTP/1.1" 200 103640
+[04/Jun/2026 08:43:48] "GET /api/ping/?_=1780555428004 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:43:48] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:43:48] "GET /attendance/student/dashboard/ HTTP/1.1" 200 103640
+[04/Jun/2026 08:43:49] "GET /api/ping/?_=1780555429079 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:43:49] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:43:49] "GET /attendance/student/courses/ HTTP/1.1" 200 100089
+[04/Jun/2026 08:43:49] "GET /api/ping/?_=1780555429572 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:43:49] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:43:51] "GET /attendance/student/schedule/ HTTP/1.1" 200 96159
+[04/Jun/2026 08:43:51] "GET /api/ping/?_=1780555431082 HTTP/1.1" 200 32
+[04/Jun/2026 08:43:51] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:43:51] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:43:52] "GET /attendance/student/excuse/ HTTP/1.1" 200 99934
+[04/Jun/2026 08:43:52] "GET /api/ping/?_=1780555432637 HTTP/1.1" 200 32
+[04/Jun/2026 08:43:52] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:43:52] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:43:54] "GET /attendance/student/profile/ HTTP/1.1" 200 101347
+[04/Jun/2026 08:43:54] "GET /api/ping/?_=1780555434166 HTTP/1.1" 200 32
+[04/Jun/2026 08:43:54] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:43:54] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:43:55] "GET /attendance/notifications/ HTTP/1.1" 200 104896
+[04/Jun/2026 08:43:55] "GET /api/ping/?_=1780555435743 HTTP/1.1" 200 32
+[04/Jun/2026 08:43:55] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:43:56] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:43:57] "GET /attendance/tickets/ HTTP/1.1" 200 99106
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:43:57] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:43:57] "GET /api/ping/?_=1780555437284 HTTP/1.1" 200 32
+[04/Jun/2026 08:43:57] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:43:57] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:43:58] "GET /attendance/student/support/ HTTP/1.1" 200 97657
+[04/Jun/2026 08:43:58] "GET /api/ping/?_=1780555438806 HTTP/1.1" 200 32
+[04/Jun/2026 08:43:58] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:43:58] "GET /api/ping/?_=1780555438921 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:43:59] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:44:00] "GET /attendance/login/ HTTP/1.1" 302 0
+Internal Server Error: /coordinator/dashboard/
+Traceback (most recent call last):
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "D:\\u0645\u0647\u0645\ACDC_FINAL-main\attendance\views.py", line 1619, in coordinator_dashboard
+    students_count = Student.objects.filter(department__college=coordinator.college).count()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    today          = timezone.now().date()
+    ^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\query.py", line 1542, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\query.py", line 1560, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\query.py", line 1570, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\sql\query.py", line 1671, in add_q
+    clause, _ = self._add_q(q_object, can_reuse)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\sql\query.py", line 1703, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\sql\query.py", line 1551, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\sql\query.py", line 1358, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\sql\query.py", line 1832, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'created_by' into field. Choices are: admin_reply, body, created_at, id, priority, status, subject, updated_at, user, user_id
+[04/Jun/2026 08:44:00] "GET /coordinator/dashboard/ HTTP/1.1" 500 137865
+Internal Server Error: /attendance/coordinator/dashboard/
+Traceback (most recent call last):
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "D:\\u0645\u0647\u0645\ACDC_FINAL-main\attendance\views.py", line 1619, in coordinator_dashboard
+    students_count = Student.objects.filter(department__college=coordinator.college).count()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    today          = timezone.now().date()
+    ^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\query.py", line 1542, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\query.py", line 1560, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\query.py", line 1570, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\sql\query.py", line 1671, in add_q
+    clause, _ = self._add_q(q_object, can_reuse)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\sql\query.py", line 1703, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\sql\query.py", line 1551, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\sql\query.py", line 1358, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\sql\query.py", line 1832, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'created_by' into field. Choices are: admin_reply, body, created_at, id, priority, status, subject, updated_at, user, user_id
+[04/Jun/2026 08:44:00] "GET /attendance/coordinator/dashboard/ HTTP/1.1" 500 137986
+[04/Jun/2026 08:44:02] "GET /attendance/coordinator/students/ HTTP/1.1" 200 112545
+[04/Jun/2026 08:44:02] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:44:02] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:44:02] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:44:02] "GET /static/pwa/pwa-init.js HTTP/1.1" 200 16397
+[04/Jun/2026 08:44:05] "GET /api/ping/?_=1780555445580 HTTP/1.1" 200 32
+[04/Jun/2026 08:44:05] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:44:05] "GET /offline/ HTTP/1.1" 200 8244
+[04/Jun/2026 08:44:05] "GET / HTTP/1.1" 302 0
+[04/Jun/2026 08:44:05] "GET /static/pwa/manifest.json HTTP/1.1" 200 2620
+Internal Server Error: /coordinator/dashboard/
+Traceback (most recent call last):
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "D:\\u0645\u0647\u0645\ACDC_FINAL-main\attendance\views.py", line 1619, in coordinator_dashboard
+    students_count = Student.objects.filter(department__college=coordinator.college).count()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    today          = timezone.now().date()
+    ^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\query.py", line 1542, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\query.py", line 1560, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\query.py", line 1570, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\sql\query.py", line 1671, in add_q
+    clause, _ = self._add_q(q_object, can_reuse)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\sql\query.py", line 1703, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\sql\query.py", line 1551, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\sql\query.py", line 1358, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\django\db\models\sql\query.py", line 1832, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'created_by' into field. Choices are: admin_reply, body, created_at, id, priority, status, subject, updated_at, user, user_id
+[04/Jun/2026 08:44:05] "GET /coordinator/dashboard/ HTTP/1.1" 500 137075
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:44:05] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:44:06] "GET /attendance/coordinator/students/ HTTP/1.1" 200 112545
+[04/Jun/2026 08:44:06] "GET /api/ping/?_=1780555446963 HTTP/1.1" 200 32
+[04/Jun/2026 08:44:07] "GET /attendance/coordinator/faculty/ HTTP/1.1" 200 99162
+[04/Jun/2026 08:44:07] "GET /api/ping/?_=1780555447169 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:44:07] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:44:08] "GET /attendance/coordinator/grading/ HTTP/1.1" 200 182452
+[04/Jun/2026 08:44:08] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:44:08] "GET /api/ping/?_=1780555448842 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:44:09] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:44:10] "GET /attendance/coordinator/register/ HTTP/1.1" 200 105654
+[04/Jun/2026 08:44:10] "GET /api/ping/?_=1780555450471 HTTP/1.1" 200 32
+[04/Jun/2026 08:44:10] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:44:10] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:44:11] "GET /attendance/coordinator/assignments/ HTTP/1.1" 200 99672
+[04/Jun/2026 08:44:12] "GET /api/ping/?_=1780555452002 HTTP/1.1" 200 32
+[04/Jun/2026 08:44:12] "GET /sw.js HTTP/1.1" 200 13566
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:44:12] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:44:13] "GET /attendance/login/ HTTP/1.1" 302 0
+[04/Jun/2026 08:44:13] "GET /gate/ HTTP/1.1" 200 13928
+[04/Jun/2026 08:44:13] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:44:14] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:44:14] "GET /attendance/gate/ HTTP/1.1" 200 13928
+[04/Jun/2026 08:44:16] "GET /attendance/scan/ HTTP/1.1" 200 102157
+[04/Jun/2026 08:44:16] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:44:16] "GET /static/pwa/pwa-init.js HTTP/1.1" 200 16397
+[04/Jun/2026 08:44:16] "GET /api/ping/?_=1780555456133 HTTP/1.1" 200 32
+[04/Jun/2026 08:44:16] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:44:16] "GET / HTTP/1.1" 302 0
+[04/Jun/2026 08:44:16] "GET /offline/ HTTP/1.1" 200 8244
+[04/Jun/2026 08:44:16] "GET /static/pwa/manifest.json HTTP/1.1" 200 2620
+[04/Jun/2026 08:44:16] "GET /gate/ HTTP/1.1" 200 13928
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:44:16] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:44:17] "GET /attendance/scan/ HTTP/1.1" 200 102157
+[04/Jun/2026 08:44:17] "GET /api/ping/?_=1780555457369 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:44:17] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:44:17] "GET /attendance/attendance-logs/ HTTP/1.1" 200 298236
+[04/Jun/2026 08:44:18] "GET /api/ping/?_=1780555458075 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:44:18] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:44:19] "GET /attendance/recent-scans/ HTTP/1.1" 200 4711
+[04/Jun/2026 08:44:19] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:44:21] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:44:22] "GET /attendance/login/ HTTP/1.1" 302 0
+[04/Jun/2026 08:44:22] "GET /admin-panel/ HTTP/1.1" 200 142363
+[04/Jun/2026 08:44:22] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:44:22] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:44:22] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:44:22] "GET /static/pwa/pwa-init.js HTTP/1.1" 200 16397
+[04/Jun/2026 08:44:23] "GET /api/ping/?_=1780555463055 HTTP/1.1" 200 32
+[04/Jun/2026 08:44:23] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:44:23] "GET /offline/ HTTP/1.1" 200 8244
+[04/Jun/2026 08:44:23] "GET / HTTP/1.1" 302 0
+[04/Jun/2026 08:44:23] "GET /static/pwa/manifest.json HTTP/1.1" 200 2620
+[04/Jun/2026 08:44:23] "GET /admin-panel/ HTTP/1.1" 200 142363
+[04/Jun/2026 08:44:23] "GET /attendance/admin-panel/ HTTP/1.1" 200 142363
+[04/Jun/2026 08:44:23] "GET /api/ping/?_=1780555463268 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:44:23] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:44:24] "GET /attendance/admin-panel/ HTTP/1.1" 200 142363
+[04/Jun/2026 08:44:24] "GET /api/ping/?_=1780555464545 HTTP/1.1" 200 32
+[04/Jun/2026 08:44:25] "GET /attendance/login/ HTTP/1.1" 302 0
+[04/Jun/2026 08:44:25] "GET /student/dashboard/ HTTP/1.1" 200 103640
+[04/Jun/2026 08:44:25] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:44:25] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:44:25] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 08:44:25] "GET /static/pwa/pwa-init.js HTTP/1.1" 200 16397
+[04/Jun/2026 08:44:26] "GET /api/ping/?_=1780555466080 HTTP/1.1" 200 32
+[04/Jun/2026 08:44:26] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 08:44:26] "GET /offline/ HTTP/1.1" 200 8244
+[04/Jun/2026 08:44:26] "GET /static/pwa/manifest.json HTTP/1.1" 200 2620
+[04/Jun/2026 08:44:26] "GET / HTTP/1.1" 302 0
+[04/Jun/2026 08:44:26] "GET /attendance/student/dashboard/ HTTP/1.1" 200 103640
+[04/Jun/2026 08:44:26] "GET /student/dashboard/ HTTP/1.1" 200 103640
+[04/Jun/2026 08:44:26] "GET /api/ping/?_=1780555466246 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:44:26] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:44:26] "GET /login/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:44:27] "GET /attendance/student/dashboard/ HTTP/1.1" 200 103640
+[04/Jun/2026 08:44:27] "GET /api/ping/?_=1780555467390 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:44:27] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:44:28] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:44:28] "GET /attendance/login/ HTTP/1.1" 302 0
+[04/Jun/2026 08:44:28] "GET /gate/ HTTP/1.1" 200 13928
+[04/Jun/2026 08:44:28] "POST /login/ HTTP/1.1" 302 0
+[04/Jun/2026 08:44:28] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 08:44:29] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+[04/Jun/2026 08:44:29] "GET /attendance/gate/ HTTP/1.1" 200 13928
+[04/Jun/2026 08:44:48] "GET /login/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:44:49] "POST /login/ HTTP/1.1" 302 0
+[04/Jun/2026 08:44:58] "GET /api/ping/?_=1780555498922 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:44:59] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:45:08] "GET /login/ HTTP/1.1" 200 10997
+[04/Jun/2026 08:45:09] "POST /login/ HTTP/1.1" 302 0
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:45:30] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:45:58] "GET /api/ping/?_=1780555558923 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:46:01] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:46:32] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:46:58] "GET /api/ping/?_=1780555618909 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:47:03] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:47:34] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:47:58] "GET /api/ping/?_=1780555678915 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:48:05] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:48:36] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:48:58] "GET /api/ping/?_=1780555738917 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:49:07] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:49:38] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:49:58] "GET /api/ping/?_=1780555798909 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:50:09] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:50:40] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:50:58] "GET /api/ping/?_=1780555858923 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:51:11] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:51:42] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:51:58] "GET /api/ping/?_=1780555918916 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:52:13] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:52:44] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:52:58] "GET /api/ping/?_=1780555978910 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:53:15] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:53:46] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:53:58] "GET /api/ping/?_=1780556038919 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:54:17] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:54:48] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:54:58] "GET /api/ping/?_=1780556098919 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:55:19] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:55:50] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:55:58] "GET /api/ping/?_=1780556158922 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:56:21] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:56:52] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:56:58] "GET /api/ping/?_=1780556218916 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:57:23] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:57:54] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:57:58] "GET /api/ping/?_=1780556278910 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:58:25] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:58:56] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:58:58] "GET /api/ping/?_=1780556338916 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:59:27] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 08:59:58] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 08:59:58] "GET /api/ping/?_=1780556398911 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:00:29] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:00:58] "GET /api/ping/?_=1780556458921 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:01:00] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:01:31] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:01:58] "GET /api/ping/?_=1780556518921 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:02:02] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:02:33] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:02:58] "GET /api/ping/?_=1780556578917 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:03:04] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:03:35] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:03:58] "GET /api/ping/?_=1780556638912 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:04:06] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:04:37] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:04:58] "GET /api/ping/?_=1780556698915 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:05:08] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:05:39] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:05:58] "GET /api/ping/?_=1780556758908 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:06:10] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:06:41] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:06:58] "GET /api/ping/?_=1780556818918 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:07:12] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:07:43] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:07:58] "GET /api/ping/?_=1780556878922 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:08:14] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:08:45] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:08:59] "GET /api/ping/?_=1780556938913 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:09:16] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:09:47] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:09:58] "GET /api/ping/?_=1780556998909 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:10:18] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:10:49] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:10:58] "GET /api/ping/?_=1780557058918 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:11:20] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:11:51] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:11:58] "GET /api/ping/?_=1780557118921 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:12:22] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:12:53] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:12:58] "GET /api/ping/?_=1780557178923 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:13:24] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:13:55] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:13:58] "GET /api/ping/?_=1780557238915 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:14:26] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:14:57] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:14:58] "GET /api/ping/?_=1780557298919 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:15:28] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:15:58] "GET /api/ping/?_=1780557358921 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:15:59] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:16:30] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:16:58] "GET /api/ping/?_=1780557418923 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:17:01] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:17:32] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:17:58] "GET /api/ping/?_=1780557478911 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:18:03] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:18:34] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:18:58] "GET /api/ping/?_=1780557538926 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:19:05] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:19:36] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:19:58] "GET /api/ping/?_=1780557598918 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:20:07] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:20:12] "GET /api/ping/?_=1780557612925 HTTP/1.1" 200 32
+[04/Jun/2026 09:20:27] "GET /api/ping/?_=1780557627919 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:20:38] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:20:42] "GET /api/ping/?_=1780557642920 HTTP/1.1" 200 32
+[04/Jun/2026 09:20:57] "GET /api/ping/?_=1780557657918 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:21:09] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:21:40] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:21:58] "GET /api/ping/?_=1780557718918 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:22:11] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:22:42] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:22:58] "GET /api/ping/?_=1780557778918 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:23:13] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:23:44] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:23:58] "GET /api/ping/?_=1780557838921 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:24:15] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:24:46] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:24:58] "GET /api/ping/?_=1780557898917 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:25:17] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:25:48] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:25:58] "GET /api/ping/?_=1780557958918 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:26:19] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:26:50] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:26:58] "GET /api/ping/?_=1780558018918 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:27:21] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:27:52] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:27:58] "GET /api/ping/?_=1780558078925 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:28:23] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:28:54] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:28:58] "GET /api/ping/?_=1780558138920 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:29:25] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:29:56] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:29:58] "GET /api/ping/?_=1780558198925 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:30:27] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:30:58] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:30:58] "GET /api/ping/?_=1780558258926 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:31:29] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:31:58] "GET /api/ping/?_=1780558318931 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:32:00] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:32:31] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:32:58] "GET /api/ping/?_=1780558378926 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:33:02] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:33:33] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:33:59] "GET /api/ping/?_=1780558438920 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:34:04] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:34:35] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:34:58] "GET /login/ HTTP/1.1" 200 10997
+[04/Jun/2026 09:34:58] "GET /api/ping/?_=1780558498921 HTTP/1.1" 200 32
+AXES: New login failure by {username: "********************", ip_address: "********************", user_agent: "Dart/3.11 (dart:io)", path_info: "/login/"}. Created new record in the database.
+[04/Jun/2026 09:35:00] "POST /login/ HTTP/1.1" 200 11337
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:35:06] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:35:37] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:35:58] "GET /api/ping/?_=1780558558909 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:36:08] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:36:39] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:36:58] "GET /api/ping/?_=1780558618913 HTTP/1.1" 200 32
+[04/Jun/2026 09:37:00] "GET /login/ HTTP/1.1" 200 10997
+AXES: New login failure by {username: "********************", ip_address: "********************", user_agent: "Dart/3.11 (dart:io)", path_info: "/login/"}. Created new record in the database.
+[04/Jun/2026 09:37:03] "POST /login/ HTTP/1.1" 200 11337
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:37:10] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:37:41] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:37:42] "GET /login/ HTTP/1.1" 200 10997
+[04/Jun/2026 09:37:45] "POST /login/ HTTP/1.1" 302 0
+[04/Jun/2026 09:37:58] "GET /api/ping/?_=1780558678910 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:38:12] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:38:43] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:38:59] "GET /api/ping/?_=1780558738921 HTTP/1.1" 200 32
+[04/Jun/2026 09:39:13] "GET /api/v1/health HTTP/1.1" 200 92
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:39:14] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:39:43] "POST /api/v1/auth/login HTTP/1.1" 200 284
+[04/Jun/2026 09:39:43] "GET /api/v1/notifications HTTP/1.1" 200 2297
+[04/Jun/2026 09:39:43] "GET /api/v1/dashboard HTTP/1.1" 200 123
+[04/Jun/2026 09:39:43] "GET /api/v1/schedule HTTP/1.1" 200 15012
+[04/Jun/2026 09:39:43] "GET /api/v1/reports/summary HTTP/1.1" 200 314
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:39:45] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:39:50] "GET /api/v1/excuses HTTP/1.1" 200 51
+[04/Jun/2026 09:39:58] "GET /api/ping/?_=1780558798911 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:40:16] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+AXES: Repeated login failure by {username: "********************", ip_address: "********************", user_agent: "Dart/3.11 (dart:io)", path_info: "/api/v1/auth/login"}. Updated existing record in the database.
+Unauthorized: /api/v1/auth/login
+[04/Jun/2026 09:40:17] "POST /api/v1/auth/login HTTP/1.1" 401 252
+AXES: Repeated login failure by {username: "********************", ip_address: "********************", user_agent: "Dart/3.11 (dart:io)", path_info: "/api/v1/auth/login"}. Updated existing record in the database.
+Unauthorized: /api/v1/auth/login
+[04/Jun/2026 09:40:28] "POST /api/v1/auth/login HTTP/1.1" 401 252
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:40:47] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:40:58] "GET /api/ping/?_=1780558858918 HTTP/1.1" 200 32
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:41:18] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:41:49] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:41:58] "GET /api/ping/?_=1780558918913 HTTP/1.1" 200 32
+[04/Jun/2026 09:42:05] "GET /login/ HTTP/1.1" 200 10997
+[04/Jun/2026 09:42:08] "POST /login/ HTTP/1.1" 302 0
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:42:20] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+Not Found: /ws/live-reload/
+[04/Jun/2026 09:42:51] "GET /ws/live-reload/ HTTP/1.1" 404 42708
+[04/Jun/2026 09:42:55] "GET /api/ping/?_=1780558975203 HTTP/1.1" 200 32
+[04/Jun/2026 09:42:56] "GET / HTTP/1.1" 200 10997
+[04/Jun/2026 09:42:58] "GET /sw.js HTTP/1.1" 200 13566
+AXES: New login failure by {username: "********************", ip_address: "********************", user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36", path_info: "/login/"}. Created new record in the database.
+AXES: Locking out {username: "********************", ip_address: "********************", user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36", path_info: "/login/"} after repeated login failures.
+Too Many Requests: /login/
+[04/Jun/2026 09:43:00] "POST /login/ HTTP/1.1" 429 64
+[04/Jun/2026 09:43:02] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 09:43:03] "GET / HTTP/1.1" 200 10997
+[04/Jun/2026 09:43:05] "GET /sw.js HTTP/1.1" 200 13566
+AXES: Repeated login failure by {username: "********************", ip_address: "********************", user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36", path_info: "/login/"}. Updated existing record in the database.
+AXES: Locking out {username: "********************", ip_address: "********************", user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36", path_info: "/login/"} after repeated login failures.
+Too Many Requests: /login/
+[04/Jun/2026 09:45:11] "POST /login/ HTTP/1.1" 429 64
+[04/Jun/2026 09:45:13] "GET /sw.js HTTP/1.1" 200 13566
+AXES: New login failure by {username: "********************", ip_address: "********************", user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36", path_info: "/login/"}. Created new record in the database.
+[04/Jun/2026 09:58:50] "POST /login/ HTTP/1.1" 200 11337
+[04/Jun/2026 09:58:52] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 09:59:28] "GET /login/ HTTP/1.1" 200 10997
+[04/Jun/2026 09:59:31] "POST /login/ HTTP/1.1" 302 0
+[04/Jun/2026 10:00:35] "GET /login/ HTTP/1.1" 200 10997
+[04/Jun/2026 10:00:38] "POST /login/ HTTP/1.1" 302 0
+[04/Jun/2026 10:01:15] "GET /login/ HTTP/1.1" 200 10997
+AXES: New login failure by {username: "********************", ip_address: "********************", user_agent: "Dart/3.11 (dart:io)", path_info: "/login/"}. Created new record in the database.
+[04/Jun/2026 10:01:17] "POST /login/ HTTP/1.1" 200 11337
+AXES: Repeated login failure by {username: "********************", ip_address: "********************", user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36", path_info: "/login/"}. Updated existing record in the database.
+[04/Jun/2026 10:03:38] "POST /login/ HTTP/1.1" 200 11337
+[04/Jun/2026 10:03:40] "GET /sw.js HTTP/1.1" 200 13566
+AXES: Repeated login failure by {username: "********************", ip_address: "********************", user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36", path_info: "/login/"}. Updated existing record in the database.
+[04/Jun/2026 10:03:41] "POST /login/ HTTP/1.1" 200 11337
+[04/Jun/2026 10:03:42] "GET /static/fonts/fonts.css HTTP/1.1" 200 1015
+[04/Jun/2026 10:03:42] "GET /static/images/logo.svg HTTP/1.1" 200 142720
+[04/Jun/2026 10:03:42] "GET /static/fonts/material-symbols.ttf HTTP/1.1" 200 956712
+Not Found: /favicon.ico
+[04/Jun/2026 10:03:42] "GET /favicon.ico HTTP/1.1" 404 42696
+AXES: Repeated login failure by {username: "********************", ip_address: "********************", user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36", path_info: "/login/"}. Updated existing record in the database.
+AXES: Locking out {username: "********************", ip_address: "********************", user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36", path_info: "/login/"} after repeated login failures.
+Too Many Requests: /login/
+[04/Jun/2026 10:03:49] "POST /login/ HTTP/1.1" 429 64
+[04/Jun/2026 10:03:51] "GET /sw.js HTTP/1.1" 200 13566
+[04/Jun/2026 10:06:35,877] - Broken pipe from ('127.0.0.1', 57808)
+[04/Jun/2026 10:06:35,878] - Broken pipe from ('127.0.0.1', 65132)

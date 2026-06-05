@@ -4,19 +4,19 @@
 
 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
   <div>
-    <h1 class="text-2xl font-extrabold text-slate-900 font-headline">Faculty Management</h1>
-    <p class="text-sm text-slate-500 mt-1">Manage academic staff and department access levels.</p>
+    <h1 class="text-2xl font-extrabold text-slate-900 font-headline">إدارة هيئة التدريس</h1>
+    <p class="text-sm text-slate-500 mt-1">إدارة الكادر الأكاديمي ومستويات الوصول.</p>
   </div>
   <div class="flex items-center gap-3">
     <select class="bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-primary/20 outline-none shadow-sm cursor-pointer">
-      <option value="">All Departments</option>
+      <option value="">كل الأقسام</option>
       {% for dept in departments %}
       <option value="{{ dept.id }}">{{ dept.name }}</option>
       {% endfor %}
     </select>
     <a href="/admin/attendance/teacher/add/"
       class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary-container transition-all shadow-sm">
-      <span class="material-symbols-outlined text-lg">person_add</span> Add Faculty
+      <span class="material-symbols-outlined text-lg">person_add</span> إضافة أستاذ
     </a>
   </div>
 </div>
@@ -26,11 +26,11 @@
     <table class="w-full text-sm">
       <thead class="bg-slate-50 text-xs text-slate-400 uppercase tracking-wider">
         <tr>
-          <th class="px-6 py-3 text-left font-semibold">Faculty Name</th>
-          <th class="px-6 py-3 text-left font-semibold">Major</th>
-          <th class="px-6 py-3 text-left font-semibold">Degree</th>
-          <th class="px-6 py-3 text-left font-semibold">Status</th>
-          <th class="px-6 py-3 text-right font-semibold">Actions</th>
+          <th class="px-6 py-3 text-right font-semibold">اسم الأستاذ</th>
+          <th class="px-6 py-3 text-right font-semibold">التخصص</th>
+          <th class="px-6 py-3 text-right font-semibold">الدرجة العلمية</th>
+          <th class="px-6 py-3 text-right font-semibold">الحالة</th>
+          <th class="px-6 py-3 text-left font-semibold">إجراءات</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-slate-50">
@@ -49,7 +49,7 @@
           </td>
           <td class="px-6 py-4">
             <span class="text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">
-              {{ teacher.major|default:"General" }}
+              {{ teacher.major|default:"—" }}
             </span>
           </td>
           <td class="px-6 py-4">
@@ -61,20 +61,20 @@
             <span class="flex items-center gap-1.5 text-xs font-semibold
               {% if teacher.is_allowed_entry %}text-emerald-700{% else %}text-red-600{% endif %}">
               <span class="w-1.5 h-1.5 rounded-full {% if teacher.is_allowed_entry %}bg-emerald-500{% else %}bg-red-500{% endif %}"></span>
-              {% if teacher.is_allowed_entry %}Active{% else %}Blocked{% endif %}
+              {% if teacher.is_allowed_entry %}نشط •{% else %}محظور{% endif %}
             </span>
           </td>
           <td class="px-6 py-4 text-right">
             <div class="flex items-center justify-end gap-1">
-              <a href="/attendance/user/teacher/{{ teacher.pk }}/upload-face/" title="Upload Face"
+              <a href="/attendance/user/teacher/{{ teacher.pk }}/upload-face/" title="رفع صورة الوجه"
                 class="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors">
                 <span class="material-symbols-outlined text-lg">face</span>
               </a>
-              <a href="/admin/attendance/teacher/{{ teacher.pk }}/change/" title="Edit"
+              <a href="/admin/attendance/teacher/{{ teacher.pk }}/change/" title="تعديل"
                 class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                 <span class="material-symbols-outlined text-lg">edit</span>
               </a>
-              <a href="{% url 'toggle_access' 'teacher' teacher.teacher_id %}" title="Toggle Access"
+              <a href="{% url 'toggle_access' 'teacher' teacher.teacher_id %}" title="إلغاء تفعيل"
                 class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                 <span class="material-symbols-outlined text-lg">block</span>
               </a>
@@ -85,7 +85,7 @@
         <tr>
           <td colspan="5" class="px-6 py-12 text-center text-slate-400 text-sm">
             <span class="material-symbols-outlined text-3xl block mb-2 opacity-30">group_off</span>
-            No faculty members found.
+            لا يوجد أعضاء هيئة تدريس.
           </td>
         </tr>
         {% endfor %}

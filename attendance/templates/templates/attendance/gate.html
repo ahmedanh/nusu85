@@ -1,4 +1,4 @@
-﻿{% load static %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -9,7 +9,7 @@
 <script>
 tailwind.config = {
   theme: { extend: {
-    colors: { primary: "#051125", "primary-container": "#1b263b" },
+    colors: { primary: "#4361ee", "primary-container": "#3a56d4" },
     fontFamily: {
       headline: ["Manrope","Segoe UI","system-ui","sans-serif"],
       body:     ["Inter","Segoe UI","system-ui","sans-serif"],
@@ -40,7 +40,7 @@ tailwind.config = {
     <div class="flex items-center gap-4">
       <span id="gate-status-badge" class="flex items-center gap-1.5 text-xs font-bold text-slate-400 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700">
         <span class="w-2 h-2 rounded-full bg-slate-500"></span>
-        <span data-en="Standby" data-ar="استعداد">استعداد</span>
+        استعداد
       </span>
       <span class="text-xs text-slate-500" id="clock"></span>
     </div>
@@ -61,10 +61,13 @@ tailwind.config = {
         <div class="flex items-center gap-3">
           <select id="camera-select"
             class="bg-slate-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg border border-white/10 outline-none cursor-pointer">
-            <option value="0">Camera 0 — Default (Built-in)</option>
-            <option value="1">Camera 1 — External USB</option>
-            <option value="2">Camera 2 — External USB</option>
-            <option value="3">Camera 3 — External USB</option>
+            {% for cam in camera_sources %}
+            <option value="{{ cam.id }}">{{ cam.name }} — {{ cam.location }}</option>
+            {% empty %}
+            <option value="0">كاميرا 0 (افتراضي)</option>
+            <option value="1">كاميرا 1 (USB)</option>
+            <option value="2">كاميرا 2 (USB)</option>
+            {% endfor %}
           </select>
           <button id="toggle-btn" onclick="toggleScanner()"
             class="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-1.5 rounded-lg transition-all">
@@ -116,8 +119,8 @@ tailwind.config = {
         <div class="w-20 h-20 rounded-3xl bg-slate-800 flex items-center justify-center mb-5">
           <span class="material-symbols-outlined text-slate-600 text-4xl">face</span>
         </div>
-        <p class="font-semibold text-slate-400 text-sm"><span data-en="Waiting for face scan…" data-ar="في انتظار مسح الوجه…">Waiting for face scan…</span></p>
-        <p class="text-xs text-slate-600 mt-1"><span data-en="Start the scanner to begin." data-ar="اضغط تشغيل للبدء.">Start the scanner to begin.</span></p>
+        <p class="font-semibold text-slate-400 text-sm">في انتظار مسح الوجه…</p>
+        <p class="text-xs text-slate-600 mt-1">شغّل الماسح للبدء.</p>
       </div>
 
       <!-- Result -->
@@ -127,26 +130,36 @@ tailwind.config = {
         <div id="access-banner" class="rounded-2xl px-5 py-4 flex items-center gap-3">
           <span id="access-icon" class="material-symbols-outlined text-3xl" style="font-variation-settings:'FILL' 1">check_circle</span>
           <div>
-            <p id="access-label" class="font-extrabold text-xl font-headline">ACCESS GRANTED</p>
+            <p id="access-label" class="font-extrabold text-xl font-headline">مؤهل للدخول</p>
             <p id="user-type-label" class="text-sm opacity-80">—</p>
           </div>
         </div>
 
+        <!-- Eligibility reason (shown when NOT eligible) -->
+        <p id="eligibility-reason" class="hidden text-sm font-bold text-red-400 bg-red-900/30 rounded-xl px-4 py-3 border border-red-800"></p>
+
         <!-- Details grid -->
         <div class="grid grid-cols-2 gap-3">
           <div class="bg-slate-800 rounded-xl p-4 col-span-2">
-            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1"><span data-en="Name" data-ar="الاسم">Name</span></p>
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">الاسم</p>
             <p id="user-name" class="font-bold text-white text-base">—</p>
           </div>
           <div class="bg-slate-800 rounded-xl p-4">
-            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1"><span data-en="ID" data-ar="الرقم">ID</span></p>
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">الرقم الجامعي</p>
             <p id="user-id" class="font-bold text-white text-sm font-mono">—</p>
           </div>
           <div class="bg-slate-800 rounded-xl p-4">
-            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1"><span data-en="Phone" data-ar="الهاتف">Phone</span></p>
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">الهاتف</p>
             <p id="user-phone" class="font-bold text-white text-sm">—</p>
           </div>
+          <div class="bg-slate-800 rounded-xl p-4 col-span-2">
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">الرسوم</p>
+            <p id="fees-label" class="font-bold text-sm">—</p>
+          </div>
         </div>
+
+        <!-- Eligibility indicators (registered / fees / not blocked) -->
+        <div id="eligibility-indicators" class="hidden flex flex-col gap-2 bg-slate-800/60 rounded-xl px-4 py-3"></div>
 
         <!-- Tags -->
         <div id="tags" class="flex flex-wrap gap-2"></div>
@@ -164,18 +177,6 @@ tailwind.config = {
   </main>
 
 <script>
-// Apply language from localStorage
-(function(){
-  const lang = localStorage.getItem('acdc_lang') || 'ar';
-  if (lang === 'ar') {
-    document.documentElement.lang = 'ar';
-    document.documentElement.dir  = 'rtl';
-    document.querySelectorAll('[data-ar]').forEach(el => {
-      if (el.tagName !== 'INPUT') el.textContent = el.dataset.ar;
-    });
-  }
-})();
-const IS_AR = () => localStorage.getItem('acdc_lang') === 'ar';
 const videoStream   = document.getElementById('video-stream');
 const camPlaceholder= document.getElementById('cam-placeholder');
 const scanOverlay   = document.getElementById('scan-overlay');
@@ -191,6 +192,7 @@ const userNameEl    = document.getElementById('user-name');
 const userTypeLabel = document.getElementById('user-type-label');
 const userIdEl      = document.getElementById('user-id');
 const userPhoneEl   = document.getElementById('user-phone');
+const feesLabel     = document.getElementById('fees-label');
 const tagsEl        = document.getElementById('tags');
 const logList       = document.getElementById('log-list');
 const statusBadge   = document.getElementById('gate-status-badge');
@@ -215,10 +217,10 @@ cameraSelect.addEventListener('change', () => {
 
 function startStream() {
   const cam = cameraSelect.value;
-  videoStream.src = `/attendance/video_feed/?camera=${cam}`;
+  videoStream.src = `/attendance/video_feed/?source=${cam}`;
   videoStream.onerror = () => {
     camError.classList.remove('hidden');
-    camErrorMsg.textContent = `الكاميرا ${cam} غير متاحة — جرّب أخرى.`;
+    camErrorMsg.textContent = `الكاميرا ${cam} غير متاحة — جرّب كاميرا أخرى.`;
   };
   videoStream.onload = () => camError.classList.add('hidden');
   videoStream.classList.remove('hidden');
@@ -272,7 +274,7 @@ function addLog(name, granted) {
   const li = document.createElement('li');
   li.className = granted ? 'text-emerald-400' : 'text-red-400';
   li.textContent = `${now} — ${name} — ${granted ? 'مسموح' : 'مرفوض'}`;
-  if (logList.firstChild && logList.firstChild.classList && logList.firstChild.classList.contains('italic')) {
+  if (logList.firstChild && logList.firstChild.textContent === 'لا توجد أحداث بعد.') {
     logList.innerHTML = '';
   }
   logList.prepend(li);
@@ -298,14 +300,52 @@ function showResult(data) {
     accessLabel.textContent= 'غير مؤهل للدخول';
   }
 
+  // Eligibility reason
+  const reasonEl = document.getElementById('eligibility-reason');
+  if (reasonEl) {
+    if (!data.is_allowed && data.eligibility_reason) {
+      reasonEl.textContent = data.eligibility_reason;
+      reasonEl.classList.remove('hidden');
+    } else {
+      reasonEl.classList.add('hidden');
+    }
+  }
+
+  feesLabel.textContent = data.fees_paid ? 'مسددة' : (data.user_type === 'Student' || data.user_type === 'طالب' ? 'غير مسددة' : '—');
+  feesLabel.className   = 'font-bold text-sm ' + (data.fees_paid ? 'text-emerald-400' : 'text-amber-400');
+
+  // Eligibility indicators for students
+  const indicEl = document.getElementById('eligibility-indicators');
+  if (indicEl && data.user_type === 'Student') {
+    indicEl.classList.remove('hidden');
+    indicEl.innerHTML = `
+      <div class="flex items-center gap-2 text-xs font-bold ${data.is_registered ? 'text-emerald-400' : 'text-red-400'}">
+        <span class="material-symbols-outlined text-sm">${data.is_registered ? 'check_circle' : 'cancel'}</span>
+        مسجّل في الفصل
+      </div>
+      <div class="flex items-center gap-2 text-xs font-bold ${data.fees_paid ? 'text-emerald-400' : 'text-amber-400'}">
+        <span class="material-symbols-outlined text-sm">${data.fees_paid ? 'check_circle' : 'payments'}</span>
+        الرسوم مسددة
+      </div>
+      <div class="flex items-center gap-2 text-xs font-bold ${!data.admin_blocked ? 'text-emerald-400' : 'text-red-400'}">
+        <span class="material-symbols-outlined text-sm">${!data.admin_blocked ? 'check_circle' : 'block'}</span>
+        غير محظور إدارياً
+      </div>`;
+  } else if (indicEl) {
+    indicEl.classList.add('hidden');
+  }
+
   tagsEl.innerHTML = '';
   if (data.user_type === 'Student' && !data.is_registered) {
     tagsEl.innerHTML += '<span class="text-xs font-bold bg-red-900/40 text-red-400 px-3 py-1 rounded-full border border-red-800">غير مسجّل</span>';
   }
+  if (data.user_type === 'Student' && !data.fees_paid) {
+    tagsEl.innerHTML += '<span class="text-xs font-bold bg-amber-900/40 text-amber-400 px-3 py-1 rounded-full border border-amber-800 ms-1">رسوم غير مسددة</span>';
+  }
 
   const scanKey = (data.name || '') + (data.is_allowed ? '1' : '0');
   if (scanKey !== lastScanId) {
-    addLog(data.name || 'Unknown', data.is_allowed);
+    addLog(data.name || 'غير معروف', data.is_allowed);
     lastScanId = scanKey;
   }
 }

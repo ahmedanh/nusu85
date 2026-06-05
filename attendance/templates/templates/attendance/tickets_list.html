@@ -80,12 +80,18 @@
             <div class="flex items-center gap-3 mt-2 text-[11px] text-slate-400">
               <span class="flex items-center gap-1">
                 <span class="material-symbols-outlined text-xs">person</span>
-                {{ ticket.user.get_full_name|default:ticket.user.username|default:"—" }}
+                {{ ticket.requester.get_full_name|default:ticket.requester.username }}
               </span>
               <span class="flex items-center gap-1">
                 <span class="material-symbols-outlined text-xs">schedule</span>
-                منذ {{ ticket.created_at|timesince }}
+                {{ ticket.created_at|date:"d/m/Y H:i" }}
               </span>
+              {% if ticket.college %}
+              <span class="flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">school</span>
+                {{ ticket.college.college_name }}
+              </span>
+              {% endif %}
             </div>
           </div>
         </div>

@@ -64,9 +64,9 @@ tailwind.config = {
             {% for cam in camera_sources %}
             <option value="{{ cam.id }}">{{ cam.name }} — {{ cam.location }}</option>
             {% empty %}
-            <option value="0">Camera 0 (Default)</option>
-            <option value="1">Camera 1 (USB)</option>
-            <option value="2">Camera 2 (USB)</option>
+            <option value="0">كاميرا 0 (افتراضي)</option>
+            <option value="1">كاميرا 1 (USB)</option>
+            <option value="2">كاميرا 2 (USB)</option>
             {% endfor %}
           </select>
           <button id="toggle-btn" onclick="toggleScanner()"
@@ -220,7 +220,7 @@ function startStream() {
   videoStream.src = `/attendance/video_feed/?source=${cam}`;
   videoStream.onerror = () => {
     camError.classList.remove('hidden');
-    camErrorMsg.textContent = `الكاميرا ${cam} غير متاحة — جرّب أخرى.`;
+    camErrorMsg.textContent = `الكاميرا ${cam} غير متاحة — جرّب كاميرا أخرى.`;
   };
   videoStream.onload = () => camError.classList.add('hidden');
   videoStream.classList.remove('hidden');
@@ -241,7 +241,7 @@ function toggleScanner() {
   if (isScanning) {
     startStream();
     toggleBtn.className = 'flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-1.5 rounded-lg transition-all';
-    toggleLabel.textContent = 'Stop';
+    toggleLabel.textContent = 'إيقاف';
     statusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping mr-1.5"></span><span class="text-emerald-400 font-bold">مسح</span>';
     pollTimer = setInterval(pollStatus, 1000);
   } else {
@@ -311,7 +311,7 @@ function showResult(data) {
     }
   }
 
-  feesLabel.textContent = data.fees_paid ? 'مسددة' : (data.user_type === 'Student' ? 'غير مسددة' : '—');
+  feesLabel.textContent = data.fees_paid ? 'مسددة' : (data.user_type === 'Student' || data.user_type === 'طالب' ? 'غير مسددة' : '—');
   feesLabel.className   = 'font-bold text-sm ' + (data.fees_paid ? 'text-emerald-400' : 'text-amber-400');
 
   // Eligibility indicators for students
@@ -345,7 +345,7 @@ function showResult(data) {
 
   const scanKey = (data.name || '') + (data.is_allowed ? '1' : '0');
   if (scanKey !== lastScanId) {
-    addLog(data.name || 'Unknown', data.is_allowed);
+    addLog(data.name || 'غير معروف', data.is_allowed);
     lastScanId = scanKey;
   }
 }

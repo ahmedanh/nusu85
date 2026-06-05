@@ -1,12 +1,13 @@
 {% extends 'attendance/base.html' %}
-{% block title %}Chancellor Dashboard — SHAMEL{% endblock %}
+{% block title %}لوحة تحكم المدير — SHAMEL{% endblock %}
 {% block content %}
 
 <!-- Header -->
 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
   <div>
-    <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">لوحة تحكم المسؤول</h1>
-    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">نظرة عامة على البنية التحتية الأكاديمية والبيومترية</p>
+    <h1 class="text-2xl font-extrabold font-headline dark:text-white"
+        style="color:#0B2545">لوحة تحكم الإدارة العليا</h1>
+    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">نظرة عامة على البنية التحتية البيومترية والأكاديمية</p>
   </div>
   <div class="flex gap-2 flex-wrap">
     <a href="{% url 'export_teachers' %}"
@@ -29,7 +30,7 @@
       <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background:#EFF6FF">
         <span class="material-symbols-outlined" style="color:#2563EB;direction:ltr">school</span>
       </div>
-      <span class="text-xs font-bold px-2.5 py-1 rounded-full" style="background:#D1FAE5;color:#065F46">+12% MoM</span>
+      <span class="text-xs font-bold px-2.5 py-1 rounded-full" style="background:#D1FAE5;color:#065F46">+12% شهريًا</span>
     </div>
     <p id="total-students-count" class="text-3xl font-extrabold font-headline" style="color:#0B2545">{{ total_students }}</p>
     <p class="text-sm font-medium mt-1" style="color:#64748B">الطلاب المسجلون</p>
@@ -44,7 +45,7 @@
       <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background:#F5F3FF">
         <span class="material-symbols-outlined" style="color:#7C3AED;direction:ltr">supervisor_account</span>
       </div>
-      <span class="text-xs font-bold" style="color:#94A3B8">98% Verified</span>
+      <span class="text-xs font-bold" style="color:#94A3B8">98% موثق</span>
     </div>
     <p class="text-3xl font-extrabold font-headline" style="color:#0B2545">{{ active_faculty }}</p>
     <p class="text-sm font-medium mt-1" style="color:#64748B">أعضاء هيئة التدريس النشطون</p>
@@ -56,7 +57,7 @@
     </div>
   </div>
 
-  <!-- AI Engine — always deep-navy regardless of theme -->
+  <!-- AI Engine — always deep-navy background regardless of theme class -->
   <div class="rounded-2xl shadow-lg p-6 relative overflow-hidden sm:col-span-2 lg:col-span-1"
        style="background:linear-gradient(135deg,#1E3A8A 0%,#1B2B5E 100%);">
     <div class="relative z-10">
@@ -87,8 +88,7 @@
       </div>
     </div>
     <div class="absolute -right-6 -bottom-6 opacity-10">
-      <span class="material-symbols-outlined text-[100px]"
-            style="font-variation-settings:'wght' 100;color:#fff;direction:ltr">android_fingerprint</span>
+      <span class="material-symbols-outlined text-[100px]" style="font-variation-settings:'wght' 100;color:#fff;direction:ltr">android_fingerprint</span>
     </div>
   </div>
 </div>
@@ -101,8 +101,9 @@
     <div class="px-6 py-4 border-b border-slate-50 dark:border-slate-700 flex items-center justify-between">
       <h2 class="font-bold text-slate-800 dark:text-slate-100 font-headline">إدارة هيئة التدريس</h2>
       <a href="{% url 'faculty_management' %}"
-        class="text-xs font-bold text-primary hover:underline flex items-center gap-1">
-        <span class="material-symbols-outlined text-sm">arrow_back</span> عرض الكل
+         class="text-xs font-bold flex items-center gap-1 hover:underline"
+         style="color:#1E3A8A">
+        عرض الكل <span class="material-symbols-outlined text-sm">arrow_back</span>
       </a>
     </div>
     <div class="overflow-x-auto">
@@ -131,30 +132,30 @@
             </td>
             <td class="px-6 py-3">
               <span class="text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2.5 py-1 rounded-full">
-                {{ teacher.major|default:"General" }}
+                {{ teacher.major|default:"—" }}
               </span>
             </td>
             <td class="px-6 py-3">
               <span class="flex items-center gap-1.5 text-xs font-semibold
                 {% if teacher.is_allowed_entry %}text-emerald-700 dark:text-emerald-400{% else %}text-red-600 dark:text-red-400{% endif %}">
                 <span class="w-1.5 h-1.5 rounded-full {% if teacher.is_allowed_entry %}bg-emerald-500{% else %}bg-red-500{% endif %}"></span>
-                {% if teacher.is_allowed_entry %}نشط{% else %}محظور{% endif %}
+                {% if teacher.is_allowed_entry %}نشط •{% else %}محظور{% endif %}
               </span>
             </td>
             <td class="px-6 py-3 text-right">
               <div class="flex items-center justify-end gap-1">
                 <a href="/attendance/user/teacher/{{ teacher.pk }}/upload-face/"
-                  title="رفع بصمة الوجه"
+                  title="رفع صورة الوجه"
                   class="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors">
                   <span class="material-symbols-outlined text-lg">face</span>
                 </a>
                 <a href="/admin/attendance/teacher/{{ teacher.pk }}/change/"
-                  title="تعديل بيانات الأستاذ"
+                  title="تعديل"
                   class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors">
                   <span class="material-symbols-outlined text-lg">edit</span>
                 </a>
                 <a href="{% url 'toggle_access' 'teacher' teacher.teacher_id %}"
-                  title="الأساتذة لا يخضعون لنظام التصاريح"
+                  title="إلغاء تفعيل"
                   class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
                   <span class="material-symbols-outlined text-lg">block</span>
                 </a>
@@ -191,14 +192,16 @@
       </div>
       <div class="p-3 space-y-2 max-h-64 overflow-y-auto">
         {% for room in classrooms %}
-        <div class="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
-          <div class="w-1 h-8 rounded-full {% if room.is_occupied %}bg-red-500{% else %}bg-emerald-500{% endif %} flex-shrink-0"></div>
+        <div class="flex items-center gap-3 p-2.5 rounded-xl transition-colors"
+             style="background:#F8FAFC">
+          <div class="w-1 h-8 rounded-full flex-shrink-0"
+               style="background:{% if room.is_occupied %}#EF4444{% else %}#10B981{% endif %}"></div>
           <div class="flex-1 min-w-0">
-            <p class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{{ room.name }}</p>
-            <p class="text-[10px] text-slate-400 dark:text-slate-500">{{ room.location }}</p>
+            <p class="text-xs font-bold truncate" style="color:#0B2545">{{ room.name }}</p>
+            <p class="text-[10px]" style="color:#94A3B8">{{ room.location|default:"المبنى الرئيسي" }}</p>
           </div>
-          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0
-            {% if room.is_occupied %}bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400{% else %}bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400{% endif %}">
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0"
+                style="{% if room.is_occupied %}background:#FEE2E2;color:#991B1B{% else %}background:#D1FAE5;color:#065F46{% endif %}">
             {% if room.is_occupied %}مشغولة{% else %}متاحة{% endif %}
           </span>
         </div>
@@ -208,8 +211,9 @@
       </div>
       <div class="px-4 pb-4 pt-2">
         <a href="{% url 'classrooms_status' %}"
-          class="block w-full text-center text-xs font-bold text-primary bg-primary/5 hover:bg-primary/10 py-2.5 rounded-xl transition-colors">
-          عرض جميع القاعات
+           class="block w-full text-center text-xs font-bold py-2.5 rounded-xl transition-colors"
+           style="color:#1E3A8A;background:rgba(30,58,138,0.06)">
+          عرض الكل ←
         </a>
       </div>
     </div>
@@ -236,20 +240,20 @@
         <a href="{% url 'schedule' %}"
           class="flex flex-col items-center gap-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-700/50 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 dark:hover:text-emerald-400 transition-all text-slate-500 dark:text-slate-400 group">
           <span class="material-symbols-outlined text-xl group-hover:scale-110 transition-transform">calendar_month</span>
-          <span class="text-[10px] font-bold text-center leading-tight">الجدول الزمني</span>
+          <span class="text-[10px] font-bold text-center leading-tight">الجدول الدراسي</span>
         </a>
       </div>
     </div>
 
     <!-- Open Tickets summary -->
     {% if open_tickets %}
-    <div class="rounded-2xl p-5" style="background:var(--s-gold-dim);border:1.5px solid var(--s-gold);">
+    <div class="bg-amber-50 dark:bg-amber-900/20 rounded-2xl border border-amber-100 dark:border-amber-800/40 p-5">
       <div class="flex items-center gap-3 mb-2">
-        <span class="material-symbols-outlined" style="color:var(--s-gold);">support_agent</span>
-        <h3 class="font-bold text-sm" style="color:var(--s-text);" data-en="Open Tickets" data-ar="التذاكر المفتوحة">Open Tickets</h3>
+        <span class="material-symbols-outlined text-amber-600 dark:text-amber-400">support_agent</span>
+        <h3 class="font-bold text-amber-800 dark:text-amber-300 text-sm">تذاكر الدعم المفتوحة</h3>
       </div>
-      <p class="text-2xl font-extrabold font-headline" style="color:var(--s-text);">{{ open_tickets }}</p>
-      <a href="{% url 'admin_tickets' %}" class="mt-2 inline-flex items-center gap-1 text-xs font-bold hover:underline" style="color:var(--s-text);">عرض الكل <span class="material-symbols-outlined text-sm">arrow_back</span></a>
+      <p class="text-2xl font-extrabold text-amber-700 dark:text-amber-300 font-headline">{{ open_tickets }}</p>
+      <a href="{% url 'admin_tickets' %}" class="mt-2 block text-xs font-bold text-amber-600 dark:text-amber-400 hover:underline">عرض جميع التذاكر ←</a>
     </div>
     {% endif %}
 

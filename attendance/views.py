@@ -43,13 +43,12 @@ from .models import (
     Exam, ExamSeat, CourseEvaluation, SystemConfig, AsyncTask,
 )
 
-# ── Optional third-party ─────────────────────────────────────────────────────
-try:
-    import face_recognition
-    FACE_RECOGNITION_AVAILABLE = True
-except ImportError:
-    face_recognition = None
-    FACE_RECOGNITION_AVAILABLE = False
+# ── Face engine (InsightFace — single active engine) ─────────────────────────
+from . import face_engine as _fe
+
+# face_recognition (dlib) is disabled — InsightFace is the only engine.
+face_recognition = None
+FACE_RECOGNITION_AVAILABLE = False
 
 try:
     import cv2
@@ -64,6 +63,8 @@ try:
 except ImportError:
     np = None
     NUMPY_AVAILABLE = False
+
+FACE_ENGINE_AVAILABLE = _fe.available()
 
 logger = logging.getLogger(__name__)
 
@@ -151,6 +152,9 @@ def _redirect_by_role(request):
     user = request.user
     if not user.is_authenticated:
         return redirect('login')
+    # gate_staff check first — before is_staff to avoid mis-routing
+    if user.groups.filter(name='gate_staff').exists():
+        return redirect('gate_page')
     if user.is_superuser or user.is_staff:
         return redirect('admin_panel')
     if Coordinator.objects.filter(auth_user=user).exists():
@@ -159,9 +163,6 @@ def _redirect_by_role(request):
         return redirect('professor_dashboard')
     if Student.objects.filter(auth_user=user).exists():
         return redirect('student_dashboard')
-    # gate staff
-    if user.groups.filter(name='gate_staff').exists():
-        return redirect('gate_page')
     return redirect('login')
 
 
@@ -184,27 +185,92 @@ def log_audit(request, action, target_model='', target_id='', description=''):
 
 
 def load_known_faces():
-    """Load all face embeddings from DB into in-memory lists."""
+    """Load face embeddings into in-memory cache via InsightFace engine.
+
+    Only loads is_allowed_entry=True students + all teachers.
+    Skips embeddings whose dimension doesn't match the active engine.
+    """
     global known_face_encodings, known_face_names
     if not NUMPY_AVAILABLE:
         return
+    expected_dim = _fe.embedding_dim()
     with _face_lock:
         known_face_encodings.clear()
         known_face_names.clear()
-        for emb in StudentFaceEmbedding.objects.select_related('student').all():
+        for emb in (StudentFaceEmbedding.objects
+                    .select_related('student')
+                    .filter(student__is_allowed_entry=True)
+                    .only('embedding', 'student__name')):
             try:
                 vec = emb.embedding if isinstance(emb.embedding, list) else list(emb.embedding)
-                known_face_encodings.append(np.array(vec))
+                if len(vec) != expected_dim:
+                    continue  # skip stale dlib 128-dim if engine is insightface
+                known_face_encodings.append(np.array(vec, dtype=np.float32))
                 known_face_names.append(emb.student.name)
             except Exception:
                 pass
-        for emb in TeacherFaceEmbedding.objects.select_related('teacher').all():
+        for emb in (TeacherFaceEmbedding.objects
+                    .select_related('teacher')
+                    .only('face_vector', 'teacher__name')):
             try:
                 vec = emb.face_vector if isinstance(emb.face_vector, list) else list(emb.face_vector)
-                known_face_encodings.append(np.array(vec))
+                if len(vec) != expected_dim:
+                    continue
+                known_face_encodings.append(np.array(vec, dtype=np.float32))
                 known_face_names.append(emb.teacher.name)
             except Exception:
                 pass
+
+
+def match_face_from_db(live_encoding: list) -> tuple[str | None, str | None]:
+    """On-demand DB match using InsightFace engine — no full cache required.
+
+    Chunks through the DB (200 rows at a time), returns on first match.
+    Skips embeddings whose dimension doesn't match the active engine.
+    """
+    if not NUMPY_AVAILABLE or live_encoding is None:
+        return None, None
+    probe = np.array(live_encoding, dtype=np.float32)
+    expected_dim = _fe.embedding_dim()
+    CHUNK = 200
+
+    def _run_batch(queryset, vec_field, name_getter, person_type):
+        offset = 0
+        while True:
+            batch = list(queryset[offset: offset + CHUNK])
+            if not batch:
+                return None, None
+            for emb in batch:
+                try:
+                    raw = getattr(emb, vec_field)
+                    vec = np.array(raw if isinstance(raw, list) else list(raw), dtype=np.float32)
+                    if len(vec) != expected_dim:
+                        continue
+                    idx, score = _fe.match([vec.tolist()], probe.tolist())
+                    if idx >= 0:
+                        return name_getter(emb), person_type
+                except Exception:
+                    pass
+            offset += CHUNK
+
+    name, ptype = _run_batch(
+        StudentFaceEmbedding.objects.select_related('student')
+            .filter(student__is_allowed_entry=True)
+            .only('embedding', 'student__name'),
+        'embedding',
+        lambda e: e.student.name,
+        'student',
+    )
+    if name:
+        return name, ptype
+
+    return _run_batch(
+        TeacherFaceEmbedding.objects.select_related('teacher')
+            .only('face_vector', 'teacher__name'),
+        'face_vector',
+        lambda e: e.teacher.name,
+        'teacher',
+    )
 
 
 def _find_best_camera(preferred_index=0):
@@ -228,56 +294,67 @@ def gen_frames(camera_index=0):
         return
     actual_index = _find_best_camera(camera_index)
     cap = cv2.VideoCapture(actual_index, cv2.CAP_DSHOW)
+    # Consecutive read failures before giving up (avoids infinite loop on dead camera)
+    _fail_count = 0
+    _MAX_FAILS = 30
+    # Only run face recognition every N frames to prevent CPU saturation / crash
+    _frame_counter = 0
+    _FACE_EVERY_N = 5
+    # Cache last-computed overlays so skipped frames still show boxes
+    _last_overlays = []  # list of (top,right,bottom,left,color,label)
     try:
         while True:
             success, frame = cap.read()
             if not success:
-                break
-            # Draw face bounding boxes: green=authorized, yellow=known but no gate access, red=unknown
-            if FACE_RECOGNITION_AVAILABLE and NUMPY_AVAILABLE:
-                small = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
-                rgb_small = small[:, :, ::-1]
-                locations = face_recognition.face_locations(rgb_small)
-                if not locations:
-                    pass  # no faces
-                elif not known_face_encodings:
-                    # DB not loaded yet — yellow "analyzing" for every face
-                    for (top, right, bottom, left) in locations:
-                        top, right, bottom, left = top*4, right*4, bottom*4, left*4
-                        cv2.rectangle(frame, (left, top), (right, bottom), (0, 200, 255), 2)
-                        cv2.putText(frame, 'Analyzing...', (left, top - 10),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 200, 255), 2)
-                else:
-                    encodings = face_recognition.face_encodings(rgb_small, locations)
-                    for (top, right, bottom, left), enc in zip(locations, encodings):
-                        name = 'Unknown'
-                        matches = face_recognition.compare_faces(known_face_encodings, enc, tolerance=0.5)
-                        if True in matches:
-                            name = known_face_names[matches.index(True)]
-                        top, right, bottom, left = top*4, right*4, bottom*4, left*4
-                        if name == 'Unknown':
-                            # Red: face not in database
-                            color, label = (0, 0, 220), 'Not Registered'
-                        else:
-                            # Check gate authorization (student must be active)
-                            try:
-                                from attendance.models import Student as _St
-                                st = _St.objects.filter(student_code=name).first()
-                                authorized = st is not None
-                            except Exception:
-                                authorized = True
-                            if authorized:
-                                color, label = (0, 220, 0), name   # Green
+                _fail_count += 1
+                if _fail_count >= _MAX_FAILS:
+                    break
+                continue
+            _fail_count = 0
+            _frame_counter += 1
+
+            # Face detection via InsightFace — every _FACE_EVERY_N frames only
+            if FACE_ENGINE_AVAILABLE and CV2_AVAILABLE and NUMPY_AVAILABLE and (_frame_counter % _FACE_EVERY_N == 0):
+                try:
+                    rgb_frame = frame[:, :, ::-1]  # BGR → RGB for InsightFace
+                    app = _fe._get_insightface()
+                    new_overlays = []
+                    if app is not None:
+                        faces = app.get(rgb_frame)
+                        for face in faces:
+                            x1, y1, x2, y2 = [int(v) for v in face.bbox]
+                            probe = [float(x) for x in face.normed_embedding]
+                            name = 'Unknown'
+                            if known_face_encodings:
+                                idx, score = _fe.match(
+                                    [e.tolist() for e in known_face_encodings], probe
+                                )
+                                if idx >= 0:
+                                    name = known_face_names[idx]
+                            if name == 'Unknown':
+                                color, label = (0, 0, 220), 'Not Registered'
                             else:
-                                color, label = (0, 200, 255), name  # Yellow: known but not authorized
-                        cv2.rectangle(frame, (left, top), (right, bottom), color, 2)
-                        cv2.putText(frame, label, (left, top - 10),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 2)
+                                color, label = (0, 220, 0), name
+                            new_overlays.append((y1, x2, y2, x1, color, label))
+                    _last_overlays = new_overlays
+                except Exception:
+                    pass
+
+            # Paint cached overlays on every frame (smooth box display)
+            for (top, right, bottom, left, color, label) in _last_overlays:
+                cv2.rectangle(frame, (left, top), (right, bottom), color, 2)
+                cv2.putText(frame, label, (left, top - 10),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 2)
+
             ret, buffer = cv2.imencode('.jpg', frame)
             if not ret:
                 continue
             yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' +
                    buffer.tobytes() + b'\r\n')
+    except GeneratorExit:
+        pass  # client disconnected cleanly
+    except Exception:
+        pass  # any unexpected error — release camera below
     finally:
         cap.release()
 
@@ -351,10 +428,17 @@ def video_feed(request):
         camera_index = int(cam_param)
     except (ValueError, TypeError):
         camera_index = 0
-    return StreamingHttpResponse(
-        gen_frames(camera_index),
-        content_type='multipart/x-mixed-replace; boundary=frame'
-    )
+    if not CV2_AVAILABLE:
+        from django.http import HttpResponse
+        return HttpResponse(status=503)
+    try:
+        return StreamingHttpResponse(
+            gen_frames(camera_index),
+            content_type='multipart/x-mixed-replace; boundary=frame'
+        )
+    except Exception:
+        from django.http import HttpResponse
+        return HttpResponse(status=503)
 
 
 @login_required
@@ -364,7 +448,7 @@ def check_status(request):
     return JsonResponse({
         'active_sessions': active_sessions,
         'last_scan': recent.timestamp.isoformat() if recent else None,
-        'face_recognition': FACE_RECOGNITION_AVAILABLE,
+        'face_recognition': FACE_ENGINE_AVAILABLE,
     })
 
 
@@ -664,32 +748,34 @@ def upload_face(request, user_type, user_id):
             obj = get_object_or_404(Student, pk=user_id)
             obj.face_image = img_file
             obj.save(update_fields=['face_image'])
-            if FACE_RECOGNITION_AVAILABLE and NUMPY_AVAILABLE:
+            if FACE_ENGINE_AVAILABLE and NUMPY_AVAILABLE:
                 try:
-                    img = face_recognition.load_image_file(obj.face_image.path)
-                    encs = face_recognition.face_encodings(img)
-                    if encs:
-                        StudentFaceEmbedding.objects.update_or_create(
-                            student=obj,
-                            defaults={'embedding': encs[0].tolist()}
-                        )
-                        load_known_faces()
+                    import cv2 as _cv2
+                    img = _cv2.imread(obj.face_image.path)
+                    if img is not None:
+                        enc = _fe.encode(img[:, :, ::-1])  # BGR→RGB
+                        if enc:
+                            StudentFaceEmbedding.objects.update_or_create(
+                                student=obj, defaults={'embedding': enc}
+                            )
+                            load_known_faces()
                 except Exception as e:
                     logger.warning('Face encoding error: %s', e)
         elif user_type == 'teacher':
             obj = get_object_or_404(Teacher, pk=user_id)
             obj.face_image = img_file
             obj.save(update_fields=['face_image'])
-            if FACE_RECOGNITION_AVAILABLE and NUMPY_AVAILABLE:
+            if FACE_ENGINE_AVAILABLE and NUMPY_AVAILABLE:
                 try:
-                    img = face_recognition.load_image_file(obj.face_image.path)
-                    encs = face_recognition.face_encodings(img)
-                    if encs:
-                        TeacherFaceEmbedding.objects.update_or_create(
-                            teacher=obj,
-                            defaults={'face_vector': encs[0].tolist()}
-                        )
-                        load_known_faces()
+                    import cv2 as _cv2
+                    img = _cv2.imread(obj.face_image.path)
+                    if img is not None:
+                        enc = _fe.encode(img[:, :, ::-1])
+                        if enc:
+                            TeacherFaceEmbedding.objects.update_or_create(
+                                teacher=obj, defaults={'face_vector': enc}
+                            )
+                            load_known_faces()
                 except Exception as e:
                     logger.warning('Face encoding error: %s', e)
         messages.success(request, 'تم رفع الصورة.')
@@ -1240,27 +1326,28 @@ def enroll_face(request, person_type=None, person_id=None):
     """Enroll a face embedding for the currently logged-in user."""
     if request.method == 'POST':
         b64 = request.POST.get('image_data', '')
-        if b64 and FACE_RECOGNITION_AVAILABLE and NUMPY_AVAILABLE:
+        if b64 and FACE_ENGINE_AVAILABLE and NUMPY_AVAILABLE:
             try:
                 if ',' in b64:
                     b64 = b64.split(',')[1]
                 img_bytes = base64.b64decode(b64)
-                with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp:
-                    tmp.write(img_bytes)
-                    tmp_path = tmp.name
-                img = face_recognition.load_image_file(tmp_path)
-                encs = face_recognition.face_encodings(img)
-                os.unlink(tmp_path)
-                if encs:
+                import cv2 as _cv2
+                img_arr = _cv2.imdecode(
+                    np.frombuffer(img_bytes, dtype=np.uint8), _cv2.IMREAD_COLOR
+                )
+                if img_arr is None:
+                    return JsonResponse({'status': 'error', 'message': 'Invalid image'})
+                enc = _fe.encode(img_arr[:, :, ::-1])  # BGR→RGB
+                if enc:
                     student = Student.objects.filter(auth_user=request.user).first()
                     teacher = Teacher.objects.filter(auth_user=request.user).first()
                     if student:
                         StudentFaceEmbedding.objects.update_or_create(
-                            student=student, defaults={'embedding': encs[0].tolist()}
+                            student=student, defaults={'embedding': enc}
                         )
                     elif teacher:
                         TeacherFaceEmbedding.objects.update_or_create(
-                            teacher=teacher, defaults={'face_vector': encs[0].tolist()}
+                            teacher=teacher, defaults={'face_vector': enc}
                         )
                     load_known_faces()
                     return JsonResponse({'status': 'ok'})
@@ -3386,12 +3473,12 @@ def face_login(request):
 
             live_encoding = None
             try:
-                if FACE_RECOGNITION_AVAILABLE and NUMPY_AVAILABLE:
-                    img_arr = face_recognition.load_image_file(tmp_path)
-                    encs = face_recognition.face_encodings(img_arr)
-                    if encs:
-                        live_encoding = encs[0].tolist()
-            except Exception as img_err:
+                if FACE_ENGINE_AVAILABLE and NUMPY_AVAILABLE and CV2_AVAILABLE:
+                    img_arr = cv2.imread(tmp_path)
+                    if img_arr is not None:
+                        enc = _fe.encode(img_arr[:, :, ::-1])  # BGR→RGB
+                        live_encoding = enc  # list[float] or None
+            except Exception:
                 return JsonResponse({'status': 'error', 'message': 'تعذر تحليل الصورة — تأكد من وضوح الإضاءة وأن الوجه ظاهر بوضوح'})
             finally:
                 try:
@@ -3402,13 +3489,8 @@ def face_login(request):
             if live_encoding is None:
                 return JsonResponse({'status': 'error', 'message': 'لم يتم اكتشاف وجه — ضع وجهك أمام الكاميرا مباشرة'})
 
-            if NUMPY_AVAILABLE and known_face_encodings:
-                matches = face_recognition.compare_faces(
-                    known_face_encodings, np.array(live_encoding), tolerance=0.5
-                )
-                if True in matches:
-                    matched_name = known_face_names[matches.index(True)]
-                    matched_type = 'student'
+            if NUMPY_AVAILABLE and live_encoding:
+                matched_name, matched_type = match_face_from_db(live_encoding)
 
             if not matched_name:
                 return JsonResponse({

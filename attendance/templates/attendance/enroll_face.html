@@ -101,6 +101,11 @@
         </button>
       </div>
 
+      <p class="text-xs text-slate-400 text-center mt-1">
+        <span class="material-symbols-outlined text-xs align-middle">shield</span>
+        بياناتك البيومترية محمية ولن تُشارَك مع أطراف خارجية
+      </p>
+
       {% if has_face %}
       <button onclick="retake()"
         class="w-full flex items-center justify-center gap-2 text-xs text-slate-500 hover:text-red-600 transition-colors py-1">
@@ -189,9 +194,23 @@ function setProgress(pct, label) {
   if (pct >= 100) setTimeout(() => progressWrap.classList.add('hidden'), 1000);
 }
 
+// Stop webcam when leaving page
+function stopWebcam() {
+  if (window._webcamStream) {
+    window._webcamStream.getTracks().forEach(t => t.stop());
+    window._webcamStream = null;
+  }
+}
+window.addEventListener('beforeunload', stopWebcam);
+window.addEventListener('pagehide', stopWebcam);
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'hidden') stopWebcam();
+});
+
 async function startCamera() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 640, height: 480 } });
+    window._webcamStream = stream;
     video.srcObject = stream;
     video.classList.remove('hidden');
     placeholder.classList.add('hidden');

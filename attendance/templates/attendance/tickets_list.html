@@ -84,7 +84,7 @@
               </span>
               <span class="flex items-center gap-1">
                 <span class="material-symbols-outlined text-xs">schedule</span>
-                منذ {{ ticket.created_at|timesince }}
+                {{ ticket.created_at|date:"d/m/Y H:i" }}
               </span>
               {% if ticket.college %}
               <span class="flex items-center gap-1">

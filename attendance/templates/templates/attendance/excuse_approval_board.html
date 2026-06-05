@@ -9,10 +9,10 @@
     </div>
     <div class="flex gap-2">
       {% for st,lbl in status_choices|default:"" %}{% endfor %}
+      <a href="?status=all" class="px-3 py-2 rounded-xl text-xs font-bold {% if status_filter == 'all' %}bg-primary text-white{% else %}bg-slate-100 text-slate-600 hover:bg-slate-200{% endif %} transition-all">الكل</a>
       <a href="?status=pending" class="px-3 py-2 rounded-xl text-xs font-bold {% if status_filter == 'pending' %}bg-amber-100 text-amber-700{% else %}bg-slate-100 text-slate-600 hover:bg-slate-200{% endif %} transition-all">قيد المراجعة</a>
       <a href="?status=approved" class="px-3 py-2 rounded-xl text-xs font-bold {% if status_filter == 'approved' %}bg-emerald-100 text-emerald-700{% else %}bg-slate-100 text-slate-600 hover:bg-slate-200{% endif %} transition-all">مقبول</a>
       <a href="?status=rejected" class="px-3 py-2 rounded-xl text-xs font-bold {% if status_filter == 'rejected' %}bg-red-100 text-red-700{% else %}bg-slate-100 text-slate-600 hover:bg-slate-200{% endif %} transition-all">مرفوض</a>
-      <a href="?status=all" class="px-3 py-2 rounded-xl text-xs font-bold {% if status_filter == 'all' %}bg-primary text-white{% else %}bg-slate-100 text-slate-600 hover:bg-slate-200{% endif %} transition-all">الكل</a>
     </div>
   </div>
 
@@ -62,7 +62,7 @@
     </div>
     {% empty %}
     <div class="py-16 text-center text-slate-400 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700">
-      <span class="material-symbols-outlined text-4xl block mb-2">check_circle</span>
+      <span class="material-symbols-outlined text-4xl text-slate-300 mb-2 block">folder_open</span>
       لا توجد طلبات في هذه الفئة
     </div>
     {% endfor %}

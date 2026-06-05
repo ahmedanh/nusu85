@@ -124,9 +124,23 @@
     statusBox.classList.remove('hidden');
   }
 
+  // Stop webcam when leaving page
+  function stopWebcam() {
+    if (window._webcamStream) {
+      window._webcamStream.getTracks().forEach(t => t.stop());
+      window._webcamStream = null;
+    }
+  }
+  window.addEventListener('beforeunload', stopWebcam);
+  window.addEventListener('pagehide', stopWebcam);
+  document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'hidden') stopWebcam();
+  });
+
   async function startCamera() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+      window._webcamStream = stream;
       video.srcObject = stream;
       video.classList.remove('hidden');
       placeholder.classList.add('hidden');
@@ -136,14 +150,14 @@
       startBtn.classList.add('opacity-50');
       showStatus('الكاميرا جاهزة — اضغط "فحص الوجه"', 'info');
     } catch (e) {
-      showStatus('تعذّر الوصول إلى الكاميرا: ' + e.message, 'error');
+      showStatus('تعذّر الوصول إلى الكاميرا — تأكد من السماح باستخدامها في المتصفح', 'error');
     }
   }
 
   async function captureAndScan() {
     if (!video.srcObject) { showStatus('شغّل الكاميرا أولاً', 'error'); return; }
 
-    showStatus('جاري تحليل الوجه...', 'loading');
+    showStatus('جارٍ التعرف على الوجه...', 'loading');
     scanBtn.disabled = true;
 
     canvas.width = video.videoWidth;
@@ -172,10 +186,10 @@
       }
       const data = await resp.json();
       if (data.status === 'success') {
-        showStatus('مرحباً ' + data.name + '! جاري التحويل...', 'success');
+        showStatus('تم التعرف عليك، جارٍ تسجيل الدخول...', 'success');
         setTimeout(() => { window.location.href = data.redirect; }, 1000);
       } else {
-        showStatus(data.message || 'لم يتم التعرف على الوجه', 'error');
+        showStatus(data.message || 'لم يتم التعرف — حاول مجدداً', 'error');
         scanBtn.disabled = false;
       }
     } catch (e) {
