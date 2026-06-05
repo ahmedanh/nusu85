@@ -33,8 +33,11 @@
       {% csrf_token %}
       <div>
         <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">اختر صورة الوجه</label>
-        <input type="file" name="face_image" accept="image/*" required
-               class="block w-full text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
+        <label class="inp flex items-center gap-2 cursor-pointer">
+          <span class="px-3 py-1 rounded bg-slate-200 dark:bg-slate-700 text-sm">اختر ملف</span>
+          <span class="file-name text-sm text-slate-500">لم يتم اختيار ملف</span>
+          <input type="file" name="face_image" accept="image/*" required class="hidden" onchange="this.parentNode.querySelector('.file-name').textContent=this.files[0]?this.files[0].name:'لم يتم اختيار ملف'">
+        </label>
       </div>
 
       {% if person and person.face_image %}

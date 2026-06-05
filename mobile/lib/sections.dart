@@ -28,7 +28,7 @@ Section _courses() => Section('المواد الدراسية', Icons.menu_book_o
       icon: Icons.menu_book_outlined, accent: ShamelColors.gold, searchable: true,
       titleOf: (m) => _s(m, 'title'),
       subtitleOf: (m) => '${_s(m, 'code')} • ${_s(m, 'department')}',
-      trailingOf: (m) => '${_s(m, 'hours')}h',
+      trailingOf: (m) => '${_s(m, 'hours')} س',
       fab: const _AddFab(CreateCourseScreen()),
     ));
 

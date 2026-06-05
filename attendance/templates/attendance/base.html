@@ -1,6 +1,6 @@
 ﻿{% load static %}
 <!DOCTYPE html>
-<html lang="en" dir="ltr" class="">
+<html lang="ar" dir="rtl" class="">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -41,7 +41,7 @@ tailwind.config = {
 // ── Apply saved theme & language BEFORE render (prevents flash) ──
 (function(){
   const theme = localStorage.getItem('acdc_theme') || 'light';
-  const lang  = localStorage.getItem('acdc_lang')  || 'en';
+  const lang  = localStorage.getItem('acdc_lang')  || 'ar';
   if (theme === 'dark') document.documentElement.classList.add('dark');
   document.documentElement.lang = lang;
   document.documentElement.dir  = lang === 'ar' ? 'rtl' : 'ltr';
@@ -662,12 +662,12 @@ function applyLang(lang) {
   // Notification badge "new" text stays numeric — skip
 }
 function toggleLang() {
-  const cur = localStorage.getItem('acdc_lang') || 'en';
+  const cur = localStorage.getItem('acdc_lang') || 'ar';
   applyLang(cur === 'en' ? 'ar' : 'en');
 }
 // Init lang on load
 (function(){
-  const lang = localStorage.getItem('acdc_lang') || 'en';
+  const lang = localStorage.getItem('acdc_lang') || 'ar';
   applyLang(lang);
 })();
 

@@ -1,6 +1,6 @@
 ﻿{% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -33,14 +33,14 @@ tailwind.config = {
         <span class="material-symbols-outlined text-white text-lg">location_on</span>
       </div>
       <div>
-        <p class="font-extrabold text-white text-sm font-headline">SHAMEL Smart Gate</p>
-        <p class="text-xs text-slate-400">SHAMEL — Biometric Access Control</p>
+        <p class="font-extrabold text-white text-sm font-headline">SHAMEL البوابة الذكية</p>
+        <p class="text-xs text-slate-400">SHAMEL — التحقق البيومتري</p>
       </div>
     </div>
     <div class="flex items-center gap-4">
       <span id="gate-status-badge" class="flex items-center gap-1.5 text-xs font-bold text-slate-400 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700">
         <span class="w-2 h-2 rounded-full bg-slate-500"></span>
-        <span data-en="Standby" data-ar="في انتظار">Standby</span>
+        <span data-en="Standby" data-ar="استعداد">استعداد</span>
       </span>
       <span class="text-xs text-slate-500" id="clock"></span>
     </div>
@@ -56,7 +56,7 @@ tailwind.config = {
       <div class="flex items-center justify-between px-4 py-3 bg-slate-900/80 border-b border-white/10">
         <div class="flex items-center gap-2">
           <span class="material-symbols-outlined text-slate-400 text-lg">videocam</span>
-          <span class="text-sm font-bold text-white">Gate Camera</span>
+          <span class="text-sm font-bold text-white">كاميرا البوابة</span>
         </div>
         <div class="flex items-center gap-3">
           <select id="camera-select"
@@ -69,7 +69,7 @@ tailwind.config = {
           <button id="toggle-btn" onclick="toggleScanner()"
             class="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-1.5 rounded-lg transition-all">
             <span class="material-symbols-outlined text-sm">play_circle</span>
-            <span id="toggle-label">Start</span>
+            <span id="toggle-label">تشغيل</span>
           </button>
         </div>
       </div>
@@ -91,15 +91,15 @@ tailwind.config = {
         <!-- Placeholder -->
         <div id="cam-placeholder" class="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-slate-950">
           <span class="material-symbols-outlined text-slate-700 text-[80px]">videocam_off</span>
-          <p class="text-slate-500 text-sm font-semibold">Camera is OFF</p>
-          <p class="text-slate-600 text-xs">Select a camera and press Start</p>
+          <p class="text-slate-500 text-sm font-semibold">الكاميرا مُغلقة</p>
+          <p class="text-slate-600 text-xs">اختر كاميرا واضغط تشغيل</p>
         </div>
       </div>
 
       <!-- Camera error bar -->
       <div id="cam-error" class="hidden px-4 py-2 bg-red-900/60 text-red-300 text-xs font-semibold flex items-center gap-2">
         <span class="material-symbols-outlined text-sm">error</span>
-        <span id="cam-error-msg">Camera unavailable.</span>
+        <span id="cam-error-msg">الكاميرا غير متاحة.</span>
       </div>
     </div>
 
@@ -107,8 +107,8 @@ tailwind.config = {
     <div class="lg:col-span-2 bg-slate-900 border-l border-white/10 flex flex-col">
 
       <div class="px-5 py-4 border-b border-white/10">
-        <h2 class="font-bold text-white text-sm">Access Verification</h2>
-        <p class="text-xs text-slate-500 mt-0.5">Last scan result</p>
+        <h2 class="font-bold text-white text-sm">التحقق من الهوية</h2>
+        <p class="text-xs text-slate-500 mt-0.5">آخر نتيجة مسح</p>
       </div>
 
       <!-- Idle -->
@@ -154,9 +154,9 @@ tailwind.config = {
 
       <!-- Log strip -->
       <div class="border-t border-white/10 px-5 py-3">
-        <p class="text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-2"><span data-en="Recent Log" data-ar="السجل الأخير">Recent Log</span></p>
+        <p class="text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-2">آخر الأحداث</p>
         <ul id="log-list" class="space-y-1 text-xs text-slate-500 max-h-28 overflow-y-auto">
-          <li class="italic">No events yet.</li>
+          <li class="italic">لا توجد أحداث بعد.</li>
         </ul>
       </div>
     </div>
@@ -166,7 +166,7 @@ tailwind.config = {
 <script>
 // Apply language from localStorage
 (function(){
-  const lang = localStorage.getItem('acdc_lang') || 'en';
+  const lang = localStorage.getItem('acdc_lang') || 'ar';
   if (lang === 'ar') {
     document.documentElement.lang = 'ar';
     document.documentElement.dir  = 'rtl';
@@ -218,7 +218,7 @@ function startStream() {
   videoStream.src = `/attendance/video_feed/?camera=${cam}`;
   videoStream.onerror = () => {
     camError.classList.remove('hidden');
-    camErrorMsg.textContent = `Camera ${cam} unavailable — try another.`;
+    camErrorMsg.textContent = `الكاميرا ${cam} غير متاحة — جرّب أخرى.`;
   };
   videoStream.onload = () => camError.classList.add('hidden');
   videoStream.classList.remove('hidden');
@@ -239,14 +239,14 @@ function toggleScanner() {
   if (isScanning) {
     startStream();
     toggleBtn.className = 'flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-1.5 rounded-lg transition-all';
-    toggleLabel.textContent = 'Stop';
-    statusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping mr-1.5"></span><span class="text-emerald-400 font-bold">Scanning</span>';
+    toggleLabel.textContent = 'إيقاف';
+    statusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping mr-1.5"></span><span class="text-emerald-400 font-bold">مسح</span>';
     pollTimer = setInterval(pollStatus, 1000);
   } else {
     stopStream();
     toggleBtn.className = 'flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-1.5 rounded-lg transition-all';
-    toggleLabel.textContent = 'Start';
-    statusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-slate-500 mr-1.5"></span><span class="text-slate-400">Standby</span>';
+    toggleLabel.textContent = 'تشغيل';
+    statusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-slate-500 mr-1.5"></span><span class="text-slate-400">استعداد</span>';
     clearInterval(pollTimer);
     showIdle();
   }
@@ -271,7 +271,7 @@ function addLog(name, granted) {
   const now = new Date().toLocaleTimeString();
   const li = document.createElement('li');
   li.className = granted ? 'text-emerald-400' : 'text-red-400';
-  li.textContent = `${now} — ${name} — ${granted ? 'GRANTED' : 'DENIED'}`;
+  li.textContent = `${now} — ${name} — ${granted ? 'مسموح' : 'مرفوض'}`;
   if (logList.firstChild && logList.firstChild.classList && logList.firstChild.classList.contains('italic')) {
     logList.innerHTML = '';
   }
@@ -291,16 +291,16 @@ function showResult(data) {
   if (data.is_allowed) {
     accessBanner.className = 'rounded-2xl px-5 py-4 flex items-center gap-3 bg-emerald-900/60 text-emerald-300';
     accessIcon.textContent = 'check_circle';
-    accessLabel.textContent= IS_AR() ? 'الدخول مسموح' : 'ACCESS GRANTED';
+    accessLabel.textContent= 'مؤهل للدخول';
   } else {
     accessBanner.className = 'rounded-2xl px-5 py-4 flex items-center gap-3 bg-red-900/60 text-red-300';
     accessIcon.textContent = 'cancel';
-    accessLabel.textContent= IS_AR() ? 'الدخول محظور' : 'ACCESS DENIED';
+    accessLabel.textContent= 'غير مؤهل للدخول';
   }
 
   tagsEl.innerHTML = '';
   if (data.user_type === 'Student' && !data.is_registered) {
-    tagsEl.innerHTML += '<span class="text-xs font-bold bg-red-900/40 text-red-400 px-3 py-1 rounded-full border border-red-800">Unregistered</span>';
+    tagsEl.innerHTML += '<span class="text-xs font-bold bg-red-900/40 text-red-400 px-3 py-1 rounded-full border border-red-800">غير مسجّل</span>';
   }
 
   const scanKey = (data.name || '') + (data.is_allowed ? '1' : '0');

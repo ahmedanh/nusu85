@@ -67,7 +67,7 @@
         <p class="text-sm font-{% if not n.is_read %}bold{% else %}medium{% endif %} text-slate-800 dark:text-slate-200 leading-relaxed">
           {{ n.title }}{% if n.body %} — {{ n.body }}{% endif %}
         </p>
-        <p class="text-xs text-slate-400 mt-1">{{ n.created_at|timesince }} مضت</p>
+        <p class="text-xs text-slate-400 mt-1">منذ {{ n.created_at|timesince }}</p>
       </div>
 
       <!-- Unread dot -->

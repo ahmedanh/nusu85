@@ -639,6 +639,11 @@ def export_teachers_csv(request):
 @login_required
 def upload_face(request, user_type, user_id):
     """Upload a face image and store embedding."""
+    # Only staff/admin may manage face embeddings for arbitrary users.
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, 'غير مصرح.')
+        return _redirect_by_role(request)
+
     # Load the person for context
     person = None
     if user_type == 'teacher':
@@ -897,6 +902,7 @@ def add_schedule(request):
 
 
 @login_required
+@require_POST
 def delete_schedule(request, schedule_id):
     is_admin    = request.user.is_staff or request.user.is_superuser
     coordinator = Coordinator.objects.filter(auth_user=request.user).first()
@@ -916,6 +922,12 @@ def delete_schedule(request, schedule_id):
 
 @login_required
 def api_check_conflict(request):
+    # Only staff/admin and coordinators may use this endpoint.
+    is_admin    = request.user.is_staff or request.user.is_superuser
+    coordinator = Coordinator.objects.filter(auth_user=request.user).first()
+    if not (is_admin or coordinator):
+        return JsonResponse({'error': 'غير مصرح'}, status=403)
+
     classroom_id = request.GET.get('classroom_id')
     teacher_id   = request.GET.get('teacher_id')
     day          = request.GET.get('day')
@@ -925,11 +937,16 @@ def api_check_conflict(request):
 
     base_filter = dict(day_of_week=day, start_time__lt=end, end_time__gt=start)
 
+    # Coordinators may only check resources inside their own college.
+    college_scope = coordinator.college if (coordinator and not is_admin) else None
+
     # Room conflict
     room_conflict = False
     room_msg = ''
     if classroom_id:
         qs = Schedule.objects.filter(classroom_id=classroom_id, **base_filter)
+        if college_scope:
+            qs = qs.filter(course__college=college_scope)
         if exclude_id:
             qs = qs.exclude(pk=exclude_id)
         if qs.exists():
@@ -941,6 +958,8 @@ def api_check_conflict(request):
     teacher_msg = ''
     if teacher_id:
         qs2 = Schedule.objects.filter(teacher_id=teacher_id, **base_filter)
+        if college_scope:
+            qs2 = qs2.filter(course__college=college_scope)
         if exclude_id:
             qs2 = qs2.exclude(pk=exclude_id)
         if qs2.exists():
@@ -1626,10 +1645,10 @@ def coordinator_dashboard(request):
     # Coordinator sees college-scoped tickets, not global system tickets
     open_tickets = SupportTicket.objects.filter(
         status='open',
-        created_by__student__department__college=coordinator.college
+        user__student__department__college=coordinator.college
     ).count() + SupportTicket.objects.filter(
         status='open',
-        created_by__teacher__college=coordinator.college
+        user__teacher__college=coordinator.college
     ).count()
 
     # Academic-specific KPIs (not shown to admin)
@@ -2330,10 +2349,11 @@ def demo_login(request):
         raise Http404
     role = request.GET.get('role', 'admin')
     demo_users = {
-        'admin': 'admin',
-        'teacher': 'demo_teacher',
-        'student': 'demo_student',
-        'coordinator': 'demo_coordinator',
+        'admin':       'admin',
+        'teacher':     'teacher1',
+        'student':     'std_demo_1',
+        'coordinator': 'coordinator_demo',
+        'gate':        'gate',
     }
     username = demo_users.get(role, 'admin')
     user = User.objects.filter(username=username).first()

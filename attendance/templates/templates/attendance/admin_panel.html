@@ -5,17 +5,17 @@
 <!-- Header -->
 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
   <div>
-    <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">Chancellor Control Panel</h1>
-    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Live biometric &amp; academic infrastructure overview</p>
+    <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">لوحة تحكم المسؤول</h1>
+    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">نظرة عامة على البنية التحتية الأكاديمية والبيومترية</p>
   </div>
   <div class="flex gap-2 flex-wrap">
     <a href="{% url 'export_teachers' %}"
       class="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm">
-      <span class="material-symbols-outlined text-lg">download</span> Export Faculty
+      <span class="material-symbols-outlined text-lg">download</span> تصدير بيانات الأساتذة
     </a>
     <a href="{% url 'coordinator_register_user' %}"
       class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary-container transition-all shadow-sm">
-      <span class="material-symbols-outlined text-lg">person_add</span> New Enrollment
+      <span class="material-symbols-outlined text-lg">person_add</span> تسجيل جديد
     </a>
   </div>
 </div>
@@ -32,7 +32,7 @@
       <span class="text-xs font-bold px-2.5 py-1 rounded-full" style="background:#D1FAE5;color:#065F46">+12% MoM</span>
     </div>
     <p id="total-students-count" class="text-3xl font-extrabold font-headline" style="color:#0B2545">{{ total_students }}</p>
-    <p class="text-sm font-medium mt-1" style="color:#64748B">Registered Students</p>
+    <p class="text-sm font-medium mt-1" style="color:#64748B">الطلاب المسجلون</p>
     <div class="mt-4 h-1.5 rounded-full overflow-hidden" style="background:#E2E8F0">
       <div class="h-full rounded-full" style="width:85%;background:#3B82F6"></div>
     </div>
@@ -47,7 +47,7 @@
       <span class="text-xs font-bold" style="color:#94A3B8">98% Verified</span>
     </div>
     <p class="text-3xl font-extrabold font-headline" style="color:#0B2545">{{ active_faculty }}</p>
-    <p class="text-sm font-medium mt-1" style="color:#64748B">Active Faculty Members</p>
+    <p class="text-sm font-medium mt-1" style="color:#64748B">أعضاء هيئة التدريس النشطون</p>
     <div class="mt-4 flex gap-1">
       <div class="h-1.5 flex-1 rounded-full" style="background:#7C3AED"></div>
       <div class="h-1.5 flex-1 rounded-full" style="background:#7C3AED"></div>
@@ -70,14 +70,14 @@
             <span class="animate-ping absolute inset-0 rounded-full bg-emerald-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
           </span>
-          AI Online
+          الذكاء الاصطناعي نشط
         </span>
       </div>
       <p id="ai-accuracy" class="text-3xl font-extrabold font-headline" style="color:#ffffff">94.2%</p>
-      <p class="text-sm font-medium mt-1" style="color:rgba(255,255,255,0.65)">Face Recognition Accuracy</p>
+      <p class="text-sm font-medium mt-1" style="color:rgba(255,255,255,0.65)">دقة التعرف على الوجه</p>
       <div class="mt-4">
         <div class="flex justify-between text-[11px] font-semibold mb-1.5" style="color:rgba(255,255,255,0.5)">
-          <span>Training Progress</span>
+          <span>تقدم التدريب</span>
           <span id="training-percent">{{ training_progress }}%</span>
         </div>
         <div class="h-1.5 rounded-full overflow-hidden" style="background:rgba(255,255,255,0.1)">
@@ -99,20 +99,20 @@
   <!-- Faculty Table -->
   <div class="lg:col-span-2 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
     <div class="px-6 py-4 border-b border-slate-50 dark:border-slate-700 flex items-center justify-between">
-      <h2 class="font-bold text-slate-800 dark:text-slate-100 font-headline">Faculty Management</h2>
+      <h2 class="font-bold text-slate-800 dark:text-slate-100 font-headline">إدارة هيئة التدريس</h2>
       <a href="{% url 'faculty_management' %}"
         class="text-xs font-bold text-primary hover:underline flex items-center gap-1">
-        View all <span class="material-symbols-outlined text-sm">arrow_forward</span>
+        <span class="material-symbols-outlined text-sm">arrow_back</span> عرض الكل
       </a>
     </div>
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
         <thead class="bg-slate-50 dark:bg-slate-900/50 text-xs text-slate-400 dark:text-slate-500 uppercase tracking-wider">
           <tr>
-            <th class="px-6 py-3 text-left font-semibold">Member</th>
-            <th class="px-6 py-3 text-left font-semibold">Department</th>
-            <th class="px-6 py-3 text-left font-semibold">Status</th>
-            <th class="px-6 py-3 text-right font-semibold">Actions</th>
+            <th class="px-6 py-3 text-right font-semibold">العضو</th>
+            <th class="px-6 py-3 text-right font-semibold">القسم</th>
+            <th class="px-6 py-3 text-right font-semibold">الحالة</th>
+            <th class="px-6 py-3 text-left font-semibold">إجراءات</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-50 dark:divide-slate-700">
@@ -138,7 +138,7 @@
               <span class="flex items-center gap-1.5 text-xs font-semibold
                 {% if teacher.is_allowed_entry %}text-emerald-700 dark:text-emerald-400{% else %}text-red-600 dark:text-red-400{% endif %}">
                 <span class="w-1.5 h-1.5 rounded-full {% if teacher.is_allowed_entry %}bg-emerald-500{% else %}bg-red-500{% endif %}"></span>
-                {% if teacher.is_allowed_entry %}Active{% else %}Blocked{% endif %}
+                {% if teacher.is_allowed_entry %}نشط{% else %}محظور{% endif %}
               </span>
             </td>
             <td class="px-6 py-3 text-right">
@@ -165,7 +165,7 @@
           <tr>
             <td colspan="4" class="px-6 py-10 text-center text-slate-400 dark:text-slate-500 text-sm">
               <span class="material-symbols-outlined text-3xl block mb-1 opacity-30">group_off</span>
-              No faculty members registered yet.
+              لا يوجد أعضاء هيئة تدريس مسجلون بعد.
             </td>
           </tr>
           {% endfor %}
@@ -180,13 +180,13 @@
     <!-- Classroom status -->
     <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
       <div class="px-5 py-4 border-b border-slate-50 dark:border-slate-700 flex items-center justify-between">
-        <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm">Room Status</h3>
+        <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm">حالة القاعات</h3>
         <span class="flex items-center gap-1.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 rounded-full">
           <span class="relative flex h-1.5 w-1.5">
             <span class="animate-ping absolute inset-0 rounded-full bg-emerald-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
           </span>
-          Live
+          مباشر
         </span>
       </div>
       <div class="p-3 space-y-2 max-h-64 overflow-y-auto">
@@ -199,44 +199,44 @@
           </div>
           <span class="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0
             {% if room.is_occupied %}bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400{% else %}bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400{% endif %}">
-            {% if room.is_occupied %}Busy{% else %}Free{% endif %}
+            {% if room.is_occupied %}مشغولة{% else %}متاحة{% endif %}
           </span>
         </div>
         {% empty %}
-        <p class="text-xs text-slate-400 dark:text-slate-500 text-center py-4">No classrooms registered.</p>
+        <p class="text-xs text-slate-400 dark:text-slate-500 text-center py-4">لا توجد قاعات مسجلة.</p>
         {% endfor %}
       </div>
       <div class="px-4 pb-4 pt-2">
         <a href="{% url 'classrooms_status' %}"
           class="block w-full text-center text-xs font-bold text-primary bg-primary/5 hover:bg-primary/10 py-2.5 rounded-xl transition-colors">
-          View all rooms
+          عرض جميع القاعات
         </a>
       </div>
     </div>
 
     <!-- Quick actions -->
     <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-5">
-      <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm mb-4">Quick Actions</h3>
+      <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm mb-4">إجراءات سريعة</h3>
       <div class="grid grid-cols-2 gap-2">
         <a href="{% url 'student_report' %}"
           class="flex flex-col items-center gap-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-700/50 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-400 transition-all text-slate-500 dark:text-slate-400 group">
           <span class="material-symbols-outlined text-xl group-hover:scale-110 transition-transform">people</span>
-          <span class="text-[10px] font-bold text-center leading-tight">Student Report</span>
+          <span class="text-[10px] font-bold text-center leading-tight">تقرير الطلاب</span>
         </a>
         <a href="{% url 'teacher_report' %}"
           class="flex flex-col items-center gap-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-700/50 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:text-purple-700 dark:hover:text-purple-400 transition-all text-slate-500 dark:text-slate-400 group">
           <span class="material-symbols-outlined text-xl group-hover:scale-110 transition-transform">school</span>
-          <span class="text-[10px] font-bold text-center leading-tight">Faculty Report</span>
+          <span class="text-[10px] font-bold text-center leading-tight">تقرير الأساتذة</span>
         </a>
         <a href="{% url 'gate_reports' %}"
           class="flex flex-col items-center gap-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-700/50 hover:bg-amber-50 dark:hover:bg-amber-900/20 hover:text-amber-700 dark:hover:text-amber-400 transition-all text-slate-500 dark:text-slate-400 group">
           <span class="material-symbols-outlined text-xl group-hover:scale-110 transition-transform">sensor_door</span>
-          <span class="text-[10px] font-bold text-center leading-tight">Gate Logs</span>
+          <span class="text-[10px] font-bold text-center leading-tight">سجلات البوابة</span>
         </a>
         <a href="{% url 'schedule' %}"
           class="flex flex-col items-center gap-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-700/50 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 dark:hover:text-emerald-400 transition-all text-slate-500 dark:text-slate-400 group">
           <span class="material-symbols-outlined text-xl group-hover:scale-110 transition-transform">calendar_month</span>
-          <span class="text-[10px] font-bold text-center leading-tight">Schedule</span>
+          <span class="text-[10px] font-bold text-center leading-tight">الجدول الزمني</span>
         </a>
       </div>
     </div>
@@ -249,7 +249,7 @@
         <h3 class="font-bold text-sm" style="color:var(--s-text);" data-en="Open Tickets" data-ar="التذاكر المفتوحة">Open Tickets</h3>
       </div>
       <p class="text-2xl font-extrabold font-headline" style="color:var(--s-text);">{{ open_tickets }}</p>
-      <a href="{% url 'admin_tickets' %}" class="mt-2 block text-xs font-bold hover:underline" style="color:var(--s-warning);" data-en="View all tickets →" data-ar="← عرض جميع التذاكر">View all tickets →</a>
+      <a href="{% url 'admin_tickets' %}" class="mt-2 block text-xs font-bold hover:underline" style="color:var(--s-warning);">عرض الكل ←</a>
     </div>
     {% endif %}
 

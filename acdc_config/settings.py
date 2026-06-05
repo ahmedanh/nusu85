@@ -162,6 +162,7 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
+AXES_ENABLED = False  # Disable django-axes lockout completely
 AXES_FAILURE_LIMIT = 5
 AXES_COOLOFF_TIME = 0.25
 
@@ -183,10 +184,14 @@ AUTH_PASSWORD_VALIDATORS = [
 # Suppress W042 — explicit primary key type
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ar'          # Arabic-first UI: localizes timesince, |date month/day names
 TIME_ZONE = 'Africa/Khartoum'
 USE_I18N = True
+USE_L10N = True               # locale-aware number/date formatting (Arabic)
 USE_TZ = False
+DATE_FORMAT = 'd/m/Y'         # dd/mm/yyyy — not the US mm/dd/yyyy default
+DATETIME_FORMAT = 'd/m/Y H:i'
+SHORT_DATE_FORMAT = 'd/m/Y'
 
 
 # ─────────────────────────────────────────────

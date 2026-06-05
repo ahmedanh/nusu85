@@ -1,11 +1,11 @@
 ﻿{% extends 'attendance/base.html' %}
-{% block title %}Weekly Schedule — SHAMEL{% endblock %}
+{% block title %}الجدول الأسبوعي — SHAMEL{% endblock %}
 {% block content %}
 
 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
   <div>
-    <h1 class="text-2xl font-extrabold text-slate-900 font-headline">Weekly Schedule</h1>
-    <p class="text-sm text-slate-500 mt-1">Class timetable and room availability overview.</p>
+    <h1 class="text-2xl font-extrabold text-slate-900 font-headline">الجدول الأسبوعي</h1>
+    <p class="text-sm text-slate-500 mt-1">جدول المقررات ونظرة عامة على توافر القاعات.</p>
   </div>
 </div>
 
@@ -16,17 +16,17 @@
     <div class="px-6 py-4 border-b border-slate-50 flex items-center gap-2">
       <span class="material-symbols-outlined text-primary text-lg">calendar_today</span>
       <h2 class="font-bold text-slate-800 font-headline">{{ day }}</h2>
-      <span class="ml-auto text-xs font-semibold bg-slate-100 text-slate-500 px-2.5 py-1 rounded-full">{{ schedules|length }} session{{ schedules|length|pluralize }}</span>
+      <span class="ml-auto text-xs font-semibold bg-slate-100 text-slate-500 px-2.5 py-1 rounded-full">{{ schedules|length }} جلسة</span>
     </div>
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
         <thead class="bg-slate-50 text-xs text-slate-400 uppercase tracking-wider">
           <tr>
-            <th class="px-6 py-3 text-left font-semibold">Time</th>
-            <th class="px-6 py-3 text-left font-semibold">Course</th>
-            <th class="px-6 py-3 text-left font-semibold">Teacher</th>
-            <th class="px-6 py-3 text-left font-semibold">Classroom</th>
-            <th class="px-6 py-3 text-left font-semibold">Status</th>
+            <th class="px-6 py-3 text-right font-semibold">الوقت</th>
+            <th class="px-6 py-3 text-right font-semibold">المقرر</th>
+            <th class="px-6 py-3 text-right font-semibold">الأستاذ</th>
+            <th class="px-6 py-3 text-right font-semibold">القاعة</th>
+            <th class="px-6 py-3 text-right font-semibold">الحالة</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-50">
@@ -43,11 +43,11 @@
             <td class="px-6 py-3">
               {% if s.classroom.is_busy %}
               <span class="inline-flex items-center gap-1 text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-100">
-                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Occupied
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> مشغولة
               </span>
               {% else %}
               <span class="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Available
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> متاحة
               </span>
               {% endif %}
             </td>
@@ -62,7 +62,7 @@
 {% else %}
 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-12 text-center">
   <span class="material-symbols-outlined text-4xl text-slate-300 block mb-3">event_busy</span>
-  <p class="text-slate-500 font-medium">No schedules available.</p>
+  <p class="text-slate-500 font-medium">لا توجد جداول متاحة.</p>
 </div>
 {% endif %}
 

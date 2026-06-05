@@ -74,7 +74,7 @@
             {% else %}bg-slate-300{% endif %}"></div>
           <div class="min-w-0">
             <p class="font-bold text-slate-800 dark:text-slate-200 group-hover:text-primary transition-colors truncate">
-              #{{ ticket.id }} — {{ ticket.subject }}
+              #{{ ticket.id }} — {{ ticket.subject|default:"بلاغ بدون عنوان" }}
             </p>
             <p class="text-xs text-slate-400 mt-0.5 line-clamp-1">{{ ticket.description|truncatechars:100 }}</p>
             <div class="flex items-center gap-3 mt-2 text-[11px] text-slate-400">
@@ -84,7 +84,7 @@
               </span>
               <span class="flex items-center gap-1">
                 <span class="material-symbols-outlined text-xs">schedule</span>
-                {{ ticket.created_at|timesince }} مضت
+                منذ {{ ticket.created_at|timesince }}
               </span>
             </div>
           </div>
@@ -100,7 +100,11 @@
           </span>
           <!-- Priority badge -->
           <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-700 text-slate-500">
-            {{ ticket.get_priority_display }}
+            {% if ticket.priority == 'urgent' %}عاجلة
+            {% elif ticket.priority == 'high' %}عالية
+            {% elif ticket.priority == 'medium' %}متوسطة
+            {% elif ticket.priority == 'low' %}منخفضة
+            {% else %}{{ ticket.get_priority_display }}{% endif %}
           </span>
         </div>
       </div>

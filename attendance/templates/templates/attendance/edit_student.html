@@ -72,7 +72,11 @@
         </div>
         <div>
           <label class="label-xs">صورة شخصية</label>
-          <input type="file" name="profile_photo" accept="image/*" class="inp">
+          <label class="inp flex items-center gap-2 cursor-pointer">
+            <span class="px-3 py-1 rounded bg-slate-200 dark:bg-slate-700 text-sm">اختر ملف</span>
+            <span class="file-name text-sm text-slate-500">لم يتم اختيار ملف</span>
+            <input type="file" name="profile_photo" accept="image/*" class="hidden" onchange="this.parentNode.querySelector('.file-name').textContent=this.files[0]?this.files[0].name:'لم يتم اختيار ملف'">
+          </label>
           {% if student.profile_photo %}
           <p class="text-xs text-slate-400 mt-1">الحالية: <a href="{{ student.profile_photo.url }}" target="_blank" class="text-primary underline">عرض</a></p>
           {% endif %}

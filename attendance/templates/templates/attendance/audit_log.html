@@ -76,7 +76,13 @@
                 {% elif log.action == 'LOGIN' %}bg-purple-100 text-purple-700
                 {% elif log.action == 'TOGGLE_ACCESS' %}bg-orange-100 text-orange-700
                 {% else %}bg-slate-100 text-slate-600{% endif %}">
-                {{ log.action }}
+                {% if log.action == 'CREATE' %}إنشاء
+                {% elif log.action == 'UPDATE' %}تعديل
+                {% elif log.action == 'DELETE' %}حذف
+                {% elif log.action == 'LOGIN' %}تسجيل دخول
+                {% elif log.action == 'LOGOUT' %}تسجيل خروج
+                {% elif log.action == 'TOGGLE_ACCESS' or log.action == 'TOGGLE_STUDENT_ACCESS' %}تغيير صلاحية
+                {% else %}{{ log.action }}{% endif %}
               </span>
             </td>
             <td class="px-4 py-3 text-xs text-slate-500">{{ log.target_model|default:"—" }} {% if log.target_id %}#{{ log.target_id }}{% endif %}</td>

@@ -177,7 +177,7 @@
 <script>
 // Re-apply current language so new page content gets translated immediately
 (function(){
-  const lang = localStorage.getItem('acdc_lang') || 'en';
+  const lang = localStorage.getItem('acdc_lang') || 'ar';
   if (lang === 'ar') {
     document.querySelectorAll('[data-ar]').forEach(el => {
       if (el.tagName !== 'INPUT' && el.tagName !== 'OPTION') el.textContent = el.dataset.ar;

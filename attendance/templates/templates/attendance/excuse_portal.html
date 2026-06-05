@@ -46,7 +46,11 @@
       </div>
       <div>
         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">مرفق (اختياري)</label>
-        <input type="file" name="attachment" accept=".jpg,.jpeg,.png,.pdf" class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm dark:text-white outline-none">
+        <label class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 flex items-center gap-2 cursor-pointer">
+          <span class="px-3 py-1 rounded bg-slate-200 dark:bg-slate-600 text-sm dark:text-white">اختر ملف</span>
+          <span class="file-name text-sm text-slate-500">لم يتم اختيار ملف</span>
+          <input type="file" name="attachment" accept=".jpg,.jpeg,.png,.pdf" class="hidden" onchange="this.parentNode.querySelector('.file-name').textContent=this.files[0]?this.files[0].name:'لم يتم اختيار ملف'">
+        </label>
       </div>
       <div class="md:col-span-2">
         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">وصف العذر *</label>

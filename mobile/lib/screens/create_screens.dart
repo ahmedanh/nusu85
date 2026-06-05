@@ -128,7 +128,7 @@ class CreateTicketScreen extends StatelessWidget {
         fields: [
           _Field('subject', 'الموضوع', required: true),
           _Field('body', 'الوصف', required: true),
-          _Field('priority', 'الأولوية (low/medium/high)'),
+          _Field('priority', 'الأولوية (عالية/متوسطة/منخفضة)'),
         ],
       );
 }

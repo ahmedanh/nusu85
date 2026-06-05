@@ -69,8 +69,11 @@
           </div>
           <div>
             <label class="label-xs mb-2 block">الصورة الشخصية</label>
-            <input type="file" name="profile_photo" accept="image/*"
-              class="text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-primary file:text-white hover:file:bg-primary-container cursor-pointer">
+            <label class="inp flex items-center gap-2 cursor-pointer">
+              <span class="px-3 py-1 rounded bg-slate-200 dark:bg-slate-700 text-sm">اختر ملف</span>
+              <span class="file-name text-sm text-slate-500">لم يتم اختيار ملف</span>
+              <input type="file" name="profile_photo" accept="image/*" class="hidden" onchange="this.parentNode.querySelector('.file-name').textContent=this.files[0]?this.files[0].name:'لم يتم اختيار ملف'">
+            </label>
           </div>
         </div>
 

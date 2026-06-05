@@ -11,11 +11,11 @@
   <div class="flex gap-2 flex-wrap">
     <a href="{% url 'export_teachers' %}"
       class="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-all shadow-sm">
-      <span class="material-symbols-outlined text-lg">download</span> Export Faculty
+      <span class="material-symbols-outlined text-lg">download</span> تصدير بيانات الأساتذة
     </a>
     <a href="{% url 'coordinator_register_user' %}"
       class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary-container transition-all shadow-sm">
-      <span class="material-symbols-outlined text-lg">person_add</span> New Enrollment
+      <span class="material-symbols-outlined text-lg">person_add</span> تسجيل جديد
     </a>
   </div>
 </div>
@@ -68,7 +68,7 @@
             <span class="animate-ping absolute inset-0 rounded-full bg-emerald-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
           </span>
-          AI Online
+          الذكاء الاصطناعي نشط
         </span>
       </div>
       <p id="ai-accuracy" class="text-3xl font-extrabold text-white font-headline">94.2%</p>
@@ -96,20 +96,20 @@
   <!-- Faculty Table -->
   <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
     <div class="px-6 py-4 border-b border-slate-50 flex items-center justify-between">
-      <h2 class="font-bold text-slate-800 dark:text-slate-100 font-headline">Faculty Management</h2>
+      <h2 class="font-bold text-slate-800 dark:text-slate-100 font-headline">إدارة هيئة التدريس</h2>
       <a href="{% url 'faculty_management' %}"
         class="text-xs font-bold text-primary hover:underline flex items-center gap-1">
-        View all <span class="material-symbols-outlined text-sm">arrow_forward</span>
+        <span class="material-symbols-outlined text-sm">arrow_back</span> عرض الكل
       </a>
     </div>
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
         <thead class="bg-slate-50 text-xs text-slate-400 uppercase tracking-wider">
           <tr>
-            <th class="px-6 py-3 text-left font-semibold">Member</th>
-            <th class="px-6 py-3 text-left font-semibold">Department</th>
-            <th class="px-6 py-3 text-left font-semibold">Status</th>
-            <th class="px-6 py-3 text-right font-semibold">Actions</th>
+            <th class="px-6 py-3 text-right font-semibold">العضو</th>
+            <th class="px-6 py-3 text-right font-semibold">القسم</th>
+            <th class="px-6 py-3 text-right font-semibold">الحالة</th>
+            <th class="px-6 py-3 text-left font-semibold">إجراءات</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-50">
@@ -135,7 +135,7 @@
               <span class="flex items-center gap-1.5 text-xs font-semibold
                 {% if teacher.is_allowed_entry %}text-emerald-700{% else %}text-red-600{% endif %}">
                 <span class="w-1.5 h-1.5 rounded-full {% if teacher.is_allowed_entry %}bg-emerald-500{% else %}bg-red-500{% endif %}"></span>
-                {% if teacher.is_allowed_entry %}Active{% else %}Blocked{% endif %}
+                {% if teacher.is_allowed_entry %}نشط{% else %}محظور{% endif %}
               </span>
             </td>
             <td class="px-6 py-3 text-right">
@@ -162,7 +162,7 @@
           <tr>
             <td colspan="4" class="px-6 py-10 text-center text-slate-400 text-sm">
               <span class="material-symbols-outlined text-3xl block mb-1 opacity-30">group_off</span>
-              No faculty members registered yet.
+              لا يوجد أعضاء هيئة تدريس مسجلون بعد.
             </td>
           </tr>
           {% endfor %}
@@ -177,13 +177,13 @@
     <!-- Classroom status -->
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
       <div class="px-5 py-4 border-b border-slate-50 flex items-center justify-between">
-        <h3 class="font-bold text-slate-800 text-sm">Room Status</h3>
+        <h3 class="font-bold text-slate-800 text-sm">حالة القاعات</h3>
         <span class="flex items-center gap-1.5 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">
           <span class="relative flex h-1.5 w-1.5">
             <span class="animate-ping absolute inset-0 rounded-full bg-emerald-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
           </span>
-          Live
+          مباشر
         </span>
       </div>
       <div class="p-3 space-y-2 max-h-64 overflow-y-auto">
@@ -196,7 +196,7 @@
           </div>
           <span class="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0
             {% if room.is_occupied %}bg-red-100 text-red-700{% else %}bg-emerald-100 text-emerald-700{% endif %}">
-            {% if room.is_occupied %}Busy{% else %}Free{% endif %}
+            {% if room.is_occupied %}مشغولة{% else %}متاحة{% endif %}
           </span>
         </div>
         {% empty %}
