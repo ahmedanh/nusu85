@@ -9,12 +9,12 @@
     <div class="flex items-center gap-3 bg-white p-3 px-6 rounded-xl border-2 border-primary/10 shadow-md">
         <span class="material-symbols-outlined text-primary text-xl">book</span>
         <div class="flex flex-col">
-            <span class="text-[10px] uppercase tracking-tighter text-slate-400 font-bold leading-none mb-1">Current Session</span>
+            <span class="text-[10px] uppercase tracking-tighter text-slate-400 font-bold leading-none mb-1">الجلسة الحالية</span>
             <h1 class="font-headline font-black text-slate-900 text-4xl lg:text-5xl tracking-tighter uppercase leading-tight">
               {% if current_sched and current_sched.course %}
               {{ current_sched.course.name }}
             {% else %}
-              <span class="text-slate-300">General Scanning</span>
+              <span class="text-slate-300">مسح عام</span>
            {% endif %}
             </h1>
         </div>
@@ -23,7 +23,7 @@
     <div class="flex items-center gap-3 bg-emerald-50 p-3 px-6 rounded-xl border-2 border-emerald-100 shadow-sm">
         <span class="material-symbols-outlined text-emerald-600 text-xl">location_on</span>
         <div class="flex flex-col">
-            <span class="text-[10px] uppercase tracking-tighter text-emerald-600/60 font-bold leading-none mb-1">Location</span>
+            <span class="text-[10px] uppercase tracking-tighter text-emerald-600/60 font-bold leading-none mb-1">الموقع</span>
             <span class="font-headline font-black text-slate-900 text-sm leading-none">
                 {{ current_sched.classroom.name|default:"SF1" }}
             </span>
@@ -43,25 +43,25 @@
             </div>
 
             <div class="mb-4">
-                <label for="camera-select" class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 block text-center">Camera Source</label>
+                <label for="camera-select" class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 block text-center">مصدر الكاميرا</label>
                 <select id="camera-select" onchange="updateCamera()" class="bg-white border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-primary focus:border-primary block w-56 p-2 text-center shadow-sm">
                   {% for cam in camera_sources %}
                   <option value="{{ cam.id }}">{{ cam.name }} — {{ cam.location }}</option>
                   {% empty %}
-                  <option value="0">Camera 0 (Default)</option>
-                  <option value="1">Camera 1 (USB)</option>
-                  <option value="2">Camera 2 (USB)</option>
+                  <option value="0">كاميرا 0 (افتراضية)</option>
+                  <option value="1">كاميرا 1 (USB)</option>
+                  <option value="2">كاميرا 2 (USB)</option>
                   {% endfor %}
                 </select>
             </div>
 
             <div id="scanner-info" class="text-[10px] font-bold text-primary animate-pulse tracking-[0.4em] uppercase mb-4">
-                Scanning System Active
+                نظام المسح نشط
             </div>
 
             <button onclick="window.location.reload()" class="group flex items-center gap-3 bg-slate-900 text-white px-8 py-2.5 rounded-xl shadow-lg hover:bg-primary transition-all active:scale-95">
                 <span class="material-symbols-outlined text-lg">qr_code_scanner</span>
-                <span class="font-headline font-bold text-xs">Scan Now</span>
+                <span class="font-headline font-bold text-xs">مسح الآن</span>
             </button>
         </div>
 
@@ -77,12 +77,12 @@
         <div class="p-8 pb-4">
             <h2 class="font-headline font-bold text-slate-900 text-xl tracking-tight flex items-center gap-2">
                 <span class="material-symbols-outlined text-primary">history</span>
-                Recent Scans
+                آخر عمليات المسح
             </h2>
         </div>
 
         <div id="recent-scans-list" class="flex-1 overflow-y-auto px-6 space-y-3 pb-8">
-            <div class="text-sm text-slate-400 px-4 py-3 italic">Waiting for incoming data...</div>
+            <div class="text-sm text-slate-400 px-4 py-3 italic">في انتظار البيانات...</div>
         </div>
 
         <div class="p-6 bg-slate-900 text-white m-6 rounded-2xl shadow-2xl border border-white/5 relative overflow-hidden">
@@ -93,16 +93,16 @@
             <div class="flex justify-between items-center mb-6 relative z-10">
                 <div class="flex items-center gap-2">
                     <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
-                    <span class="text-[10px] font-bold uppercase tracking-widest text-emerald-400/80">AI Engine Live</span>
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-emerald-400/80">محرك الذكاء الاصطناعي نشط</span>
                 </div>
                 <span id="total-attendance" class="text-[10px] font-bold bg-white/10 px-2 py-1 rounded-lg border border-white/10">
-                    0 Present
+                    0 حاضر
                 </span>
             </div>
 
             <div class="space-y-4 relative z-10">
                 <div class="flex justify-between items-center text-sm">
-                    <span class="opacity-60 text-xs font-medium">Match Accuracy</span>
+                    <span class="opacity-60 text-xs font-medium">دقة التطابق</span>
                     <span class="font-mono font-bold text-emerald-400">99.8%</span>
                 </div>
                 <div class="h-1.5 bg-white/10 rounded-full overflow-hidden">
@@ -114,6 +114,22 @@
 </div>
 
 <script>
+    // ── Camera lifecycle management ───────────────────────────────────────────
+    // Kill the MJPEG stream immediately when user leaves this page.
+    // Setting src='' aborts the HTTP connection → Django's gen_frames()
+    // receives GeneratorExit → cap.release() is called inside finally block.
+    function stopCameraStream() {
+        const videoStream = document.getElementById('main-video-stream');
+        if (videoStream) { videoStream.src = ''; }
+    }
+
+    // Three complementary hooks to catch all navigation scenarios
+    window.addEventListener('beforeunload', stopCameraStream);   // tab close / F5
+    window.addEventListener('pagehide',     stopCameraStream);   // bfcache navigation
+    document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'hidden') stopCameraStream();
+    });
+
     function updateCamera() {
         const src = document.getElementById('camera-select').value;
         const videoStream = document.getElementById('main-video-stream');
@@ -142,7 +158,7 @@
                 }
             }
         } else {
-            if(elements.mainName) elements.mainName.innerText = 'Waiting...';
+            if(elements.mainName) elements.mainName.innerText = 'انتظار...';
             if(border) {
                 border.style.borderColor = ""; 
                 border.style.boxShadow = "";
@@ -167,7 +183,7 @@
             const stats = await res.json();
             const totalAttendanceElem = document.getElementById('total-attendance');
             if (totalAttendanceElem && stats.total_attendance !== undefined) {
-                totalAttendanceElem.textContent = stats.total_attendance + " Present";
+                totalAttendanceElem.textContent = stats.total_attendance + " حاضر";
             }
         } catch (e) { console.error("Stats Error:", e); }
     }
