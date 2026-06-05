@@ -25,10 +25,16 @@
         <option value="{{ c.id }}" {% if filters.course_id == c.id|stringformat:"s" %}selected{% endif %}>{{ c.title }}</option>
         {% endfor %}
       </select>
-      <input type="date" name="date_from" value="{{ filters.date_from }}"
-        class="py-2.5 px-3 text-sm rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 dark:text-white outline-none">
-      <input type="date" name="date_to" value="{{ filters.date_to }}"
-        class="py-2.5 px-3 text-sm rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 dark:text-white outline-none">
+      <div class="flex items-center gap-1">
+        <label class="text-xs font-bold text-slate-500 whitespace-nowrap">من:</label>
+        <input type="date" name="date_from" value="{{ filters.date_from }}"
+          class="py-2.5 px-3 text-sm rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 dark:text-white outline-none">
+      </div>
+      <div class="flex items-center gap-1">
+        <label class="text-xs font-bold text-slate-500 whitespace-nowrap">إلى:</label>
+        <input type="date" name="date_to" value="{{ filters.date_to }}"
+          class="py-2.5 px-3 text-sm rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 dark:text-white outline-none">
+      </div>
       <input type="text" name="student_q" value="{{ filters.student_q }}" placeholder="بحث باسم الطالب..."
         class="flex-1 min-w-36 py-2.5 px-3 text-sm rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 dark:text-white outline-none">
       <button type="submit" class="px-4 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary-container transition-all">بحث</button>

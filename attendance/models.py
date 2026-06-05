@@ -150,8 +150,9 @@ class Schedule(models.Model):
     day_of_week = models.CharField(max_length=10, choices=DAYS)
     start_time  = models.TimeField()
     end_time    = models.TimeField()
-    batch       = models.CharField(max_length=10, blank=True)
-    semester    = models.CharField(max_length=10, blank=True)
+    batch                    = models.CharField(max_length=10, blank=True)
+    semester                 = models.CharField(max_length=10, blank=True)
+    total_lectures_required  = models.IntegerField(default=28)
 
     class Meta:
         db_table = 'attendance_schedule'

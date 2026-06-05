@@ -235,8 +235,8 @@ tailwind.config = {
 
       <!-- Page heading -->
       <div class="mb-8">
-        <h1 class="text-3xl font-extrabold font-headline" style="color:#0B2545;">Welcome back</h1>
-        <p class="text-sm mt-1.5" style="color:#6B7FA3;">Sign in to access your academic portal.</p>
+        <h1 class="text-3xl font-extrabold font-headline" style="color:#0B2545;">أهلاً بك</h1>
+        <p class="text-sm mt-1.5" style="color:#6B7FA3;">سجّل دخولك للوصول إلى بوابتك الأكاديمية.</p>
       </div>
 
       <!-- Error alert -->
@@ -251,16 +251,16 @@ tailwind.config = {
       <!-- ── PRIMARY: Face ID — Gold CTA ── -->
       <a href="{% url 'face_login' %}" class="btn-gold mb-4" style="text-decoration:none">
         <span class="material-symbols-outlined" style="font-size:22px">face</span>
-        Sign in with Face ID
+        الدخول بالتعرف على الوجه
       </a>
 
       <p class="text-center text-xs mb-5 font-medium" style="color:#9BA8C5;">
-        Recommended — use your enrolled face to sign in instantly.
+        مُوصى به — استخدم وجهك المسجّل لتسجيل الدخول فوراً.
       </p>
 
       <!-- Divider -->
       <div class="divider mb-5">
-        <span class="text-xs font-bold uppercase tracking-widest whitespace-nowrap" style="color:#9BA8C5;">or sign in with password</span>
+        <span class="text-xs font-bold uppercase tracking-widest whitespace-nowrap" style="color:#9BA8C5;">أو سجّل الدخول بكلمة المرور</span>
       </div>
 
       <!-- ── SECONDARY: Password form ── -->
@@ -270,21 +270,21 @@ tailwind.config = {
         <!-- Username -->
         <div>
           <label class="block text-xs font-bold uppercase tracking-wider mb-1.5" style="color:#6B7FA3;">
-            University ID or Email
+            الرقم الجامعي أو البريد الإلكتروني
           </label>
           <input name="username" type="text" required autocomplete="username"
-            placeholder="Enter your username or email" class="field"/>
+            placeholder="أدخل اسم المستخدم أو البريد" class="field"/>
         </div>
 
         <!-- Password -->
         <div>
           <label class="block text-xs font-bold uppercase tracking-wider mb-1.5" style="color:#6B7FA3;">
-            Password
+            كلمة المرور
           </label>
           <div class="relative">
             <input name="password" id="pw" type="password" required autocomplete="current-password"
-              placeholder="Enter your password" class="field" style="padding-right:46px"/>
-            <button type="button" class="eye-btn" onclick="togglePw()" aria-label="Toggle password visibility">
+              placeholder="أدخل كلمة المرور" class="field" style="padding-right:46px"/>
+            <button type="button" class="eye-btn" onclick="togglePw()" aria-label="إظهار/إخفاء كلمة المرور">
               <span id="eye-icon" class="material-symbols-outlined" style="font-size:20px">visibility</span>
             </button>
           </div>
@@ -293,7 +293,7 @@ tailwind.config = {
         <!-- Submit — Navy button -->
         <button type="submit" id="submit-btn" class="btn-navy-outline" style="margin-top:8px; background:#0B2545; color:#fff; border-color:#0B2545;">
           <span class="material-symbols-outlined" style="font-size:20px">login</span>
-          Sign In
+          تسجيل الدخول
         </button>
       </form>
 
@@ -301,7 +301,7 @@ tailwind.config = {
       <div class="mt-8 flex items-center justify-between">
         <div class="flex items-center gap-2">
           <span class="w-2 h-2 rounded-full bg-emerald-400 status-dot inline-block"></span>
-          <span class="text-xs font-medium" style="color:#9BA8C5;">System Online</span>
+          <span class="text-xs font-medium" style="color:#9BA8C5;">النظام متصل</span>
         </div>
         <span class="text-xs font-medium" style="color:#9BA8C5;">SHAMEL v4.2</span>
       </div>

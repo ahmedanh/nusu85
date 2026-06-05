@@ -5,193 +5,325 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Sign In — SHAMEL Portal</title>
-<script>tailwind={config:{darkMode:"class",theme:{extend:{colors:{primary:"#C9A227","primary-dark":"#A8831A",navy:"#0B2545"}}}}}</script>
 <script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0&display=block"/>
 <link href="{% static 'fonts/fonts.css' %}" rel="stylesheet"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0&display=block"/>
+<script>
+tailwind.config = {
+  theme: { extend: {
+    colors: {
+      navy:    "#0B2545",
+      "navy-deep": "#070E1D",
+      gold:    "#C9A227",
+      "gold-bright": "#F0C040",
+    },
+    fontFamily: {
+      headline:["Manrope","Segoe UI","system-ui","sans-serif"],
+      body:["Inter","Segoe UI","system-ui","sans-serif"]
+    }
+  }}
+}
+</script>
 <style>
-  body { font-family:'Inter','Segoe UI',system-ui,sans-serif; background: linear-gradient(135deg,#0B2545 0%,#122040 50%,#0A1628 100%); min-height:100vh; }
-  body::before { content:''; position:fixed; inset:0; background-image: radial-gradient(circle,rgba(201,162,39,.07) 1px,transparent 1px); background-size:32px 32px; pointer-events:none; }
+  body { font-family:'Inter','Segoe UI',system-ui,sans-serif; }
+  h1,h2,h3,.font-headline { font-family:'Manrope','Segoe UI',system-ui,sans-serif; }
   .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24; line-height:1; }
-  .card { background:rgba(255,255,255,0.97); border-radius:24px; box-shadow:0 25px 60px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.1); }
-  .field { width:100%; background:#F4F6FB; border:1.5px solid #D0D7E8; border-radius:12px; padding:12px 16px; font-size:14px; font-weight:500; color:#0B2545; transition:border-color .2s,box-shadow .2s; outline:none; }
-  .field:focus { border-color:#C9A227; background:#fff; box-shadow:0 0 0 4px rgba(201,162,39,.12); }
-  .field::placeholder { color:#9BA8C5; font-weight:400; }
-  .btn-gold { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; padding:14px 20px; background:linear-gradient(135deg,#C9A227 0%,#E8C040 100%); color:#0B2545; font-weight:700; font-size:15px; border-radius:14px; border:none; cursor:pointer; transition:all .2s; box-shadow:0 4px 18px rgba(201,162,39,.4); text-decoration:none; }
-  .btn-gold:hover { background:linear-gradient(135deg,#B8950F 0%,#C9A227 100%); transform:translateY(-1px); box-shadow:0 6px 24px rgba(201,162,39,.5); }
-  .btn-navy { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; padding:13px 20px; background:#0B2545; color:#fff; font-weight:700; font-size:15px; border-radius:14px; border:none; cursor:pointer; transition:all .2s; }
-  .btn-navy:hover { background:#0d2f5e; transform:translateY(-1px); }
-  .btn-navy:disabled { opacity:.6; cursor:not-allowed; transform:none; }
-  .eye-btn { position:absolute; right:14px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:#9BA8C5; display:flex; align-items:center; transition:color .15s; }
-  .eye-btn:hover { color:#C9A227; }
-  .divider { display:flex; align-items:center; gap:12px; }
-  .divider::before,.divider::after { content:''; flex:1; height:1px; background:#E2E8F0; }
-  .gold-line { height:2px; background:linear-gradient(90deg,transparent,#C9A227,transparent); border-radius:9999px; }
-  @keyframes spin { to{transform:rotate(360deg)} }
-  @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:.35} }
-  .status-dot { animation:pulse-dot 2.2s ease-in-out infinite; }
-  /* Default (light mode) text colours */
-  .login-heading  { color: #0B2545; }
-  .login-subtext  { color: #6B7FA3; }
-  /* Dark mode: card background + text → readable on dark card */
-  @media (prefers-color-scheme: dark) {
-    .card           { background: rgba(15,25,45,0.97) !important; }
-    .login-heading  { color: #E2E8F0 !important; }
-    .login-subtext  { color: #94A3B8 !important; }
-    .field          { background: #0D1A33; border-color: #1A2F50; color: #E8EDF8; }
-    .field::placeholder { color: #4A6080; }
-    .field:focus    { background: #091528; border-color: #F0C040; }
+
+  /* ── Left panel — deep navy from logo ── */
+  .panel-bg {
+    background: linear-gradient(150deg, #060D1F 0%, #0B2545 45%, #0d2f5e 100%);
+    position: relative;
+    overflow: hidden;
   }
-  /* JS-toggled dark mode (localStorage theme=dark) */
-  body.dark-mode .card           { background: rgba(15,25,45,0.97) !important; }
-  body.dark-mode .login-heading  { color: #E2E8F0 !important; }
-  body.dark-mode .login-subtext  { color: #94A3B8 !important; }
-  body.dark-mode .field          { background: #0D1A33; border-color: #1A2F50; color: #E8EDF8; }
-  body.dark-mode .field::placeholder { color: #4A6080; }
-  body.dark-mode .field:focus    { background: #091528; border-color: #F0C040; }
+
+  /* Geometric grid pattern like the logo shield network */
+  .panel-bg::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(circle, rgba(201,162,39,0.08) 1px, transparent 1px),
+      radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 40px 40px, 20px 20px;
+    background-position: 0 0, 10px 10px;
+  }
+
+  /* Gold glow blobs mimicking logo's torch glow */
+  .glow-gold {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    pointer-events: none;
+  }
+
+  /* Input */
+  .field {
+    width: 100%;
+    background: #F4F6FB;
+    border: 1.5px solid #D0D7E8;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #0B2545;
+    transition: border-color .2s, background .2s, box-shadow .2s;
+    outline: none;
+  }
+  .field:focus {
+    border-color: #C9A227;
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(201,162,39,0.12);
+  }
+  .field::placeholder { color: #9BA8C5; font-weight: 400; }
+
+  /* Gold CTA button */
+  .btn-gold {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    width: 100%; padding: 14px 20px;
+    background: linear-gradient(135deg, #C9A227 0%, #E8C040 100%);
+    color: #0B2545;
+    font-weight: 700; font-size: 15px;
+    border-radius: 14px; border: none; cursor: pointer;
+    transition: all .2s;
+    box-shadow: 0 4px 18px rgba(201,162,39,0.35);
+  }
+  .btn-gold:hover { background: linear-gradient(135deg, #B8950F 0%, #C9A227 100%); box-shadow: 0 6px 22px rgba(201,162,39,0.45); transform: translateY(-1px); }
+  .btn-gold:active { transform: scale(0.98); }
+  .btn-gold:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+
+  /* Navy outlined button */
+  .btn-navy-outline {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    width: 100%; padding: 13px 20px;
+    background: transparent; color: #0B2545;
+    font-weight: 700; font-size: 15px;
+    border-radius: 14px; border: 2px solid #D0D7E8; cursor: pointer;
+    transition: all .2s;
+  }
+  .btn-navy-outline:hover { background: #EEF1F8; border-color: #C9A227; color: #C9A227; }
+  .btn-navy-outline:active { transform: scale(0.98); }
+
+  /* Eye toggle */
+  .eye-btn {
+    position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; cursor: pointer; color: #9BA8C5;
+    display: flex; align-items: center; transition: color .15s;
+  }
+  .eye-btn:hover { color: #C9A227; }
+
+  /* Feature card on left panel */
+  .feature-card {
+    display: flex; align-items: flex-start; gap: 12px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px; padding: 14px 16px;
+    transition: background .2s;
+  }
+  .feature-card:hover { background: rgba(255,255,255,0.08); }
+
+  /* Divider */
+  .divider { display: flex; align-items: center; gap: 12px; }
+  .divider::before, .divider::after {
+    content: ''; flex: 1; height: 1px; background: #E2E8F0;
+  }
+
+  /* Status pulse */
+  @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:.35} }
+  .status-dot { animation: pulse-dot 2.2s ease-in-out infinite; }
+
+  /* Gold separator line */
+  .gold-line {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #C9A227, transparent);
+    margin: 6px 0;
+    border-radius: 9999px;
+  }
 </style>
 </head>
 
-<body class="flex items-center justify-center p-4" style="min-height:100vh;">
+<body class="min-h-screen bg-[#F4F6FB] flex">
 
-  <div class="card w-full max-w-md p-8 sm:p-10 relative z-10">
+  <!-- ══════════════════════════════════════════
+       LEFT PANEL — SHAMEL branding
+  ══════════════════════════════════════════ -->
+  <div class="hidden lg:flex lg:w-[46%] xl:w-[44%] panel-bg flex-col items-center justify-center p-14">
 
-    <!-- Logo + Title -->
-    <div class="flex flex-col items-center text-center mb-8">
-      <img src="{% static 'images/logo.svg' %}"
-           class="h-24 object-contain mb-5"
-           alt="SHAMEL">
-      <div class="gold-line w-28 mb-4"></div>
-      <h1 class="text-2xl font-extrabold login-heading" style="font-family:'Manrope','Segoe UI',sans-serif;"
-          data-en="Welcome back" data-ar="مرحباً بعودتك">Welcome back</h1>
-      <p class="text-sm mt-1 login-subtext"
-         data-en="Sign in to access your academic portal." data-ar="سجّل دخولك للوصول إلى البوابة الأكاديمية.">Sign in to access your academic portal.</p>
-    </div>
+    <!-- Gold glow blobs (mimicking logo torch glow) -->
+    <div class="glow-gold w-72 h-72 top-16 -left-16" style="background:rgba(201,162,39,0.12);"></div>
+    <div class="glow-gold w-48 h-48 bottom-20 right-4" style="background:rgba(77,170,255,0.08);"></div>
 
-    <!-- Error alert -->
-    {% if error %}
-    <div class="mb-5 flex items-start gap-3 rounded-2xl px-4 py-3 text-sm font-medium" style="background:#FFF5F5; border:1.5px solid #FCA5A5; color:#991B1B;">
-      <span class="material-symbols-outlined text-lg flex-shrink-0 mt-0.5">error_outline</span>
-      <span>{{ error }}</span>
-    </div>
-    {% endif %}
+    <div class="relative z-10 text-center max-w-sm">
 
-    <!-- Face ID -->
-    <a href="{% url 'face_login' %}" class="btn-gold mb-3">
-      <span class="material-symbols-outlined" style="font-size:22px">face</span>
-      <span data-en="Sign in with Face ID" data-ar="تسجيل الدخول بالوجه">Sign in with Face ID</span>
-    </a>
-    <p class="text-center text-xs mb-5 font-medium" style="color:#9BA8C5;"
-       data-en="Recommended — use your enrolled face to sign in instantly."
-       data-ar="موصى به — استخدم وجهك المسجل لتسجيل الدخول فوراً.">
-      Recommended — use your enrolled face to sign in instantly.
-    </p>
-
-    <!-- Divider -->
-    <div class="divider mb-5">
-      <span class="text-xs font-bold uppercase tracking-widest whitespace-nowrap" style="color:#9BA8C5;"
-            data-en="or sign in with password" data-ar="أو سجّل بكلمة المرور">or sign in with password</span>
-    </div>
-
-    <!-- Password form -->
-    <form method="POST" action="{% url 'login' %}" id="login-form" class="space-y-4">
-      {% csrf_token %}
-      <div>
-        <label class="block text-xs font-bold uppercase tracking-wider mb-1.5" style="color:#6B7FA3;"
-               data-en="University ID or Email" data-ar="الرقم الجامعي أو البريد">University ID or Email</label>
-        <input name="username" type="text" required autocomplete="username"
-               data-placeholder-en="Enter your username or email" data-placeholder-ar="أدخل اسم المستخدم أو البريد"
-               placeholder="Enter your username or email" class="field"/>
+      <!-- Full logo with description (login page only) -->
+      <div class="mb-8">
+        <!-- Logo image — dark version for the dark panel -->
+        <img src="{% static 'images/logo.svg' %}"
+             class="h-28 mx-auto object-contain mb-6"
+             style="filter: brightness(0) invert(1);"
+             alt="SHAMEL"
+             onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='block'">
+        <!-- Text fallback -->
+        <div id="logo-fallback" style="display:none;" class="mb-6">
+          <div class="w-24 h-24 mx-auto rounded-3xl flex items-center justify-center mb-4"
+               style="background:rgba(201,162,39,0.15); border:2px solid rgba(201,162,39,0.4);">
+            <span class="material-symbols-outlined text-[#C9A227]" style="font-size:52px">shield</span>
+          </div>
+          <h2 class="text-4xl font-extrabold text-white font-headline tracking-wide">SHAMEL</h2>
+        </div>
+        <!-- System full name below logo -->
+        <p class="text-white/55 text-sm leading-relaxed tracking-wide uppercase" style="font-size:11px; letter-spacing:.12em;">
+          Secure High-dimensional Academic Management<br>&amp; Entry Logic
+        </p>
+        <div class="gold-line w-32 mx-auto mt-4"></div>
       </div>
-      <div>
-        <label class="block text-xs font-bold uppercase tracking-wider mb-1.5" style="color:#6B7FA3;"
-               data-en="Password" data-ar="كلمة المرور">Password</label>
-        <div class="relative">
-          <input name="password" id="pw" type="password" required autocomplete="current-password"
-                 data-placeholder-en="Enter your password" data-placeholder-ar="أدخل كلمة المرور"
-                 placeholder="Enter your password" class="field" style="padding-right:46px"/>
-          <button type="button" class="eye-btn" onclick="togglePw()" aria-label="Toggle password visibility">
-            <span id="eye-icon" class="material-symbols-outlined" style="font-size:20px">visibility</span>
-          </button>
+
+      <!-- 3 feature cards -->
+      <div class="space-y-3 text-left mt-8">
+        <div class="feature-card">
+          <span class="material-symbols-outlined mt-0.5 flex-shrink-0" style="font-size:20px; color:#C9A227;">face</span>
+          <div>
+            <p class="text-white text-sm font-bold">Biometric Check-in</p>
+            <p class="text-white/50 text-xs leading-snug mt-0.5">Sub-second face recognition powered by AI embeddings.</p>
+          </div>
+        </div>
+        <div class="feature-card">
+          <span class="material-symbols-outlined mt-0.5 flex-shrink-0" style="font-size:20px; color:#C9A227;">bar_chart</span>
+          <div>
+            <p class="text-white text-sm font-bold">Live Attendance Reports</p>
+            <p class="text-white/50 text-xs leading-snug mt-0.5">Real-time dashboards for coordinators and instructors.</p>
+          </div>
+        </div>
+        <div class="feature-card">
+          <span class="material-symbols-outlined mt-0.5 flex-shrink-0" style="font-size:20px; color:#C9A227;">security</span>
+          <div>
+            <p class="text-white text-sm font-bold">Privacy-First Security</p>
+            <p class="text-white/50 text-xs leading-snug mt-0.5">AES-256 encrypted embeddings. University data policy compliant.</p>
+          </div>
         </div>
       </div>
-      <button type="submit" id="submit-btn" class="btn-navy" style="margin-top:6px">
-        <span class="material-symbols-outlined" style="font-size:20px">login</span>
-        <span data-en="Sign In" data-ar="تسجيل الدخول">Sign In</span>
-      </button>
-    </form>
 
-    <!-- Footer -->
-    <div class="mt-6 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 status-dot inline-block"></span>
-        <span class="text-xs font-medium" style="color:#9BA8C5;"
-              data-en="System Online" data-ar="النظام متصل">System Online</span>
-      </div>
-      <span class="text-xs font-medium" style="color:#9BA8C5;">SHAMEL v4.2</span>
     </div>
 
+    <!-- Bottom version tag -->
+    <div class="absolute bottom-6 left-0 right-0 flex justify-center">
+      <div class="flex items-center gap-2 px-4 py-2 rounded-full"
+           style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12);">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 status-dot"></span>
+        <span class="text-white/60 text-xs font-semibold">SHAMEL v4.2 · System Online</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       RIGHT PANEL — login form
+  ══════════════════════════════════════════ -->
+  <div class="flex-1 flex flex-col items-center justify-center p-6 lg:p-14 bg-white">
+
+    <div class="w-full max-w-sm">
+
+      <!-- Mobile logo (hidden on desktop) — full logo on mobile too -->
+      <div class="lg:hidden flex flex-col items-center mb-8 text-center">
+        <img src="{% static 'images/logo.svg' %}" class="h-16 object-contain mb-3" alt="SHAMEL"
+             onerror="this.style.display='none'; document.getElementById('mob-logo-txt').style.display='block'">
+        <div id="mob-logo-txt" style="display:none;" class="flex items-center gap-2 mb-3">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#C9A227,#E8C040);">
+            <span class="material-symbols-outlined text-[#0B2545] text-xl">shield</span>
+          </div>
+          <span class="text-xl font-extrabold font-headline text-[#0B2545]">SHAMEL</span>
+        </div>
+        <p class="text-xs text-slate-400 uppercase tracking-widest">Secure Academic Management</p>
+      </div>
+
+      <!-- Page heading -->
+      <div class="mb-8">
+        <h1 class="text-3xl font-extrabold font-headline" style="color:#0B2545;">أهلاً بك</h1>
+        <p class="text-sm mt-1.5" style="color:#6B7FA3;">سجّل دخولك للوصول إلى بوابتك الأكاديمية.</p>
+      </div>
+
+      <!-- Error alert -->
+      {% if error %}
+      <div class="mb-6 flex items-start gap-3 rounded-2xl px-4 py-3.5 text-sm font-medium"
+           style="background:#FFF5F5; border:1.5px solid #FCA5A5; color:#991B1B;">
+        <span class="material-symbols-outlined text-lg flex-shrink-0 mt-0.5">error_outline</span>
+        <span>{{ error }}</span>
+      </div>
+      {% endif %}
+
+      <!-- ── PRIMARY: Face ID — Gold CTA ── -->
+      <a href="{% url 'face_login' %}" class="btn-gold mb-4" style="text-decoration:none">
+        <span class="material-symbols-outlined" style="font-size:22px">face</span>
+        الدخول بالتعرف على الوجه
+      </a>
+
+      <p class="text-center text-xs mb-5 font-medium" style="color:#9BA8C5;">
+        مُوصى به — استخدم وجهك المسجّل لتسجيل الدخول فوراً.
+      </p>
+
+      <!-- Divider -->
+      <div class="divider mb-5">
+        <span class="text-xs font-bold uppercase tracking-widest whitespace-nowrap" style="color:#9BA8C5;">أو سجّل الدخول بكلمة المرور</span>
+      </div>
+
+      <!-- ── SECONDARY: Password form ── -->
+      <form method="POST" action="{% url 'login' %}" id="login-form" class="space-y-4">
+        {% csrf_token %}
+
+        <!-- Username -->
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider mb-1.5" style="color:#6B7FA3;">
+            الرقم الجامعي أو البريد الإلكتروني
+          </label>
+          <input name="username" type="text" required autocomplete="username"
+            placeholder="أدخل اسم المستخدم أو البريد" class="field"/>
+        </div>
+
+        <!-- Password -->
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider mb-1.5" style="color:#6B7FA3;">
+            كلمة المرور
+          </label>
+          <div class="relative">
+            <input name="password" id="pw" type="password" required autocomplete="current-password"
+              placeholder="أدخل كلمة المرور" class="field" style="padding-right:46px"/>
+            <button type="button" class="eye-btn" onclick="togglePw()" aria-label="إظهار/إخفاء كلمة المرور">
+              <span id="eye-icon" class="material-symbols-outlined" style="font-size:20px">visibility</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Submit — Navy button -->
+        <button type="submit" id="submit-btn" class="btn-navy-outline" style="margin-top:8px; background:#0B2545; color:#fff; border-color:#0B2545;">
+          <span class="material-symbols-outlined" style="font-size:20px">login</span>
+          تسجيل الدخول
+        </button>
+      </form>
+
+      <!-- Footer info -->
+      <div class="mt-8 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 status-dot inline-block"></span>
+          <span class="text-xs font-medium" style="color:#9BA8C5;">النظام متصل</span>
+        </div>
+        <span class="text-xs font-medium" style="color:#9BA8C5;">SHAMEL v4.2</span>
+      </div>
+
+    </div>
   </div>
 
 </body>
 
 <script>
-/* ── i18n for standalone login page ─────────────────────────── */
-(function(){
-  // Apply dark mode from localStorage
-  try {
-    var theme = localStorage.getItem('theme') || localStorage.getItem('acdc_theme');
-    if(theme === 'dark' || window.matchMedia('(prefers-color-scheme:dark)').matches) {
-      document.body.classList.add('dark-mode');
-    }
-  } catch(e){}
-
-  var lang = 'ar';
-  try { lang = localStorage.getItem('acdc_lang') || new URLSearchParams(location.search).get('lang') || 'ar'; } catch(e){}
-  if(lang !== 'ar') return; // already English by default
-  document.documentElement.setAttribute('lang','ar');
-  document.documentElement.setAttribute('dir','rtl');
-  document.querySelectorAll('[data-ar]').forEach(function(el){
-    el.textContent = el.getAttribute('data-ar');
-  });
-  document.querySelectorAll('[data-placeholder-ar]').forEach(function(el){
-    el.placeholder = el.getAttribute('data-placeholder-ar');
-  });
-})();
-
 function togglePw() {
-  const inp  = document.getElementById('pw');
+  const inp = document.getElementById('pw');
   const icon = document.getElementById('eye-icon');
   inp.type = inp.type === 'password' ? 'text' : 'password';
   icon.textContent = inp.type === 'password' ? 'visibility' : 'visibility_off';
 }
-/* Always read live CSRF from cookie — never trust baked HTML token (PWA cache). */
-function getLiveCsrf() {
-  var m = document.cookie.match('(^|;)\\s*csrftoken\\s*=\\s*([^;]+)');
-  return m ? decodeURIComponent(m.pop()) : null;
-}
 
-document.getElementById('login-form').addEventListener('submit', function(e) {
-  /* Refresh the CSRF token from the live cookie before submitting.
-     This fixes 403 when the page is served from PWA cache with a stale token. */
-  var live = getLiveCsrf();
-  if (live) {
-    var hidden = this.querySelector('input[name=csrfmiddlewaretoken]');
-    if (hidden) hidden.value = live;
-  } else {
-    /* No cookie at all — fetch a fresh login page to get a new token, then retry. */
-    e.preventDefault();
-    fetch(location.href, { credentials: 'same-origin', cache: 'no-store' })
-      .then(function() { document.getElementById('login-form').submit(); })
-      .catch(function() { location.reload(); });
-    return;
-  }
-
-  const btn  = document.getElementById('submit-btn');
-  const lang = document.documentElement.getAttribute('lang');
-  const txt  = lang === 'ar' ? 'جارٍ تسجيل الدخول…' : 'Signing in…';
+document.getElementById('login-form').addEventListener('submit', function () {
+  const btn = document.getElementById('submit-btn');
   btn.disabled = true;
-  btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:20px;animation:spin 1s linear infinite">progress_activity</span> ' + txt;
+  btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:20px;animation:spin 1s linear infinite">progress_activity</span> Signing in…';
 });
 </script>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 </html>

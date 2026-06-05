@@ -366,6 +366,42 @@ def gen_frames(camera_index=0):
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 
+def _sync_display_name(user):
+    """On login, copy the real Arabic name from profile → user.first_name
+    so base.html's get_full_name shows the actual name, not 'tchr_13'."""
+    if user.first_name:
+        return  # already has a name set
+    try:
+        t = Teacher.objects.filter(auth_user=user).first()
+        if t and t.name:
+            parts = t.name.strip().split()
+            user.first_name = parts[0] if parts else t.name
+            user.last_name  = ' '.join(parts[1:]) if len(parts) > 1 else ''
+            user.save(update_fields=['first_name', 'last_name'])
+            return
+    except Exception:
+        pass
+    try:
+        s = Student.objects.filter(auth_user=user).first()
+        if s and s.name:
+            parts = s.name.strip().split()
+            user.first_name = parts[0] if parts else s.name
+            user.last_name  = ' '.join(parts[1:]) if len(parts) > 1 else ''
+            user.save(update_fields=['first_name', 'last_name'])
+            return
+    except Exception:
+        pass
+    try:
+        c = Coordinator.objects.filter(auth_user=user).first()
+        if c and c.name:
+            parts = c.name.strip().split()
+            user.first_name = parts[0] if parts else c.name
+            user.last_name  = ' '.join(parts[1:]) if len(parts) > 1 else ''
+            user.save(update_fields=['first_name', 'last_name'])
+    except Exception:
+        pass
+
+
 @ensure_csrf_cookie  # always plant a fresh csrftoken cookie on the login page
 def login_view(request):
     if request.user.is_authenticated:
@@ -376,13 +412,15 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user:
             auth_login(request, user)
+            # Sync full name from profile so base.html shows real name not username
+            _sync_display_name(user)
             log_audit(request, 'LOGIN', 'User', user.pk, f'{username} logged in')
             next_url = request.GET.get('next', '')
             if next_url:
                 return redirect(next_url)
             return _redirect_by_role(request)
         resp = render(request, 'attendance/university_login.html',
-                      {'error': 'Incorrect username or password. Please try again.'})
+                      {'error': 'اسم المستخدم أو كلمة المرور غير صحيحة — حاول مجدداً.'})
         resp['Cache-Control'] = 'no-store, no-cache, must-revalidate'
         return resp
     resp = render(request, 'attendance/university_login.html')
@@ -939,15 +977,17 @@ def add_schedule(request):
     if request.method == 'POST':
         try:
             teacher_id = request.POST.get('teacher_id') or None
+            total_lec = request.POST.get('total_lectures_required', '').strip()
             sched = Schedule.objects.create(
-                course_id    = request.POST.get('course_id'),
-                teacher_id   = teacher_id,
-                classroom_id = request.POST.get('classroom_id') or None,
-                day_of_week  = request.POST.get('day_of_week'),
-                start_time   = request.POST.get('start_time'),
-                end_time     = request.POST.get('end_time'),
-                batch        = request.POST.get('batch', ''),
-                semester     = request.POST.get('semester', ''),
+                course_id                = request.POST.get('course_id'),
+                teacher_id               = teacher_id,
+                classroom_id             = request.POST.get('classroom_id') or None,
+                day_of_week              = request.POST.get('day_of_week'),
+                start_time               = request.POST.get('start_time'),
+                end_time                 = request.POST.get('end_time'),
+                batch                    = request.POST.get('batch', ''),
+                semester                 = request.POST.get('semester', ''),
+                total_lectures_required  = int(total_lec) if total_lec.isdigit() else 28,
             )
             # Email teacher about assignment
             if teacher_id:
