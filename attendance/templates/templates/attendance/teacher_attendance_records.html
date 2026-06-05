@@ -10,7 +10,8 @@
       <p class="text-sm text-slate-500 mt-0.5">
         {% if below_threshold > 0 %}
         <span class="text-red-600 font-bold">{{ below_threshold }} طالب</span> دون حد الـ 75%
-        {% else %}جميع الطلاب ضمن الحد المقبول{% endif %}
+        {% elif summary %}جميع الطلاب ضمن الحد المقبول
+        {% else %}لا توجد بيانات حضور بعد{% endif %}
       </p>
     </div>
   </div>

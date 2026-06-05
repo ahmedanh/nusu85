@@ -37,12 +37,12 @@
       </div>
     </div>
     <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-5 flex items-center gap-4">
-      <div class="w-12 h-12 rounded-xl {% if pct >= 75 %}bg-green-100 dark:bg-green-900/30{% else %}bg-red-100 dark:bg-red-900/30{% endif %} flex items-center justify-center">
-        <span class="material-symbols-outlined {% if pct >= 75 %}text-green-600 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %}">percent</span>
+      <div class="w-12 h-12 rounded-xl {% if not total %}bg-slate-100 dark:bg-slate-700{% elif pct >= 75 %}bg-green-100 dark:bg-green-900/30{% else %}bg-red-100 dark:bg-red-900/30{% endif %} flex items-center justify-center">
+        <span class="material-symbols-outlined {% if not total %}text-slate-400{% elif pct >= 75 %}text-green-600 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %}">percent</span>
       </div>
       <div>
-        <p class="text-2xl font-extrabold {% if pct >= 75 %}text-green-700 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %}">{{ pct }}%</p>
-        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">نسبة الحضور الكلية</p>
+        <p class="text-2xl font-extrabold {% if not total %}text-slate-500 dark:text-slate-400{% elif pct >= 75 %}text-green-700 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %}">{{ pct }}%</p>
+        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">{% if not total %}لا توجد جلسات بعد{% else %}نسبة الحضور الكلية{% endif %}</p>
       </div>
     </div>
   </div>

@@ -144,17 +144,17 @@
             <td class="px-6 py-3 text-right">
               <div class="flex items-center justify-end gap-1">
                 <a href="/attendance/user/teacher/{{ teacher.pk }}/upload-face/"
-                  title="Upload Face"
+                  title="رفع بصمة الوجه"
                   class="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors">
                   <span class="material-symbols-outlined text-lg">face</span>
                 </a>
                 <a href="/admin/attendance/teacher/{{ teacher.pk }}/change/"
-                  title="Edit"
+                  title="تعديل بيانات الأستاذ"
                   class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors">
                   <span class="material-symbols-outlined text-lg">edit</span>
                 </a>
                 <a href="{% url 'toggle_access' 'teacher' teacher.teacher_id %}"
-                  title="Toggle Access"
+                  title="الأساتذة لا يخضعون لنظام التصاريح"
                   class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
                   <span class="material-symbols-outlined text-lg">block</span>
                 </a>
@@ -249,7 +249,7 @@
         <h3 class="font-bold text-sm" style="color:var(--s-text);" data-en="Open Tickets" data-ar="التذاكر المفتوحة">Open Tickets</h3>
       </div>
       <p class="text-2xl font-extrabold font-headline" style="color:var(--s-text);">{{ open_tickets }}</p>
-      <a href="{% url 'admin_tickets' %}" class="mt-2 block text-xs font-bold hover:underline" style="color:var(--s-warning);">عرض الكل ←</a>
+      <a href="{% url 'admin_tickets' %}" class="mt-2 inline-flex items-center gap-1 text-xs font-bold hover:underline" style="color:var(--s-text);">عرض الكل <span class="material-symbols-outlined text-sm">arrow_back</span></a>
     </div>
     {% endif %}
 
