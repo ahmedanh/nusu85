@@ -1,0 +1,68 @@
+{% extends 'attendance/base.html' %}
+{% block title %}حضور يدوي — {{ session.schedule.course.title }}{% endblock %}
+{% block content %}
+
+<div class="max-w-2xl mx-auto">
+  <div class="flex items-center gap-3 mb-6">
+    {% if session.is_active %}
+    <a href="{% url 'lecture_scan' session.id %}" class="flex items-center gap-2 text-slate-500 hover:text-slate-800 dark:hover:text-white text-sm">
+      <span class="material-symbols-outlined text-lg">arrow_back</span>
+    </a>
+    {% else %}
+    <a href="{% url 'professor_dashboard' %}" class="flex items-center gap-2 text-slate-500 hover:text-slate-800 dark:hover:text-white text-sm">
+      <span class="material-symbols-outlined text-lg">arrow_back</span>
+    </a>
+    {% endif %}
+    <div>
+      <h1 class="text-xl font-bold text-slate-900 dark:text-white font-headline">تسجيل حضور يدوي</h1>
+      <p class="text-sm text-slate-500">{{ session.schedule.course.title }} · {{ session.actual_start_time|date:"Y/m/d" }}</p>
+    </div>
+  </div>
+
+  <form method="POST">
+    {% csrf_token %}
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden mb-4">
+      <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+        <span class="text-sm font-bold text-slate-700 dark:text-slate-200">الطلاب المسجلون ({{ enrolled|length }})</span>
+        <div class="flex gap-2 text-xs">
+          <button type="button" onclick="setAll(true)" class="px-3 py-1 rounded-lg bg-emerald-100 text-emerald-700 font-bold hover:bg-emerald-200 transition-colors">تحديد الكل</button>
+          <button type="button" onclick="setAll(false)" class="px-3 py-1 rounded-lg bg-red-100 text-red-700 font-bold hover:bg-red-200 transition-colors">إلغاء الكل</button>
+        </div>
+      </div>
+      <div class="divide-y divide-slate-50 dark:divide-slate-700">
+        {% for e in enrolled %}
+        <label class="flex items-center gap-4 px-5 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer transition-colors">
+          <input type="checkbox" name="present_ids" value="{{ e.student.id }}"
+                 class="w-4 h-4 rounded accent-primary"
+                 {% if e.student.id in present_ids %}checked{% endif %}>
+          <div class="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-sm flex-shrink-0">
+            {{ e.student.name|first|upper }}
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">{{ e.student.name }}</p>
+            <p class="text-xs text-slate-400">{{ e.student.student_code|default:"" }}</p>
+          </div>
+          {% if e.student.id in present_ids %}
+          <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-0.5 rounded-full">حاضر</span>
+          {% endif %}
+        </label>
+        {% empty %}
+        <p class="text-sm text-slate-400 text-center py-8">لا يوجد طلاب مسجلون</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <button type="submit"
+      class="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm hover:bg-blue-600 transition-colors shadow-sm">
+      <span class="material-symbols-outlined text-lg align-middle ml-1">save</span>
+      حفظ الحضور
+    </button>
+  </form>
+</div>
+
+<script>
+function setAll(val) {
+  document.querySelectorAll('input[name="present_ids"]').forEach(c => c.checked = val);
+}
+</script>
+{% endblock %}

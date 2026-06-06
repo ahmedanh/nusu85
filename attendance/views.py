@@ -25,8 +25,9 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.http import (
-    HttpResponse, JsonResponse, StreamingHttpResponse, Http404
+    HttpResponse, HttpResponseBadRequest, JsonResponse, StreamingHttpResponse, Http404
 )
+from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.utils import timezone
@@ -67,6 +68,9 @@ except ImportError:
 FACE_ENGINE_AVAILABLE = _fe.available()
 
 logger = logging.getLogger(__name__)
+
+# University attendance policy — change here to update all reports/dashboard/exports
+ATTENDANCE_PASS_THRESHOLD = 75  # percent
 
 # ── Semester helpers ─────────────────────────────────────────────────────────
 ARABIC_ORDINALS = ['الأول','الثاني','الثالث','الرابع','الخامس',
@@ -228,24 +232,28 @@ def load_known_faces():
                 pass
 
 
-def match_face_from_db(live_encoding: list) -> tuple[str | None, str | None]:
-    """On-demand DB match using InsightFace engine — no full cache required.
+def match_face_from_db(live_encoding: list) -> tuple[str | None, str | None, int | None]:
+    """On-demand DB match using InsightFace engine — searches ALL batches for best match.
 
-    Chunks through the DB (200 rows at a time), returns on first match.
+    Returns (name, person_type, pk) or (None, None, None).
     Skips embeddings whose dimension doesn't match the active engine.
     """
     if not NUMPY_AVAILABLE or live_encoding is None:
-        return None, None
+        return None, None, None
     probe = np.array(live_encoding, dtype=np.float32)
     expected_dim = _fe.embedding_dim()
     CHUNK = 200
 
-    def _run_batch(queryset, vec_field, name_getter, person_type):
+    def _best_in_collection(queryset, vec_field, name_getter, pk_getter, person_type):
+        """Scan all batches and return the single best-scoring match."""
+        best_score = -1.0
+        best_name = None
+        best_pk = None
         offset = 0
         while True:
             batch = list(queryset[offset: offset + CHUNK])
             if not batch:
-                return None, None
+                break
             for emb in batch:
                 try:
                     raw = getattr(emb, vec_field)
@@ -253,30 +261,37 @@ def match_face_from_db(live_encoding: list) -> tuple[str | None, str | None]:
                     if len(vec) != expected_dim:
                         continue
                     idx, score = _fe.match([vec.tolist()], probe.tolist())
-                    if idx >= 0:
-                        return name_getter(emb), person_type
+                    if idx >= 0 and score > best_score:
+                        best_score = score
+                        best_name = name_getter(emb)
+                        best_pk = pk_getter(emb)
                 except Exception:
                     pass
             offset += CHUNK
+        if best_name:
+            return best_name, person_type, best_pk
+        return None, None, None
 
-    name, ptype = _run_batch(
+    s_name, s_type, s_pk = _best_in_collection(
         StudentFaceEmbedding.objects.select_related('student')
-            .filter(student__is_allowed_entry=True)
-            .only('embedding', 'student__name'),
+            .only('embedding', 'student__id', 'student__name'),
         'embedding',
         lambda e: e.student.name,
+        lambda e: e.student.pk,
         'student',
     )
-    if name:
-        return name, ptype
-
-    return _run_batch(
+    t_name, t_type, t_pk = _best_in_collection(
         TeacherFaceEmbedding.objects.select_related('teacher')
-            .only('face_vector', 'teacher__name'),
+            .only('face_vector', 'teacher__id', 'teacher__name'),
         'face_vector',
         lambda e: e.teacher.name,
+        lambda e: e.teacher.pk,
         'teacher',
     )
+    # Return whichever produced a match; students take precedence on tie
+    if s_name:
+        return s_name, s_type, s_pk
+    return t_name, t_type, t_pk
 
 
 def _find_best_camera(preferred_index=0):
@@ -480,6 +495,7 @@ def scan_page(request):
     })
 
 
+@login_required
 def video_feed(request):
     # Accept both 'camera' and 'source' params for compatibility
     cam_param = request.GET.get('camera') or request.GET.get('source', '0')
@@ -501,6 +517,7 @@ def video_feed(request):
         return HttpResponse(status=503)
 
 
+@login_required
 @csrf_exempt
 def stop_camera(request):
     """Called via navigator.sendBeacon() when the user leaves the scan page.
@@ -514,10 +531,6 @@ def stop_camera(request):
         event = _camera_stop_flags.get(camera_index)
         if event:
             event.set()
-    # Stop ALL active cameras (belt-and-suspenders)
-    with _camera_flags_lock:
-        for evt in list(_camera_stop_flags.values()):
-            evt.set()
     return HttpResponse(status=204)
 
 
@@ -624,6 +637,8 @@ def admin_control_panel(request):
     enrolled_faces = StudentFaceEmbedding.objects.count()
     training_progress = min(round(enrolled_faces / total_s * 100), 100)
 
+    setup_done = SystemConfig.objects.filter(key='setup_done').exists()
+
     return render(request, 'attendance/admin_panel.html', {
         # legacy names kept for backward-compat
         'students_count':   students_count,
@@ -640,6 +655,7 @@ def admin_control_panel(request):
         'training_progress': training_progress,
         'teachers':          teachers,
         'classrooms':        classrooms,
+        'setup_done':        setup_done,
     })
 
 
@@ -765,6 +781,9 @@ def stop_session(request, session_id):
     session.save()
     log_audit(request, 'STOP_SESSION', 'LectureSession', session_id)
     messages.success(request, 'تم إيقاف الجلسة.')
+    # Redirect teachers back to their dashboard; admins to admin panel
+    if Teacher.objects.filter(auth_user=request.user).exists():
+        return redirect('professor_dashboard')
     return redirect('admin_panel')
 
 
@@ -824,6 +843,7 @@ def upload_face(request, user_type, user_id):
 
     if request.method == 'POST' and request.FILES.get('face_image'):
         img_file = request.FILES['face_image']
+        face_enrolled = False
         if user_type == 'student':
             obj = get_object_or_404(Student, pk=user_id)
             obj.face_image = img_file
@@ -831,7 +851,8 @@ def upload_face(request, user_type, user_id):
             if FACE_ENGINE_AVAILABLE and NUMPY_AVAILABLE:
                 try:
                     import cv2 as _cv2
-                    img = _cv2.imread(obj.face_image.path)
+                    raw = np.frombuffer(open(obj.face_image.path, 'rb').read(), dtype=np.uint8)
+                    img = _cv2.imdecode(raw, _cv2.IMREAD_COLOR)
                     if img is not None:
                         enc = _fe.encode(img[:, :, ::-1])  # BGR→RGB
                         if enc:
@@ -839,6 +860,7 @@ def upload_face(request, user_type, user_id):
                                 student=obj, defaults={'embedding': enc}
                             )
                             load_known_faces()
+                            face_enrolled = True
                 except Exception as e:
                     logger.warning('Face encoding error: %s', e)
         elif user_type == 'teacher':
@@ -848,7 +870,8 @@ def upload_face(request, user_type, user_id):
             if FACE_ENGINE_AVAILABLE and NUMPY_AVAILABLE:
                 try:
                     import cv2 as _cv2
-                    img = _cv2.imread(obj.face_image.path)
+                    raw = np.frombuffer(open(obj.face_image.path, 'rb').read(), dtype=np.uint8)
+                    img = _cv2.imdecode(raw, _cv2.IMREAD_COLOR)
                     if img is not None:
                         enc = _fe.encode(img[:, :, ::-1])
                         if enc:
@@ -856,20 +879,31 @@ def upload_face(request, user_type, user_id):
                                 teacher=obj, defaults={'face_vector': enc}
                             )
                             load_known_faces()
+                            face_enrolled = True
                 except Exception as e:
                     logger.warning('Face encoding error: %s', e)
-        messages.success(request, 'تم رفع الصورة.')
+        if face_enrolled:
+            messages.success(request, 'تم رفع الصورة وتسجيل بصمة الوجه بنجاح.')
+        else:
+            messages.warning(request, 'تم رفع الصورة لكن لم يتم اكتشاف وجه — تأكد أن الوجه واضح في الصورة وأعد الرفع.')
     return _redirect_by_role(request)
 
 
 @login_required
+@require_POST
 def toggle_user_access(request, user_type, user_id):
     """
     Gate-entry toggle.
     STUDENTS only: toggled based on registration status / fees / disciplinary.
     TEACHERS: always allowed entry — they are employed staff, not enrollees.
               Do NOT toggle teacher access; return 400 if attempted.
+    Only admin/staff or coordinators scoped to the student's college may toggle.
     """
+    is_admin = request.user.is_staff or request.user.is_superuser
+    coord = Coordinator.objects.filter(auth_user=request.user).first()
+    if not is_admin and not coord:
+        messages.error(request, 'غير مصرح لك بتغيير صلاحيات الدخول.')
+        return redirect(request.META.get('HTTP_REFERER', '/'))
     if user_type == 'student':
         obj = get_object_or_404(Student, pk=user_id)
         obj.is_allowed_entry = not obj.is_allowed_entry
@@ -893,18 +927,135 @@ def toggle_user_access(request, user_type, user_id):
 
 # ── Gate ─────────────────────────────────────────────────────────────────────
 
+# Cooldown: don't re-log same person within this many seconds
+_GATE_COOLDOWN_SEC = 30
+_gate_cooldown: dict[str, float] = {}  # person_key → last_log_epoch
+_gate_cooldown_lock = threading.Lock()
+
+
 @login_required
 def gate_page(request):
     user = request.user
-    # Only admin/staff and gate_staff group can access the gate page
     is_gate_staff = user.groups.filter(name__in=['gate_staff', 'GATE_STAFF']).exists()
     if not (user.is_staff or user.is_superuser or is_gate_staff):
         from django.http import HttpResponseForbidden
-        return HttpResponseForbidden('Access denied. Gate access requires gate staff authorization.')
-    recent_gate_logs = GateLog.objects.order_by('-timestamp')[:30]
+        return HttpResponseForbidden('Access denied.')
+    today = timezone.now().date()
+    recent_logs = GateLog.objects.order_by('-timestamp').select_related('student', 'teacher')[:50]
+    today_count   = GateLog.objects.filter(timestamp__date=today).count()
+    allowed_count = GateLog.objects.filter(timestamp__date=today, status='Allowed').count()
+    denied_count  = GateLog.objects.filter(timestamp__date=today, status='Denied').count()
     return render(request, 'attendance/gate.html', {
-        'recent_logs': recent_gate_logs,
+        'recent_logs':   recent_logs,
+        'today_count':   today_count,
+        'allowed_count': allowed_count,
+        'denied_count':  denied_count,
     })
+
+
+@login_required
+@require_POST
+@csrf_exempt
+def gate_scan_api(request):
+    """Receive webcam frame, match face, log GateLog, return person info."""
+    if not FACE_ENGINE_AVAILABLE or not CV2_AVAILABLE or not NUMPY_AVAILABLE:
+        return JsonResponse({'ok': False, 'error': 'engine_unavailable'})
+
+    b64 = request.POST.get('frame', '')
+    if not b64:
+        return JsonResponse({'ok': False, 'error': 'no_frame'})
+
+    try:
+        if ',' in b64:
+            b64 = b64.split(',')[1]
+        img_bytes = base64.b64decode(b64)
+        img_arr = cv2.imdecode(np.frombuffer(img_bytes, dtype=np.uint8), cv2.IMREAD_COLOR)
+        if img_arr is None:
+            return JsonResponse({'ok': False, 'error': 'bad_image'})
+
+        import time as _time
+
+        # Encode ALL faces in one pass (multi-face support)
+        all_faces = _fe.encode_all(img_arr[:, :, ::-1])
+
+        if not all_faces:
+            return JsonResponse({
+                'ok': True, 'detected': False, 'results': [],
+                'width': img_arr.shape[1], 'height': img_arr.shape[0],
+            })
+
+        now_ts   = _time.time()
+        results  = []
+
+        for face_data in all_faces:
+            probe = face_data['embedding']
+            bbox  = face_data['bbox']
+
+            matched_name, matched_type, matched_pk = match_face_from_db(probe)
+            if not matched_name:
+                results.append({'bbox': bbox, 'matched': False})
+                continue
+
+            # Use PK for exact lookup — icontains on name can match the wrong person
+            student = Student.objects.filter(pk=matched_pk).first() if matched_type == 'student' else None
+            teacher = Teacher.objects.filter(pk=matched_pk).first() if matched_type == 'teacher' else None
+
+            is_allowed  = True
+            deny_reason = ''
+            if student:
+                is_allowed  = bool(student.is_allowed_entry)
+                deny_reason = 'غير مسموح بالدخول (تعليق إداري أو رسوم غير مسددة)' if not is_allowed else ''
+
+            status_str = 'Allowed' if is_allowed else 'Denied'
+            person_key = f'{matched_name}_{status_str}'
+
+            with _gate_cooldown_lock:
+                last = _gate_cooldown.get(person_key, 0)
+                in_cooldown = (now_ts - last) < _GATE_COOLDOWN_SEC
+                if not in_cooldown:
+                    _gate_cooldown[person_key] = now_ts
+
+            if not in_cooldown:
+                GateLog.objects.create(
+                    person_name=matched_name,
+                    student=student,
+                    teacher=teacher,
+                    status=status_str,
+                )
+
+            person_data = {
+                'name':     matched_name,
+                'type':     'student' if student else 'teacher',
+                'allowed':  is_allowed,
+                'reason':   deny_reason,
+                'cooldown': in_cooldown,
+                'bbox':     bbox,
+            }
+            if student:
+                person_data['student_code'] = student.student_code or ''
+                person_data['phone']        = student.phone_number or ''
+                person_data['registered']   = student.is_registered
+                fees = FinancialStatus.objects.filter(student=student).first()
+                person_data['fees_paid'] = fees.is_paid if fees else True
+            elif teacher:
+                person_data['phone'] = getattr(teacher, 'phone_number', '') or ''
+
+            results.append({'matched': True, 'person': person_data, 'bbox': bbox})
+
+        matched_results = [r for r in results if r.get('matched')]
+        return JsonResponse({
+            'ok': True,
+            'detected': True,
+            'matched': len(matched_results) > 0,
+            'results': results,
+            # Legacy single-person field for backward compat
+            'person': matched_results[0]['person'] if matched_results else None,
+            'width': img_arr.shape[1], 'height': img_arr.shape[0],
+        })
+
+    except Exception as e:
+        logger.error('gate_scan_api error: %s', e, exc_info=True)
+        return JsonResponse({'ok': False, 'error': str(e)})
 
 
 # ── Schedule ─────────────────────────────────────────────────────────────────
@@ -1415,39 +1566,108 @@ def register_teacher(request):
 
 
 @login_required
+@require_POST
+def detect_face_api(request):
+    """Lightweight endpoint: returns bounding boxes of detected faces for live tracking overlay."""
+    if not FACE_ENGINE_AVAILABLE or not CV2_AVAILABLE or not NUMPY_AVAILABLE:
+        return JsonResponse({'detected': False, 'faces': []})
+    b64 = request.POST.get('frame', '')
+    if not b64:
+        return JsonResponse({'detected': False, 'faces': []})
+    try:
+        if ',' in b64:
+            b64 = b64.split(',')[1]
+        img_bytes = base64.b64decode(b64)
+        img_arr = cv2.imdecode(np.frombuffer(img_bytes, dtype=np.uint8), cv2.IMREAD_COLOR)
+        if img_arr is None:
+            return JsonResponse({'detected': False, 'faces': []})
+        h, w = img_arr.shape[:2]
+        faces = _fe.detect(img_arr[:, :, ::-1])  # BGR→RGB
+        return JsonResponse({
+            'detected': len(faces) > 0,
+            'faces': faces,
+            'width': w,
+            'height': h,
+        })
+    except Exception:
+        return JsonResponse({'detected': False, 'faces': []})
+
+
+@login_required
 def enroll_face(request, person_type=None, person_id=None):
-    """Enroll a face embedding for the currently logged-in user."""
+    """Enroll a face embedding for the given person (or the logged-in user if no person specified)."""
+
+    # Resolve the target person — URL params take priority over POST fallback
+    pt = person_type or request.POST.get('user_type', '')
+    pid_raw = person_id or request.POST.get('user_id', '')
+    try:
+        pid = int(pid_raw) if pid_raw else None
+    except (ValueError, TypeError):
+        pid = None
+
+    student_obj = None
+    teacher_obj = None
+    if pt == 'student' and pid:
+        student_obj = get_object_or_404(Student, pk=pid)
+    elif pt == 'teacher' and pid:
+        teacher_obj = get_object_or_404(Teacher, pk=pid)
+    else:
+        # Self-enrollment: use the logged-in user
+        student_obj = Student.objects.filter(auth_user=request.user).first()
+        teacher_obj = Teacher.objects.filter(auth_user=request.user).first() if not student_obj else None
+
+    person = student_obj or teacher_obj
+    if person is None:
+        return HttpResponseBadRequest('لم يتم العثور على الشخص المطلوب')
+
+    user_type_ctx = 'student' if student_obj else 'teacher'
+
     if request.method == 'POST':
         b64 = request.POST.get('image_data', '')
-        if b64 and FACE_ENGINE_AVAILABLE and NUMPY_AVAILABLE:
-            try:
-                if ',' in b64:
-                    b64 = b64.split(',')[1]
-                img_bytes = base64.b64decode(b64)
-                import cv2 as _cv2
-                img_arr = _cv2.imdecode(
-                    np.frombuffer(img_bytes, dtype=np.uint8), _cv2.IMREAD_COLOR
+        if not b64:
+            return JsonResponse({'status': 'error', 'message': 'لم تصل صورة'})
+        if not FACE_ENGINE_AVAILABLE or not NUMPY_AVAILABLE:
+            return JsonResponse({'status': 'error', 'message': 'محرك التعرف على الوجه غير متوفر على الخادم'})
+        try:
+            if ',' in b64:
+                b64 = b64.split(',')[1]
+            img_bytes = base64.b64decode(b64)
+            import cv2 as _cv2
+            img_arr = _cv2.imdecode(
+                np.frombuffer(img_bytes, dtype=np.uint8), _cv2.IMREAD_COLOR
+            )
+            if img_arr is None:
+                return JsonResponse({'status': 'error', 'message': 'الصورة غير صالحة'})
+            enc = _fe.encode(img_arr[:, :, ::-1])  # BGR→RGB
+            if not enc:
+                return JsonResponse({'status': 'error', 'message': 'لم يتم اكتشاف وجه — تأكد من الإضاءة وأن الوجه واضح أمام الكاميرا'})
+            if student_obj:
+                StudentFaceEmbedding.objects.update_or_create(
+                    student=student_obj, defaults={'embedding': enc}
                 )
-                if img_arr is None:
-                    return JsonResponse({'status': 'error', 'message': 'Invalid image'})
-                enc = _fe.encode(img_arr[:, :, ::-1])  # BGR→RGB
-                if enc:
-                    student = Student.objects.filter(auth_user=request.user).first()
-                    teacher = Teacher.objects.filter(auth_user=request.user).first()
-                    if student:
-                        StudentFaceEmbedding.objects.update_or_create(
-                            student=student, defaults={'embedding': enc}
-                        )
-                    elif teacher:
-                        TeacherFaceEmbedding.objects.update_or_create(
-                            teacher=teacher, defaults={'face_vector': enc}
-                        )
-                    load_known_faces()
-                    return JsonResponse({'status': 'ok'})
-                return JsonResponse({'status': 'error', 'message': 'No face detected'})
-            except Exception as e:
-                return JsonResponse({'status': 'error', 'message': str(e)})
-    return render(request, 'attendance/enroll_face.html')
+            else:
+                TeacherFaceEmbedding.objects.update_or_create(
+                    teacher=teacher_obj, defaults={'face_vector': enc}
+                )
+            load_known_faces()
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            logger.error('enroll_face error: %s', e, exc_info=True)
+            return JsonResponse({'status': 'error', 'message': str(e)})
+
+    has_face = (
+        StudentFaceEmbedding.objects.filter(student=student_obj).exists()
+        if student_obj else
+        TeacherFaceEmbedding.objects.filter(teacher=teacher_obj).exists()
+    )
+    upload_url = reverse('enroll_face_person', args=[user_type_ctx, person.pk])
+    return render(request, 'attendance/enroll_face.html', {
+        'person': person,
+        'user_type': user_type_ctx,
+        'user_id': person.pk,
+        'has_face': has_face,
+        'upload_url': upload_url,
+    })
 
 
 @login_required
@@ -1546,7 +1766,7 @@ def open_session(request, schedule_id):
     log_audit(request, 'OPEN_SESSION', 'LectureSession', session.pk,
               f'Teacher {teacher.name} opened session for {schedule}')
     messages.success(request, 'تم فتح الجلسة.')
-    return redirect('professor_dashboard')
+    return redirect('lecture_scan', session_id=session.pk)
 
 
 @login_required
@@ -1560,6 +1780,163 @@ def teacher_timeline(request):
     ).select_related('schedule__course').order_by('-actual_start_time')[:50]
     return render(request, 'attendance/teacher_timeline.html', {
         'teacher': teacher, 'sessions': sessions,
+    })
+
+
+# ── Lecture Scan (attendance scan tied to a LectureSession) ─────────────────
+
+@login_required
+def lecture_scan(request, session_id):
+    teacher = get_object_or_404(Teacher, auth_user=request.user)
+    session = get_object_or_404(LectureSession, pk=session_id,
+                                 is_active=True, schedule__teacher=teacher)
+    enrolled = (Enrollment.objects.filter(course=session.schedule.course)
+                .select_related('student').order_by('student__name'))
+    present_ids = set(AIAttendanceLog.objects.filter(
+        session=session, status='Present').values_list('student_id', flat=True))
+    return render(request, 'attendance/lecture_scan.html', {
+        'session': session,
+        'enrolled': enrolled,
+        'present_ids': present_ids,
+        'face_engine_available': FACE_ENGINE_AVAILABLE and CV2_AVAILABLE and NUMPY_AVAILABLE,
+    })
+
+
+@login_required
+@csrf_exempt
+def lecture_scan_api(request):
+    """POST: frame (base64) + session_id → match enrolled students → log AIAttendanceLog."""
+    if request.method != 'POST':
+        return JsonResponse({'ok': False}, status=405)
+    teacher = get_object_or_404(Teacher, auth_user=request.user)
+    session_id = request.POST.get('session_id')
+    if not session_id:
+        return JsonResponse({'ok': False, 'error': 'no_session_id'})
+    session = get_object_or_404(LectureSession, pk=session_id,
+                                 is_active=True, schedule__teacher=teacher)
+
+    if not (FACE_ENGINE_AVAILABLE and CV2_AVAILABLE and NUMPY_AVAILABLE):
+        return JsonResponse({'ok': False, 'error': 'engine_unavailable'})
+
+    b64 = request.POST.get('frame', '')
+    if not b64:
+        return JsonResponse({'ok': False, 'error': 'no_frame'})
+
+    try:
+        if ',' in b64:
+            b64 = b64.split(',')[1]
+        img_bytes = base64.b64decode(b64)
+        img_arr = cv2.imdecode(np.frombuffer(img_bytes, dtype=np.uint8), cv2.IMREAD_COLOR)
+        if img_arr is None:
+            return JsonResponse({'ok': False, 'error': 'bad_image'})
+
+        import time as _time
+        all_faces = _fe.encode_all(img_arr[:, :, ::-1])
+
+        if not all_faces:
+            return JsonResponse({'ok': True, 'detected': False, 'results': [],
+                                 'width': img_arr.shape[1], 'height': img_arr.shape[0]})
+
+        enrolled_ids = set(Enrollment.objects.filter(
+            course=session.schedule.course).values_list('student_id', flat=True))
+        now_ts = _time.time()
+        results = []
+
+        for face_data in all_faces:
+            bbox = face_data['bbox']
+            matched_name, matched_type, matched_pk = match_face_from_db(face_data['embedding'])
+            if not matched_name or matched_type != 'student':
+                results.append({'bbox': bbox, 'matched': False})
+                continue
+
+            if matched_pk not in enrolled_ids:
+                results.append({'bbox': bbox, 'matched': False, 'not_enrolled': True})
+                continue
+
+            student = Student.objects.filter(pk=matched_pk).first()
+            if not student:
+                results.append({'bbox': bbox, 'matched': False})
+                continue
+
+            cooldown_key = f'lscan_{session_id}_{matched_pk}'
+            with _gate_cooldown_lock:
+                last = _gate_cooldown.get(cooldown_key, 0)
+                in_cooldown = (now_ts - last) < 30
+                if not in_cooldown:
+                    _gate_cooldown[cooldown_key] = now_ts
+
+            already_logged = AIAttendanceLog.objects.filter(
+                session=session, student=student).exists()
+
+            if not in_cooldown and not already_logged:
+                AIAttendanceLog.objects.create(
+                    student=student,
+                    schedule=session.schedule,
+                    session=session,
+                    status='Present',
+                    method='face_recognition',
+                )
+
+            results.append({
+                'name': matched_name,
+                'type': 'student',
+                'matched': True,
+                'already_logged': already_logged,
+                'bbox': bbox,
+            })
+
+        return JsonResponse({
+            'ok': True, 'detected': True, 'results': results,
+            'width': img_arr.shape[1], 'height': img_arr.shape[0],
+        })
+    except Exception as exc:
+        return JsonResponse({'ok': False, 'error': str(exc)[:200]})
+
+
+@login_required
+def lecture_session_status(request, session_id):
+    """GET → JSON of present/absent students for live polling."""
+    teacher = get_object_or_404(Teacher, auth_user=request.user)
+    session = get_object_or_404(LectureSession, pk=session_id, schedule__teacher=teacher)
+    enrolled = list(Enrollment.objects.filter(
+        course=session.schedule.course).select_related('student'))
+    logs = {l.student_id: l for l in AIAttendanceLog.objects.filter(
+        session=session, status='Present').select_related('student')}
+    present = [{'id': e.student.id, 'name': e.student.name,
+                'time': logs[e.student_id].timestamp.strftime('%H:%M')}
+               for e in enrolled if e.student_id in logs]
+    absent = [{'id': e.student.id, 'name': e.student.name}
+              for e in enrolled if e.student_id not in logs]
+    return JsonResponse({'present': present, 'absent': absent,
+                         'total': len(enrolled)})
+
+
+@login_required
+def lecture_manual_attendance(request, session_id):
+    """POST present_ids[] → bulk upsert AIAttendanceLog (offline fallback)."""
+    teacher = get_object_or_404(Teacher, auth_user=request.user)
+    session = get_object_or_404(LectureSession, pk=session_id, schedule__teacher=teacher)
+    enrolled = (Enrollment.objects.filter(course=session.schedule.course)
+                .select_related('student').order_by('student__name'))
+    if request.method == 'POST':
+        present_ids = set(request.POST.getlist('present_ids'))
+        for e in enrolled:
+            AIAttendanceLog.objects.update_or_create(
+                student=e.student, session=session,
+                defaults={
+                    'schedule': session.schedule,
+                    'status': 'Present' if str(e.student_id) in present_ids else 'Absent',
+                    'method': 'manual',
+                },
+            )
+        messages.success(request, 'تم تسجيل الحضور يدوياً.')
+        if session.is_active:
+            return redirect('lecture_scan', session_id=session_id)
+        return redirect('professor_dashboard')
+    present_ids = set(AIAttendanceLog.objects.filter(
+        session=session, status='Present').values_list('student_id', flat=True))
+    return render(request, 'attendance/lecture_manual_attendance.html', {
+        'session': session, 'enrolled': enrolled, 'present_ids': present_ids,
     })
 
 
@@ -1641,6 +2018,8 @@ def teacher_attendance_report(request):
     })
 
 
+@login_required
+@staff_member_required
 def export_teacher_report_csv(request):
     teachers = Teacher.objects.select_related('department', 'college').order_by('name')
     response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
@@ -2305,19 +2684,39 @@ def excuse_portal(request):
 
 @login_required
 def excuse_approval_board(request):
-    if not (request.user.is_staff or Coordinator.objects.filter(auth_user=request.user).exists()):
+    is_admin = request.user.is_staff or request.user.is_superuser
+    coord = Coordinator.objects.filter(auth_user=request.user).first()
+    if not is_admin and not coord:
         return redirect('student_dashboard')
     excuses = MedicalExcuse.objects.select_related('student', 'schedule__course').order_by('-submitted_at')
+    # Coordinators see only their college's excuses
+    if coord and not is_admin:
+        excuses = excuses.filter(student__department__college=coord.college)
     if request.method == 'POST':
         excuse_id = request.POST.get('excuse_id')
         action = request.POST.get('action')
-        note = request.POST.get('review_note', '')
+        if action == 'approve':
+            action = 'approved'
+        elif action == 'reject':
+            action = 'rejected'
+        note = request.POST.get('review_note') or request.POST.get('reviewer_note') or ''
         excuse = get_object_or_404(MedicalExcuse, pk=excuse_id)
         if action in ('approved', 'rejected'):
             excuse.status = action
             excuse.reviewed_by = request.user
             excuse.review_note = note
             excuse.save()
+            # On approval: create/update attendance log so absence is forgiven in %
+            if action == 'approved' and excuse.schedule:
+                AIAttendanceLog.objects.update_or_create(
+                    student=excuse.student,
+                    schedule=excuse.schedule,
+                    defaults={
+                        'status': 'Excused',
+                        'timestamp': excuse.submitted_at,
+                        'confidence_score': 1.0,
+                    },
+                )
             messages.success(request, 'تم تحديث حالة العذر.')
         return redirect('excuse_approval_board')
     status_f = request.GET.get('status', '')
@@ -2407,7 +2806,9 @@ def exam_seating_chart(request):
 
 @login_required
 def exam_gate_verify(request):
-    """Quick verification at exam gate: check student seat."""
+    """Quick verification at exam gate: check student seat. Staff/gate only."""
+    if not (request.user.is_staff or request.user.is_superuser):
+        return HttpResponseForbidden('غير مصرح')
     student_code = request.GET.get('code', '').strip()
     exam_id = request.GET.get('exam_id', '')
     seat = None
@@ -2461,15 +2862,14 @@ def api_student_search(request):
     return JsonResponse({'results': data})
 
 
-# ── Onboarding Wizard ────────────────────────────────────────────────────────
+# ── System Settings ───────────────────────────────────────────────────────────
 
 @login_required
 @staff_member_required
-def onboarding_wizard(request):
+def system_settings(request):
     if request.method == 'POST':
         action = request.POST.get('action', '')
 
-        # ── AJAX: test email connection ───────────────────────────────────
         if action == 'test_email':
             import smtplib, ssl
             host     = request.POST.get('email_host', 'smtp.gmail.com')
@@ -2485,22 +2885,30 @@ def onboarding_wizard(request):
                         server.login(username, password)
                 return JsonResponse({'ok': True, 'message': 'تم الاتصال بالخادم بنجاح ✓'})
             except smtplib.SMTPAuthenticationError:
-                return JsonResponse({'ok': False, 'message': 'بيانات الدخول خاطئة — تحقق من اسم المستخدم وكلمة المرور (استخدم App Password لـ Gmail)'})
+                return JsonResponse({'ok': False, 'message': 'بيانات الدخول خاطئة — استخدم App Password لـ Gmail'})
             except smtplib.SMTPConnectError:
                 return JsonResponse({'ok': False, 'message': f'تعذر الاتصال بـ {host}:{port}'})
             except Exception as e:
                 return JsonResponse({'ok': False, 'message': f'خطأ: {str(e)[:100]}'})
 
-        # ── Normal: save config key/value ─────────────────────────────────
-        key   = request.POST.get('key', '').strip()
-        value = request.POST.get('value', '').strip()
-        if key:
-            SystemConfig.objects.update_or_create(key=key, defaults={'value': value})
-            messages.success(request, 'تم حفظ الإعداد.')
-        return redirect('onboarding_wizard')
+        # Bulk save: key=value pairs from POST
+        saved = 0
+        for key, value in request.POST.items():
+            if key.startswith('cfg_'):
+                real_key = key[4:]
+                SystemConfig.objects.update_or_create(key=real_key, defaults={'value': value.strip()})
+                saved += 1
+        if saved:
+            SystemConfig.objects.update_or_create(key='setup_done', defaults={'value': '1'})
+            messages.success(request, 'تم حفظ الإعدادات.')
+        return redirect('system_settings')
 
-    configs = SystemConfig.objects.all().order_by('key')
-    return render(request, 'attendance/onboarding_wizard.html', {'configs': configs})
+    cfg = {c.key: c.value for c in SystemConfig.objects.all()}
+    setup_done = SystemConfig.objects.filter(key='setup_done').exists()
+    return render(request, 'attendance/system_settings.html', {
+        'cfg': cfg,
+        'setup_done': setup_done,
+    })
 
 
 # ── Dean Evaluation Dashboard ────────────────────────────────────────────────
@@ -2628,27 +3036,30 @@ def _build_attendance_queryset(request):
 
 
 def _summarise_logs(logs):
-    buckets = defaultdict(lambda: {'present': 0, 'absent': 0, 'student': None})
+    buckets = defaultdict(lambda: {'present': 0, 'absent': 0, 'excused': 0, 'student': None})
     for log in logs:
         key = log.student_id
         buckets[key]['student'] = log.student
-        if log.status == 'Present':
+        if log.status in ('Present', 'Late'):
             buckets[key]['present'] += 1
+        elif log.status == 'Excused':
+            buckets[key]['excused'] += 1  # approved excuses don't count against %
         else:
             buckets[key]['absent'] += 1
 
     summary = []
     for data in buckets.values():
-        total = data['present'] + data['absent']
+        total = data['present'] + data['absent']  # excused rows excluded from denominator
         pct   = round(data['present'] / total * 100, 1) if total else 0
         summary.append({
             'student': data['student'],
             'present': data['present'],
             'absent':  data['absent'],
+            'excused': data['excused'],
             'total':   total,
             'pct':     pct,
-            'flag':    pct < 75,
-            'status':  'Pass' if pct >= 75 else 'Fail',
+            'flag':    pct < ATTENDANCE_PASS_THRESHOLD,
+            'status':  'Pass' if pct >= ATTENDANCE_PASS_THRESHOLD else 'Fail',
         })
     summary.sort(key=lambda x: x['pct'])
     return summary
@@ -2908,38 +3319,33 @@ def create_ticket(request):
                 messages.error(request, f'خطأ في حفظ البلاغ: {e}')
                 ticket = None
             if ticket:
-                # Notify admin users
-                admin_users = User.objects.filter(is_staff=True)
-                for admin_u in admin_users:
-                    try:
-                        Notification.objects.create(
-                            user=admin_u,
-                            title=f'بلاغ جديد #{ticket.id}',
-                            body=f'{user.get_full_name() or user.username} رفع بلاغاً: {subject}',
-                            level='warning',
-                        )
-                    except Exception:
-                        pass
-                # Notify coordinator of the student/teacher college
+                notif_body = f'{user.get_full_name() or user.username} رفع بلاغاً: {subject}'
+                notif_title = f'بلاغ جديد #{ticket.id}'
+                # Notify all admin users — bulk_create (one query)
+                admin_users = list(User.objects.filter(is_staff=True).values_list('id', flat=True))
+                Notification.objects.bulk_create([
+                    Notification(user_id=uid, title=notif_title, body=notif_body, level='warning')
+                    for uid in admin_users
+                ], ignore_conflicts=True)
+                # Notify coordinators scoped to submitter's college — bulk_create
                 try:
                     college = None
-                    if Student.objects.filter(auth_user=user).exists():
-                        st = Student.objects.get(auth_user=user)
-                        if st.department and st.department.college_id:
-                            college = st.department.college
-                    if college is None and Teacher.objects.filter(auth_user=user).exists():
-                        tc = Teacher.objects.get(auth_user=user)
-                        college = tc.college if hasattr(tc, 'college') else None
+                    st = Student.objects.filter(auth_user=user).select_related('department__college').first()
+                    if st and st.department:
+                        college = st.department.college
+                    if college is None:
+                        tc = Teacher.objects.filter(auth_user=user).first()
+                        if tc:
+                            college = getattr(tc, 'college', None)
                     if college:
-                        coords = Coordinator.objects.filter(college=college)
-                        for coord in coords:
-                            if coord.auth_user:
-                                Notification.objects.create(
-                                    user=coord.auth_user,
-                                    title=f'بلاغ جديد #{ticket.id}',
-                                    body=f'{user.get_full_name() or user.username} رفع بلاغاً: {subject}',
-                                    level='warning',
-                                )
+                        coord_user_ids = list(
+                            Coordinator.objects.filter(college=college, auth_user__isnull=False)
+                            .values_list('auth_user_id', flat=True)
+                        )
+                        Notification.objects.bulk_create([
+                            Notification(user_id=uid, title=notif_title, body=notif_body, level='warning')
+                            for uid in coord_user_ids
+                        ], ignore_conflicts=True)
                 except Exception:
                     pass
                 messages.success(request, f'تم رفع البلاغ #{ticket.id} بنجاح.')
@@ -3011,6 +3417,7 @@ def export_search_pdf(request):
     return _pdf_response(html, f'SHAMEL_Search_{safe_q}_{_date.today()}.pdf', base_url=request.build_absolute_uri('/'))
 
 
+@login_required
 def global_search(request):
     query = request.GET.get('q', '').strip()
     results = {
@@ -3455,7 +3862,7 @@ def edit_teacher(request, teacher_id):
         teacher.major              = request.POST.get('major', teacher.major).strip()
         teacher.phone_number       = request.POST.get('phone_number', '').strip() or ''
         teacher.university_email   = request.POST.get('university_email', '').strip() or ''
-        teacher.is_allowed_entry   = 'is_allowed_entry' in request.POST
+        # is_allowed_entry for teachers must NOT be toggled via UI — gate access is implicit for staff
         if request.POST.get('gender'):
             teacher.gender = request.POST.get('gender')
         dept_id = request.POST.get('department_id')
@@ -3557,33 +3964,27 @@ def face_login(request):
             except Exception:
                 return JsonResponse({'status': 'error', 'message': 'بيانات الصورة غير صالحة — أعد المحاولة'}, status=400)
 
-            with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp:
-                tmp.write(img_bytes)
-                tmp_path = tmp.name
-
             matched_name = None
             matched_type = None
 
             live_encoding = None
             try:
                 if FACE_ENGINE_AVAILABLE and NUMPY_AVAILABLE and CV2_AVAILABLE:
-                    img_arr = cv2.imread(tmp_path)
+                    img_arr = cv2.imdecode(
+                        np.frombuffer(img_bytes, dtype=np.uint8), cv2.IMREAD_COLOR
+                    )
                     if img_arr is not None:
                         enc = _fe.encode(img_arr[:, :, ::-1])  # BGR→RGB
-                        live_encoding = enc  # list[float] or None
+                        live_encoding = enc
             except Exception:
                 return JsonResponse({'status': 'error', 'message': 'تعذر تحليل الصورة — تأكد من وضوح الإضاءة وأن الوجه ظاهر بوضوح'})
-            finally:
-                try:
-                    os.unlink(tmp_path)
-                except Exception:
-                    pass
 
             if live_encoding is None:
                 return JsonResponse({'status': 'error', 'message': 'لم يتم اكتشاف وجه — ضع وجهك أمام الكاميرا مباشرة'})
 
+            matched_name = matched_type = matched_pk = None
             if NUMPY_AVAILABLE and live_encoding:
-                matched_name, matched_type = match_face_from_db(live_encoding)
+                matched_name, matched_type, matched_pk = match_face_from_db(live_encoding)
 
             if not matched_name:
                 return JsonResponse({
@@ -3595,41 +3996,23 @@ def face_login(request):
             auth_user = None
             person_obj = None
 
-            # Search students first, then teachers
-            student = Student.objects.filter(name__icontains=matched_name).first()
-            teacher = Teacher.objects.filter(name__icontains=matched_name).first() if not student else None
+            # Use matched_pk from match_face_from_db — exact PK lookup, no icontains
+            if matched_type == 'student':
+                student = Student.objects.filter(pk=matched_pk).select_related('auth_user').first()
+                teacher = None
+            else:
+                student = None
+                teacher = Teacher.objects.filter(pk=matched_pk).select_related('auth_user').first()
 
             if student:
                 person_obj = student
-                if student.auth_user:
-                    auth_user = student.auth_user
-                else:
-                    # Auto-create auth user and link
-                    from django.utils.text import slugify
-                    uname = slugify(matched_name.replace(' ', '_'))[:30] or f'std_{student.pk}'
-                    uname = User.objects.get_or_create(username=uname)[0].username if User.objects.filter(username=uname).exists() else uname
-                    new_u, created = User.objects.get_or_create(username=f'std_{student.pk}')
-                    if created:
-                        new_u.set_password(User.objects.make_random_password())
-                        new_u.save()
-                    student.auth_user = new_u
-                    student.save(update_fields=['auth_user'])
-                    auth_user = new_u
-
+                auth_user = student.auth_user  # must be pre-linked by admin — no auto-creation
             elif teacher:
                 person_obj = teacher
-                if teacher.auth_user:
-                    auth_user = teacher.auth_user
-                else:
-                    new_u, created = User.objects.get_or_create(username=f'tchr_{teacher.pk}')
-                    if created:
-                        new_u.set_password(User.objects.make_random_password())
-                        new_u.save()
-                    teacher.auth_user = new_u
-                    teacher.save(update_fields=['auth_user'])
-                    auth_user = new_u
+                auth_user = teacher.auth_user
 
             if not auth_user:
+                # Account not pre-linked — admin must link via user management UI
                 return JsonResponse({
                     'status': 'error',
                     'message': 'الوجه معروف لكن لا يوجد حساب مرتبط — راجع الإدارة لربط حسابك'
@@ -3721,20 +4104,44 @@ def teacher_permissions_view(request):
 @login_required
 @staff_member_required
 def gate_reports(request):
-    date_filter = request.GET.get('date')
+    date_filter  = request.GET.get('date')
+    type_filter  = request.GET.get('user_type', '')
+    status_filter = request.GET.get('status', '')
     today = timezone.now().date()
     try:
-        logs = GateLog.objects.all().order_by('-timestamp')
+        qs = GateLog.objects.select_related('student', 'teacher').order_by('-timestamp')
         if date_filter:
-            logs = logs.filter(timestamp__date=date_filter)
-        total_today = GateLog.objects.filter(timestamp__date=today).count()
-        logs = list(logs[:200])
+            qs = qs.filter(timestamp__date=date_filter)
+        if status_filter:
+            qs = qs.filter(status=status_filter)
+        if type_filter == 'Student':
+            qs = qs.filter(student__isnull=False)
+        elif type_filter == 'Teacher':
+            qs = qs.filter(teacher__isnull=False)
+
+        today_qs      = GateLog.objects.filter(timestamp__date=today)
+        total_today   = today_qs.count()
+        allowed_today = today_qs.filter(status='Allowed').count()
+        denied_today  = today_qs.filter(status='Denied').count()
+
+        by_type = [
+            {'user_type': 'Student', 'count': today_qs.filter(student__isnull=False).count()},
+            {'user_type': 'Teacher', 'count': today_qs.filter(teacher__isnull=False).count()},
+        ]
+
+        logs = list(qs[:200])
     except Exception:
-        logs = []
-        total_today = 0
+        logs = []; total_today = 0; allowed_today = 0; denied_today = 0; by_type = []
+
     return render(request, 'attendance/gate_reports.html', {
-        'logs': logs, 'total_today': total_today,
-        'date_filter': date_filter,
+        'logs':           logs,
+        'total_today':    total_today,
+        'allowed_today':  allowed_today,
+        'denied_today':   denied_today,
+        'by_type':        by_type,
+        'date_filter':    date_filter,
+        'type_filter':    type_filter,
+        'status_filter':  status_filter,
     })
 
 

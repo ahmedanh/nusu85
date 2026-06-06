@@ -195,7 +195,7 @@ class LectureSession(models.Model):
 # Attendance / Face Embeddings
 # ─────────────────────────────────────────────────────────────────────────────
 class AIAttendanceLog(models.Model):
-    STATUS_CHOICES = [('Present','Present'),('Absent','Absent'),('Late','Late')]
+    STATUS_CHOICES = [('Present','Present'),('Absent','Absent'),('Late','Late'),('Excused','Excused')]
     student   = models.ForeignKey(Student, on_delete=models.CASCADE)
     schedule  = models.ForeignKey(Schedule, on_delete=models.SET_NULL, null=True, blank=True)
     session   = models.ForeignKey(LectureSession, on_delete=models.SET_NULL, null=True, blank=True)
@@ -206,6 +206,20 @@ class AIAttendanceLog(models.Model):
 
     class Meta:
         db_table = 'attendance_aiattendancelog'
+        indexes = [
+            models.Index(fields=['timestamp']),
+            models.Index(fields=['status']),
+            models.Index(fields=['student', 'status']),
+            models.Index(fields=['schedule', 'status']),
+            models.Index(fields=['student', 'timestamp']),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['student', 'schedule'],
+                condition=models.Q(session__isnull=True),
+                name='unique_student_schedule_nosession',
+            ),
+        ]
 
     def __str__(self):
         return f'{self.student} - {self.status} @ {self.timestamp}'
@@ -213,7 +227,7 @@ class AIAttendanceLog(models.Model):
 
 class StudentFaceEmbedding(models.Model):
     student   = models.OneToOneField(Student, on_delete=models.CASCADE, related_name='face_embedding')
-    embedding = VectorField(dimensions=128) if VectorField else models.JSONField(default=list)
+    embedding = VectorField(dimensions=512) if VectorField else models.JSONField(default=list)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -226,7 +240,7 @@ class StudentFaceEmbedding(models.Model):
 
 class TeacherFaceEmbedding(models.Model):
     teacher    = models.OneToOneField(Teacher, on_delete=models.CASCADE, related_name='face_embedding')
-    face_vector = VectorField(dimensions=128) if VectorField else models.JSONField(default=list)
+    face_vector = VectorField(dimensions=512) if VectorField else models.JSONField(default=list)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -266,6 +280,11 @@ class GateLog(models.Model):
 
     class Meta:
         db_table = 'attendance_gatelog'
+        indexes = [
+            models.Index(fields=['timestamp']),
+            models.Index(fields=['status']),
+            models.Index(fields=['student', 'timestamp']),
+        ]
 
     def __str__(self):
         return f'{self.person_name} - {self.status} @ {self.timestamp}'
@@ -286,6 +305,9 @@ class Notification(models.Model):
     class Meta:
         db_table = 'attendance_notification'
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'is_read']),
+        ]
 
     def __str__(self):
         return f'{self.user} - {self.title}'
@@ -306,6 +328,10 @@ class SupportTicket(models.Model):
     class Meta:
         db_table = 'attendance_supportticket'
         ordering = ['-created_at']
+
+    @property
+    def requester(self):
+        return self.user
 
     def __str__(self):
         return f'#{self.id} {self.subject}'
@@ -357,6 +383,10 @@ class AuditLog(models.Model):
     class Meta:
         db_table = 'attendance_auditlog'
         ordering = ['-timestamp']
+
+    @property
+    def actor(self):
+        return self.user
 
     def __str__(self):
         return f'{self.user} - {self.action} @ {self.timestamp}'

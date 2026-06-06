@@ -9,6 +9,10 @@
     <p class="text-sm text-slate-500 dark:text-slate-400 mt-1"><span data-en="Live biometric & academic infrastructure overview" data-ar="نظرة عامة على البنية التحتية الأكاديمية والبيومترية">Live biometric & academic infrastructure overview</span></p>
   </div>
   <div class="flex gap-2 flex-wrap">
+    <a href="{% url 'system_settings' %}"
+      class="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-all shadow-sm">
+      <span class="material-symbols-outlined text-lg">settings</span> إعدادات النظام
+    </a>
     <a href="{% url 'export_teachers' %}"
       class="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-all shadow-sm">
       <span class="material-symbols-outlined text-lg">download</span> تصدير بيانات الأساتذة
@@ -19,6 +23,41 @@
     </a>
   </div>
 </div>
+
+<!-- First-time setup banner (shows once per session until setup_done saved) -->
+{% if not setup_done %}
+<div id="setup-banner"
+     class="mb-6 flex items-center justify-between gap-4 px-5 py-4 rounded-2xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700">
+  <div class="flex items-center gap-3">
+    <span class="material-symbols-outlined text-amber-500">settings_suggest</span>
+    <div>
+      <p class="text-sm font-bold text-amber-800 dark:text-amber-300">لم يتم إعداد النظام بعد</p>
+      <p class="text-xs text-amber-600 dark:text-amber-400 mt-0.5">اضبط اسم الجامعة وقواعد الحضور قبل البدء.</p>
+    </div>
+  </div>
+  <div class="flex items-center gap-2 shrink-0">
+    <a href="{% url 'system_settings' %}"
+       class="px-4 py-2 rounded-xl bg-amber-500 text-white text-sm font-bold hover:bg-amber-400 transition-all">
+      إعداد الآن
+    </a>
+    <button onclick="dismissSetupBanner()"
+            class="p-1.5 rounded-lg text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-800 transition-all">
+      <span class="material-symbols-outlined text-lg">close</span>
+    </button>
+  </div>
+</div>
+<script>
+(function(){
+  if (sessionStorage.getItem('setup_banner_dismissed')) {
+    document.getElementById('setup-banner')?.remove();
+  }
+})();
+function dismissSetupBanner() {
+  sessionStorage.setItem('setup_banner_dismissed', '1');
+  document.getElementById('setup-banner')?.remove();
+}
+</script>
+{% endif %}
 
 <!-- KPI Cards -->
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">

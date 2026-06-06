@@ -6,8 +6,11 @@ import 'theme_controller.dart';
 import 'auth.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
+import 'sync_queue.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  SyncQueue.start();
   runApp(
     MultiProvider(
       providers: [

@@ -126,7 +126,17 @@ def departments(request):
 @api_auth
 @require_http_methods(['GET'])
 def teachers(request):
+    role = _role_of(request.api_user)
+    if role not in ('admin', 'coordinator', 'teacher'):
+        return JsonResponse({'ok': False, 'error': 'forbidden'}, status=403)
     qs = Teacher.objects.select_related('department', 'college').order_by('name')
+    if role == 'coordinator':
+        co = Coordinator.objects.filter(auth_user=request.api_user).first()
+        if co:
+            qs = qs.filter(college=co.college)
+    elif role == 'teacher':
+        # teachers can only view their own record
+        qs = qs.filter(auth_user=request.api_user)
     q = request.GET.get('q', '').strip()
     if q:
         qs = qs.filter(name__icontains=q)
@@ -162,7 +172,18 @@ def teacher_detail(request, tid):
 @api_auth
 @require_http_methods(['GET'])
 def students(request):
+    role = _role_of(request.api_user)
     qs = Student.objects.select_related('department').order_by('name')
+    if role == 'student':
+        # students see only themselves
+        qs = qs.filter(auth_user=request.api_user)
+    elif role == 'coordinator':
+        co = Coordinator.objects.filter(auth_user=request.api_user).first()
+        if co:
+            qs = qs.filter(department__college=co.college)
+    elif role == 'gate':
+        return JsonResponse({'ok': False, 'error': 'forbidden'}, status=403)
+    # admin + teacher: full list (teachers need to look up students in their courses)
     q = request.GET.get('q', '').strip()
     if q:
         qs = qs.filter(Q(name__icontains=q) | Q(student_code__icontains=q))
@@ -268,6 +289,8 @@ def attendance_logs(request):
 def gate_logs(request):
     from django.db import OperationalError, ProgrammingError
     from .models import GateLog
+    if _role_of(request.api_user) not in ('admin', 'gate'):
+        return JsonResponse({'ok': False, 'error': 'forbidden'}, status=403)
     try:
         rows, total, _ = _page(GateLog.objects.order_by('-timestamp'), request)
         data = [{'id': g.id, 'person': g.person_name, 'status': g.status,
@@ -402,6 +425,16 @@ def grades(request):
         if role == 'student':
             s = Student.objects.filter(auth_user=request.api_user).first()
             qs = qs.filter(student=s) if s else qs.none()
+        elif role == 'teacher':
+            t = Teacher.objects.filter(auth_user=request.api_user).first()
+            from .models import Schedule as _Sched
+            course_ids = _Sched.objects.filter(teacher=t).values_list('course_id', flat=True) if t else []
+            qs = qs.filter(course__in=course_ids) if t else qs.none()
+        elif role == 'coordinator':
+            co = Coordinator.objects.filter(auth_user=request.api_user).first()
+            qs = qs.filter(course__college=co.college) if co else qs.none()
+        elif role == 'gate':
+            qs = qs.none()
         rows, total, _ = _page(qs, request)
         data = [{'id': g.id, 'student': getattr(g.student, 'name', None),
                  'course': getattr(g.course, 'title', None),
@@ -423,6 +456,14 @@ def excuses(request):
         if role == 'student':
             s = Student.objects.filter(auth_user=request.api_user).first()
             qs = qs.filter(student=s) if s else qs.none()
+        elif role == 'teacher':
+            s = Student.objects.filter(auth_user=request.api_user).first()
+            qs = qs.none()  # teachers don't manage excuses via API
+        elif role == 'coordinator':
+            co = Coordinator.objects.filter(auth_user=request.api_user).first()
+            qs = qs.filter(student__department__college=co.college) if co else qs.none()
+        elif role == 'gate':
+            qs = qs.none()
         rows, total, _ = _page(qs, request)
         data = [{'id': e.id, 'student': getattr(e.student, 'name', None),
                  'reason': e.reason, 'status': e.status,
@@ -489,3 +530,112 @@ def gate_reports(request):
     except (OperationalError, ProgrammingError):
         return JsonResponse({'ok': True, 'total': 0, 'granted': 0, 'denied': 0,
                              'count': 0, 'logs': [], 'unavailable': True})
+
+
+# ── Lecture session: active session + enrolled students (Flutter teacher view) ─
+@api_auth
+@require_http_methods(['GET'])
+def active_session(request):
+    """GET /api/v1/sessions/active — teacher's current active session + enrolled students."""
+    t = Teacher.objects.filter(auth_user=request.api_user).first()
+    if not t:
+        return JsonResponse({'ok': False, 'error': 'not_teacher'}, status=403)
+    session = LectureSession.objects.filter(
+        schedule__teacher=t, is_active=True
+    ).select_related('schedule__course', 'schedule__classroom').first()
+    if not session:
+        return JsonResponse({'ok': True, 'session': None, 'enrolled': []})
+    enrolled = list(
+        __import__('attendance.models', fromlist=['Enrollment']).Enrollment
+        .objects.filter(course=session.schedule.course)
+        .select_related('student').order_by('student__name')
+    )
+    present_ids = set(AIAttendanceLog.objects.filter(
+        session=session, status='Present').values_list('student_id', flat=True))
+    return JsonResponse({'ok': True, 'session': {
+        'id': session.id,
+        'course': session.schedule.course.title if session.schedule and session.schedule.course else '',
+        'course_code': session.schedule.course.course_code if session.schedule and session.schedule.course else '',
+        'classroom': session.schedule.classroom.name if session.schedule and session.schedule.classroom else '',
+        'start': session.actual_start_time.isoformat() if session.actual_start_time else None,
+    }, 'enrolled': [
+        {'id': e.student.id, 'name': e.student.name,
+         'code': e.student.student_code or '',
+         'present': e.student_id in present_ids}
+        for e in enrolled
+    ]})
+
+
+# ── Lecture attendance: bulk sync from offline queue (Flutter) ─────────────────
+@api_auth
+@csrf_exempt
+@require_http_methods(['POST'])
+def sync_lecture_attendance(request):
+    """POST /api/v1/lecture-attendance/sync
+    Body: {"records": [{"session_id":1,"student_id":5,"method":"manual","timestamp":"..."}]}
+    Idempotent — ignores duplicates (unique_student_per_session constraint).
+    """
+    t = Teacher.objects.filter(auth_user=request.api_user).first()
+    if not t:
+        return JsonResponse({'ok': False, 'error': 'not_teacher'}, status=403)
+    try:
+        body = json.loads(request.body)
+    except (ValueError, TypeError):
+        return JsonResponse({'ok': False, 'error': 'bad_json'}, status=400)
+    records = body.get('records', [])
+    if not isinstance(records, list):
+        return JsonResponse({'ok': False, 'error': 'records_must_be_list'}, status=400)
+
+    from django.utils.dateparse import parse_datetime
+    from django.utils import timezone as tz
+    from .models import Student, Enrollment
+
+    saved = 0
+    skipped = 0
+    for rec in records:
+        try:
+            session_id = int(rec.get('session_id', 0))
+            student_id = int(rec.get('student_id', 0))
+        except (TypeError, ValueError):
+            skipped += 1
+            continue
+
+        session = LectureSession.objects.filter(
+            pk=session_id, schedule__teacher=t).first()
+        if not session:
+            skipped += 1
+            continue
+        student = Student.objects.filter(pk=student_id).first()
+        if not student:
+            skipped += 1
+            continue
+        if not Enrollment.objects.filter(
+                student=student, course=session.schedule.course).exists():
+            skipped += 1
+            continue
+
+        ts_raw = rec.get('timestamp')
+        ts = parse_datetime(ts_raw) if ts_raw else None
+        if ts is None:
+            ts = tz.now()
+
+        method = str(rec.get('method', 'manual'))[:50]
+        status = str(rec.get('status', 'Present'))
+        if status not in ('Present', 'Absent', 'Late', 'Excused'):
+            status = 'Present'
+
+        _, created = AIAttendanceLog.objects.get_or_create(
+            student=student, session=session,
+            defaults={
+                'schedule': session.schedule,
+                'status': status,
+                'method': method,
+                'timestamp': ts,
+            },
+        )
+        if created:
+            saved += 1
+        else:
+            skipped += 1
+
+    return JsonResponse({'ok': True, 'saved': saved, 'skipped': skipped})

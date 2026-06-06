@@ -6,32 +6,37 @@
 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
   <div>
     <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">
-      <span data-en="Session Control" >التحكم في الجلسة</span>
+      <span data-en="Session Control" data-ar="التحكم في الجلسة" >التحكم في الجلسة</span>
     </h1>
     <p class="text-sm text-slate-500 mt-1">
       {{ current_session.course.title|default:"لا توجد جلسة نشطة" }}
-      {% if current_session %} — <span data-en="Section" >شعبة</span> {{ current_session.section|default:"A" }}{% endif %}
+      {% if current_session %} — <span data-en="Section" data-ar="الشعبة" >شعبة</span> {{ current_session.section|default:"A" }}{% endif %}
     </p>
   </div>
   <div class="flex gap-2 flex-wrap">
     <a href="{% url 'export_my_courses' %}"
       class="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-semibold hover:bg-slate-50 transition-all shadow-sm">
       <span class="material-symbols-outlined text-lg">download</span>
-      <span data-en="Export Courses" >تصدير المقررات</span>
+      <span data-en="Export Courses" data-ar="تصدير المقررات" >تصدير المقررات</span>
     </a>
     {% if current_session %}
+    <a href="{% url 'lecture_scan' current_session.id %}"
+      class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-blue-600 transition-all shadow-sm">
+      <span class="material-symbols-outlined text-lg">sensors</span>
+      <span data-en="Go to Scan" data-ar="انتقل للمسح">انتقل للمسح</span>
+    </a>
     <form action="{% url 'stop_session' current_session.id %}" method="POST" class="m-0">
       {% csrf_token %}
       <button type="submit"
         class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 text-white text-sm font-bold hover:bg-red-700 transition-all shadow-sm">
         <span class="material-symbols-outlined text-lg">stop_circle</span>
-        <span data-en="Stop Session" >إنهاء الجلسة</span>
+        <span data-en="Stop Session" data-ar="إيقاف الجلسة">إنهاء الجلسة</span>
       </button>
     </form>
     {% else %}
     <div class="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-dashed border-slate-300 dark:border-slate-600 text-slate-400 text-sm font-medium">
       <span class="material-symbols-outlined text-lg">event_busy</span>
-      <span data-en="No Active Session" >لا توجد جلسة نشطة</span>
+      <span data-en="No Active Session" data-ar="لا توجد جلسة نشطة">لا توجد جلسة نشطة</span>
     </div>
     {% endif %}
   </div>
@@ -48,12 +53,12 @@
             <span class="animate-ping absolute inset-0 rounded-full bg-emerald-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
           </span>
-          <span data-en="Live" >مباشر</span>
+          <span data-en="Live" data-ar="مباشر" >مباشر</span>
         </span>
-        <span class="text-white/60 text-xs"><span data-en="Started" >بدأت</span> {{ current_session.start_time|time:"h:i A" }}</span>
+        <span class="text-white/60 text-xs"><span data-en="Started" data-ar="بدأت" >بدأت</span> {{ current_session.start_time|time:"h:i A" }}</span>
         {% else %}
         <span class="text-white/50 text-xs font-bold uppercase tracking-widest">
-          <span data-en="System Standby" >النظام في انتظار</span>
+          <span data-en="System Standby" data-ar="النظام في وضع الاستعداد" >النظام في انتظار</span>
         </span>
         {% endif %}
       </div>
@@ -61,7 +66,7 @@
         {% if current_session %}{{ present_count }} / {{ total_count }}{% else %}—{% endif %}
       </p>
       <p class="text-white/70 font-medium">
-        <span data-en="Verified Students Present" >طلاب موثقو الحضور</span>
+        <span data-en="Verified Students Present" data-ar="طلاب موثقو الحضور" >طلاب موثقو الحضور</span>
       </p>
     </div>
     <div class="w-24 h-24 rounded-full border-4 border-white/20 flex items-center justify-center flex-shrink-0">
@@ -85,10 +90,10 @@
     <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
       <div class="px-5 py-4 border-b border-slate-50 dark:border-slate-700 flex items-center justify-between">
         <h3 class="font-bold text-slate-800 dark:text-slate-200 text-sm">
-          <span data-en="Present" >الحاضرون</span>
+          <span data-en="Present" data-ar="الحاضرون" >الحاضرون</span>
         </h3>
         <span class="text-xs font-bold bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 px-2.5 py-1 rounded-full">
-          <span data-en="Verified" >موثق</span>
+          <span data-en="Verified" data-ar="موثق" >موثق</span>
         </span>
       </div>
       <div class="p-4 space-y-3 max-h-80 overflow-y-auto">
@@ -106,12 +111,12 @@
           </div>
           {% empty %}
           <p class="text-xs text-slate-400 text-center py-6">
-            <span data-en="Waiting for first scan…" >في انتظار أول مسح…</span>
+            <span data-en="Waiting for first scan…" data-ar="في انتظار أول مسح…" >في انتظار أول مسح…</span>
           </p>
           {% endfor %}
         {% else %}
         <p class="text-xs text-slate-400 text-center py-6">
-          <span data-en="No active session." >لا توجد جلسة نشطة.</span>
+          <span data-en="No active session." data-ar="لا توجد جلسة نشطة." >لا توجد جلسة نشطة.</span>
         </p>
         {% endif %}
       </div>
@@ -121,10 +126,10 @@
     <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
       <div class="px-5 py-4 border-b border-slate-50 dark:border-slate-700 flex items-center justify-between">
         <h3 class="font-bold text-slate-800 dark:text-slate-200 text-sm">
-          <span data-en="Absent" >الغائبون</span>
+          <span data-en="Absent" data-ar="الغائبون" >الغائبون</span>
         </h3>
         <span class="text-xs font-bold bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 px-2.5 py-1 rounded-full">
-          {{ absent_students.count|default:"0" }} <span data-en="Missing" >غائب</span>
+          {{ absent_students.count|default:"0" }} <span data-en="Missing" data-ar="غائب" >غائب</span>
         </span>
       </div>
       <div class="p-4 space-y-3 max-h-80 overflow-y-auto">
@@ -136,18 +141,18 @@
             </div>
             <div class="flex-1 min-w-0">
               <p class="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">{{ student.name }}</p>
-              <p class="text-xs text-slate-400"><span data-en="Not checked in" >لم يسجل حضوره</span></p>
+              <p class="text-xs text-slate-400"><span data-en="Not checked in" data-ar="لم يسجل حضوره" >لم يسجل حضوره</span></p>
             </div>
             <span class="material-symbols-outlined text-red-400 text-lg">cancel</span>
           </div>
           {% empty %}
           <p class="text-xs text-emerald-600 text-center py-6 font-semibold">
-            <span data-en="All students present!" >جميع الطلاب حاضرون!</span>
+            <span data-en="All students present!" data-ar="جميع الطلاب حاضرون!" >جميع الطلاب حاضرون!</span>
           </p>
           {% endfor %}
         {% else %}
         <p class="text-xs text-slate-400 text-center py-6">
-          <span data-en="No active tracking." >لا يوجد تتبع نشط.</span>
+          <span data-en="No active tracking." data-ar="لا يوجد تتبع نشط." >لا يوجد تتبع نشط.</span>
         </p>
         {% endif %}
       </div>
@@ -162,7 +167,7 @@
       <div class="px-5 py-4 border-b border-slate-50 dark:border-slate-700 flex items-center gap-2">
         <span class="material-symbols-outlined text-slate-400 text-lg">meeting_room</span>
         <h3 class="font-bold text-slate-800 dark:text-slate-200 text-sm">
-          <span data-en="Room Availability" >توفر القاعات</span>
+          <span data-en="Room Availability" data-ar="توفر القاعات" >توفر القاعات</span>
         </h3>
       </div>
       <div class="p-3 space-y-2 max-h-52 overflow-y-auto">
@@ -174,12 +179,12 @@
             <p class="text-[10px] text-slate-400">{{ room.location }}</p>
           </div>
           <span class="text-[10px] font-bold px-2 py-0.5 rounded-full {% if room.is_occupied %}bg-red-100 text-red-700{% else %}bg-emerald-100 text-emerald-700{% endif %}">
-            {% if room.is_occupied %}<span data-en="Busy" >مشغول</span>{% else %}<span data-en="Free" >متاح</span>{% endif %}
+            {% if room.is_occupied %}<span data-en="Busy" data-ar="مشغول" >مشغول</span>{% else %}<span data-en="Free" data-ar="متاح" >متاح</span>{% endif %}
           </span>
         </div>
         {% empty %}
         <p class="text-xs text-slate-400 text-center py-4">
-          <span data-en="No rooms registered." >لا توجد قاعات مسجلة.</span>
+          <span data-en="No rooms registered." data-ar="لا توجد قاعات مسجلة." >لا توجد قاعات مسجلة.</span>
         </p>
         {% endfor %}
       </div>
@@ -189,17 +194,17 @@
     <div class="bg-primary rounded-2xl shadow-lg p-5 relative overflow-hidden">
       <div class="relative z-10">
         <p class="text-white/50 text-[10px] font-bold uppercase tracking-widest mb-3">
-          <span data-en="Upcoming Next" >القادم التالي</span>
+          <span data-en="Upcoming Next" data-ar="القادم التالي" >القادم التالي</span>
         </p>
         {% if next_session %}
         <p class="text-xl font-extrabold text-white font-headline mb-1">{{ next_session.course.title }}</p>
         <p class="text-white/60 text-xs">{{ next_session.start_time|time:"H:i" }} — {{ next_session.classroom.name }}</p>
         {% else %}
         <p class="text-xl font-extrabold text-white font-headline mb-1">
-          <span data-en="All Clear" >لا مزيد من الجلسات</span>
+          <span data-en="All Clear" data-ar="لا مزيد من الجلسات" >لا مزيد من الجلسات</span>
         </p>
         <p class="text-white/60 text-xs">
-          <span data-en="No more sessions today" >لا توجد جلسات أخرى اليوم</span>
+          <span data-en="No more sessions today" data-ar="لا توجد جلسات أخرى اليوم" >لا توجد جلسات أخرى اليوم</span>
         </p>
         {% endif %}
       </div>
@@ -207,6 +212,57 @@
         <span class="material-symbols-outlined text-[80px]" style="font-variation-settings:'wght' 100">schedule</span>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- Schedules — open session picker -->
+<div class="mt-8">
+  <h2 class="text-base font-bold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2">
+    <span class="material-symbols-outlined text-slate-400 text-lg">calendar_month</span>
+    <span data-en="My Schedules" data-ar="جداول المحاضرات">جداول المحاضرات</span>
+  </h2>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {% for sched in schedules %}
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border {% if current_session and current_session.schedule.id == sched.id %}border-primary/50 ring-2 ring-primary/20{% else %}border-slate-100 dark:border-slate-700{% endif %} shadow-sm p-5 flex flex-col gap-3">
+      <div class="flex items-start justify-between gap-2">
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-bold text-slate-800 dark:text-slate-200 truncate">{{ sched.course.title }}</p>
+          <p class="text-xs text-slate-400 mt-0.5">{{ sched.course.course_code }}</p>
+        </div>
+        {% if current_session and current_session.schedule.id == sched.id %}
+        <span class="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-0.5 rounded-full shrink-0">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span data-en="Active" data-ar="نشطة">نشطة</span>
+        </span>
+        {% endif %}
+      </div>
+      <div class="flex items-center gap-4 text-xs text-slate-500">
+        <span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">schedule</span>{{ sched.day_of_week }} {{ sched.start_time|time:"H:i" }}–{{ sched.end_time|time:"H:i" }}</span>
+        <span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">meeting_room</span>{{ sched.classroom.name|default:"—" }}</span>
+      </div>
+      {% if current_session and current_session.schedule.id == sched.id %}
+      <a href="{% url 'lecture_scan' current_session.id %}"
+        class="flex items-center justify-center gap-2 py-2 rounded-xl bg-primary text-white text-xs font-bold hover:bg-blue-600 transition-colors">
+        <span class="material-symbols-outlined text-sm">sensors</span>
+        <span data-en="Go to Scan" data-ar="انتقل للمسح">انتقل للمسح</span>
+      </a>
+      {% else %}
+      <form action="{% url 'open_session' sched.id %}" method="POST" class="m-0">
+        {% csrf_token %}
+        <button type="submit"
+          class="w-full flex items-center justify-center gap-2 py-2 rounded-xl border border-primary/30 text-primary text-xs font-bold hover:bg-primary/5 transition-colors">
+          <span class="material-symbols-outlined text-sm">play_circle</span>
+          <span data-en="Start Session" data-ar="بدء الجلسة">بدء الجلسة</span>
+        </button>
+      </form>
+      {% endif %}
+    </div>
+    {% empty %}
+    <div class="col-span-3 text-center py-10 text-slate-400 text-sm">
+      <span class="material-symbols-outlined text-4xl block mb-2 opacity-30">event_busy</span>
+      <span data-en="No schedules assigned yet." data-ar="لا توجد جداول مخصصة بعد.">لا توجد جداول مخصصة بعد.</span>
+    </div>
+    {% endfor %}
   </div>
 </div>
 

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'local_db.dart';
 
 /// SHAMEL API client — talks to the Django /api/v1 JSON endpoints.
 ///
@@ -119,6 +120,80 @@ class Api {
       return r.statusCode == 200;
     } catch (_) {
       return false;
+    }
+  }
+
+  // ── Offline-aware lecture attendance ──────────────────────────────────────
+
+  /// Returns active session + enrolled students.
+  /// Falls back to cached data if server unreachable.
+  static Future<Map<String, dynamic>> activeSession() async {
+    try {
+      final data = await _get('/api/v1/sessions/active');
+      if (data['ok'] == true) {
+        await LocalDb.cacheSet('active_session', jsonEncode(data));
+      }
+      return data;
+    } catch (_) {
+      final cached = await LocalDb.cacheGet('active_session');
+      if (cached != null) {
+        final data = jsonDecode(cached) as Map<String, dynamic>;
+        data['from_cache'] = true;
+        return data;
+      }
+      return {'ok': false, 'error': 'offline', 'session': null, 'enrolled': []};
+    }
+  }
+
+  /// Mark a student present — online → direct API, offline → sqflite queue.
+  /// Returns {'ok': true, 'queued': false} online or {'ok': true, 'queued': true} offline.
+  static Future<Map<String, dynamic>> markAttendance({
+    required int sessionId,
+    required int studentId,
+    String status = 'Present',
+    String method = 'manual',
+  }) async {
+    final online = await ping();
+    if (online) {
+      try {
+        return await postJson('/api/v1/lecture-attendance/sync', {
+          'records': [{
+            'session_id': sessionId,
+            'student_id': studentId,
+            'status': status,
+            'method': method,
+            'timestamp': DateTime.now().toIso8601String(),
+          }],
+        });
+      } catch (_) {
+        // fall through to queue
+      }
+    }
+    // Offline — save locally
+    await LocalDb.enqueue(
+      sessionId: sessionId,
+      studentId: studentId,
+      status: status,
+      method: method,
+    );
+    return {'ok': true, 'queued': true};
+  }
+
+  /// Cached teacher schedule — returns stale data if offline.
+  static Future<Map<String, dynamic>> scheduleCached() async {
+    try {
+      final data = await _get('/api/v1/schedule');
+      await LocalDb.cacheSet('schedule', jsonEncode(data));
+      return data;
+    } catch (_) {
+      final cached = await LocalDb.cacheGet('schedule',
+          maxAge: const Duration(days: 7));
+      if (cached != null) {
+        final data = jsonDecode(cached) as Map<String, dynamic>;
+        data['from_cache'] = true;
+        return data;
+      }
+      return {'ok': false, 'error': 'offline', 'schedule': []};
     }
   }
 }

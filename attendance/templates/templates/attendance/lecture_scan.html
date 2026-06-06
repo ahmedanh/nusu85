@@ -1,0 +1,448 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>مسح الحضور — {{ session.schedule.course.title }}</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: { extend: {
+    colors: { primary: "#4361ee" },
+    fontFamily: { headline: ["Manrope","Segoe UI","system-ui","sans-serif"] }
+  }}
+}
+</script>
+<link href="{% static 'fonts/fonts.css' %}" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection@0.4/face_detection.js" crossorigin="anonymous"></script>
+<style>
+  body { font-family: 'Segoe UI',system-ui,sans-serif; }
+  h1,h2,h3 { font-family: 'Manrope','Segoe UI',system-ui,sans-serif; }
+  .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24; }
+  .fill-icon { font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
+  @keyframes scan-sweep {
+    0%,100% { top: 12%; } 50% { top: 82%; }
+  }
+  .scan-line { animation: scan-sweep 2.5s ease-in-out infinite; }
+  @keyframes toast-in {
+    from { transform: translateY(80px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+  .toast { animation: toast-in .35s ease-out; }
+</style>
+</head>
+<body class="min-h-screen bg-slate-950 text-white flex flex-col overflow-hidden">
+
+<!-- TOP BAR -->
+<header class="flex items-center justify-between px-5 py-3 bg-slate-900 border-b border-white/10 shrink-0">
+  <div class="flex items-center gap-3">
+    <a href="{% url 'professor_dashboard' %}" class="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center hover:bg-slate-700 transition-colors">
+      <span class="material-symbols-outlined text-slate-400 text-lg">arrow_back</span>
+    </a>
+    <div>
+      <p class="font-extrabold text-white text-sm font-headline">{{ session.schedule.course.title }}</p>
+      <p class="text-[10px] text-slate-500">{{ session.schedule.classroom.name|default:"—" }} · بدأت {{ session.actual_start_time|time:"H:i" }}</p>
+    </div>
+  </div>
+
+  <div class="hidden md:flex items-center gap-2">
+    <div class="flex items-center gap-1.5 bg-emerald-900/50 border border-emerald-800 px-3 py-1.5 rounded-full text-xs font-bold text-emerald-400">
+      <span class="material-symbols-outlined text-sm fill-icon">check_circle</span>
+      <span id="hdr-present">{{ present_ids|length }}</span>
+      <span class="text-emerald-600">حاضر</span>
+    </div>
+    <div class="flex items-center gap-1.5 bg-slate-800 border border-white/10 px-3 py-1.5 rounded-full text-xs font-bold text-slate-400">
+      <span class="material-symbols-outlined text-sm">groups</span>
+      <span id="hdr-total">{{ enrolled|length }}</span>
+      <span>مسجل</span>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-2">
+    <button onclick="openManualModal()"
+      class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600 text-white text-xs font-bold hover:bg-amber-500 transition-colors">
+      <span class="material-symbols-outlined text-sm">edit_note</span>
+      <span>إدخال يدوي</span>
+    </button>
+    <form action="{% url 'stop_session' session.id %}" method="POST" class="m-0">
+      {% csrf_token %}
+      <button type="submit"
+        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-700 text-white text-xs font-bold hover:bg-red-600 transition-colors">
+        <span class="material-symbols-outlined text-sm">stop_circle</span>
+        <span>إنهاء الجلسة</span>
+      </button>
+    </form>
+  </div>
+</header>
+
+<!-- MAIN LAYOUT -->
+<div class="flex flex-1 overflow-hidden">
+
+  <!-- CAMERA COLUMN -->
+  <div class="flex-1 flex flex-col items-center justify-center p-6 relative bg-slate-950">
+    <div class="relative w-full max-w-lg aspect-video bg-slate-900 rounded-2xl overflow-hidden shadow-2xl border border-white/10">
+      <video id="cam-video" autoplay playsinline muted class="w-full h-full object-cover"></video>
+      <canvas id="overlay-canvas" class="absolute inset-0 w-full h-full pointer-events-none"></canvas>
+      <div class="scan-line absolute left-0 right-0 h-0.5 bg-primary/60 shadow-[0_0_8px_#4361ee]"></div>
+
+      {% if not face_engine_available %}
+      <div class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/80 gap-3">
+        <span class="material-symbols-outlined text-amber-400 text-4xl fill-icon">warning</span>
+        <p class="text-amber-300 text-sm font-bold">محرك التعرف غير متوفر</p>
+        <button onclick="openManualModal()" class="px-4 py-2 rounded-lg bg-amber-600 text-white text-sm font-bold hover:bg-amber-500">
+          انتقل للإدخال اليدوي
+        </button>
+      </div>
+      {% endif %}
+    </div>
+
+    <p id="scan-status" class="mt-4 text-xs font-bold text-primary/80 animate-pulse tracking-widest uppercase">
+      {% if face_engine_available %}جاري المسح{% else %}محرك التعرف غير متوفر{% endif %}
+    </p>
+  </div>
+
+  <!-- STUDENT LIST SIDEBAR -->
+  <aside class="w-80 bg-slate-900 border-r border-white/10 flex flex-col overflow-hidden">
+    <div class="px-5 py-4 border-b border-white/10">
+      <h2 class="font-bold text-white text-sm font-headline flex items-center gap-2">
+        <span class="material-symbols-outlined text-slate-400 text-lg">group</span>
+        قائمة الطلاب
+      </h2>
+    </div>
+    <div id="student-list" class="flex-1 overflow-y-auto p-3 space-y-2">
+      {% for e in enrolled %}
+      <div id="st-{{ e.student.id }}"
+           class="flex items-center gap-3 p-2.5 rounded-xl {% if e.student.id in present_ids %}bg-emerald-900/30 border border-emerald-800{% else %}bg-slate-800/60 border border-transparent{% endif %} transition-all">
+        <div class="w-8 h-8 rounded-lg {% if e.student.id in present_ids %}bg-emerald-600{% else %}bg-slate-700{% endif %} flex items-center justify-center text-xs font-bold flex-shrink-0">
+          {{ e.student.name|first|upper }}
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-xs font-semibold text-white truncate">{{ e.student.name }}</p>
+          <p id="st-time-{{ e.student.id }}" class="text-[10px] text-slate-500">
+            {% if e.student.id in present_ids %}حاضر{% else %}غائب{% endif %}
+          </p>
+        </div>
+        <span id="st-icon-{{ e.student.id }}" class="material-symbols-outlined text-sm fill-icon {% if e.student.id in present_ids %}text-emerald-400{% else %}text-slate-600{% endif %}">
+          {% if e.student.id in present_ids %}check_circle{% else %}radio_button_unchecked{% endif %}
+        </span>
+      </div>
+      {% empty %}
+      <p class="text-xs text-slate-500 text-center py-8">لا يوجد طلاب مسجلون في هذا المقرر</p>
+      {% endfor %}
+    </div>
+  </aside>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div id="toast-container" class="fixed bottom-6 left-1/2 -translate-x-1/2 flex flex-col gap-2 z-50 pointer-events-none"></div>
+
+<!-- MANUAL ENTRY MODAL -->
+<div id="manual-modal" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+  <div class="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-white/10">
+      <h3 class="font-bold text-white font-headline">تسجيل حضور يدوي</h3>
+      <button onclick="closeManualModal()" class="text-slate-400 hover:text-white">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <form method="POST" action="{% url 'lecture_manual_attendance' session.id %}" class="flex flex-col flex-1 overflow-hidden">
+      {% csrf_token %}
+      <div class="flex-1 overflow-y-auto p-4 space-y-2">
+        {% for e in enrolled %}
+        <label class="flex items-center gap-3 p-3 rounded-xl bg-slate-700/50 hover:bg-slate-700 cursor-pointer transition-colors">
+          <input type="checkbox" name="present_ids" value="{{ e.student.id }}"
+                 class="w-4 h-4 rounded accent-primary"
+                 {% if e.student.id in present_ids %}checked{% endif %}>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-semibold text-white truncate">{{ e.student.name }}</p>
+            <p class="text-[10px] text-slate-400">{{ e.student.student_code|default:"" }}</p>
+          </div>
+        </label>
+        {% endfor %}
+      </div>
+      <div class="px-6 py-4 border-t border-white/10 flex gap-3">
+        <button type="submit"
+          class="flex-1 py-2.5 rounded-xl bg-primary text-white font-bold text-sm hover:bg-blue-600 transition-colors">
+          حفظ الحضور
+        </button>
+        <button type="button" onclick="closeManualModal()"
+          class="px-4 py-2.5 rounded-xl bg-slate-700 text-slate-300 font-bold text-sm hover:bg-slate-600 transition-colors">
+          إلغاء
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+const SESSION_ID = '{{ session.id }}';
+const CSRF = '{{ csrf_token }}';
+const FACE_ENGINE = {{ face_engine_available|yesno:"true,false" }};
+
+// ── IndexedDB offline queue ───────────────────────────────────────────
+const IDB_NAME = 'shamel_offline';
+const IDB_STORE = 'attendance_queue';
+let _idb = null;
+
+function openIdb() {
+  return new Promise((resolve, reject) => {
+    if (_idb) return resolve(_idb);
+    const req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = e => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(IDB_STORE)) {
+        const store = db.createObjectStore(IDB_STORE, { keyPath: 'id', autoIncrement: true });
+        store.createIndex('synced', 'synced');
+      }
+    };
+    req.onsuccess  = e => { _idb = e.target.result; resolve(_idb); };
+    req.onerror    = e => reject(e.target.error);
+  });
+}
+
+async function idbEnqueue(studentId) {
+  const db = await openIdb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).add({
+      session_id: parseInt(SESSION_ID),
+      student_id: studentId,
+      status: 'Present',
+      method: 'face_recognition',
+      timestamp: new Date().toISOString(),
+      synced: 0,
+    });
+    tx.oncomplete = resolve;
+    tx.onerror = e => reject(e.target.error);
+  });
+}
+
+async function idbGetPending() {
+  const db = await openIdb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readonly');
+    const req = tx.objectStore(IDB_STORE).index('synced').getAll(0);
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+async function idbMarkSynced(ids) {
+  if (!ids.length) return;
+  const db = await openIdb();
+  const tx = db.transaction(IDB_STORE, 'readwrite');
+  const store = tx.objectStore(IDB_STORE);
+  ids.forEach(id => {
+    const req = store.get(id);
+    req.onsuccess = e => {
+      const rec = e.target.result;
+      if (rec) { rec.synced = 1; store.put(rec); }
+    };
+  });
+}
+
+async function syncOfflineQueue() {
+  const pending = await idbGetPending();
+  if (!pending.length) return;
+  try {
+    const fd = new FormData();
+    fd.append('csrfmiddlewaretoken', CSRF);
+    fd.append('records', JSON.stringify(pending.map(r => ({
+      session_id: r.session_id,
+      student_id: r.student_id,
+      status: r.status,
+      method: r.method,
+      timestamp: r.timestamp,
+    }))));
+    const res = await fetch('/attendance/api/v1/lecture-attendance/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+      body: JSON.stringify({ records: pending.map(r => ({
+        session_id: r.session_id, student_id: r.student_id,
+        status: r.status, method: r.method, timestamp: r.timestamp,
+      }))}),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      await idbMarkSynced(pending.map(r => r.id));
+      if (data.saved > 0) refreshStudentList();
+    }
+  } catch(e) { /* offline still — retry next cycle */ }
+}
+
+// Sync every 30s + on page focus
+setInterval(syncOfflineQueue, 30000);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') syncOfflineQueue();
+});
+
+// ── Camera setup ──────────────────────────────────────────────────────
+const video = document.getElementById('cam-video');
+const canvas = document.getElementById('overlay-canvas');
+const ctx = canvas.getContext('2d');
+let stream = null;
+
+async function startCamera() {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 640, height: 480 } });
+    video.srcObject = stream;
+    video.onloadedmetadata = () => { canvas.width = video.videoWidth; canvas.height = video.videoHeight; };
+  } catch(e) {
+    document.getElementById('scan-status').textContent = 'تعذر فتح الكاميرا';
+  }
+}
+
+function stopCamera() {
+  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+}
+
+window.addEventListener('beforeunload', stopCamera);
+window.addEventListener('pagehide', stopCamera);
+
+// ── MediaPipe detection ───────────────────────────────────────────────
+let mpFD = null, mpReady = false;
+const MIN_STABLE = 2;
+let stableCount = 0, scanning = false;
+
+function initMediaPipe() {
+  if (typeof FaceDetection === 'undefined') { fallbackPolling(); return; }
+  mpFD = new FaceDetection({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection@0.4/${f}` });
+  mpFD.setOptions({ model: 'short', minDetectionConfidence: 0.5 });
+  mpFD.onResults(onMpResults);
+  mpFD.initialize().then(() => { mpReady = true; requestAnimationFrame(mpTick); });
+}
+
+async function mpTick() {
+  if (!mpReady || !video.readyState) { requestAnimationFrame(mpTick); return; }
+  await mpFD.send({ image: video });
+  requestAnimationFrame(mpTick);
+}
+
+function onMpResults(r) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const dets = r.detections || [];
+  if (!dets.length) { stableCount = 0; return; }
+
+  dets.forEach(d => {
+    const bb = d.boundingBox;
+    const x = bb.xCenter * canvas.width - (bb.width * canvas.width) / 2;
+    const y = bb.yCenter * canvas.height - (bb.height * canvas.height) / 2;
+    const w = bb.width * canvas.width;
+    const h = bb.height * canvas.height;
+    ctx.strokeStyle = '#4361ee'; ctx.lineWidth = 2; ctx.strokeRect(x, y, w, h);
+  });
+
+  stableCount++;
+  if (stableCount >= MIN_STABLE && !scanning && FACE_ENGINE) {
+    stableCount = 0;
+    sendFrame();
+  }
+}
+
+// ── Fallback polling when MediaPipe unavailable ───────────────────────
+function fallbackPolling() {
+  if (!FACE_ENGINE) return;
+  setInterval(() => { if (!scanning) sendFrame(); }, 1500);
+}
+
+// ── Send frame to server ──────────────────────────────────────────────
+const SCAN_COOLDOWN = {};
+function isCooledDown(name) {
+  const now = Date.now();
+  if (!SCAN_COOLDOWN[name] || (now - SCAN_COOLDOWN[name]) > 3500) {
+    SCAN_COOLDOWN[name] = now; return true;
+  }
+  return false;
+}
+
+async function sendFrame() {
+  if (!video.readyState) return;
+  scanning = true;
+  const fc = document.createElement('canvas');
+  fc.width = video.videoWidth; fc.height = video.videoHeight;
+  fc.getContext('2d').drawImage(video, 0, 0);
+  const b64 = fc.toDataURL('image/jpeg', 0.7);
+
+  try {
+    const fd = new FormData();
+    fd.append('frame', b64);
+    fd.append('session_id', SESSION_ID);
+    fd.append('csrfmiddlewaretoken', CSRF);
+    const res = await fetch('/attendance/lecture-scan-api/', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.ok && data.results) {
+      data.results.forEach(r => {
+        if (r.matched && r.name && isCooledDown(r.name)) {
+          showToast(r.name, r.already_logged);
+          // If server saved it, remove any offline copy for same student
+          if (!r.already_logged && r.student_id) {
+            idbMarkSynced([r.student_id]); // best-effort cleanup
+          }
+        }
+      });
+      refreshStudentList();
+    }
+  } catch(e) {
+    // Server unreachable — scan result unknown, will retry via syncOfflineQueue
+    // We can't save without student_id (face match failed offline), so just skip
+    document.getElementById('scan-status').textContent = 'أوفلاين — جاري الحفظ محلياً';
+  }
+  finally { scanning = false; }
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────
+function showToast(name, alreadyLogged) {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast flex items-center gap-3 px-5 py-3 rounded-xl shadow-2xl text-sm font-bold pointer-events-auto ' +
+    (alreadyLogged ? 'bg-slate-700 text-slate-300' : 'bg-emerald-600 text-white');
+  t.innerHTML = `<span class="material-symbols-outlined fill-icon text-lg">${alreadyLogged ? 'done_all' : 'check_circle'}</span>${name}`;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+// ── Live student list refresh ─────────────────────────────────────────
+async function refreshStudentList() {
+  try {
+    const res = await fetch(`/attendance/lecture-scan/${SESSION_ID}/status/`);
+    const data = await res.json();
+    document.getElementById('hdr-present').textContent = data.present.length;
+    document.getElementById('hdr-total').textContent = data.total;
+    data.present.forEach(p => markPresent(p.id, p.time));
+  } catch(e) {}
+}
+
+function markPresent(id, time) {
+  const row = document.getElementById(`st-${id}`);
+  const icon = document.getElementById(`st-icon-${id}`);
+  const timeEl = document.getElementById(`st-time-${id}`);
+  const avatar = row ? row.querySelector('.w-8') : null;
+  if (!row) return;
+  row.className = row.className.replace('bg-slate-800/60 border-transparent', 'bg-emerald-900/30 border-emerald-800');
+  if (avatar) { avatar.className = avatar.className.replace('bg-slate-700', 'bg-emerald-600'); }
+  if (icon) { icon.textContent = 'check_circle'; icon.className = icon.className.replace('text-slate-600', 'text-emerald-400'); }
+  if (timeEl) timeEl.textContent = time ? `حاضر ${time}` : 'حاضر';
+}
+
+// ── Manual modal ──────────────────────────────────────────────────────
+function openManualModal()  { document.getElementById('manual-modal').classList.remove('hidden'); }
+function closeManualModal() { document.getElementById('manual-modal').classList.add('hidden'); }
+document.getElementById('manual-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('manual-modal')) closeManualModal();
+});
+
+// ── Clock ─────────────────────────────────────────────────────────────
+function updateClock() {
+  document.getElementById && (document.getElementById('scan-status') || {});
+}
+
+// ── Init ──────────────────────────────────────────────────────────────
+startCamera().then(() => {
+  if (FACE_ENGINE) initMediaPipe();
+});
+setInterval(refreshStudentList, 5000);
+</script>
+</body>
+</html>

@@ -41,6 +41,8 @@ urlpatterns = [
     path('api/v1/tickets/<int:tid>',   apix.ticket_detail,         name='api_ticket_detail'),
     path('api/v1/teacher/timeline',    apix.teacher_timeline,      name='api_teacher_timeline'),
     path('api/v1/gate-reports',        apix.gate_reports,          name='api_gate_reports'),
+    path('api/v1/sessions/active',     apix.active_session,        name='api_active_session'),
+    path('api/v1/lecture-attendance/sync', apix.sync_lecture_attendance, name='api_lecture_sync'),
 
     # Home redirect / unified login
     path('', views.login_view, name='home'),
@@ -66,12 +68,12 @@ urlpatterns = [
 
     # Admin panel
     path('admin-panel/', views.admin_control_panel, name='admin_panel'),
+    path('admin-panel/settings/', views.system_settings, name='system_settings'),
     path('admin-panel/gate-reports/', views.gate_reports, name='gate_reports'),
     path('admin-panel/notifications/', views.admin_notifications, name='admin_notifications'),
     path('admin-panel/audit-log/', views.audit_log_view, name='audit_log'),
     path('admin-panel/departments/', views.departments_view, name='departments_view'),
-    path('admin-panel/onboarding/', views.onboarding_wizard, name='onboarding_wizard'),
-    path('admin-panel/dean-evaluation/', views.dean_evaluation_dashboard, name='dean_evaluation_dashboard'),
+path('admin-panel/dean-evaluation/', views.dean_evaluation_dashboard, name='dean_evaluation_dashboard'),
     path('admin-panel/faculty-timeline/', views.faculty_timeline, name='faculty_timeline'),
     path('admin-panel/excuse-board/', views.excuse_approval_board, name='excuse_approval_board'),
     path('admin-panel/exam-planner/', views.exam_planner, name='exam_planner'),
@@ -168,10 +170,12 @@ urlpatterns = [
     # Face enrollment
     path('enroll-face/', views.enroll_face, name='enroll_face'),
     path('enroll-face/<str:person_type>/<int:person_id>/', views.enroll_face, name='enroll_face_person'),
+    path('detect-face/', views.detect_face_api, name='detect_face_api'),
     path('user/<str:user_type>/<int:user_id>/upload-face/', views.upload_face, name='upload_face'),
 
     # Gate
     path('gate/', views.gate_page, name='gate_page'),
+    path('gate-scan/', views.gate_scan_api, name='gate_scan_api'),
     path('toggle-access/<str:user_type>/<int:user_id>/', views.toggle_user_access, name='toggle_access'),
 
     # API endpoints
@@ -186,6 +190,12 @@ urlpatterns = [
 
     # Stop session
     path('stop-session/<int:session_id>/', views.stop_session, name='stop_session'),
+
+    # Lecture attendance scan (teacher-owned session)
+    path('lecture-scan/<int:session_id>/', views.lecture_scan, name='lecture_scan'),
+    path('lecture-scan-api/', views.lecture_scan_api, name='lecture_scan_api'),
+    path('lecture-scan/<int:session_id>/status/', views.lecture_session_status, name='lecture_session_status'),
+    path('lecture-scan/<int:session_id>/manual/', views.lecture_manual_attendance, name='lecture_manual_attendance'),
 
     # PWA
     path('sw.js',    views.pwa_sw,      name='pwa_sw'),
