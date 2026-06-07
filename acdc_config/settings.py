@@ -5,7 +5,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY    = config('SECRET_KEY')
 DEPLOY_SECRET = config('DEPLOY_SECRET', default='')   # set on VPS for live-reload push
-DEBUG = config('DEBUG', default=True, cast=bool)
+DEBUG = config('DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,84.46.251.93,shamel.sd,www.shamel.sd,10.0.2.2').split(',')
 
 # CSRF trusted origins — cover all ports used locally + production domain
@@ -162,9 +162,9 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
-AXES_ENABLED = False  # Disable django-axes lockout completely
+AXES_ENABLED = config('AXES_ENABLED', default=True, cast=bool)
 AXES_FAILURE_LIMIT = 5
-AXES_COOLOFF_TIME = 0.25
+AXES_COOLOFF_TIME = 0.25  # 15 minutes lockout
 
 
 # ─────────────────────────────────────────────

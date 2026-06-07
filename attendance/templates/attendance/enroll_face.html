@@ -1,4 +1,4 @@
-﻿{% extends 'attendance/base.html' %}
+{% extends 'attendance/base.html' %}
 {% load static %}
 {% block title %}تسجيل بصمة الوجه — {{ person.name }}{% endblock %}
 {% block content %}
@@ -8,7 +8,7 @@
   <!-- Header -->
   <div class="flex items-center gap-4">
     <a href="javascript:history.back()"
-       class="p-2 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-all shadow-sm">
+       class="p-2 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-all shadow-sm dark:bg-slate-800 dark:border-slate-700">
       <span class="material-symbols-outlined text-lg">arrow_back</span>
     </a>
     <div>
@@ -20,54 +20,39 @@
     </div>
   </div>
 
-  <!-- Status card -->
-  {% if has_face %}
-  <div class="flex items-center gap-3 p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300">
-    <span class="material-symbols-outlined text-2xl fill-icon">verified</span>
-    <div>
-      <p class="font-bold text-sm">بصمة الوجه مسجّلة ✓</p>
-      <p class="text-xs opacity-80 mt-0.5">يمكنك تحديثها بالتقاط صورة جديدة أدناه</p>
-    </div>
-  </div>
-  {% else %}
-  <div class="flex items-center gap-3 p-4 rounded-2xl bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 text-amber-700 dark:text-amber-300">
-    <span class="material-symbols-outlined text-2xl">face_retouching_off</span>
-    <div>
-      <p class="font-bold text-sm">لم يتم تسجيل بصمة الوجه بعد</p>
-      <p class="text-xs opacity-80 mt-0.5">قم بالتقاط صورة واضحة للوجه أدناه</p>
-    </div>
-  </div>
-  {% endif %}
-
-  <!-- Camera panel -->
+  <!-- Scanner Card -->
   <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
 
-    <!-- Webcam -->
-    <div class="relative bg-slate-950 aspect-video flex items-center justify-center">
-      <video id="webcam" autoplay playsinline class="w-full h-full object-cover hidden"></video>
+    <!-- Camera + Canvas overlay -->
+    <div class="relative bg-slate-950" style="aspect-ratio:4/3;">
+
+      <!-- Live video (hidden — drawn to canvas) -->
+      <video id="webcam" autoplay playsinline muted class="hidden w-full h-full object-cover"></video>
+
+      <!-- Canvas: video + bbox overlay -->
+      <canvas id="display-canvas" class="w-full h-full object-cover block"></canvas>
 
       <!-- Placeholder -->
-      <div id="cam-placeholder" class="absolute inset-0 flex flex-col items-center justify-center gap-3">
+      <div id="cam-placeholder" class="absolute inset-0 flex flex-col items-center justify-center gap-4 text-slate-600">
         <div class="w-24 h-24 rounded-full bg-slate-800 flex items-center justify-center">
-          <span class="material-symbols-outlined text-slate-600 text-5xl">face</span>
+          <span class="material-symbols-outlined text-slate-500 text-5xl">face</span>
         </div>
         <p class="text-slate-500 text-sm font-semibold">الكاميرا غير مفعّلة</p>
       </div>
 
-      <!-- Preview captured frame -->
-      <img id="preview-img" class="hidden absolute inset-0 w-full h-full object-cover" alt="Captured"/>
-
-      <!-- Corner brackets overlay -->
-      <div id="scan-overlay" class="absolute inset-0 pointer-events-none hidden">
-        <div class="absolute inset-12 border border-white/10 rounded-2xl"></div>
-        <div class="absolute top-12 left-12 w-10 h-10 border-t-2 border-l-2 border-emerald-400 rounded-tl-xl"></div>
-        <div class="absolute top-12 right-12 w-10 h-10 border-t-2 border-r-2 border-emerald-400 rounded-tr-xl"></div>
-        <div class="absolute bottom-12 left-12 w-10 h-10 border-b-2 border-l-2 border-emerald-400 rounded-bl-xl"></div>
-        <div class="absolute bottom-12 right-12 w-10 h-10 border-b-2 border-r-2 border-emerald-400 rounded-br-xl"></div>
+      <!-- Status overlay (top) -->
+      <div id="scan-label" class="hidden absolute top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase shadow-lg transition-all duration-300
+           bg-slate-800/80 text-slate-300 backdrop-blur-sm">
+        جاري البحث عن وجه...
       </div>
 
-      <!-- Hidden canvas for capture -->
-      <canvas id="snap-canvas" class="hidden"></canvas>
+      <!-- Countdown circle -->
+      <div id="countdown-wrap" class="hidden absolute inset-0 flex items-end justify-center pb-6 pointer-events-none">
+        <div class="w-14 h-14 rounded-full bg-emerald-500/90 text-white flex items-center justify-center text-3xl font-black shadow-xl">
+          <span id="countdown-num">3</span>
+        </div>
+      </div>
+
     </div>
 
     <!-- Controls -->
@@ -81,23 +66,23 @@
 
       <!-- Progress bar -->
       <div id="progress-wrap" class="hidden">
-        <div class="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-          <div id="progress-bar" class="h-full bg-primary rounded-full transition-all duration-700" style="width:0%"></div>
+        <div class="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+          <div id="progress-bar" class="h-full bg-primary rounded-full transition-all duration-500" style="width:0%"></div>
         </div>
-        <p class="text-[10px] text-slate-400 mt-1 text-center" id="progress-label">جاري المعالجة...</p>
+        <p class="text-[11px] text-slate-400 mt-1 text-center" id="progress-label">جاري المعالجة...</p>
       </div>
 
-      <!-- Action buttons -->
+      <!-- Buttons -->
       <div class="flex gap-3">
         <button id="start-btn" onclick="startCamera()"
           class="flex-1 flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold text-sm py-3 rounded-xl transition-all">
           <span class="material-symbols-outlined text-lg">videocam</span>
           تشغيل الكاميرا
         </button>
-        <button id="capture-btn" onclick="captureAndEnroll()" disabled
+        <button id="capture-btn" onclick="manualCapture()" disabled
           class="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary-container text-white font-bold text-sm py-3 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed">
           <span class="material-symbols-outlined text-lg">face</span>
-          التقاط وتسجيل
+          التقاط يدوي
         </button>
       </div>
 
@@ -105,15 +90,6 @@
         <span class="material-symbols-outlined text-xs align-middle">shield</span>
         بياناتك البيومترية محمية ولن تُشارَك مع أطراف خارجية
       </p>
-
-      {% if has_face %}
-      <button onclick="retake()"
-        class="w-full flex items-center justify-center gap-2 text-xs text-slate-500 hover:text-red-600 transition-colors py-1">
-        <span class="material-symbols-outlined text-sm">refresh</span>
-        إعادة التسجيل (تحديث البصمة)
-      </button>
-      {% endif %}
-
     </div>
   </div>
 
@@ -131,24 +107,21 @@
     </div>
   </div>
 
-  <!-- Navigation -->
+  <!-- Nav -->
   <div class="flex items-center justify-between">
     <a href="javascript:history.back()"
       class="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-800 font-semibold transition-colors">
-      <span class="material-symbols-outlined text-base">arrow_back</span>
-      العودة
+      <span class="material-symbols-outlined text-base">arrow_back</span>العودة
     </a>
     {% if user_type == 'student' %}
     <a href="{% url 'coordinator_students' %}"
       class="inline-flex items-center gap-2 text-sm font-bold text-primary hover:text-primary-container transition-colors">
-      الانتقال لقائمة الطلاب
-      <span class="material-symbols-outlined text-base">arrow_forward</span>
+      قائمة الطلاب<span class="material-symbols-outlined text-base">arrow_forward</span>
     </a>
     {% else %}
     <a href="{% url 'coordinator_faculty' %}"
       class="inline-flex items-center gap-2 text-sm font-bold text-primary hover:text-primary-container transition-colors">
-      الانتقال لقائمة الأساتذة
-      <span class="material-symbols-outlined text-base">arrow_forward</span>
+      قائمة الأساتذة<span class="material-symbols-outlined text-base">arrow_forward</span>
     </a>
     {% endif %}
   </div>
@@ -156,22 +129,33 @@
 </div>
 
 <script>
-const video      = document.getElementById('webcam');
-const canvas     = document.getElementById('snap-canvas');
-const preview    = document.getElementById('preview-img');
-const placeholder= document.getElementById('cam-placeholder');
-const overlay    = document.getElementById('scan-overlay');
-const startBtn   = document.getElementById('start-btn');
-const captureBtn = document.getElementById('capture-btn');
-const msgBox     = document.getElementById('msg-box');
-const msgIcon    = document.getElementById('msg-icon');
-const msgText    = document.getElementById('msg-text');
+const DETECT_URL  = '{% url "detect_face_api" %}';
+const UPLOAD_URL  = '{{ upload_url }}';
+const CSRF_TOKEN  = '{{ csrf_token }}';
+
+const video       = document.getElementById('webcam');
+const canvas      = document.getElementById('display-canvas');
+const ctx         = canvas.getContext('2d');
+const placeholder = document.getElementById('cam-placeholder');
+const scanLabel   = document.getElementById('scan-label');
+const countdownWrap = document.getElementById('countdown-wrap');
+const countdownNum  = document.getElementById('countdown-num');
+const startBtn    = document.getElementById('start-btn');
+const captureBtn  = document.getElementById('capture-btn');
+const msgBox      = document.getElementById('msg-box');
+const msgIcon     = document.getElementById('msg-icon');
+const msgText     = document.getElementById('msg-text');
 const progressWrap= document.getElementById('progress-wrap');
 const progressBar = document.getElementById('progress-bar');
 const progressLbl = document.getElementById('progress-label');
 
-const UPLOAD_URL = '{{ upload_url }}';
-const CSRF_TOKEN = '{{ csrf_token }}';
+let detectInterval = null;
+let lastFaces      = [];
+let stableCount    = 0;
+let countdownTimer = null;
+let countdownVal   = 3;
+let enrollLocked   = false;
+let animFrame      = null;
 
 function showMsg(text, type) {
   const map = {
@@ -183,7 +167,7 @@ function showMsg(text, type) {
   const [cls, icon] = map[type] || map.info;
   msgBox.className = `rounded-xl px-4 py-3 text-sm font-semibold flex items-center gap-2 ${cls}`;
   msgIcon.textContent = icon;
-  msgText.textContent = text;
+  msgText.textContent  = text;
   msgBox.classList.remove('hidden');
 }
 
@@ -191,98 +175,265 @@ function setProgress(pct, label) {
   progressWrap.classList.remove('hidden');
   progressBar.style.width = pct + '%';
   progressLbl.textContent = label;
-  if (pct >= 100) setTimeout(() => progressWrap.classList.add('hidden'), 1000);
+  if (pct >= 100) setTimeout(() => progressWrap.classList.add('hidden'), 1200);
 }
 
-// Stop webcam when leaving page
+function setScanLabel(text, color) {
+  scanLabel.classList.remove('hidden');
+  scanLabel.textContent = text;
+  scanLabel.className = `absolute top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase shadow-lg transition-all duration-300 backdrop-blur-sm ${color}`;
+}
+
+// ── Draw loop ────────────────────────────────────────────────────────────────
+function drawLoop() {
+  if (!video.srcObject) return;
+  canvas.width  = video.videoWidth  || canvas.clientWidth;
+  canvas.height = video.videoHeight || canvas.clientHeight;
+
+  // Mirror horizontally (selfie view)
+  ctx.save();
+  ctx.translate(canvas.width, 0);
+  ctx.scale(-1, 1);
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  ctx.restore();
+
+  // Draw face bounding boxes
+  const scaleX = canvas.width  / (video.videoWidth  || canvas.width);
+  const scaleY = canvas.height / (video.videoHeight || canvas.height);
+
+  lastFaces.forEach((f, i) => {
+    // Mirror the x coordinates for the flipped canvas
+    const x1m = canvas.width - f.x2 * scaleX;
+    const x2m = canvas.width - f.x1 * scaleX;
+    const y1  = f.y1 * scaleY;
+    const y2  = f.y2 * scaleY;
+    const w   = x2m - x1m;
+    const h   = y2  - y1;
+
+    const isMain = i === 0;
+    const color  = isMain
+      ? (stableCount >= 2 ? '#10b981' : '#f59e0b')   // green when locked, amber when tracking
+      : 'rgba(148,163,184,0.7)';
+    const lw = isMain ? 2.5 : 1.5;
+
+    // Rounded rectangle
+    const r = 12;
+    ctx.strokeStyle = color;
+    ctx.lineWidth   = lw;
+    ctx.shadowColor = color;
+    ctx.shadowBlur  = isMain ? 8 : 4;
+    ctx.beginPath();
+    ctx.moveTo(x1m + r, y1);
+    ctx.lineTo(x2m - r, y1);  ctx.arcTo(x2m, y1, x2m, y1+r, r);
+    ctx.lineTo(x2m, y2 - r);  ctx.arcTo(x2m, y2, x2m-r, y2, r);
+    ctx.lineTo(x1m + r, y2);  ctx.arcTo(x1m, y2, x1m, y2-r, r);
+    ctx.lineTo(x1m, y1 + r);  ctx.arcTo(x1m, y1, x1m+r, y1, r);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Corner brackets (main face only)
+    if (isMain) {
+      const bl = Math.min(w, h) * 0.18;
+      ctx.strokeStyle = color;
+      ctx.lineWidth   = 3;
+      [[x1m,y1],[x2m,y1],[x2m,y2],[x1m,y2]].forEach(([cx,cy], qi) => {
+        const dx = qi===0||qi===3 ?  bl : -bl;
+        const dy = qi===0||qi===1 ?  bl : -bl;
+        ctx.beginPath();
+        ctx.moveTo(cx + dx, cy); ctx.lineTo(cx, cy); ctx.lineTo(cx, cy + dy);
+        ctx.stroke();
+      });
+    }
+  });
+
+  animFrame = requestAnimationFrame(drawLoop);
+}
+
+// ── Webcam ───────────────────────────────────────────────────────────────────
 function stopWebcam() {
   if (window._webcamStream) {
     window._webcamStream.getTracks().forEach(t => t.stop());
     window._webcamStream = null;
   }
+  if (detectInterval) { clearInterval(detectInterval); detectInterval = null; }
+  if (animFrame)       { cancelAnimationFrame(animFrame); animFrame = null; }
+  if (countdownTimer)  { clearInterval(countdownTimer); countdownTimer = null; }
 }
 window.addEventListener('beforeunload', stopWebcam);
-window.addEventListener('pagehide', stopWebcam);
-document.addEventListener('visibilitychange', function() {
+window.addEventListener('pagehide',     stopWebcam);
+document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') stopWebcam();
 });
 
 async function startCamera() {
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 640, height: 480 } });
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
+    });
     window._webcamStream = stream;
     video.srcObject = stream;
-    video.classList.remove('hidden');
+    await new Promise(r => { video.onloadedmetadata = r; });
+
     placeholder.classList.add('hidden');
-    overlay.classList.remove('hidden');
-    preview.classList.add('hidden');
     captureBtn.disabled = false;
     startBtn.disabled   = true;
     startBtn.classList.add('opacity-50');
-    showMsg('الكاميرا جاهزة — قم بمحاذاة وجهك ثم اضغط التقاط', 'info');
+
+    // start draw loop
+    animFrame = requestAnimationFrame(drawLoop);
+
+    // start detection polling every 600ms
+    setScanLabel('جاري البحث عن وجه...', 'bg-slate-800/80 text-slate-300');
+    scanLabel.classList.remove('hidden');
+    detectInterval = setInterval(pollDetect, 600);
+
+    showMsg('الكاميرا جاهزة — ضع وجهك أمام الكاميرا', 'info');
   } catch(e) {
     showMsg('تعذّر الوصول إلى الكاميرا: ' + e.message, 'error');
   }
 }
 
+// ── Detection polling ────────────────────────────────────────────────────────
+let _detecting = false;
+async function pollDetect() {
+  if (_detecting || enrollLocked || !video.srcObject) return;
+  _detecting = true;
+  try {
+    // Capture current frame at reduced size for speed
+    const tmp = document.createElement('canvas');
+    tmp.width  = 320;
+    tmp.height = 240;
+    const tc = tmp.getContext('2d');
+    tc.drawImage(video, 0, 0, 320, 240);
+    const frame = tmp.toDataURL('image/jpeg', 0.75);
+
+    const fd = new FormData();
+    fd.append('frame', frame);
+    fd.append('csrfmiddlewaretoken', CSRF_TOKEN);
+
+    const res  = await fetch(DETECT_URL, { method: 'POST', body: fd });
+    const data = await res.json();
+
+    if (data.detected && data.faces && data.faces.length > 0) {
+      // Scale bboxes back to video resolution
+      const sx = (video.videoWidth  || 640) / 320;
+      const sy = (video.videoHeight || 480) / 240;
+      lastFaces = data.faces.map(f => ({
+        x1: f.x1 * sx, y1: f.y1 * sy,
+        x2: f.x2 * sx, y2: f.y2 * sy,
+      }));
+      stableCount++;
+
+      if (stableCount >= 2 && !countdownTimer) {
+        setScanLabel('وجه مكتشف — جاري الالتقاط...', 'bg-emerald-600/90 text-white');
+        startCountdown();
+      } else if (stableCount < 2) {
+        setScanLabel('جاري تتبع الوجه...', 'bg-amber-500/90 text-white');
+      }
+    } else {
+      lastFaces = [];
+      stableCount = 0;
+      if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+      countdownWrap.classList.add('hidden');
+      countdownVal = 3;
+      setScanLabel('جاري البحث عن وجه...', 'bg-slate-800/80 text-slate-300');
+    }
+  } catch(e) {
+    // silent
+  } finally {
+    _detecting = false;
+  }
+}
+
+// ── Countdown then auto-capture ──────────────────────────────────────────────
+function startCountdown() {
+  countdownVal = 3;
+  countdownNum.textContent = countdownVal;
+  countdownWrap.classList.remove('hidden');
+  countdownTimer = setInterval(() => {
+    countdownVal--;
+    countdownNum.textContent = countdownVal;
+    if (countdownVal <= 0) {
+      clearInterval(countdownTimer);
+      countdownTimer = null;
+      countdownWrap.classList.add('hidden');
+      captureAndEnroll();
+    }
+  }, 1000);
+}
+
+// ── Manual capture ────────────────────────────────────────────────────────────
+function manualCapture() {
+  if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+  countdownWrap.classList.add('hidden');
+  captureAndEnroll();
+}
+
+// ── Enroll ────────────────────────────────────────────────────────────────────
 async function captureAndEnroll() {
-  if (!video.srcObject) { showMsg('شغّل الكاميرا أولاً', 'error'); return; }
-  captureBtn.disabled = true;
-  showMsg('جاري التقاط الصورة وتحليل الوجه...', 'loading');
+  if (enrollLocked) return;
+  enrollLocked = true;
+  clearInterval(detectInterval);
+  detectInterval = null;
+  cancelAnimationFrame(animFrame);
+  animFrame = null;
+
+  showMsg('جاري استخراج معالم الوجه وحفظ البصمة...', 'loading');
   setProgress(20, 'التقاط الصورة...');
+  setScanLabel('جاري استخراج المعالم...', 'bg-primary/90 text-white');
 
-  canvas.width  = video.videoWidth;
-  canvas.height = video.videoHeight;
-  canvas.getContext('2d').drawImage(video, 0, 0);
-  const imageData = canvas.toDataURL('image/jpeg', 0.9);
-
-  // Show preview
-  preview.src = imageData;
-  preview.classList.remove('hidden');
-  video.classList.add('hidden');
-  overlay.classList.add('hidden');
+  // Capture full-res frame
+  const snap = document.createElement('canvas');
+  snap.width  = video.videoWidth  || 640;
+  snap.height = video.videoHeight || 480;
+  snap.getContext('2d').drawImage(video, 0, 0);
+  const imageData = snap.toDataURL('image/jpeg', 0.92);
 
   setProgress(50, 'إرسال البيانات للخادم...');
 
-  const formData = new FormData();
-  formData.append('image_data', imageData);
-  formData.append('user_type', '{{ user_type }}');
-  formData.append('user_id',   '{{ user_id }}');
-  formData.append('csrfmiddlewaretoken', CSRF_TOKEN);
+  const fd = new FormData();
+  fd.append('image_data', imageData);
+  fd.append('user_type',  '{{ user_type }}');
+  fd.append('user_id',    '{{ user_id }}');
+  fd.append('csrfmiddlewaretoken', CSRF_TOKEN);
 
   try {
-    setProgress(70, 'معالجة بصمة الوجه...');
-    const resp = await fetch(UPLOAD_URL, { method: 'POST', body: formData });
+    setProgress(75, 'معالجة بصمة الوجه...');
+    const resp = await fetch(UPLOAD_URL, { method: 'POST', body: fd });
     const data = await resp.json();
     setProgress(100, 'اكتمل');
+
     if (data.status === 'success') {
+      setScanLabel('تم التسجيل ✓', 'bg-emerald-600/90 text-white');
       showMsg('تم تسجيل بصمة الوجه بنجاح ✓', 'success');
       captureBtn.innerHTML = '<span class="material-symbols-outlined text-lg">check_circle</span> تم التسجيل';
-      captureBtn.className = captureBtn.className.replace('bg-primary hover:bg-primary-container', 'bg-emerald-600 hover:bg-emerald-700');
-      captureBtn.disabled = false;
+      captureBtn.classList.replace('bg-primary', 'bg-emerald-600');
+      captureBtn.classList.replace('hover:bg-primary-container', 'hover:bg-emerald-700');
+
+      // Draw final frame frozen
+      ctx.save();
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      ctx.restore();
+      stopWebcam();
     } else {
       showMsg(data.message || 'فشل تسجيل البصمة — حاول مجدداً', 'error');
-      retake();
+      setScanLabel('فشل — أعد المحاولة', 'bg-red-600/90 text-white');
+      enrollLocked = false;
+      // Resume detection
+      animFrame = requestAnimationFrame(drawLoop);
+      detectInterval = setInterval(pollDetect, 600);
+      stableCount = 0;
     }
   } catch(e) {
     setProgress(0, '');
     showMsg('خطأ في الاتصال بالخادم', 'error');
-    retake();
+    enrollLocked = false;
+    animFrame = requestAnimationFrame(drawLoop);
+    detectInterval = setInterval(pollDetect, 600);
   }
-}
-
-function retake() {
-  preview.classList.add('hidden');
-  if (video.srcObject) {
-    video.classList.remove('hidden');
-    overlay.classList.remove('hidden');
-  } else {
-    placeholder.classList.remove('hidden');
-  }
-  captureBtn.disabled = false;
-  captureBtn.innerHTML = '<span class="material-symbols-outlined text-lg">face</span> التقاط وتسجيل';
-  captureBtn.className = captureBtn.className
-    .replace('bg-emerald-600 hover:bg-emerald-700', 'bg-primary hover:bg-primary-container');
 }
 </script>
 {% endblock %}

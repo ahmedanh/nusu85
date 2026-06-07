@@ -9,9 +9,76 @@ from datetime import timedelta, time as dtime
 
 os.chdir(Path(__file__).parent)
 sys.path.insert(0, str(Path(__file__).parent))
-os.environ['USE_LOCAL_DB'] = 'true'
+# os.environ['USE_LOCAL_DB'] = 'true'
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'acdc_config.settings')
 django.setup()
+
+# Fix psycopg2 database-level drift for is_occupied on remote VPS
+from django.db import connection as _conn
+if _conn.vendor == 'postgresql':
+    with _conn.cursor() as cur:
+        # Create missing tables if they don't exist
+        try:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS attendance_medicalexcuse (
+                    id SERIAL PRIMARY KEY,
+                    student_id INTEGER NOT NULL REFERENCES attendance_student(id) ON DELETE CASCADE,
+                    schedule_id INTEGER REFERENCES attendance_schedule(id) ON DELETE SET NULL,
+                    reason TEXT NOT NULL,
+                    document VARCHAR(100),
+                    status VARCHAR(10) NOT NULL DEFAULT 'pending',
+                    submitted_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    reviewed_by_id INTEGER REFERENCES auth_user(id) ON DELETE SET NULL,
+                    review_note TEXT NOT NULL DEFAULT ''
+                );
+            """)
+        except Exception:
+            pass
+
+        try:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS attendance_exam (
+                    id SERIAL PRIMARY KEY,
+                    course_id INTEGER NOT NULL REFERENCES attendance_course(id) ON DELETE CASCADE,
+                    exam_type VARCHAR(50) NOT NULL DEFAULT 'Final',
+                    date DATE NOT NULL,
+                    start_time TIME NOT NULL,
+                    end_time TIME NOT NULL,
+                    classroom_id INTEGER REFERENCES attendance_classroom(id) ON DELETE SET NULL,
+                    semester VARCHAR(10) NOT NULL DEFAULT '',
+                    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+                );
+            """)
+        except Exception:
+            pass
+
+        for query in [
+            "ALTER TABLE attendance_classroom ALTER COLUMN is_occupied DROP NOT NULL",
+            "ALTER TABLE attendance_camerasource ALTER COLUMN created_at DROP NOT NULL",
+            "ALTER TABLE attendance_department ALTER COLUMN created_at DROP NOT NULL",
+            "ALTER TABLE attendance_course ALTER COLUMN year_level DROP NOT NULL",
+            "ALTER TABLE attendance_grade ALTER COLUMN entered_at DROP NOT NULL",
+            "ALTER TABLE attendance_notification ALTER COLUMN message DROP NOT NULL"
+        ]:
+            try:
+                cur.execute(query)
+            except Exception:
+                pass
+        # Reset PK sequences for Postgres tables
+        try:
+            cur.execute("""
+                SELECT table_name 
+                FROM information_schema.tables 
+                WHERE table_schema = 'public' AND (table_name LIKE 'attendance_%' OR table_name LIKE 'auth_%')
+            """)
+            tables = [row[0] for row in cur.fetchall()]
+            for table in tables:
+                try:
+                    cur.execute(f"SELECT setval(pg_get_serial_sequence('{table}', 'id'), COALESCE(MAX(id), 1), MAX(id) IS NOT NULL) FROM {table}")
+                except Exception:
+                    pass
+        except Exception:
+            pass
 
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -25,7 +92,7 @@ from attendance.models import (
 
 User = get_user_model()
 
-def p(msg): print(f'  ✓ {msg}')
+def p(msg): print(f'  [OK] {msg}')
 
 def rnd_past(days=30):
     return timezone.now() - timedelta(
@@ -414,17 +481,13 @@ with transaction.atomic():
         obj.save()
         created_ids.append(obj.pk)
 
-# Spread timestamps over past 30 days via raw SQL (auto_now_add bypass)
-with connection.cursor() as cur:
-    for pk in created_ids:
-        days_back = random.randint(1, 30)
-        hrs  = random.randint(7, 18)
-        mins = random.randint(0, 59)
-        modifier = f'-{days_back} days'
-        cur.execute(
-            "UPDATE attendance_auditlog SET timestamp = datetime('now', %s) WHERE id = %s",
-            [modifier, pk]
-        )
+# Spread timestamps over past 30 days via Django ORM (bypasses auto_now_add)
+for pk in created_ids:
+    days_back = random.randint(1, 30)
+    hrs  = random.randint(7, 18)
+    mins = random.randint(0, 59)
+    dt = timezone.now() - timedelta(days=days_back, hours=hrs, minutes=mins)
+    AuditLog.objects.filter(pk=pk).update(timestamp=dt)
 p(f'Audit log: {len(AUDIT_ENTRIES)} diverse entries (timestamps spread over 30 days)')
 
 # ─── SUMMARY ─────────────────────────────────────────────────────────────────

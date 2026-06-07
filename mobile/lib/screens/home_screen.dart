@@ -7,7 +7,6 @@ import 'schedule_screen.dart';
 import 'reports_screen.dart';
 import 'notifications_screen.dart';
 import 'profile_screen.dart';
-import 'scan_screen.dart';
 import 'menu_drawer.dart';
 
 /// Role-based shell with a Bottom Navigation Bar (native mobile idiom,
@@ -27,18 +26,17 @@ class _HomeScreenState extends State<HomeScreen> {
     final notifs = _Tab('الإشعارات', Icons.notifications_outlined, const NotificationsScreen());
     final profile = _Tab('حسابي', Icons.person_outline, const ProfileScreen());
     final reports = _Tab('التقارير', Icons.bar_chart_outlined, const ReportsScreen());
-    final scan = _Tab('المسح', Icons.center_focus_strong_outlined, const ScanScreen());
 
     switch (role) {
       case 'admin':
       case 'coordinator':
-        return [dash, scan, reports, notifs, profile];
+        return [dash, reports, notifs, profile];
       case 'teacher':
-        return [dash, sched, scan, notifs, profile];
+        return [dash, sched, notifs, profile];
       case 'student':
         return [dash, sched, reports, notifs, profile];
       case 'gate':
-        return [dash, scan, notifs, profile];
+        return [dash, notifs, profile];
       default:
         return [dash, notifs, profile];
     }

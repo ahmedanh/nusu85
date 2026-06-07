@@ -117,8 +117,9 @@ async function loadDepts(cid) {
   if (!cid) { sel.innerHTML = '<option value="">— اختر القسم —</option>'; return; }
   sel.innerHTML = '<option>جاري التحميل...</option>';
   const data = await fetch('/attendance/api/departments/?college_id=' + cid).then(r => r.json());
+  const depts = data.departments || data;
   sel.innerHTML = '<option value="">— اختر القسم —</option>' +
-    data.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+    depts.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
 }
 {% if coordinator and not is_admin %}
 loadDepts('{{ coordinator.college_id }}');

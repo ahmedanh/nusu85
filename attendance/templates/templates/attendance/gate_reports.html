@@ -1,108 +1,157 @@
-﻿{% extends 'attendance/base.html' %}
+{% extends 'attendance/base.html' %}
+{% block title %}تقارير البوابة — شامل{% endblock %}
 {% block content %}
 <div class="space-y-6" dir="rtl">
 
   <div>
-    <h1 class="text-2xl font-bold font-headline text-slate-900">تقارير البوابة</h1>
-    <p class="text-sm text-on-surface-variant mt-1">سجلات دخول البوابة الرئيسية</p>
+    <h1 class="text-2xl font-bold font-headline text-slate-900 dark:text-white" data-en="Gate Reports" data-ar="تقارير البوابة">تقارير البوابة</h1>
+    <p class="text-sm text-on-surface-variant mt-1" data-en="Main gate entry records" data-ar="سجلات دخول البوابة الرئيسية">سجلات دخول البوابة الرئيسية</p>
   </div>
 
   <!-- Stats row -->
-  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+  <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-5 flex items-center gap-4">
       <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
         <span class="material-symbols-outlined text-primary text-2xl">group</span>
       </div>
       <div>
-        <p class="text-2xl font-bold text-slate-900">{{ total_today }}</p>
-        <p class="text-xs text-slate-500 font-medium">إجمالي دخول اليوم</p>
+        <p class="text-2xl font-bold text-slate-900 dark:text-white">{{ total_today }}</p>
+        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium" data-en="Total entries today" data-ar="إجمالي دخول اليوم">إجمالي دخول اليوم</p>
+      </div>
+    </div>
+
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center">
+        <span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-2xl fill-icon">check_circle</span>
+      </div>
+      <div>
+        <p class="text-2xl font-bold text-slate-900 dark:text-white">{{ allowed_today }}</p>
+        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium" data-en="Allowed" data-ar="مسموح لهم">مسموح لهم</p>
+      </div>
+    </div>
+
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center">
+        <span class="material-symbols-outlined text-red-500 dark:text-red-400 text-2xl fill-icon">cancel</span>
+      </div>
+      <div>
+        <p class="text-2xl font-bold text-slate-900 dark:text-white">{{ denied_today }}</p>
+        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium" data-en="Denied" data-ar="مرفوضون">مرفوضون</p>
       </div>
     </div>
 
     {% for bt in by_type %}
-    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-5 flex items-center gap-4">
       <div class="w-12 h-12 rounded-xl flex items-center justify-center
-        {% if bt.user_type == 'Student' %} bg-blue-50 {% else %} bg-emerald-50 {% endif %}">
+        {% if bt.user_type == 'Student' %} bg-blue-50 dark:bg-blue-900/20 {% else %} bg-violet-50 dark:bg-violet-900/20 {% endif %}">
         <span class="material-symbols-outlined text-2xl
-          {% if bt.user_type == 'Student' %} text-blue-600 {% else %} text-emerald-600 {% endif %}">
+          {% if bt.user_type == 'Student' %} text-blue-600 dark:text-blue-400 {% else %} text-violet-600 dark:text-violet-400 {% endif %}">
           {% if bt.user_type == 'Student' %}school{% else %}person_badge{% endif %}
         </span>
       </div>
       <div>
-        <p class="text-2xl font-bold text-slate-900">{{ bt.count }}</p>
-        <p class="text-xs text-slate-500 font-medium">{{ bt.user_type }}</p>
+        <p class="text-2xl font-bold text-slate-900 dark:text-white">{{ bt.count }}</p>
+        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">
+          {% if bt.user_type == 'Student' %}<span data-en="Students" data-ar="طلاب">طلاب</span>{% else %}<span data-en="Faculty" data-ar="أساتذة">أساتذة</span>{% endif %}
+        </p>
       </div>
     </div>
     {% endfor %}
   </div>
 
   <!-- Filter form -->
-  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-5">
     <form method="GET" class="flex flex-wrap gap-4 items-end">
       <div>
-        <label class="block text-xs font-semibold text-slate-600 mb-1">التاريخ</label>
+        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1" data-en="Date" data-ar="التاريخ">التاريخ</label>
         <input type="date" name="date" value="{{ date_filter|default:'' }}"
-          class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"/>
+          class="rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-800 dark:text-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"/>
       </div>
       <div>
-        <label class="block text-xs font-semibold text-slate-600 mb-1">نوع المستخدم</label>
+        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1" data-en="User Type" data-ar="نوع المستخدم">نوع المستخدم</label>
         <select name="user_type"
-          class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
-          <option value="">الكل</option>
-          <option value="Student" {% if type_filter == 'Student' %}selected{% endif %}>طالب</option>
-          <option value="Teacher" {% if type_filter == 'Teacher' %}selected{% endif %}>أستاذ</option>
+          class="rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-800 dark:text-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
+          <option value="" data-en="All" data-ar="الكل">الكل</option>
+          <option value="Student" {% if type_filter == 'Student' %}selected{% endif %} data-en="Student" data-ar="طالب">طالب</option>
+          <option value="Teacher" {% if type_filter == 'Teacher' %}selected{% endif %} data-en="Teacher" data-ar="أستاذ">أستاذ</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1" data-en="Status" data-ar="الحالة">الحالة</label>
+        <select name="status"
+          class="rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-800 dark:text-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
+          <option value="" data-en="All" data-ar="الكل">الكل</option>
+          <option value="Allowed" {% if status_filter == 'Allowed' %}selected{% endif %} data-en="Allowed" data-ar="مسموح">مسموح</option>
+          <option value="Denied"  {% if status_filter == 'Denied'  %}selected{% endif %} data-en="Denied"  data-ar="مرفوض">مرفوض</option>
         </select>
       </div>
       <button type="submit"
         class="bg-primary text-white text-sm font-bold px-6 py-2 rounded-xl hover:opacity-90 transition-all flex items-center gap-2">
         <span class="material-symbols-outlined text-lg">filter_list</span>
-        تصفية
+        <span data-en="Filter" data-ar="تصفية">تصفية</span>
       </button>
-      {% if date_filter or type_filter %}
+      {% if date_filter or type_filter or status_filter %}
       <a href="{% url 'gate_reports' %}"
-        class="text-sm text-slate-500 hover:text-slate-700 flex items-center gap-1 py-2">
+        class="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex items-center gap-1 py-2">
         <span class="material-symbols-outlined text-lg">close</span>
-        مسح
+        <span data-en="Clear" data-ar="مسح">مسح</span>
       </a>
       {% endif %}
     </form>
   </div>
 
   <!-- Logs table -->
-  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-    <div class="px-6 py-4 border-b border-slate-50 flex items-center gap-2">
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-50 dark:border-slate-700 flex items-center gap-2">
       <span class="material-symbols-outlined text-primary">sensor_door</span>
-      <h2 class="text-base font-bold text-slate-800">سجل الدخول</h2>
+      <h2 class="text-base font-bold text-slate-800 dark:text-slate-100" data-en="Entry Log" data-ar="سجل الدخول">سجل الدخول</h2>
+      <span class="mr-auto text-xs text-slate-400 font-mono">{{ logs|length }} <span data-en="records" data-ar="سجل">سجل</span></span>
     </div>
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
-        <thead class="bg-slate-50 text-xs text-slate-500 uppercase tracking-wider">
+        <thead class="bg-slate-50 dark:bg-slate-900/40 text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">
           <tr>
-            <th class="px-6 py-3 text-right font-semibold">الاسم</th>
-            <th class="px-6 py-3 text-right font-semibold">النوع</th>
-            <th class="px-6 py-3 text-right font-semibold">الوقت</th>
-            <th class="px-6 py-3 text-right font-semibold">الموقع</th>
+            <th class="px-6 py-3 text-right font-semibold" data-en="Name" data-ar="الاسم">الاسم</th>
+            <th class="px-6 py-3 text-right font-semibold" data-en="Type" data-ar="النوع">النوع</th>
+            <th class="px-6 py-3 text-right font-semibold" data-en="Status" data-ar="الحالة">الحالة</th>
+            <th class="px-6 py-3 text-right font-semibold" data-en="Time" data-ar="الوقت">الوقت</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-slate-50">
+        <tbody class="divide-y divide-slate-50 dark:divide-slate-700">
           {% for log in logs %}
-          <tr class="hover:bg-slate-50 transition-colors">
-            <td class="px-6 py-3 font-medium text-slate-800">{{ log.user_name }}</td>
+          <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors">
+            <td class="px-6 py-3 font-medium text-slate-800 dark:text-slate-200">
+              {{ log.person_name|default:"—" }}
+              {% if log.student %}
+                <span class="text-[10px] text-slate-400 dark:text-slate-500 font-mono block">{{ log.student.student_code|default:"" }}</span>
+              {% endif %}
+            </td>
+            <td class="px-6 py-3">
+              {% if log.student %}
+              <span class="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300" data-en="Student" data-ar="طالب">طالب</span>
+              {% elif log.teacher %}
+              <span class="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300" data-en="Faculty" data-ar="أستاذ">أستاذ</span>
+              {% else %}
+              <span class="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400">—</span>
+              {% endif %}
+            </td>
             <td class="px-6 py-3">
               <span class="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full
-                {% if log.user_type == 'Student' %} bg-blue-100 text-blue-700
-                {% else %} bg-emerald-100 text-emerald-700 {% endif %}">
-                {% if log.user_type == 'Student' %}طالب{% elif log.user_type == 'Teacher' %}أستاذ{% else %}{{ log.user_type }}{% endif %}
+                {% if log.status == 'Allowed' %}bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300
+                {% elif log.status == 'Denied' %}bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300
+                {% else %}bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400{% endif %}">
+                {% if log.status == 'Allowed' %}<span data-en="Allowed" data-ar="مسموح">مسموح</span>
+                {% elif log.status == 'Denied' %}<span data-en="Denied" data-ar="مرفوض">مرفوض</span>
+                {% else %}{{ log.status }}{% endif %}
               </span>
             </td>
-            <td class="px-6 py-3 text-slate-500 text-xs font-mono">{{ log.entry_time|date:"d/m/Y H:i" }}</td>
-            <td class="px-6 py-3 text-slate-500 text-xs">{{ log.location }}</td>
+            <td class="px-6 py-3 text-slate-500 dark:text-slate-400 text-xs font-mono">{{ log.timestamp|date:"d/m/Y H:i:s" }}</td>
           </tr>
           {% empty %}
           <tr>
-            <td colspan="4" class="px-6 py-12 text-center text-slate-400 text-sm">
+            <td colspan="4" class="px-6 py-12 text-center text-slate-400 dark:text-slate-500 text-sm">
               <span class="material-symbols-outlined text-4xl block mb-2 opacity-30">sensor_door</span>
-              لا توجد سجلات تطابق البحث
+              <span data-en="No records match the search" data-ar="لا توجد سجلات تطابق البحث">لا توجد سجلات تطابق البحث</span>
             </td>
           </tr>
           {% endfor %}

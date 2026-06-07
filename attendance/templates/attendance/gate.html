@@ -4,350 +4,696 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Smart Gate — SHAMEL</title>
+<title>البوابة الذكية — SHAMEL</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
 tailwind.config = {
   theme: { extend: {
-    colors: { primary: "#4361ee", "primary-container": "#3a56d4" },
-    fontFamily: {
-      headline: ["Manrope","Segoe UI","system-ui","sans-serif"],
-      body:     ["Inter","Segoe UI","system-ui","sans-serif"],
-    }
+    colors: { primary: "#4361ee" },
+    fontFamily: { headline: ["Manrope","Segoe UI","system-ui","sans-serif"] }
   }}
 }
 </script>
 <link href="{% static 'fonts/fonts.css' %}" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<!-- MediaPipe: client-side face detection (no server round-trip for Phase 1) -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection@0.4/face_detection.js" crossorigin="anonymous"></script>
 <style>
-  body { font-family: 'Inter','Segoe UI',system-ui,sans-serif; }
-  h1,h2 { font-family: 'Manrope','Segoe UI',system-ui,sans-serif; }
+  body { font-family: 'Segoe UI',system-ui,sans-serif; }
+  h1,h2,h3 { font-family: 'Manrope','Segoe UI',system-ui,sans-serif; }
   .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24; }
+  .fill-icon { font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
+  @keyframes scan-sweep {
+    0%,100% { top: 12%; } 50% { top: 82%; }
+  }
+  .scan-line { animation: scan-sweep 2.5s ease-in-out infinite; }
+  @keyframes pulse-ring {
+    0% { box-shadow: 0 0 0 0 rgba(16,185,129,.5); }
+    70% { box-shadow: 0 0 0 16px rgba(16,185,129,0); }
+    100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+  }
+  .pulse-green { animation: pulse-ring 1.5s infinite; }
+  @keyframes pulse-red {
+    0% { box-shadow: 0 0 0 0 rgba(239,68,68,.5); }
+    70% { box-shadow: 0 0 0 16px rgba(239,68,68,0); }
+    100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+  }
+  .pulse-red { animation: pulse-red 1.5s infinite; }
 </style>
 </head>
-<body class="min-h-screen bg-slate-950 text-white flex flex-col">
+<body class="min-h-screen bg-slate-950 text-white flex flex-col overflow-hidden">
 
-  <!-- Top bar -->
-  <header class="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-slate-900">
-    <div class="flex items-center gap-3">
-      <div class="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
-        <span class="material-symbols-outlined text-white text-lg">location_on</span>
-      </div>
-      <div>
-        <p class="font-extrabold text-white text-sm font-headline">SHAMEL البوابة الذكية</p>
-        <p class="text-xs text-slate-400">SHAMEL — التحقق البيومتري</p>
-      </div>
+<!-- ══ TOP BAR ══════════════════════════════════════════════════════════ -->
+<header class="flex items-center justify-between px-5 py-3 bg-slate-900 border-b border-white/10 shrink-0">
+  <div class="flex items-center gap-3">
+    <div class="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
+      <span class="material-symbols-outlined text-white text-lg">sensors</span>
     </div>
-    <div class="flex items-center gap-4">
-      <span id="gate-status-badge" class="flex items-center gap-1.5 text-xs font-bold text-slate-400 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700">
-        <span class="w-2 h-2 rounded-full bg-slate-500"></span>
-        استعداد
+    <div>
+      <p class="font-extrabold text-white text-sm font-headline">البوابة الذكية — SHAMEL</p>
+      <p class="text-[10px] text-slate-500" id="clock">--:--:--</p>
+    </div>
+  </div>
+
+  <!-- Stats chips -->
+  <div class="hidden md:flex items-center gap-2">
+    <div class="flex items-center gap-1.5 bg-slate-800 border border-white/10 px-3 py-1.5 rounded-full text-xs font-bold">
+      <span class="material-symbols-outlined text-slate-400 text-sm">groups</span>
+      <span class="text-slate-300">اليوم:</span>
+      <span class="text-white" id="hdr-today">{{ today_count }}</span>
+    </div>
+    <div class="flex items-center gap-1.5 bg-emerald-900/50 border border-emerald-800 px-3 py-1.5 rounded-full text-xs font-bold text-emerald-400">
+      <span class="material-symbols-outlined text-sm fill-icon">check_circle</span>
+      <span id="hdr-allowed">{{ allowed_count }}</span>
+    </div>
+    <div class="flex items-center gap-1.5 bg-red-900/50 border border-red-800 px-3 py-1.5 rounded-full text-xs font-bold text-red-400">
+      <span class="material-symbols-outlined text-sm fill-icon">cancel</span>
+      <span id="hdr-denied">{{ denied_count }}</span>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-2">
+    <!-- Status badge -->
+    <div id="status-badge" class="flex items-center gap-1.5 text-xs font-bold text-slate-400 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700">
+      <span class="w-2 h-2 rounded-full bg-slate-500" id="status-dot"></span>
+      <span id="status-text">مُغلق</span>
+    </div>
+    <!-- Logout -->
+    <a href="{% url 'logout' %}"
+       class="flex items-center gap-1.5 bg-slate-800 hover:bg-red-900/50 border border-white/10 hover:border-red-700 text-slate-400 hover:text-red-300 text-xs font-bold px-3 py-1.5 rounded-full transition-all">
+      <span class="material-symbols-outlined text-sm">logout</span>
+      خروج
+    </a>
+  </div>
+</header>
+
+<!-- ══ MAIN ══════════════════════════════════════════════════════════════ -->
+<main class="flex-1 grid grid-cols-1 lg:grid-cols-5 overflow-hidden">
+
+  <!-- ── Camera column ─────────────────────────────────────────── 3/5 -->
+  <div class="lg:col-span-3 bg-black relative flex flex-col">
+
+    <!-- Camera toolbar -->
+    <div class="flex items-center justify-between px-4 py-2.5 bg-slate-900/90 border-b border-white/10 shrink-0">
+      <span class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+        <span class="material-symbols-outlined text-slate-400 text-base">videocam</span>
+        كاميرا البوابة
       </span>
-      <span class="text-xs text-slate-500" id="clock"></span>
-    </div>
-  </header>
-
-  <!-- Main -->
-  <main class="flex-1 grid grid-cols-1 lg:grid-cols-5 gap-0">
-
-    <!-- Camera column (3/5) -->
-    <div class="lg:col-span-3 bg-black relative flex flex-col">
-
-      <!-- Camera toolbar -->
-      <div class="flex items-center justify-between px-4 py-3 bg-slate-900/80 border-b border-white/10">
-        <div class="flex items-center gap-2">
-          <span class="material-symbols-outlined text-slate-400 text-lg">videocam</span>
-          <span class="text-sm font-bold text-white">كاميرا البوابة</span>
-        </div>
-        <div class="flex items-center gap-3">
-          <select id="camera-select"
-            class="bg-slate-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg border border-white/10 outline-none cursor-pointer">
-            {% for cam in camera_sources %}
-            <option value="{{ cam.id }}">{{ cam.name }} — {{ cam.location }}</option>
-            {% empty %}
-            <option value="0">كاميرا 0 (افتراضي)</option>
-            <option value="1">كاميرا 1 (USB)</option>
-            <option value="2">كاميرا 2 (USB)</option>
-            {% endfor %}
-          </select>
-          <button id="toggle-btn" onclick="toggleScanner()"
-            class="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-1.5 rounded-lg transition-all">
-            <span class="material-symbols-outlined text-sm">play_circle</span>
-            <span id="toggle-label">تشغيل</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Video area -->
-      <div class="flex-1 relative flex items-center justify-center bg-black min-h-[300px]">
-        <img id="video-stream" src="" class="w-full h-full object-cover hidden" alt="Camera Feed"/>
-
-        <!-- Overlay: scan brackets -->
-        <div id="scan-overlay" class="absolute inset-0 pointer-events-none hidden">
-          <div class="absolute inset-12 border border-white/10 rounded-2xl"></div>
-          <div class="absolute top-12 left-12 w-10 h-10 border-t-2 border-l-2 border-emerald-400 rounded-tl-xl"></div>
-          <div class="absolute top-12 right-12 w-10 h-10 border-t-2 border-r-2 border-emerald-400 rounded-tr-xl"></div>
-          <div class="absolute bottom-12 left-12 w-10 h-10 border-b-2 border-l-2 border-emerald-400 rounded-bl-xl"></div>
-          <div class="absolute bottom-12 right-12 w-10 h-10 border-b-2 border-r-2 border-emerald-400 rounded-br-xl"></div>
-          <div class="absolute inset-x-0 top-1/2 h-px bg-emerald-400/40 animate-pulse"></div>
-        </div>
-
-        <!-- Placeholder -->
-        <div id="cam-placeholder" class="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-slate-950">
-          <span class="material-symbols-outlined text-slate-700 text-[80px]">videocam_off</span>
-          <p class="text-slate-500 text-sm font-semibold">الكاميرا مُغلقة</p>
-          <p class="text-slate-600 text-xs">اختر كاميرا واضغط تشغيل</p>
-        </div>
-      </div>
-
-      <!-- Camera error bar -->
-      <div id="cam-error" class="hidden px-4 py-2 bg-red-900/60 text-red-300 text-xs font-semibold flex items-center gap-2">
-        <span class="material-symbols-outlined text-sm">error</span>
-        <span id="cam-error-msg">الكاميرا غير متاحة.</span>
+      <div class="flex items-center gap-2">
+        <button id="toggle-btn" onclick="toggleCamera()"
+          class="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-1.5 rounded-lg transition-all">
+          <span class="material-symbols-outlined text-sm" id="toggle-icon">play_circle</span>
+          <span id="toggle-label">تشغيل</span>
+        </button>
       </div>
     </div>
 
-    <!-- Identity column (2/5) -->
-    <div class="lg:col-span-2 bg-slate-900 border-l border-white/10 flex flex-col">
+    <!-- Video area: canvas over hidden video -->
+    <div class="flex-1 relative bg-black min-h-0">
+      <video id="webcam" autoplay playsinline muted class="hidden absolute inset-0 w-full h-full object-cover"></video>
+      <canvas id="gate-canvas" class="w-full h-full object-cover block"></canvas>
 
-      <div class="px-5 py-4 border-b border-white/10">
-        <h2 class="font-bold text-white text-sm">التحقق من الهوية</h2>
-        <p class="text-xs text-slate-500 mt-0.5">آخر نتيجة مسح</p>
+      <!-- Scanning line -->
+      <div id="scan-line" class="hidden absolute inset-x-8 h-px bg-emerald-400/50 scan-line shadow-[0_0_8px_#10b981]"></div>
+
+      <!-- Placeholder -->
+      <div id="cam-ph" class="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-slate-950">
+        <span class="material-symbols-outlined text-slate-700 text-[80px]">videocam_off</span>
+        <p class="text-slate-500 text-sm font-semibold">الكاميرا مُغلقة</p>
+        <p class="text-slate-600 text-xs">اضغط "تشغيل" للبدء</p>
       </div>
 
-      <!-- Idle -->
-      <div id="idle-panel" class="flex-1 flex flex-col items-center justify-center p-10 text-center">
+      <!-- Face-lock overlay (shown briefly on match) -->
+      <div id="face-flash" class="hidden absolute inset-0 pointer-events-none rounded-none border-4 transition-all duration-300"></div>
+    </div>
+  </div>
+
+  <!-- ── Right column ───────────────────────────────────────────── 2/5 -->
+  <div class="lg:col-span-2 bg-slate-900 border-r border-white/10 flex flex-col overflow-hidden">
+
+    <!-- Identity result -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+
+      <!-- IDLE -->
+      <div id="idle-panel" class="flex-1 flex flex-col items-center justify-center p-8 text-center">
         <div class="w-20 h-20 rounded-3xl bg-slate-800 flex items-center justify-center mb-5">
-          <span class="material-symbols-outlined text-slate-600 text-4xl">face</span>
+          <span class="material-symbols-outlined text-slate-600 text-4xl">face_unlock</span>
         </div>
-        <p class="font-semibold text-slate-400 text-sm">في انتظار مسح الوجه…</p>
-        <p class="text-xs text-slate-600 mt-1">شغّل الماسح للبدء.</p>
+        <p class="font-semibold text-slate-400 text-sm">في انتظار مسح الوجه</p>
+        <p class="text-xs text-slate-600 mt-1">شغّل الكاميرا للبدء</p>
       </div>
 
-      <!-- Result -->
-      <div id="result-panel" class="hidden flex-1 flex flex-col p-5 gap-4">
+      <!-- SCANNING — no face yet -->
+      <div id="scanning-panel" class="hidden flex-1 flex flex-col items-center justify-center p-8 text-center">
+        <div class="w-20 h-20 rounded-full border-2 border-dashed border-slate-600 flex items-center justify-center mb-5 animate-spin" style="animation-duration:6s">
+          <span class="material-symbols-outlined text-slate-500 text-4xl" style="animation:none">face</span>
+        </div>
+        <p class="font-semibold text-slate-400 text-sm animate-pulse">جاري البحث عن وجه...</p>
+      </div>
+
+      <!-- RESULT -->
+      <div id="result-panel" class="hidden flex-1 flex flex-col p-4 gap-3 overflow-y-auto">
 
         <!-- Access banner -->
-        <div id="access-banner" class="rounded-2xl px-5 py-4 flex items-center gap-3">
-          <span id="access-icon" class="material-symbols-outlined text-3xl" style="font-variation-settings:'FILL' 1">check_circle</span>
+        <div id="access-banner" class="rounded-2xl px-5 py-4 flex items-center gap-4">
+          <div id="access-icon-wrap" class="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0">
+            <span id="access-icon" class="material-symbols-outlined text-3xl fill-icon">check_circle</span>
+          </div>
           <div>
             <p id="access-label" class="font-extrabold text-xl font-headline">مؤهل للدخول</p>
-            <p id="user-type-label" class="text-sm opacity-80">—</p>
+            <p id="access-type" class="text-sm opacity-70 mt-0.5">—</p>
           </div>
         </div>
 
-        <!-- Eligibility reason (shown when NOT eligible) -->
-        <p id="eligibility-reason" class="hidden text-sm font-bold text-red-400 bg-red-900/30 rounded-xl px-4 py-3 border border-red-800"></p>
+        <!-- Deny reason -->
+        <p id="deny-reason" class="hidden text-sm font-bold text-red-400 bg-red-900/30 rounded-xl px-4 py-3 border border-red-800"></p>
 
-        <!-- Details grid -->
-        <div class="grid grid-cols-2 gap-3">
-          <div class="bg-slate-800 rounded-xl p-4 col-span-2">
+        <!-- Details -->
+        <div class="grid grid-cols-2 gap-2">
+          <div class="bg-slate-800 rounded-xl p-3 col-span-2">
             <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">الاسم</p>
-            <p id="user-name" class="font-bold text-white text-base">—</p>
+            <p id="res-name" class="font-extrabold text-white text-lg font-headline">—</p>
           </div>
-          <div class="bg-slate-800 rounded-xl p-4">
+          <div class="bg-slate-800 rounded-xl p-3">
             <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">الرقم الجامعي</p>
-            <p id="user-id" class="font-bold text-white text-sm font-mono">—</p>
+            <p id="res-code" class="font-bold text-white text-sm font-mono">—</p>
           </div>
-          <div class="bg-slate-800 rounded-xl p-4">
+          <div class="bg-slate-800 rounded-xl p-3">
             <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">الهاتف</p>
-            <p id="user-phone" class="font-bold text-white text-sm">—</p>
+            <p id="res-phone" class="font-bold text-white text-sm">—</p>
           </div>
-          <div class="bg-slate-800 rounded-xl p-4 col-span-2">
-            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">الرسوم</p>
-            <p id="fees-label" class="font-bold text-sm">—</p>
+          <div id="fees-wrap" class="bg-slate-800 rounded-xl p-3 col-span-2 hidden">
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">حالة القبول</p>
+            <div id="fees-indicators" class="flex flex-col gap-1.5"></div>
           </div>
         </div>
-
-        <!-- Eligibility indicators (registered / fees / not blocked) -->
-        <div id="eligibility-indicators" class="hidden flex flex-col gap-2 bg-slate-800/60 rounded-xl px-4 py-3"></div>
-
-        <!-- Tags -->
-        <div id="tags" class="flex flex-wrap gap-2"></div>
-      </div>
-
-      <!-- Log strip -->
-      <div class="border-t border-white/10 px-5 py-3">
-        <p class="text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-2">آخر الأحداث</p>
-        <ul id="log-list" class="space-y-1 text-xs text-slate-500 max-h-28 overflow-y-auto">
-          <li class="italic">لا توجد أحداث بعد.</li>
-        </ul>
       </div>
     </div>
 
-  </main>
+    <!-- ── Log strip ───────────────────────────────────────────────── -->
+    <div class="border-t border-white/10 shrink-0" style="max-height:220px">
+      <div class="flex items-center justify-between px-4 py-2 border-b border-white/5">
+        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">آخر الأحداث اليوم</p>
+        <span class="text-[10px] text-slate-600" id="log-count">0 دخول</span>
+      </div>
+      <ul id="log-list" class="overflow-y-auto divide-y divide-white/5" style="max-height:170px">
+        {% for log in recent_logs %}
+        <li class="flex items-center gap-3 px-4 py-2.5 {% if log.status == 'Allowed' %}bg-emerald-950/30{% elif log.status == 'Denied' %}bg-red-950/30{% else %}bg-slate-900/30{% endif %}">
+          <span class="material-symbols-outlined text-sm fill-icon {% if log.status == 'Allowed' %}text-emerald-400{% elif log.status == 'Denied' %}text-red-400{% else %}text-slate-500{% endif %}">
+            {% if log.status == 'Allowed' %}check_circle{% elif log.status == 'Denied' %}cancel{% else %}help{% endif %}
+          </span>
+          <div class="flex-1 min-w-0">
+            <p class="text-xs font-bold text-white truncate">{{ log.person_name|default:"غير معروف" }}</p>
+            <p class="text-[10px] text-slate-500">{{ log.timestamp|date:"H:i:s" }}</p>
+          </div>
+        </li>
+        {% empty %}
+        <li class="px-4 py-3 text-xs text-slate-600 italic">لا توجد أحداث بعد.</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+  </div>
+</main>
+
+<!-- Toast notifications -->
+<div id="toast-stack" class="fixed bottom-6 left-1/2 -translate-x-1/2 flex flex-col gap-2 z-50 pointer-events-none" style="min-width:320px;max-width:480px"></div>
 
 <script>
-const videoStream   = document.getElementById('video-stream');
-const camPlaceholder= document.getElementById('cam-placeholder');
-const scanOverlay   = document.getElementById('scan-overlay');
-const toggleBtn     = document.getElementById('toggle-btn');
-const toggleLabel   = document.getElementById('toggle-label');
-const cameraSelect  = document.getElementById('camera-select');
-const idlePanel     = document.getElementById('idle-panel');
-const resultPanel   = document.getElementById('result-panel');
-const accessBanner  = document.getElementById('access-banner');
-const accessIcon    = document.getElementById('access-icon');
-const accessLabel   = document.getElementById('access-label');
-const userNameEl    = document.getElementById('user-name');
-const userTypeLabel = document.getElementById('user-type-label');
-const userIdEl      = document.getElementById('user-id');
-const userPhoneEl   = document.getElementById('user-phone');
-const feesLabel     = document.getElementById('fees-label');
-const tagsEl        = document.getElementById('tags');
-const logList       = document.getElementById('log-list');
-const statusBadge   = document.getElementById('gate-status-badge');
-const camError      = document.getElementById('cam-error');
-const camErrorMsg   = document.getElementById('cam-error-msg');
+// ── Two-phase engine ──────────────────────────────────────────────────────
+// Phase 1 (fast, 500ms):  detect_face_api  → bboxes only, no embedding
+// Phase 2 (on lock, once): gate_scan_api   → full match + GateLog
+const DETECT_URL    = '{% url "detect_face_api" %}';
+const GATE_SCAN_URL = '{% url "gate_scan_api" %}';
+const CSRF          = '{{ csrf_token }}';
 
-let isScanning = false;
-let pollTimer  = null;
-let lastScanId = null;
+const webcam    = document.getElementById('webcam');
+const gateCanvas= document.getElementById('gate-canvas');
+const ctx       = gateCanvas.getContext('2d');
+const camPh     = document.getElementById('cam-ph');
+const scanLine  = document.getElementById('scan-line');
+const toggleBtn = document.getElementById('toggle-btn');
+const toggleIcon= document.getElementById('toggle-icon');
+const toggleLabel=document.getElementById('toggle-label');
+const statusDot = document.getElementById('status-dot');
+const statusText= document.getElementById('status-text');
+const idlePanel = document.getElementById('idle-panel');
+const scanPanel = document.getElementById('scanning-panel');
+const resultPanel=document.getElementById('result-panel');
+const faceFlash = document.getElementById('face-flash');
+const logList   = document.getElementById('log-list');
+const logCount  = document.getElementById('log-count');
 
-// Clock
-function updateClock() {
-  document.getElementById('clock').textContent = new Date().toLocaleTimeString();
-}
-setInterval(updateClock, 1000);
-updateClock();
+let isOn          = false;
+let detectTimer   = null;
+let drawFrame     = null;
+let lastFaces     = [];          // [{x1,y1,x2,y2, color}]
+let stableCount   = 0;      // consecutive frames with face
+let matchLock     = false;  // true while Phase 2 running
+let matchCooldown   = false;  // true for 4s after a successful match
+let unknownCooldown = false;  // true for 2s after all-unknown result (suppresses re-draw)
+let lastPersonKey = '';
+let localCount   = {{ today_count }};
+let localAllowed = {{ allowed_count }};
+let localDenied  = {{ denied_count }};
 
-// Camera select change while scanning
-cameraSelect.addEventListener('change', () => {
-  if (isScanning) startStream();
-});
+// ── Clock ────────────────────────────────────────────────────────────────
+setInterval(() => {
+  document.getElementById('clock').textContent = new Date().toLocaleTimeString('ar-SA');
+}, 1000);
 
-function startStream() {
-  const cam = cameraSelect.value;
-  videoStream.src = `/attendance/video_feed/?source=${cam}`;
-  videoStream.onerror = () => {
-    camError.classList.remove('hidden');
-    camErrorMsg.textContent = `الكاميرا ${cam} غير متاحة — جرّب كاميرا أخرى.`;
-  };
-  videoStream.onload = () => camError.classList.add('hidden');
-  videoStream.classList.remove('hidden');
-  camPlaceholder.classList.add('hidden');
-  scanOverlay.classList.remove('hidden');
-}
+// ── Draw loop ────────────────────────────────────────────────────────────
+function drawLoop() {
+  if (!webcam.srcObject) return;
+  gateCanvas.width  = webcam.videoWidth  || gateCanvas.clientWidth;
+  gateCanvas.height = webcam.videoHeight || gateCanvas.clientHeight;
 
-function stopStream() {
-  videoStream.src = '';
-  videoStream.classList.add('hidden');
-  camPlaceholder.classList.remove('hidden');
-  scanOverlay.classList.add('hidden');
-  camError.classList.add('hidden');
-}
+  ctx.save();
+  ctx.translate(gateCanvas.width, 0);
+  ctx.scale(-1, 1);
+  ctx.drawImage(webcam, 0, 0, gateCanvas.width, gateCanvas.height);
+  ctx.restore();
 
-function toggleScanner() {
-  isScanning = !isScanning;
-  if (isScanning) {
-    startStream();
-    toggleBtn.className = 'flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-1.5 rounded-lg transition-all';
-    toggleLabel.textContent = 'إيقاف';
-    statusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping mr-1.5"></span><span class="text-emerald-400 font-bold">مسح</span>';
-    pollTimer = setInterval(pollStatus, 1000);
-  } else {
-    stopStream();
-    toggleBtn.className = 'flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-1.5 rounded-lg transition-all';
-    toggleLabel.textContent = 'تشغيل';
-    statusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-slate-500 mr-1.5"></span><span class="text-slate-400">استعداد</span>';
-    clearInterval(pollTimer);
-    showIdle();
-  }
-}
+  const sw = gateCanvas.width  / (webcam.videoWidth  || gateCanvas.width);
+  const sh = gateCanvas.height / (webcam.videoHeight || gateCanvas.height);
 
-function pollStatus() {
-  fetch('/attendance/check-status/')
-    .then(r => r.json())
-    .then(data => {
-      if (data.status) showResult(data);
-      else showIdle();
-    })
-    .catch(() => {});
-}
+  lastFaces.forEach((f) => {
+    const x1m = gateCanvas.width - f.x2 * sw;
+    const x2m = gateCanvas.width - f.x1 * sw;
+    const y1  = f.y1 * sh;
+    const y2  = f.y2 * sh;
+    const w   = x2m - x1m;
+    const h   = y2  - y1;
+    // color: green=allowed, red=denied, amber=tracking, slate=unknown
+    const color = f.color || '#f59e0b';
 
-function showIdle() {
-  idlePanel.classList.remove('hidden');
-  resultPanel.classList.add('hidden');
-}
+    ctx.strokeStyle = color;
+    ctx.lineWidth   = 2.5;
+    ctx.shadowColor = color;
+    ctx.shadowBlur  = 10;
 
-function addLog(name, granted) {
-  const now = new Date().toLocaleTimeString();
-  const li = document.createElement('li');
-  li.className = granted ? 'text-emerald-400' : 'text-red-400';
-  li.textContent = `${now} — ${name} — ${granted ? 'مسموح' : 'مرفوض'}`;
-  if (logList.firstChild && logList.firstChild.textContent === 'لا توجد أحداث بعد.') {
-    logList.innerHTML = '';
-  }
-  logList.prepend(li);
-  if (logList.children.length > 20) logList.removeChild(logList.lastChild);
-}
+    const r = 10;
+    ctx.beginPath();
+    ctx.moveTo(x1m+r,y1); ctx.lineTo(x2m-r,y1); ctx.arcTo(x2m,y1,x2m,y1+r,r);
+    ctx.lineTo(x2m,y2-r); ctx.arcTo(x2m,y2,x2m-r,y2,r);
+    ctx.lineTo(x1m+r,y2); ctx.arcTo(x1m,y2,x1m,y2-r,r);
+    ctx.lineTo(x1m,y1+r); ctx.arcTo(x1m,y1,x1m+r,y1,r);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.shadowBlur = 0;
 
-function showResult(data) {
-  idlePanel.classList.add('hidden');
-  resultPanel.classList.remove('hidden');
+    // Corner brackets
+    const bl = Math.min(w,h)*0.2;
+    ctx.strokeStyle = color; ctx.lineWidth = 3;
+    [[x1m,y1],[x2m,y1],[x2m,y2],[x1m,y2]].forEach(([cx,cy],qi)=>{
+      const dx=qi===0||qi===3?bl:-bl, dy=qi===0||qi===1?bl:-bl;
+      ctx.beginPath(); ctx.moveTo(cx+dx,cy); ctx.lineTo(cx,cy); ctx.lineTo(cx,cy+dy); ctx.stroke();
+    });
 
-  userNameEl.textContent   = data.name     || '—';
-  userTypeLabel.textContent= data.user_type|| '—';
-  userIdEl.textContent     = data.user_id  || '—';
-  userPhoneEl.textContent  = data.phone    || '—';
-
-  if (data.is_allowed) {
-    accessBanner.className = 'rounded-2xl px-5 py-4 flex items-center gap-3 bg-emerald-900/60 text-emerald-300';
-    accessIcon.textContent = 'check_circle';
-    accessLabel.textContent= 'مؤهل للدخول';
-  } else {
-    accessBanner.className = 'rounded-2xl px-5 py-4 flex items-center gap-3 bg-red-900/60 text-red-300';
-    accessIcon.textContent = 'cancel';
-    accessLabel.textContent= 'غير مؤهل للدخول';
-  }
-
-  // Eligibility reason
-  const reasonEl = document.getElementById('eligibility-reason');
-  if (reasonEl) {
-    if (!data.is_allowed && data.eligibility_reason) {
-      reasonEl.textContent = data.eligibility_reason;
-      reasonEl.classList.remove('hidden');
-    } else {
-      reasonEl.classList.add('hidden');
+    // Name label
+    if (f.label) {
+      const lx = (x1m + x2m) / 2;
+      const ly = y1 - 8;
+      ctx.font = 'bold 13px Segoe UI, sans-serif';
+      ctx.textAlign = 'center';
+      const tw = ctx.measureText(f.label).width;
+      ctx.fillStyle = color + 'cc';
+      ctx.fillRect(lx - tw/2 - 6, ly - 16, tw + 12, 20);
+      ctx.fillStyle = '#fff';
+      ctx.fillText(f.label, lx, ly - 2);
     }
+  });
+
+  drawFrame = requestAnimationFrame(drawLoop);
+}
+
+// ── Camera toggle ─────────────────────────────────────────────────────────
+async function toggleCamera() {
+  if (isOn) {
+    stopCamera();
+  } else {
+    await startCamera();
+  }
+}
+
+async function startCamera() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } }
+    });
+    window._gateStream = stream;
+    webcam.srcObject = stream;
+    await new Promise(r => { webcam.onloadedmetadata = r; });
+
+    camPh.classList.add('hidden');
+    scanLine.classList.remove('hidden');
+    drawFrame = requestAnimationFrame(drawLoop);
+
+    isOn = true;
+    toggleIcon.textContent  = 'stop_circle';
+    toggleLabel.textContent = 'إيقاف';
+    toggleBtn.className = 'flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-1.5 rounded-lg transition-all';
+    statusDot.className  = 'w-2 h-2 rounded-full bg-emerald-500 animate-ping';
+    statusText.textContent = 'مسح نشط';
+    statusText.className   = 'text-emerald-400 font-bold text-xs';
+
+    showPanel('scanning');
+    // Phase 1: try MediaPipe first (client-side, zero latency), fallback to server
+    initMediaPipe();
+    mpLoopActive = true;
+    mpLoop();
+    // Fallback interval in case MediaPipe fails to load
+    detectTimer = setInterval(() => { if (!mpReady) phaseOneFallback(); }, 700);
+  } catch(e) {
+    alert('تعذّر الوصول إلى الكاميرا: ' + e.message);
+  }
+}
+
+function stopCamera() {
+  if (window._gateStream) {
+    window._gateStream.getTracks().forEach(t => t.stop());
+    window._gateStream = null;
+  }
+  if (detectTimer)  { clearInterval(detectTimer); detectTimer = null; }
+  if (drawFrame)    { cancelAnimationFrame(drawFrame); drawFrame = null; }
+  mpLoopActive = false;
+  stableCount = 0; matchLock = false; matchCooldown = false;
+
+  webcam.srcObject = null;
+  ctx.clearRect(0, 0, gateCanvas.width, gateCanvas.height);
+  lastFaces = [];
+
+  camPh.classList.remove('hidden');
+  scanLine.classList.add('hidden');
+  isOn = false;
+
+  toggleIcon.textContent  = 'play_circle';
+  toggleLabel.textContent = 'تشغيل';
+  toggleBtn.className = 'flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-1.5 rounded-lg transition-all';
+  statusDot.className  = 'w-2 h-2 rounded-full bg-slate-500';
+  statusText.textContent = 'مُغلق';
+  statusText.className   = 'text-slate-400 text-xs';
+
+  showPanel('idle');
+}
+
+window.addEventListener('beforeunload', stopCamera);
+window.addEventListener('pagehide', stopCamera);
+
+// ── Phase 1: MediaPipe client-side detection (zero server round-trip) ────────
+let mpDetector   = null;
+let mpReady      = false;
+let mpLoopActive = false;
+
+function initMediaPipe() {
+  if (mpDetector) return;
+  try {
+    mpDetector = new FaceDetection({
+      locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection@0.4/${f}`
+    });
+    mpDetector.setOptions({ model: 'short', minDetectionConfidence: 0.55 });
+    mpDetector.onResults(onMpResults);
+    mpDetector.initialize().then(() => { mpReady = true; }).catch(() => {});
+  } catch(e) {
+    // MediaPipe not available — fall back to server-side detect
+    mpDetector = null;
+  }
+}
+
+function onMpResults(results) {
+  if (!isOn) return;
+  const dets = results.detections || [];
+  const vw = webcam.videoWidth  || 640;
+  const vh = webcam.videoHeight || 480;
+
+  if (dets.length > 0) {
+    // During unknown cooldown: keep showing the red bbox already in lastFaces, don't overwrite
+    if (unknownCooldown) return;
+    lastFaces = dets.map(d => {
+      const b = d.boundingBox;
+      return {
+        x1: b.xCenter * vw - (b.width  * vw) / 2,
+        y1: b.yCenter * vh - (b.height * vh) / 2,
+        x2: b.xCenter * vw + (b.width  * vw) / 2,
+        y2: b.yCenter * vh + (b.height * vh) / 2,
+        color: '#f59e0b',   // amber while tracking
+      };
+    });
+    stableCount++;
+    // 2 consecutive frames = ~240ms → trigger Phase 2
+    if (stableCount >= 2 && !matchCooldown && !matchLock) {
+      phaseTwo();
+    }
+  } else {
+    lastFaces  = [];
+    stableCount = 0;
+    if (!matchCooldown && !unknownCooldown) showPanel('scanning');
+  }
+}
+
+// Continuous MP detection loop (~every 120ms)
+async function mpLoop() {
+  if (!mpLoopActive || !webcam.srcObject) return;
+  if (mpReady && mpDetector && !matchLock) {
+    try { await mpDetector.send({ image: webcam }); } catch(e) {}
+  }
+  setTimeout(mpLoop, 120);
+}
+
+// Fallback: server-side detect when MediaPipe unavailable
+let _detecting = false;
+async function phaseOneFallback() {
+  if (_detecting || matchLock || !webcam.srcObject) return;
+  _detecting = true;
+  try {
+    const tmp = document.createElement('canvas');
+    tmp.width = 320; tmp.height = 240;
+    tmp.getContext('2d').drawImage(webcam, 0, 0, 320, 240);
+    const fd = new FormData();
+    fd.append('frame', tmp.toDataURL('image/jpeg', 0.75));
+    fd.append('csrfmiddlewaretoken', CSRF);
+    const res  = await fetch(DETECT_URL, { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.detected && data.faces && data.faces.length) {
+      const sx = (webcam.videoWidth||640)/320, sy = (webcam.videoHeight||480)/240;
+      lastFaces = data.faces.map(f => ({ x1:f.x1*sx, y1:f.y1*sy, x2:f.x2*sx, y2:f.y2*sy }));
+      stableCount++;
+      if (stableCount >= 2 && !matchCooldown) phaseTwo();
+    } else {
+      lastFaces = []; stableCount = 0;
+      if (!matchCooldown) showPanel('scanning');
+    }
+  } catch(e) {}
+  _detecting = false;
+}
+
+// ── Phase 2: full match + GateLog — supports MULTIPLE faces ───────────────
+async function phaseTwo() {
+  if (matchLock || matchCooldown || !webcam.srcObject) return;
+  matchLock = true;
+
+  try {
+    const snap = document.createElement('canvas');
+    snap.width  = webcam.videoWidth  || 640;
+    snap.height = webcam.videoHeight || 480;
+    snap.getContext('2d').drawImage(webcam, 0, 0);
+
+    const fd = new FormData();
+    fd.append('frame', snap.toDataURL('image/jpeg', 0.88));
+    fd.append('csrfmiddlewaretoken', CSRF);
+
+    const res  = await fetch(GATE_SCAN_URL, { method: 'POST', body: fd });
+    const data = await res.json();
+
+    if (!data.ok || !data.detected) { matchLock = false; return; }
+
+    const sw = snap.width  / (data.width  || snap.width);
+    const sh = snap.height / (data.height || snap.height);
+    const results = data.results || [];
+
+    if (results.length === 0) { matchLock = false; return; }
+
+    // ── Update bbox colors per person ─────────────────────────────────
+    lastFaces = results.map(r => {
+      const b = r.bbox;
+      const color = !r.matched
+        ? 'rgba(148,163,184,0.7)'                  // slate = unknown
+        : r.person.allowed ? '#10b981' : '#ef4444'; // green / red
+      const label = r.matched ? r.person.name : null;
+      return { x1: b.x1/sw, y1: b.y1/sh, x2: b.x2/sw, y2: b.y2/sh, color, label };
+    });
+
+    // ── Process each matched person ────────────────────────────────────
+    const matched = results.filter(r => r.matched);
+
+    if (matched.length === 0) {
+      // All unknown — show red bbox for 2s then clear
+      lastFaces = results.map(r => {
+        const b = r.bbox;
+        const sw2 = snap.width  / (data.width  || snap.width);
+        const sh2 = snap.height / (data.height || snap.height);
+        return { x1: b.x1/sw2, y1: b.y1/sh2, x2: b.x2/sw2, y2: b.y2/sh2, color: '#ef4444', label: '؟ غير مسجل' };
+      });
+      unknownCooldown = true;
+      setTimeout(() => {
+        lastFaces = []; stableCount = 0;
+        unknownCooldown = false;
+        showPanel('scanning');
+      }, 2000);
+      matchLock = false;
+      return;
+    }
+
+    // Show primary person in result panel (first match)
+    const primary = matched[0].person;
+    showResult(primary);
+    flashScreen(primary.allowed);
+
+    // Toast + log for EACH matched person
+    matched.forEach(r => {
+      const p = r.person;
+      if (!p.cooldown) {
+        addLogEntry(p.name, p.allowed ? 'Allowed' : 'Denied');
+        updateCounters(p.allowed);
+      }
+      showToast(p.name, p.allowed, p.cooldown);
+    });
+
+    // Cooldown 3.5s
+    matchCooldown = true;
+    stableCount   = 0;
+    setTimeout(() => {
+      matchCooldown = false;
+      lastPersonKey = '';
+      stableCount   = 0;
+      lastFaces = lastFaces.map(f => ({ ...f, color: '#f59e0b', label: null }));
+    }, 3500);
+
+  } catch(e) { /* silent */ }
+  matchLock = false;
+}
+
+// ── Toast notification ──────────────────────────────────────────────────────
+function showToast(name, allowed, cooldown) {
+  const stack = document.getElementById('toast-stack');
+  const div   = document.createElement('div');
+  const bg    = allowed ? 'bg-emerald-600' : 'bg-red-600';
+  const icon  = allowed ? 'check_circle' : 'cancel';
+  const verb  = allowed ? 'تم تسجيل الدخول' : 'مرفوض';
+  const sub   = cooldown ? ' (مسجّل مسبقاً)' : '';
+
+  div.className = `pointer-events-auto flex items-center gap-3 ${bg} text-white px-5 py-3 rounded-2xl shadow-2xl text-sm font-bold translate-y-4 opacity-0`;
+  div.style.cssText = 'transition: opacity 350ms ease, transform 350ms ease; will-change: transform, opacity;';
+  div.innerHTML = `
+    <span class="material-symbols-outlined text-xl fill-icon">${icon}</span>
+    <div>
+      <p class="text-base font-extrabold">${name}</p>
+      <p class="text-xs opacity-80 font-normal">${verb}${sub}</p>
+    </div>`;
+  stack.prepend(div);
+
+  // Double-rAF: ensures initial styles are painted before transition fires
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    div.classList.replace('translate-y-4', 'translate-y-0');
+    div.classList.replace('opacity-0', 'opacity-100');
+  }));
+
+  // Dismiss after 5s
+  setTimeout(() => {
+    div.classList.add('opacity-0', 'translate-y-2');
+    setTimeout(() => div.remove(), 400);
+  }, 5000);
+
+  // Max 4 toasts
+  while (stack.children.length > 4) stack.lastChild.remove();
+}
+
+// ── UI helpers ────────────────────────────────────────────────────────────
+function showPanel(which) {
+  idlePanel.classList.toggle('hidden',   which !== 'idle');
+  scanPanel.classList.toggle('hidden',   which !== 'scanning');
+  resultPanel.classList.toggle('hidden', which !== 'result');
+}
+
+function showResult(p) {
+  showPanel('result');
+
+  document.getElementById('res-name').textContent  = p.name  || '—';
+  document.getElementById('res-code').textContent  = p.student_code || (p.type === 'teacher' ? 'أستاذ' : '—');
+  document.getElementById('res-phone').textContent = p.phone || '—';
+  document.getElementById('access-type').textContent = p.type === 'student' ? 'طالب' : 'أستاذ';
+
+  const banner    = document.getElementById('access-banner');
+  const iconWrap  = document.getElementById('access-icon-wrap');
+  const icon      = document.getElementById('access-icon');
+  const label     = document.getElementById('access-label');
+  const deny      = document.getElementById('deny-reason');
+
+  if (p.allowed) {
+    banner.className   = 'rounded-2xl px-5 py-4 flex items-center gap-4 bg-emerald-900/50 text-emerald-300 border border-emerald-800';
+    iconWrap.className = 'w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 bg-emerald-700/50';
+    icon.textContent   = 'check_circle';
+    label.textContent  = 'مؤهل للدخول';
+    deny.classList.add('hidden');
+  } else {
+    banner.className   = 'rounded-2xl px-5 py-4 flex items-center gap-4 bg-red-900/50 text-red-300 border border-red-800';
+    iconWrap.className = 'w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 bg-red-700/50';
+    icon.textContent   = 'cancel';
+    label.textContent  = 'غير مؤهل للدخول';
+    if (p.reason) { deny.textContent = p.reason; deny.classList.remove('hidden'); }
+    else deny.classList.add('hidden');
   }
 
-  feesLabel.textContent = data.fees_paid ? 'مسددة' : (data.user_type === 'Student' || data.user_type === 'طالب' ? 'غير مسددة' : '—');
-  feesLabel.className   = 'font-bold text-sm ' + (data.fees_paid ? 'text-emerald-400' : 'text-amber-400');
-
-  // Eligibility indicators for students
-  const indicEl = document.getElementById('eligibility-indicators');
-  if (indicEl && data.user_type === 'Student') {
-    indicEl.classList.remove('hidden');
-    indicEl.innerHTML = `
-      <div class="flex items-center gap-2 text-xs font-bold ${data.is_registered ? 'text-emerald-400' : 'text-red-400'}">
-        <span class="material-symbols-outlined text-sm">${data.is_registered ? 'check_circle' : 'cancel'}</span>
-        مسجّل في الفصل
+  // Student eligibility indicators
+  const feesWrap = document.getElementById('fees-wrap');
+  const feesInd  = document.getElementById('fees-indicators');
+  if (p.type === 'student') {
+    feesWrap.classList.remove('hidden');
+    const check = v => `<span class="material-symbols-outlined text-sm fill-icon ${v?'text-emerald-400':'text-red-400'}">${v?'check_circle':'cancel'}</span>`;
+    feesInd.innerHTML = `
+      <div class="flex items-center gap-2 text-xs font-bold ${p.registered?'text-emerald-300':'text-red-400'}">
+        ${check(p.registered)} مسجّل في الفصل
       </div>
-      <div class="flex items-center gap-2 text-xs font-bold ${data.fees_paid ? 'text-emerald-400' : 'text-amber-400'}">
-        <span class="material-symbols-outlined text-sm">${data.fees_paid ? 'check_circle' : 'payments'}</span>
-        الرسوم مسددة
-      </div>
-      <div class="flex items-center gap-2 text-xs font-bold ${!data.admin_blocked ? 'text-emerald-400' : 'text-red-400'}">
-        <span class="material-symbols-outlined text-sm">${!data.admin_blocked ? 'check_circle' : 'block'}</span>
-        غير محظور إدارياً
+      <div class="flex items-center gap-2 text-xs font-bold ${p.fees_paid?'text-emerald-300':'text-amber-400'}">
+        ${check(p.fees_paid)} الرسوم مسددة
       </div>`;
-  } else if (indicEl) {
-    indicEl.classList.add('hidden');
+  } else {
+    feesWrap.classList.add('hidden');
   }
+}
 
-  tagsEl.innerHTML = '';
-  if (data.user_type === 'Student' && !data.is_registered) {
-    tagsEl.innerHTML += '<span class="text-xs font-bold bg-red-900/40 text-red-400 px-3 py-1 rounded-full border border-red-800">غير مسجّل</span>';
-  }
-  if (data.user_type === 'Student' && !data.fees_paid) {
-    tagsEl.innerHTML += '<span class="text-xs font-bold bg-amber-900/40 text-amber-400 px-3 py-1 rounded-full border border-amber-800 ms-1">رسوم غير مسددة</span>';
-  }
+function flashScreen(allowed) {
+  faceFlash.className = `absolute inset-0 pointer-events-none rounded-none border-4 ${allowed ? 'border-emerald-500' : 'border-red-500'}`;
+  faceFlash.classList.remove('hidden');
+  setTimeout(() => faceFlash.classList.add('hidden'), 600);
+}
 
-  const scanKey = (data.name || '') + (data.is_allowed ? '1' : '0');
-  if (scanKey !== lastScanId) {
-    addLog(data.name || 'غير معروف', data.is_allowed);
-    lastScanId = scanKey;
-  }
+function addLogEntry(name, status) {
+  const li = document.createElement('li');
+  const isAllowed = status === 'Allowed';
+  const isDenied  = status === 'Denied';
+  li.className = `flex items-center gap-3 px-4 py-2.5 ${isAllowed?'bg-emerald-950/30':isDenied?'bg-red-950/30':'bg-slate-900/30'}`;
+  const now = new Date().toLocaleTimeString('ar-SA');
+  li.innerHTML = `
+    <span class="material-symbols-outlined text-sm fill-icon ${isAllowed?'text-emerald-400':isDenied?'text-red-400':'text-slate-500'}">${isAllowed?'check_circle':isDenied?'cancel':'help'}</span>
+    <div class="flex-1 min-w-0">
+      <p class="text-xs font-bold text-white truncate">${name}</p>
+      <p class="text-[10px] text-slate-500">${now}</p>
+    </div>`;
+  // Remove placeholder if present
+  const ph = logList.querySelector('li.italic');
+  if (ph) ph.remove();
+  logList.prepend(li);
+  if (logList.children.length > 30) logList.lastChild.remove();
+}
+
+function updateCounters(allowed) {
+  localCount++;
+  if (allowed) localAllowed++; else localDenied++;
+  document.getElementById('hdr-today').textContent   = localCount;
+  document.getElementById('hdr-allowed').textContent = localAllowed;
+  document.getElementById('hdr-denied').textContent  = localDenied;
+  logCount.textContent = localCount + ' دخول';
 }
 </script>
 </body>

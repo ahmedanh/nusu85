@@ -11,9 +11,11 @@ class LiveReloadConsumer(AsyncWebsocketConsumer):
     GROUP = 'shamel_live_reload'
 
     async def connect(self):
+        if not self.scope['user'].is_authenticated:
+            await self.close()
+            return
         await self.channel_layer.group_add(self.GROUP, self.channel_name)
         await self.accept()
-        # Confirm connection
         await self.send(text_data=json.dumps({'type': 'connected', 'version': 'ok'}))
 
     async def disconnect(self, close_code):
@@ -61,6 +63,10 @@ class GateConsumer(AsyncWebsocketConsumer):
     """Broadcasts gate entry events to all connected gate staff."""
 
     async def connect(self):
+        user = self.scope['user']
+        if not user.is_authenticated or not (user.is_staff or user.groups.filter(name__in=['gate_staff','GATE_STAFF']).exists()):
+            await self.close()
+            return
         await self.channel_layer.group_add('gate_live', self.channel_name)
         await self.accept()
 

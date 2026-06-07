@@ -36,7 +36,6 @@ urlpatterns = [
     path('api/v1/coordinator/students', apix.coordinator_students, name='api_coord_students'),
     path('api/v1/gate/toggle-access',  apix.toggle_access,         name='api_toggle_access'),
     path('api/v1/dean-evaluations',    apix.dean_evaluations,      name='api_dean_evals'),
-    path('api/v1/grades',              apix.grades,                name='api_grades'),
     path('api/v1/excuses',             apix.excuses,               name='api_excuses'),
     path('api/v1/tickets/<int:tid>',   apix.ticket_detail,         name='api_ticket_detail'),
     path('api/v1/teacher/timeline',    apix.teacher_timeline,      name='api_teacher_timeline'),
@@ -95,7 +94,6 @@ path('admin-panel/dean-evaluation/', views.dean_evaluation_dashboard, name='dean
     path('reports/teachers/', views.teacher_attendance_report, name='teacher_report'),
     path('reports/teachers/export/csv/', views.export_teacher_report_csv, name='export_teacher_csv'),
     path('reports/teachers/export/pdf/', views.export_teacher_report_pdf, name='export_teacher_pdf'),
-    path('reports/grades/export/pdf/', views.export_grades_pdf, name='export_grades_pdf'),
     path('reports/analytics/export/pdf/', views.export_analytics_pdf, name='export_analytics_pdf'),
     path('search/export/pdf/', views.export_search_pdf, name='export_search_pdf'),
 
@@ -117,6 +115,7 @@ path('admin-panel/dean-evaluation/', views.dean_evaluation_dashboard, name='dean
 
     # Professor / Teacher dashboard
     path('professor-dashboard/', views.professor_dashboard, name='professor_dashboard'),
+    path('teacher/open-session/', lambda req: __import__('django.shortcuts', fromlist=['redirect']).redirect('professor_dashboard'), name='open_session_redirect'),
     path('teacher/open-session/<int:schedule_id>/', views.open_session, name='open_session'),
     path('teacher/timeline/', views.teacher_timeline, name='teacher_timeline'),
     path('teacher/attendance-records/', views.teacher_attendance_records, name='teacher_attendance_records'),
@@ -141,7 +140,6 @@ path('admin-panel/dean-evaluation/', views.dean_evaluation_dashboard, name='dean
     path('coordinator/faculty/', views.coordinator_faculty, name='coordinator_faculty'),
     path('coordinator/assignments/', views.coordinator_course_assignment, name='coordinator_course_assignment'),
     path('coordinator/register/', views.coordinator_register_user, name='coordinator_register_user'),
-    path('coordinator/grading/', views.coordinator_grading, name='coordinator_grading'),
     path('coordinator/export-students/', views.export_coordinator_students_csv, name='export_coordinator_csv'),
 
     # Courses

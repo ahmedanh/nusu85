@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SHAMEL — 3D Motion Graphics Promo</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1920px;height:1080px;overflow:hidden;background:#000;font-family:'Segoe UI',Arial,sans-serif}
+#c{position:fixed;inset:0;z-index:0}
+
+/* ── OVERLAY LAYER ── */
+#overlay{position:fixed;inset:0;z-index:10;pointer-events:none}
+
+/* ── SCENE TEXT ── */
+.scene{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;
+  justify-content:center;align-items:center;
+  opacity:0;
+  transition:opacity .5s ease;
+}
+.scene.on{opacity:1}
+
+/* ── TYPOGRAPHY ── */
+.s-tag{
+  font-size:15px;font-weight:700;
+  letter-spacing:8px;text-transform:uppercase;
+  margin-bottom:20px;
+  clip-path:inset(0 100% 0 0);
+  transition:clip-path .8s cubic-bezier(.4,0,.2,1);
+}
+.scene.on .s-tag{clip-path:inset(0 0% 0 0);}
+
+.s-tag.red{color:#F87171;}
+.s-tag.blue{color:#60A5FA;}
+.s-tag.gold{color:#E8CA6A;}
+
+.s-h1{
+  font-size:96px;font-weight:900;
+  line-height:1.1;text-align:center;
+  color:#F4F6FB;
+  text-shadow:0 0 60px rgba(59,130,246,.5);
+  opacity:0;transform:translateY(40px) scale(.96);
+  transition:all .9s cubic-bezier(.34,1.56,.64,1) .15s;
+  max-width:1100px;
+}
+.scene.on .s-h1{opacity:1;transform:translateY(0) scale(1);}
+
+.s-h1 em{font-style:normal;}
+.s-h1 em.red{color:#F87171;text-shadow:0 0 80px rgba(248,113,113,.6);}
+.s-h1 em.blue{color:#60A5FA;text-shadow:0 0 80px rgba(96,165,250,.6);}
+.s-h1 em.gold{
+  background:linear-gradient(135deg,#C9A82C,#E8CA6A,#FFF176);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+  filter:drop-shadow(0 0 30px rgba(201,168,44,.7));
+}
+
+/* ── ERROR BOXES (Scene 1) ── */
+.err-box{
+  position:absolute;
+  background:rgba(15,20,35,.92);
+  border:1px solid #F87171;
+  border-radius:8px;
+  padding:16px 22px;
+  font-size:14px;color:#FCA5A5;
+  font-family:'Courier New',monospace;
+  box-shadow:0 0 30px rgba(248,113,113,.3),inset 0 0 20px rgba(248,113,113,.05);
+  opacity:0;
+  pointer-events:none;
+}
+
+/* ── FEATURE CARDS (Scene 2) ── */
+.card-wrap{
+  display:flex;gap:28px;margin-top:48px;
+  opacity:0;transform:translateY(60px);
+  transition:all .8s cubic-bezier(.34,1.56,.64,1) .45s;
+}
+.scene.on .card-wrap{opacity:1;transform:translateY(0);}
+.card{
+  width:230px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(59,130,246,.3);
+  border-radius:16px;
+  padding:28px 22px;
+  text-align:center;
+  box-shadow:0 0 40px rgba(59,130,246,.15),inset 0 0 20px rgba(59,130,246,.04);
+  opacity:0;transform:scale(.7) translateZ(0) rotateY(30deg);
+}
+.scene.on .card:nth-child(1){opacity:1;transform:scale(1) rotateY(0);transition:all .7s cubic-bezier(.34,1.56,.64,1) .3s;}
+.scene.on .card:nth-child(2){opacity:1;transform:scale(1) rotateY(0);transition:all .7s cubic-bezier(.34,1.56,.64,1) .45s;}
+.scene.on .card:nth-child(3){opacity:1;transform:scale(1) rotateY(0);transition:all .7s cubic-bezier(.34,1.56,.64,1) .6s;}
+.scene.on .card:nth-child(4){opacity:1;transform:scale(1) rotateY(0);transition:all .7s cubic-bezier(.34,1.56,.64,1) .75s;}
+.card-icon{font-size:38px;margin-bottom:12px;}
+.card-title{font-size:15px;font-weight:700;color:#F4F6FB;margin-bottom:6px;}
+.card-sub{font-size:12px;color:#64748B;line-height:1.5;}
+
+/* ── SOLVE LINES (Scene 3) ── */
+.solve-lines{margin-top:36px;display:flex;flex-direction:column;gap:16px;align-items:center;}
+.solve-line{
+  display:flex;align-items:center;gap:16px;
+  opacity:0;transform:translateX(-40px);
+  font-size:22px;color:#F4F6FB;font-weight:600;
+}
+.scene.on .solve-line:nth-child(1){opacity:1;transform:translateX(0);transition:all .6s ease .35s;}
+.scene.on .solve-line:nth-child(2){opacity:1;transform:translateX(0);transition:all .6s ease .5s;}
+.scene.on .solve-line:nth-child(3){opacity:1;transform:translateX(0);transition:all .6s ease .65s;}
+.scene.on .solve-line:nth-child(4){opacity:1;transform:translateX(0);transition:all .6s ease .8s;}
+.solve-line .check{color:#10B981;font-size:24px;}
+.solve-line span{color:#94A3B8;}
+
+/* ── LOGO REVEAL (Scene 4) ── */
+#sc4 .logo-big{
+  font-size:200px;font-weight:900;
+  background:linear-gradient(135deg,#C9A82C 0%,#E8CA6A 40%,#FFF9C4 60%,#C9A82C 100%);
+  background-size:200% 200%;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+  animation:shimmer 2s linear infinite;
+  opacity:0;transform:scale(1.3);
+  transition:all 1s cubic-bezier(.34,1.56,.64,1);
+  filter:drop-shadow(0 0 60px rgba(201,168,44,.8));
+  line-height:1;
+}
+.scene.on .logo-big{opacity:1;transform:scale(1);}
+@keyframes shimmer{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+#sc4 .tagline{
+  font-size:32px;font-weight:300;
+  color:#94A3B8;letter-spacing:12px;
+  text-transform:uppercase;margin-top:20px;
+  opacity:0;transform:translateY(20px);
+  transition:all .8s ease .6s;
+}
+.scene.on .tagline{opacity:1;transform:translateY(0);}
+#sc4 .solved-badge{
+  margin-top:32px;
+  padding:14px 48px;
+  border:2px solid #10B981;
+  border-radius:999px;
+  font-size:20px;font-weight:700;
+  letter-spacing:6px;
+  text-transform:uppercase;
+  color:#10B981;
+  box-shadow:0 0 60px rgba(16,185,129,.4),inset 0 0 30px rgba(16,185,129,.1);
+  opacity:0;transform:scale(.8);
+  transition:all .7s cubic-bezier(.34,1.56,.64,1) 1s;
+}
+.scene.on .solved-badge{opacity:1;transform:scale(1);}
+
+/* ── TYPEWRITER ── */
+.type-cursor::after{content:'|';animation:blink .6s step-start infinite;color:#60A5FA;}
+@keyframes blink{50%{opacity:0}}
+
+/* ── PROGRESS BAR ── */
+#pbar{
+  position:fixed;bottom:0;left:0;height:3px;
+  background:linear-gradient(90deg,#3B82F6,#10B981,#C9A82C);
+  z-index:999;width:0;
+  transition:none;
+}
+
+/* ── SCENE LABEL ── */
+#slabel{
+  position:fixed;top:24px;left:50%;transform:translateX(-50%);
+  font-size:13px;font-weight:700;letter-spacing:4px;
+  text-transform:uppercase;color:rgba(255,255,255,.25);
+  z-index:999;
+  transition:opacity .3s;
+}
+
+/* ── GLITCH EFFECT ── */
+@keyframes glitch{
+  0%,100%{clip-path:inset(0 0 0 0);}
+  20%{clip-path:inset(10% 0 60% 0);transform:translate(-4px,0);}
+  40%{clip-path:inset(50% 0 20% 0);transform:translate(4px,0);}
+  60%{clip-path:inset(30% 0 40% 0);transform:translate(-2px,0);}
+  80%{clip-path:inset(70% 0 10% 0);transform:translate(2px,0);}
+}
+.glitch{animation:glitch .15s steps(1) infinite;}
+
+/* ── SCAN LINE ── */
+#scanline{
+  position:fixed;inset:0;z-index:5;pointer-events:none;
+  background:repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,.08) 2px,
+    rgba(0,0,0,.08) 4px
+  );
+  opacity:.4;
+}
+
+/* ── VIGNETTE ── */
+#vignette{
+  position:fixed;inset:0;z-index:4;pointer-events:none;
+  background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,.7) 100%);
+}
+
+/* ── PLAY OVERLAY ── */
+#play{
+  position:fixed;inset:0;z-index:2000;
+  background:rgba(8,14,28,.95);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:pointer;
+}
+#play .pb{
+  width:100px;height:100px;
+  border:3px solid #C9A82C;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:42px;color:#C9A82C;margin-bottom:24px;
+  transition:transform .2s,box-shadow .2s;
+  box-shadow:0 0 40px rgba(201,168,44,.3);
+}
+#play:hover .pb{transform:scale(1.1);box-shadow:0 0 60px rgba(201,168,44,.5);}
+#play p{font-size:18px;color:#475569;letter-spacing:4px;text-transform:uppercase;}
+#play .rec-tip{margin-top:20px;font-size:13px;color:#334155;letter-spacing:2px;}
+
+/* ── HUD CORNER ── */
+.hud{
+  position:fixed;font-size:11px;
+  font-family:'Courier New',monospace;
+  color:rgba(59,130,246,.4);
+  z-index:20;letter-spacing:2px;
+  line-height:1.8;
+}
+#hud-tl{top:20px;left:24px;}
+#hud-tr{top:20px;right:24px;text-align:right;}
+#hud-bl{bottom:24px;left:24px;}
+#hud-br{bottom:24px;right:24px;text-align:right;}
+</style>
+</head>
+<body>
+
+<!-- WebGL Canvas -->
+<canvas id="c"></canvas>
+
+<!-- Scan lines & vignette -->
+<div id="scanline"></div>
+<div id="vignette"></div>
+
+<!-- HUD corners -->
+<div class="hud" id="hud-tl">SHAMEL SYS v3.1.0<br>REC ● 00:00:00<br>1920×1080 @ 60fps</div>
+<div class="hud" id="hud-tr">FACE_ENGINE: InsightFace<br>MODEL: buffalo_s.onnx<br>DIM: 512 · THR: 0.35</div>
+<div class="hud" id="hud-bl">STATUS: <span id="status-txt">STANDBY</span><br>NODES: 0 ACTIVE</div>
+<div class="hud" id="hud-br">COSINE_SIM: 0.000<br>LATENCY: 0ms<br>MATCHES: 0</div>
+
+<!-- Overlay HTML scenes -->
+<div id="overlay">
+
+  <!-- SCENE 1 — THE PROBLEM -->
+  <div class="scene" id="sc1">
+    <!-- Error boxes injected by JS -->
+    <div style="margin-bottom:200px;text-align:center;">
+      <div class="s-tag red">SYSTEM ERROR DETECTED</div>
+      <div class="s-h1"><em class="red">Manual Systems<br>Are Failing.</em></div>
+    </div>
+  </div>
+
+  <!-- SCENE 2 — PROJECT SCOPE -->
+  <div class="scene" id="sc2">
+    <div class="s-tag blue">PROJECT SCOPE</div>
+    <div class="s-h1">SHAMEL covers<br><em class="blue">every layer.</em></div>
+    <div class="card-wrap">
+      <div class="card">
+        <div class="card-icon">🧠</div>
+        <div class="card-title">AI Face Recognition</div>
+        <div class="card-sub">InsightFace ONNX<br>512-dim cosine · 13ms</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">⚡</div>
+        <div class="card-title">Real-Time Monitoring</div>
+        <div class="card-sub">WebSocket channels<br>live across all roles</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔒</div>
+        <div class="card-title">5-Role Security</div>
+        <div class="card-sub">Scoped RBAC<br>zero data crossover</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">📡</div>
+        <div class="card-title">Offline-First</div>
+        <div class="card-sub">IndexedDB + sqflite<br>auto-sync on reconnect</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCENE 3 — THE SOLUTION -->
+  <div class="scene" id="sc3">
+    <div class="s-tag blue" style="color:#10B981;letter-spacing:6px;">PROBLEM → SOLUTION</div>
+    <div class="s-h1">Every problem.<br><em class="blue">Solved.</em></div>
+    <div class="solve-lines">
+      <div class="solve-line"><span class="check">✓</span><span>Attendance fraud</span><span style="color:#60A5FA;margin-left:8px;">→ Biometric face gate · 30s cooldown</span></div>
+      <div class="solve-line"><span class="check">✓</span><span>No real-time data</span><span style="color:#60A5FA;margin-left:8px;">→ WebSocket live dashboard</span></div>
+      <div class="solve-line"><span class="check">✓</span><span>Paper records</span><span style="color:#60A5FA;margin-left:8px;">→ PostgreSQL + PDF/Excel export</span></div>
+      <div class="solve-line"><span class="check">✓</span><span>Offline failure</span><span style="color:#60A5FA;margin-left:8px;">→ SQLite fallback · offline sync queue</span></div>
+    </div>
+  </div>
+
+  <!-- SCENE 4 — LOGO REVEAL -->
+  <div class="scene" id="sc4">
+    <div class="logo-big">SHAMEL</div>
+    <div class="tagline">Smart · Holistic · Compliant</div>
+    <div class="solved-badge">✓ &nbsp;Problem Solved</div>
+  </div>
+
+</div><!-- /overlay -->
+
+<div id="pbar"></div>
+<div id="slabel">00:00</div>
+
+<!-- Play overlay -->
+<div id="play" onclick="begin()">
+  <div class="pb">▶</div>
+  <p>Click to Start · 30 Seconds</p>
+  <div class="rec-tip">Tip: Open OBS or Win+G before clicking · Set source to 1920×1080 window</div>
+</div>
+
+<!-- Three.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// THREE.JS 3D SCENE
+// ═══════════════════════════════════════════════════════════════
+const W=1920, H=1080;
+const renderer = new THREE.WebGLRenderer({canvas:document.getElementById('c'),antialias:true,alpha:true});
+renderer.setSize(W,H);
+renderer.setPixelRatio(1);
+renderer.shadowMap.enabled = true;
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(60, W/H, 0.1, 2000);
+camera.position.set(0,0,80);
+
+// ── BACKGROUND GRADIENT ──────────────────────────────────────
+scene.background = new THREE.Color(0x060C1A);
+scene.fog = new THREE.FogExp2(0x060C1A, 0.008);
+
+// ── LIGHTS ──────────────────────────────────────────────────
+const amb = new THREE.AmbientLight(0x1a2a4a, 1.2);
+scene.add(amb);
+const dBlue = new THREE.DirectionalLight(0x3B82F6, 3);
+dBlue.position.set(50,80,60);
+scene.add(dBlue);
+const dGold = new THREE.DirectionalLight(0xC9A82C, 2);
+dGold.position.set(-60,-40,40);
+scene.add(dGold);
+const pRed = new THREE.PointLight(0xF87171, 0, 200); // starts off
+pRed.position.set(0,20,40);
+scene.add(pRed);
+
+// ── PARTICLE SYSTEM ─────────────────────────────────────────
+const NPTS = 3000;
+const posArr = new Float32Array(NPTS*3);
+const colArr = new Float32Array(NPTS*3);
+const velArr = [];
+
+for(let i=0;i<NPTS;i++){
+  const r=120+Math.random()*80;
+  const theta=Math.random()*Math.PI*2;
+  const phi=Math.acos(2*Math.random()-1);
+  posArr[i*3]   = r*Math.sin(phi)*Math.cos(theta);
+  posArr[i*3+1] = r*Math.sin(phi)*Math.sin(theta);
+  posArr[i*3+2] = r*Math.cos(phi);
+  velArr.push({vx:(Math.random()-.5)*.06,vy:(Math.random()-.5)*.06,vz:(Math.random()-.5)*.04});
+  // color: blue-white mix
+  colArr[i*3]   = .2+Math.random()*.2;
+  colArr[i*3+1] = .4+Math.random()*.2;
+  colArr[i*3+2] = .8+Math.random()*.2;
+}
+const ptGeo = new THREE.BufferGeometry();
+ptGeo.setAttribute('position', new THREE.BufferAttribute(posArr,3));
+ptGeo.setAttribute('color',    new THREE.BufferAttribute(colArr,3));
+const ptMat = new THREE.PointsMaterial({size:0.7,vertexColors:true,transparent:true,opacity:.7,sizeAttenuation:true});
+const points = new THREE.Points(ptGeo,ptMat);
+scene.add(points);
+
+// ── GRID PLANE ───────────────────────────────────────────────
+const gridHelper = new THREE.GridHelper(400,60,0x0D2040,0x0D2040);
+gridHelper.position.y = -50;
+gridHelper.material.opacity = 0.4;
+gridHelper.material.transparent = true;
+scene.add(gridHelper);
+
+// ── FLOATING GEOMETRIC SHAPES ────────────────────────────────
+const shapes=[];
+function mkShape(geo,mat,x,y,z){
+  const m=new THREE.Mesh(geo,mat);
+  m.position.set(x,y,z);
+  m.userData={rx:Math.random()*.015-.0075, ry:Math.random()*.02-.01, rz:Math.random()*.01-.005,
+              floatY:Math.random()*Math.PI*2, floatS:Math.random()*.003+.001};
+  scene.add(m);
+  shapes.push(m);
+  return m;
+}
+
+const wireMat = new THREE.MeshPhongMaterial({color:0x1E40AF,wireframe:true,opacity:.35,transparent:true});
+const solidMat= new THREE.MeshPhongMaterial({color:0x1e3a5f,shininess:100,specular:new THREE.Color(0x60A5FA)});
+const goldMat  = new THREE.MeshPhongMaterial({color:0xC9A82C,shininess:200,specular:new THREE.Color(0xFFF176),emissive:new THREE.Color(0x3D2D00)});
+const glowMat  = new THREE.MeshPhongMaterial({color:0x10B981,emissive:new THREE.Color(0x064E3B),shininess:150,transparent:true,opacity:.8});
+
+mkShape(new THREE.OctahedronGeometry(12,0), wireMat,  -85, 15, -20);
+mkShape(new THREE.IcosahedronGeometry(9,0), solidMat,  75, -10, -30);
+mkShape(new THREE.TorusGeometry(14,2,8,20), wireMat,   0,  35, -40);
+mkShape(new THREE.TetrahedronGeometry(11,0),goldMat,   50, 30, -15);
+mkShape(new THREE.OctahedronGeometry(7,1),  glowMat,  -60,-20, -25);
+mkShape(new THREE.IcosahedronGeometry(6,0), wireMat,   -20,40, -50);
+mkShape(new THREE.TorusGeometry(8,1.5,6,12),goldMat,   90,-30, -20);
+mkShape(new THREE.BoxGeometry(14,14,14),    solidMat, -90,-30, -30);
+
+// ── DATA RINGS (scene 2/3 accent) ────────────────────────────
+const rings=[];
+for(let i=0;i<5;i++){
+  const r=new THREE.Mesh(
+    new THREE.TorusGeometry(30+i*12,0.4,4,80),
+    new THREE.MeshPhongMaterial({color:0x1D4ED8+(i*0x002200),emissive:new THREE.Color(0x0A1628),transparent:true,opacity:.25+i*.04})
+  );
+  r.rotation.x=Math.PI/2;
+  r.position.z=-60;
+  r.visible=false;
+  scene.add(r);
+  rings.push(r);
+}
+
+// ── ERROR FLOATING BOXES (scene 1) ───────────────────────────
+const errBoxes=[];
+const errMsgs=['ACCESS DENIED','ERR_TIMEOUT','NULL_POINTER','STACK_OVERFLOW','DB_CONN_FAIL','AUTH_ERROR','NO_RECORD_FOUND','EXCEPTION: 0x000'];
+function spawnErrBox(){
+  const el=document.createElement('div');
+  el.className='err-box';
+  el.textContent=errMsgs[Math.floor(Math.random()*errMsgs.length)];
+  el.style.left=Math.random()*1600+100+'px';
+  el.style.top=Math.random()*800+100+'px';
+  el.style.transform=`rotate(${(Math.random()-.5)*8}deg)`;
+  el.style.zIndex=30;
+  document.getElementById('overlay').appendChild(el);
+  errBoxes.push(el);
+  requestAnimationFrame(()=>{el.style.opacity='1';el.style.transition='opacity .2s';});
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TIMELINE  (ms)
+// ═══════════════════════════════════════════════════════════════
+// SC1: 0–9000    THE PROBLEM
+// SC2: 9000–18000  PROJECT SCOPE
+// SC3: 18000–25000 THE SOLUTION
+// SC4: 25000–30000 LOGO REVEAL
+
+let t0=null, running=false;
+
+const scenes30=[
+  {s:0,    e:9000,  id:'sc1'},
+  {s:9000, e:18000, id:'sc2'},
+  {s:18000,e:25000, id:'sc3'},
+  {s:25000,e:30000, id:'sc4'},
+];
+
+let errInterval=null;
+let sc1phase=0; // sub-phases
+
+function setScene(id){
+  document.querySelectorAll('.scene').forEach(s=>s.classList.remove('on'));
+  const el=document.getElementById(id);
+  if(el) el.classList.add('on');
+}
+
+function cleanErrBoxes(){
+  errBoxes.forEach(b=>{b.style.opacity='0';setTimeout(()=>b.remove(),300);});
+  errBoxes.length=0;
+}
+
+// HUD live updates
+let hudFrame=0;
+function updateHud(elapsed){
+  const s=Math.floor(elapsed/1000);
+  const ms=Math.floor(elapsed%1000);
+  document.getElementById('hud-tl').innerHTML=
+    `SHAMEL SYS v3.1.0<br>REC ● ${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}:${String(ms).padStart(3,'0')}<br>1920×1080 @ 60fps`;
+
+  if(elapsed<9000){
+    document.getElementById('status-txt').textContent='FAULT DETECTED';
+    document.getElementById('hud-br').innerHTML=`ERR_CODE: 0x${(Math.random()*0xFFFF|0).toString(16).toUpperCase().padStart(4,'0')}<br>INTEGRITY: FAIL<br>ABORT_FLAG: TRUE`;
+    document.getElementById('hud-tl').style.color='rgba(248,113,113,.5)';
+  } else if(elapsed<18000){
+    document.getElementById('status-txt').textContent='SCANNING';
+    document.getElementById('hud-br').innerHTML=`COSINE_SIM: ${(Math.random()*.4+.55).toFixed(3)}<br>LATENCY: ${Math.floor(Math.random()*5+9)}ms<br>MATCHES: ${Math.floor(elapsed/500)%99}`;
+    document.getElementById('hud-tl').style.color='rgba(59,130,246,.4)';
+  } else {
+    document.getElementById('status-txt').textContent='ALL SYSTEMS OK';
+    document.getElementById('hud-br').innerHTML=`ACCURACY: 95.3%<br>LATENCY: 13ms<br>VERIFIED: ✓`;
+    document.getElementById('hud-tl').style.color='rgba(16,185,129,.5)';
+  }
+}
+
+// ── MAIN LOOP ────────────────────────────────────────────────
+function loop(now){
+  if(!running) return;
+  requestAnimationFrame(loop);
+
+  const elapsed = now - t0;
+
+  // progress bar
+  document.getElementById('pbar').style.width=(Math.min(elapsed/30000,1)*100)+'%';
+  const ss=Math.floor(elapsed/1000);
+  document.getElementById('slabel').textContent=
+    `${String(Math.floor(ss/60)).padStart(2,'0')}:${String(ss%60).padStart(2,'0')}`;
+
+  // scene switching
+  const curScene = scenes30.find(s=>elapsed>=s.s && elapsed<s.e);
+  if(curScene){
+    const cur=document.getElementById(curScene.id);
+    if(cur && !cur.classList.contains('on')) setScene(curScene.id);
+  } else if(elapsed>=30000){
+    setScene('sc4');
+  }
+
+  // HUD
+  if(hudFrame++%3===0) updateHud(elapsed);
+
+  // ── SCENE 1 BEHAVIOR ──
+  if(elapsed<9000){
+    // error boxes
+    if(elapsed>500 && errBoxes.length<12 && Math.random()<.04) spawnErrBox();
+
+    // red light pulses
+    pRed.intensity = 2+Math.sin(elapsed*.008)*2;
+
+    // camera shake in scene 1
+    const shake = Math.min(elapsed/2000,1)*0.6;
+    camera.position.x = Math.sin(elapsed*.003)*shake*2;
+    camera.position.y = Math.cos(elapsed*.0037)*shake;
+
+    // particles go chaotic red
+    const t=Math.min(elapsed/6000,1);
+    for(let i=0;i<Math.min(NPTS,Math.floor(t*NPTS));i++){
+      colArr[i*3]   = .7+Math.random()*.3;
+      colArr[i*3+1] = .1+Math.random()*.1;
+      colArr[i*3+2] = .1+Math.random()*.1;
+    }
+    ptGeo.attributes.color.needsUpdate=true;
+
+    // rings hidden
+    rings.forEach(r=>r.visible=false);
+  }
+
+  // ── SCENE 1→2 TRANSITION ──
+  if(elapsed>=8500 && elapsed<9500){
+    cleanErrBoxes();
+    pRed.intensity=0;
+    // snap camera back
+    camera.position.x += (-camera.position.x)*0.12;
+    camera.position.y += (-camera.position.y)*0.12;
+  }
+
+  // ── SCENE 2 BEHAVIOR ──
+  if(elapsed>=9000 && elapsed<18000){
+    const p=(elapsed-9000)/9000;
+    // restore blue particles
+    for(let i=0;i<NPTS;i++){
+      colArr[i*3]   = .2+Math.random()*.1;
+      colArr[i*3+1] = .4+Math.random()*.2*p;
+      colArr[i*3+2] = .7+Math.random()*.3*p;
+    }
+    ptGeo.attributes.color.needsUpdate=true;
+
+    // rings spin in
+    rings.forEach((r,i)=>{
+      r.visible=true;
+      r.rotation.z+=.005+i*.002;
+      r.rotation.x=Math.PI/2+Math.sin(elapsed*.0005+i)*.15;
+      r.material.opacity=Math.min(p*1.5,.25+i*.04);
+    });
+
+    // camera slow orbit
+    camera.position.x = Math.sin(elapsed*.0004)*15;
+    camera.position.y = Math.cos(elapsed*.0003)*8;
+    camera.lookAt(0,0,0);
+  }
+
+  // ── SCENE 3 BEHAVIOR ──
+  if(elapsed>=18000 && elapsed<25000){
+    const p=(elapsed-18000)/7000;
+    camera.position.z = 80+Math.sin(p*Math.PI)*8;
+    camera.position.x = Math.sin(elapsed*.0003)*8;
+    camera.lookAt(0,0,0);
+    rings.forEach((r,i)=>{r.rotation.z+=.008+i*.003;});
+  }
+
+  // ── SCENE 4 BEHAVIOR ──
+  if(elapsed>=25000){
+    const p=(elapsed-25000)/5000;
+    camera.position.z = 80-p*20;
+    camera.position.x += -camera.position.x*.02;
+    camera.position.y += -camera.position.y*.02;
+    camera.lookAt(0,0,0);
+    // green glow
+    dGold.intensity = 2+Math.sin(elapsed*.003)*1;
+    rings.forEach((r,i)=>{
+      r.rotation.z+=.012+i*.004;
+      r.material.color.setHex(0x10B981);
+    });
+  }
+
+  // ── SHAPES ──
+  shapes.forEach(m=>{
+    m.rotation.x += m.userData.rx;
+    m.rotation.y += m.userData.ry;
+    m.rotation.z += m.userData.rz;
+    m.position.y += Math.sin(Date.now()*.001+m.userData.floatY)*m.userData.floatS;
+  });
+
+  // ── PARTICLES DRIFT ──
+  const pos=ptGeo.attributes.position.array;
+  for(let i=0;i<NPTS;i++){
+    pos[i*3]   += velArr[i].vx;
+    pos[i*3+1] += velArr[i].vy;
+    const dx=pos[i*3],dy=pos[i*3+1],dz=pos[i*3+2];
+    const d=Math.sqrt(dx*dx+dy*dy+dz*dz);
+    if(d>220){velArr[i].vx*=-.8;velArr[i].vy*=-.8;}
+  }
+  ptGeo.attributes.position.needsUpdate=true;
+
+  // ── GRID ──
+  gridHelper.position.y = -50 + Math.sin(elapsed*.0005)*3;
+
+  renderer.render(scene,camera);
+
+  if(elapsed>=30000 && running){
+    running=false;
+    document.getElementById('pbar').style.width='100%';
+  }
+}
+
+function begin(){
+  document.getElementById('play').style.display='none';
+  running=true;
+  t0=performance.now();
+  setScene('sc1');
+  requestAnimationFrame(loop);
+}
+</script>
+</body>
+</html>

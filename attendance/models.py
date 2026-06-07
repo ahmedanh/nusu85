@@ -355,21 +355,6 @@ class FinancialStatus(models.Model):
         return f'{self.student} - {self.status}'
 
 
-class Grade(models.Model):
-    student  = models.ForeignKey(Student, on_delete=models.CASCADE)
-    course   = models.ForeignKey(Course, on_delete=models.CASCADE)
-    score    = models.FloatField(null=True, blank=True)
-    grade    = models.CharField(max_length=5, blank=True)
-    semester = models.CharField(max_length=10, blank=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        db_table = 'attendance_grade'
-        unique_together = ('student', 'course', 'semester')
-
-    def __str__(self):
-        return f'{self.student} - {self.course}: {self.grade}'
-
 
 class AuditLog(models.Model):
     user        = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)

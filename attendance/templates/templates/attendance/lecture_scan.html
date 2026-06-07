@@ -374,11 +374,14 @@ async function sendFrame() {
     const data = await res.json();
     if (data.ok && data.results) {
       data.results.forEach(r => {
+        if (r.is_teacher && r.name) {
+          showToast('👨‍🏫 ' + r.name, false, true); // teacher — green, no log
+          return;
+        }
         if (r.matched && r.name && isCooledDown(r.name)) {
           showToast(r.name, r.already_logged);
-          // If server saved it, remove any offline copy for same student
           if (!r.already_logged && r.student_id) {
-            idbMarkSynced([r.student_id]); // best-effort cleanup
+            idbMarkSynced([r.student_id]);
           }
         }
       });
@@ -393,12 +396,15 @@ async function sendFrame() {
 }
 
 // ── Toast ─────────────────────────────────────────────────────────────
-function showToast(name, alreadyLogged) {
+function showToast(name, alreadyLogged, isTeacher = false) {
   const c = document.getElementById('toast-container');
   const t = document.createElement('div');
-  t.className = 'toast flex items-center gap-3 px-5 py-3 rounded-xl shadow-2xl text-sm font-bold pointer-events-auto ' +
-    (alreadyLogged ? 'bg-slate-700 text-slate-300' : 'bg-emerald-600 text-white');
-  t.innerHTML = `<span class="material-symbols-outlined fill-icon text-lg">${alreadyLogged ? 'done_all' : 'check_circle'}</span>${name}`;
+  let cls = 'bg-emerald-600 text-white';
+  let icon = 'check_circle';
+  if (isTeacher)    { cls = 'bg-blue-600 text-white';    icon = 'school'; }
+  else if (alreadyLogged) { cls = 'bg-slate-700 text-slate-300'; icon = 'done_all'; }
+  t.className = `toast flex items-center gap-3 px-5 py-3 rounded-xl shadow-2xl text-sm font-bold pointer-events-auto ${cls}`;
+  t.innerHTML = `<span class="material-symbols-outlined fill-icon text-lg">${icon}</span>${name}`;
   c.appendChild(t);
   setTimeout(() => t.remove(), 3500);
 }

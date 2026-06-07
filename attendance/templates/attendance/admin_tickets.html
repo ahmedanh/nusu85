@@ -1,4 +1,4 @@
-﻿{% extends 'attendance/base.html' %}
+{% extends 'attendance/base.html' %}
 {% block title %}إدارة البلاغات — SHAMEL{% endblock %}
 {% block content %}
 
@@ -16,22 +16,18 @@
   </div>
 
   <!-- Stats -->
-  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+  <div class="grid grid-cols-3 gap-4">
     <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl p-4 text-center">
       <p class="text-3xl font-extrabold text-amber-600">{{ stats.open }}</p>
-      <p class="text-xs text-amber-600 mt-1 font-semibold">مفتوحة</p>
+      <p class="text-xs text-amber-600 mt-1 font-semibold" data-en="Open" data-ar="مفتوحة">مفتوحة</p>
     </div>
     <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl p-4 text-center">
-      <p class="text-3xl font-extrabold text-blue-600">{{ stats.investigating }}</p>
-      <p class="text-xs text-blue-600 mt-1 font-semibold">قيد التحقيق</p>
+      <p class="text-3xl font-extrabold text-blue-600">{{ stats.in_progress }}</p>
+      <p class="text-xs text-blue-600 mt-1 font-semibold" data-en="In Progress" data-ar="قيد المعالجة">قيد المعالجة</p>
     </div>
     <div class="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-4 text-center">
-      <p class="text-3xl font-extrabold text-emerald-600">{{ stats.resolved }}</p>
-      <p class="text-xs text-emerald-600 mt-1 font-semibold">محلولة</p>
-    </div>
-    <div class="bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-2xl p-4 text-center">
-      <p class="text-3xl font-extrabold text-slate-500">{{ stats.closed }}</p>
-      <p class="text-xs text-slate-500 mt-1 font-semibold">مغلقة</p>
+      <p class="text-3xl font-extrabold text-emerald-600">{{ stats.closed }}</p>
+      <p class="text-xs text-emerald-600 mt-1 font-semibold" data-en="Closed" data-ar="مغلقة">مغلقة</p>
     </div>
   </div>
 
@@ -40,9 +36,11 @@
     <div class="flex flex-wrap gap-3">
       <select name="status" onchange="this.form.submit()"
         class="py-2.5 px-3 text-sm rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 dark:text-white outline-none">
-        <option value="">كل الحالات</option>
+        <option value="" data-en="All Statuses" data-ar="كل الحالات">كل الحالات</option>
         {% for val, label in status_choices %}
-        <option value="{{ val }}" {% if selected_status == val %}selected{% endif %}>{{ label }}</option>
+        <option value="{{ val }}" {% if selected_status == val %}selected{% endif %}
+                data-en="{% if val == 'open' %}Open{% elif val == 'in_progress' %}In Progress{% else %}Closed{% endif %}"
+                data-ar="{{ label }}">{{ label }}</option>
         {% endfor %}
       </select>
       <select name="priority" onchange="this.form.submit()"

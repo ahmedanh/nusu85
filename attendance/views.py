@@ -40,7 +40,7 @@ from .models import (
     Coordinator, Schedule, Enrollment, LectureSession,
     AIAttendanceLog, StudentFaceEmbedding, TeacherFaceEmbedding,
     CameraSource, GateLog, Notification, SupportTicket,
-    FinancialStatus, Grade, AuditLog, MedicalExcuse,
+    FinancialStatus, AuditLog, MedicalExcuse,
     Exam, ExamSeat, CourseEvaluation, SystemConfig, AsyncTask,
 )
 
@@ -773,15 +773,19 @@ def reports_view(request):
 
 
 @login_required
-@staff_member_required
 def stop_session(request, session_id):
     session = get_object_or_404(LectureSession, pk=session_id)
+    # Teacher can only stop their own session; admin can stop any
+    if not request.user.is_staff:
+        teacher = get_object_or_404(Teacher, auth_user=request.user)
+        if session.schedule.teacher != teacher:
+            messages.error(request, 'غير مصرح لك بإيقاف هذه الجلسة.')
+            return redirect('professor_dashboard')
     session.is_active = False
     session.actual_end_time = timezone.now()
     session.save()
     log_audit(request, 'STOP_SESSION', 'LectureSession', session_id)
     messages.success(request, 'تم إيقاف الجلسة.')
-    # Redirect teachers back to their dashboard; admins to admin panel
     if Teacher.objects.filter(auth_user=request.user).exists():
         return redirect('professor_dashboard')
     return redirect('admin_panel')
@@ -790,13 +794,22 @@ def stop_session(request, session_id):
 @login_required
 def get_chancellor_stats(request):
     today = timezone.now().date()
+    total_students  = Student.objects.count()
+    trained_students = Student.objects.filter(is_trained=True).count()
+    training_progress = round(trained_students / total_students * 100) if total_students else 0
+    total_logs = AIAttendanceLog.objects.count()
+    correct_logs = AIAttendanceLog.objects.filter(status='Present').count()
+    global_accuracy = round(correct_logs / total_logs * 100) if total_logs else 0
     return JsonResponse({
-        'students': Student.objects.count(),
+        'students': total_students,
+        'total_students': total_students,
         'teachers': Teacher.objects.count(),
         'courses': Course.objects.count(),
         'attendance_today': AIAttendanceLog.objects.filter(timestamp__date=today).count(),
         'active_sessions': LectureSession.objects.filter(is_active=True).count(),
         'colleges': College.objects.count(),
+        'global_accuracy': global_accuracy,
+        'training_progress': training_progress,
     })
 
 
@@ -1382,19 +1395,25 @@ def classrooms_list(request):
     from django.core.cache import cache
     from django.db import close_old_connections
     close_old_connections()
-    classrooms = cache.get('classrooms_list_qs')
-    colleges   = cache.get('colleges_list_qs')
-    if classrooms is None:
-        classrooms = list(Classroom.objects.select_related('college').all().order_by('name'))
-        cache.set('classrooms_list_qs', classrooms, 60)  # cache 60s
+    q             = request.GET.get('q', '').strip()
+    selected_type = request.GET.get('type', '').strip()
+    colleges      = cache.get('colleges_list_qs')
     if colleges is None:
         colleges = list(College.objects.order_by('college_name'))
         cache.set('colleges_list_qs', colleges, 120)
+    qs = Classroom.objects.select_related('college').all().order_by('name')
+    if q:
+        qs = qs.filter(name__icontains=q)
+    if selected_type:
+        qs = qs.filter(classroom_type=selected_type)
+    classrooms = list(qs)
     return render(request, 'attendance/classrooms_list.html', {
         'classrooms': classrooms,
         'types': Classroom.CLASSROOM_TYPES,
         'colleges': colleges,
         'is_admin': request.user.is_staff or request.user.is_superuser,
+        'selected_type': selected_type,
+        'selected_q': q,
     })
 
 
@@ -1464,6 +1483,16 @@ def register_student(request):
 
             if not username:
                 username = _unique_username(email, student_code, name)
+            # Auto-generate unique student_code if blank or already taken
+            if not student_code:
+                import random as _rnd
+                base_code = f'STD{_rnd.randint(100000, 999999)}'
+                while Student.objects.filter(student_code=base_code).exists():
+                    base_code = f'STD{_rnd.randint(100000, 999999)}'
+                student_code = base_code
+            elif Student.objects.filter(student_code=student_code).exists():
+                messages.error(request, f'رمز الطالب "{student_code}" مستخدم بالفعل — اختر رمزاً آخر.')
+                return redirect('register_student')
             user = User.objects.create_user(username=username, password=password, email=email)
             from django.db import connection as _conn
             cursor = _conn.cursor()
@@ -1845,8 +1874,14 @@ def lecture_scan_api(request):
         for face_data in all_faces:
             bbox = face_data['bbox']
             matched_name, matched_type, matched_pk = match_face_from_db(face_data['embedding'])
-            if not matched_name or matched_type != 'student':
+            if not matched_name:
                 results.append({'bbox': bbox, 'matched': False})
+                continue
+
+            # Teacher face → acknowledge but don't log as student
+            if matched_type == 'teacher':
+                results.append({'bbox': bbox, 'matched': True,
+                                 'name': matched_name, 'is_teacher': True, 'logged': False})
                 continue
 
             if matched_pk not in enrolled_ids:
@@ -2215,10 +2250,6 @@ def coordinator_dashboard(request):
         student__department__college=coordinator.college,
         status='pending'
     ).count()
-    ungraded_courses = Course.objects.filter(
-        college=coordinator.college,
-        is_graded=False
-    ).count() if hasattr(Course, 'is_graded') else 0
 
     # College-wide attendance percentage (last 30 days)
     from datetime import timedelta
@@ -2261,7 +2292,6 @@ def coordinator_dashboard(request):
         'college_attendance_pct': college_attendance_pct,
         # Academic KPIs (coordinator-specific, not shown to admin)
         'pending_excuses':        pending_excuses,
-        'ungraded_courses':       ungraded_courses,
         'low_attendance_students': low_attendance_students,
     })
 
@@ -2362,6 +2392,16 @@ def coordinator_register_user(request):
             user = User.objects.create_user(username=username, password=password, email=email)
             if user_type == 'student':
                 dept_id = request.POST.get('department_id') or None
+                # Auto-generate unique student_code if blank or duplicate
+                if not student_code:
+                    import random as _rnd2
+                    student_code = f'STD{_rnd2.randint(100000, 999999)}'
+                    while Student.objects.filter(student_code=student_code).exists():
+                        student_code = f'STD{_rnd2.randint(100000, 999999)}'
+                elif Student.objects.filter(student_code=student_code).exists():
+                    user.delete()
+                    messages.error(request, f'رمز الطالب "{student_code}" مستخدم بالفعل.')
+                    return redirect('coordinator_register_user')
                 Student.objects.create(
                     auth_user=user, name=name, student_code=student_code,
                     department_id=dept_id, university_email=email,
@@ -2640,22 +2680,6 @@ def export_analytics_pdf(request):
         'logo_url': _pdf_logo_url(request),
     }).content.decode('utf-8')
     return _pdf_response(html, f'SHAMEL_Analytics_{_date.today()}.pdf', base_url=request.build_absolute_uri('/'))
-
-
-@login_required
-def export_grades_pdf(request):
-    student = Student.objects.filter(auth_user=request.user).first()
-    if not student:
-        messages.info(request, 'كشف الدرجات متاح لحسابات الطلاب فقط.')
-        return redirect('reports_view' if (request.user.is_staff or request.user.is_superuser) else 'home')
-    grades = Grade.objects.filter(student=student).select_related('course')
-    html = render(request, 'attendance/reports/grades_pdf.html', {
-        'student': student, 'grades': grades,
-        'logo_url': _pdf_logo_url(request),
-    }).content.decode('utf-8')
-    from datetime import date
-    sname = student.name.replace(' ', '_')[:25] if student.name else 'Student'
-    return _pdf_response(html, f'SHAMEL_{sname}_Grades_{date.today()}.pdf', base_url=request.build_absolute_uri('/'))
 
 
 # ── Medical Excuses ──────────────────────────────────────────────────────────
@@ -3403,7 +3427,7 @@ def export_search_pdf(request):
     query = request.GET.get('q', '').strip()
     results = {'students': [], 'teachers': [], 'courses': [], 'classrooms': []}
     if len(query) >= 2:
-        results['students']   = list(Student.objects.filter(name__icontains=query).select_related('department', 'college')[:30])
+        results['students']   = list(Student.objects.filter(name__icontains=query).select_related('department')[:30])
         results['teachers']   = list(Teacher.objects.filter(name__icontains=query).select_related('department', 'college')[:30])
         results['courses']    = list(Course.objects.filter(Q(title__icontains=query) | Q(course_code__icontains=query)).select_related('department', 'college')[:20])
         results['classrooms'] = list(Classroom.objects.filter(name__icontains=query)[:20])
@@ -3599,7 +3623,6 @@ def student_detail(request, student_id):
         })
     course_summary.sort(key=lambda x: x['pct'])
 
-    grades  = Grade.objects.filter(student=student).select_related('course')
     fin     = FinancialStatus.objects.filter(student=student).first()
     enrolls = Enrollment.objects.filter(student=student).select_related('course', 'classroom')
     absent  = total - present
@@ -3621,7 +3644,6 @@ def student_detail(request, student_id):
         'absent':         absent,
         'pct':            pct,
         'course_summary': course_summary,
-        'grades':         grades,
         'fin':            fin,
         'enrolls':        enrolls,
         'info_items':     info_items,
@@ -3677,8 +3699,15 @@ def audit_log_view(request):
     if date_f:   logs = logs.filter(timestamp__date=date_f)
 
     logs = logs[:500]
+    action_choices = [
+        ('CREATE', 'إنشاء'), ('UPDATE', 'تعديل'), ('DELETE', 'حذف'),
+        ('LOGIN', 'تسجيل دخول'), ('LOGOUT', 'تسجيل خروج'),
+        ('TOGGLE_ACCESS', 'تغيير صلاحية'), ('REGISTER_STUDENT', 'تسجيل طالب'),
+        ('REGISTER_TEACHER', 'تسجيل أستاذ'), ('OPEN_SESSION', 'فتح جلسة'),
+    ]
     return render(request, 'attendance/audit_log.html', {
         'logs': logs,
+        'actions': action_choices,
         'filters': {'action': action_f, 'model': model_f, 'user': user_f, 'date': date_f},
     })
 
@@ -3915,32 +3944,6 @@ def edit_teacher(request, teacher_id):
 # ===================================================================
 # FROM phase6_views_append.py
 # ===================================================================
-
-@login_required
-def coordinator_grading(request):
-    coordinator = get_object_or_404(Coordinator, auth_user=request.user)
-
-    if request.method == 'POST':
-        student_id = request.POST.get('student_id')
-        course_id  = request.POST.get('course_id')
-        semester   = request.POST.get('semester', '1')
-        score      = float(request.POST.get('score', 0) or 0)
-
-        student = get_object_or_404(Student, id=student_id)
-        Grade.objects.update_or_create(
-            student_id=student_id, course_id=course_id, semester=semester,
-            defaults={'score': score}
-        )
-        messages.success(request, 'Grade saved for student.')
-        return redirect('coordinator_grading')
-
-    courses  = Course.objects.filter(schedule__teacher__college=coordinator.college).distinct()
-    students = Student.objects.all().order_by('name')
-    grades   = Grade.objects.filter(course__college=coordinator.college).select_related('student', 'course')
-    return render(request, 'attendance/coordinator_grading.html', {
-        'courses': courses, 'students': students, 'grades': grades,
-    })
-
 
 def face_login(request):
     if request.method == 'GET':

@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>فحص شامل — SHAMEL Testing</title>
+<style>
+  :root{--bg:#0f172a;--card:#1e293b;--inp:#334155;--txt:#e2e8f0;--mut:#94a3b8;--acc:#38bdf8;--ok:#22c55e;--bad:#ef4444;--warn:#f59e0b;}
+  *{box-sizing:border-box;font-family:"Segoe UI",Tahoma,sans-serif;}
+  body{background:var(--bg);color:var(--txt);margin:0;padding:20px;}
+  .wrap{max-width:860px;margin:0 auto;}
+  h1{font-size:23px;margin:0 0 4px;}
+  p.sub{color:var(--mut);margin:0 0 16px;font-size:14px;}
+  .bar{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 0;border-bottom:1px solid #334155;
+    display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .bar input{background:var(--inp);border:1px solid #475569;color:var(--txt);border-radius:8px;padding:8px;width:120px;}
+  .stat{font-size:13px;color:var(--mut);}
+  .stat b{color:var(--acc);}
+  .cat{background:var(--card);border-radius:12px;margin:14px 0;overflow:hidden;}
+  .cat>h2{font-size:16px;margin:0;padding:13px 16px;background:#172033;cursor:pointer;display:flex;justify-content:space-between;}
+  .cat .badge{font-size:12px;color:var(--mut);}
+  .items{padding:6px 16px 14px;}
+  .item{border-bottom:1px solid #2b3850;padding:11px 0;}
+  .item:last-child{border:0;}
+  .item .top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .item .name{flex:1;min-width:180px;font-size:14px;}
+  .seg{display:flex;border-radius:8px;overflow:hidden;border:1px solid #475569;}
+  .seg button{background:var(--inp);color:var(--mut);border:0;padding:6px 12px;cursor:pointer;font-size:13px;}
+  .seg button.ok.on{background:var(--ok);color:#04210f;}
+  .seg button.bad.on{background:var(--bad);color:#2a0606;}
+  .detail{margin-top:9px;display:none;background:#0b1220;border-radius:9px;padding:11px;}
+  .detail.show{display:block;}
+  .detail label{font-size:12px;color:var(--mut);display:block;margin:8px 0 4px;}
+  .detail select,.detail textarea,.detail input{width:100%;background:var(--inp);border:1px solid #475569;color:var(--txt);border-radius:7px;padding:8px;font-size:13px;}
+  .detail .row{display:flex;gap:10px;flex-wrap:wrap;}
+  .detail .row>div{flex:1;min-width:130px;}
+  .btns{display:flex;gap:12px;margin:20px 0;flex-wrap:wrap;}
+  button.main{flex:1;min-width:180px;border:0;border-radius:10px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;}
+  .b1{background:var(--acc);color:#06283d;}.b2{background:var(--inp);color:var(--txt);}
+  .msg{text-align:center;color:var(--ok);height:18px;margin-bottom:8px;font-size:14px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🧪 فحص شامل لمشروع SHAMEL</h1>
+  <p class="sub">كل ميزة افتراضيًا <b style="color:var(--ok)">شغال تمام</b>. لو لقيت مشكلة اضغط «❌ مشكلة» واختار نوعها (أو اكتبها). في الآخر نزّل ملفات المشاكل المرصودة فقط — جاهزة لفولدر Issues.</p>
+
+  <div class="bar">
+    <span class="stat">ابدأ الترقيم من: </span>
+    <input id="startId" type="number" value="2" min="1" title="رقم أول مشكلة">
+    <span class="stat">المُختبِر:</span>
+    <input id="tester" placeholder="اسمك" style="width:140px">
+    <span class="stat" id="counter">المشاكل: <b>0</b></span>
+  </div>
+
+  <div id="cats"></div>
+
+  <div class="btns">
+    <button class="main b1" onclick="downloadAll()">⬇️ تنزيل ملفات المشاكل</button>
+    <button class="main b2" onclick="copyReport()">📋 نسخ تقرير مجمّع</button>
+  </div>
+  <div class="msg" id="msg"></div>
+</div>
+
+<script>
+// ===== أنواع المشاكل المتوقعة (قابلة لإعادة الاستخدام) =====
+const P={
+ WEB:['خطأ 500 (Server Error)','خطأ 404 (الصفحة غير موجودة)','الصفحة لا تفتح / التحميل لا ينتهي','بيانات خاطئة تظهر','بيانات فارغة (المفروض فيها بيانات)','زر/رابط لا يعمل','لا يحفظ التعديلات','مشكلة صلاحيات (يظهر لدور غير مفترض)','تنسيق/واجهة مكسورة (CSS)','بطيء جداً','مشكلة في الوضع الليلي','مشكلة في العربية/RTL'],
+ EXPORT:['تصدير PDF لا يعمل','تصدير Excel لا يعمل','تصدير CSV لا يعمل','الملف المصدَّر فارغ','الأعمدة/البيانات خاطئة','العربية مكسورة في الملف'],
+ FACE:['الكاميرا لا تفتح','لا يتعرف على الوجه','يتعرف على شخص خاطئ','بطيء في التعرف','خطأ عند تسجيل/رفع الوجه','رسالة خطأ في المحرك (dlib/insightface)','لا يفتح بوابة الدخول بعد التعرف'],
+ FLUTTER:['التطبيق ينهار (crash)','لا يتصل بالسيرفر (discover فشل)','شاشة فارغة/بيضاء','مشكلة في الوضع الليلي','مشكلة RTL/العربية','زر/تنقل لا يعمل','بيانات خاطئة','بطيء جداً'],
+ API:['خطأ 401 (التوكن مرفوض)','خطأ 500','استجابة فارغة','بيانات خاطئة في JSON','بطيء جداً','مشكلة شبكة/اتصال'],
+ AUTH:['لا يقبل بيانات صحيحة','يقبل بيانات خاطئة','خطأ 500 عند الدخول','لا يحوّل للوحة الدور الصحيح','الخروج (logout) لا يعمل','مشكلة صلاحيات الدور']
+};
+// ===== كتالوج الفحص الكامل لشامل =====
+const CAT=[
+ {name:'🔐 المصادقة وتسجيل الدخول',role:'student',platform:'web',items:[
+   ['دخول بكلمة مرور (/login/)',P.AUTH],['دخول بالوجه (/login/face/)',P.FACE],
+   ['دخول تجريبي (/demo-login/)',P.AUTH],['تسجيل الخروج (/logout/)',P.AUTH],
+   ['التحويل للوحة الصحيحة حسب الدور',P.AUTH]]},
+
+ {name:'🛡️ لوحة المدير (admin)',role:'admin',platform:'web',items:[
+   ['لوحة المدير (/admin-panel/)',P.WEB],['إعدادات المدير (/admin-panel/settings/)',P.WEB],
+   ['تقارير البوابة (/admin-panel/gate-reports/)',P.WEB],
+   ['سجل التدقيق (/admin-panel/audit-log/)',P.WEB],['الأقسام (/admin-panel/departments/)',P.WEB],
+   ['تقييم العمداء (/admin-panel/dean-evaluation/)',P.WEB],
+   ['الخط الزمني للكادر (/admin-panel/faculty-timeline/)',P.WEB],
+   ['إحصائيات المستشار (api/chancellor-stats)',P.WEB],['بث مباشر للإحصائيات (/live-stats/)',P.WEB]]},
+
+ {name:'🎓 لوحة المنسّق (coordinator)',role:'coordinator',platform:'web',items:[
+   ['لوحة المنسّق (/coordinator/dashboard/)',P.WEB],['طلاب الكلية (/coordinator/students/)',P.WEB],
+   ['الكادر (/coordinator/faculty/)',P.WEB],['التكليفات (/coordinator/assignments/)',P.WEB],
+   ['التسجيل (/coordinator/register/)',P.WEB],
+   ['تصدير الطلاب (/coordinator/export-students/)',P.EXPORT],
+   ['ظهور بيانات الكلية فقط (لا بيانات عامة)',P.WEB]]},
+
+ {name:'👨‍🏫 لوحة المحاضر (teacher)',role:'teacher',platform:'web',items:[
+   ['لوحة المحاضر (/professor-dashboard/)',P.WEB],['فتح جلسة (/teacher/open-session/)',P.WEB],
+   ['إيقاف الجلسة (/stop-session/)',P.WEB],['الخط الزمني (/teacher/timeline/)',P.WEB],
+   ['سجلات الحضور (/teacher/attendance-records/)',P.WEB],['الملف الشخصي (/teacher/profile/)',P.WEB],
+   ['الصلاحيات (/teacher/permissions/)',P.WEB]]},
+
+ {name:'🧑‍🎓 لوحة الطالب (student)',role:'student',platform:'web',items:[
+   ['لوحة الطالب (/student/dashboard/)',P.WEB],['الملف الشخصي (/student/profile/)',P.WEB],
+   ['الكورسات (/student/courses/)',P.WEB],['الجدول (/student/schedule/)',P.WEB],
+   ['الدعم (/student/support/)',P.WEB],['تقديم عذر (/student/excuse/)',P.WEB],
+   ['نسبة الحضور تظهر صحيحة',P.WEB]]},
+
+ {name:'🚪 البوابة والتعرف على الوجه (gate)',role:'gate',platform:'face-engine',items:[
+   ['صفحة البوابة (/gate/)',P.WEB],['مسح البوابة (/gate-scan/)',P.FACE],
+   ['المسح (/scan/)',P.FACE],['بث الكاميرا (/video_feed/)',P.FACE],
+   ['إيقاف الكاميرا (/stop_camera/)',P.FACE],['تسجيل وجه (/enroll-face/)',P.FACE],
+   ['كشف وجه (/detect-face/)',P.FACE],['رفع صورة وجه (upload-face)',P.FACE],
+   ['حالة القاعات لحظيًا (/check-status/)',P.WEB],['آخر عمليات المسح (/recent-scans/)',P.WEB],
+   ['تبديل صلاحية الدخول (toggle-access)',P.WEB]]},
+
+ {name:'🏫 إدارة الكليات والتسجيل',role:'admin',platform:'web',items:[
+   ['إدارة الكليات (/faculty-management/)',P.WEB],['تسجيل طالب (register-student)',P.WEB],
+   ['تسجيل محاضر (register-teacher)',P.WEB]]},
+
+ {name:'📚 الكورسات',role:'admin',platform:'web',items:[
+   ['قائمة الكورسات (/courses/)',P.WEB],['إضافة كورس (/courses/add/)',P.WEB],
+   ['تعديل كورس (edit)',P.WEB],['حذف كورس (delete)',P.WEB]]},
+
+ {name:'🏛️ القاعات',role:'admin',platform:'web',items:[
+   ['قائمة القاعات (/classrooms/)',P.WEB],['حالة القاعات (/classrooms/status/)',P.WEB],
+   ['إضافة قاعة (add)',P.WEB],['تعديل قاعة (edit)',P.WEB],['حذف قاعة (delete)',P.WEB]]},
+
+ {name:'🗓️ الجداول',role:'admin',platform:'web',items:[
+   ['قائمة الجداول (/schedule/)',P.WEB],['إضافة جدول (add)',P.WEB],['تعديل/حذف جدول',P.WEB],
+   ['تقويم الجدول (/schedule/calendar/)',P.WEB],['إضافة خانة (add-slot)',P.WEB],
+   ['كشف التعارض (api/check-conflict)',P.WEB]]},
+
+ {name:'✅ الحضور والجلسات',role:'teacher',platform:'web',items:[
+   ['سجلات الحضور (/attendance-logs/)',P.WEB],['تنبيهات الحضور (check-warnings)',P.WEB],
+   ['سجل الحضور الذكي (AIAttendanceLog) صحيح',P.WEB]]},
+
+ {name:'📡 مسح المحاضرة (lecture scan)',role:'teacher',platform:'face-engine',items:[
+   ['مسح المحاضرة (/lecture-scan/<id>/)',P.FACE],['واجهة مسح المحاضرة (lecture-scan-api)',P.FACE],
+   ['حالة المسح (lecture-scan/<id>/status/)',P.WEB],['تحضير يدوي (lecture-scan/<id>/manual/)',P.WEB],
+   ['الجلسات النشطة (api/v1/sessions/active)',P.API],['مزامنة حضور المحاضرة (lecture-attendance/sync)',P.API]]},
+
+ {name:'📊 التقارير والتصدير',role:'admin',platform:'web',items:[
+   ['التقارير (/reports/)',P.WEB],['تقرير الطلاب (/reports/students/)',P.WEB],
+   ['تصدير الطلاب CSV/Excel/PDF',P.EXPORT],['تقرير المحاضرين (/reports/teachers/)',P.WEB],
+   ['تصدير المحاضرين CSV/PDF',P.EXPORT],
+   ['تصدير التحليلات PDF',P.EXPORT],['تصدير الكورسات (export-courses)',P.EXPORT]]},
+
+ {name:'🩺 الأعذار الطبية',role:'coordinator',platform:'web',items:[
+   ['لوحة الأعذار (/admin-panel/excuse-board/)',P.WEB],['تقديم عذر من الطالب',P.WEB],
+   ['قبول/رفض العذر',P.WEB]]},
+
+ {name:'📝 الامتحانات',role:'admin',platform:'web',items:[
+   ['مخطط الامتحانات (/admin-panel/exam-planner/)',P.WEB],
+   ['توزيع المقاعد (/admin-panel/exam-seating/)',P.WEB],
+   ['بوابة الامتحان (/admin-panel/exam-gate/)',P.FACE]]},
+
+ {name:'🎫 الدعم والتذاكر',role:'student',platform:'web',items:[
+   ['التذاكر (/tickets/)',P.WEB],['إنشاء تذكرة (/tickets/create/)',P.WEB],
+   ['تفاصيل التذكرة (/tickets/<id>/)',P.WEB],['تذاكر المدير (/admin-panel/tickets/)',P.WEB]]},
+
+ {name:'🔔 الإشعارات',role:'admin',platform:'web',items:[
+   ['الإشعارات (/notifications/)',P.WEB],['تعليم كمقروء (mark-read)',P.WEB],
+   ['بث الإشعارات (/admin-panel/notifications/)',P.WEB]]},
+
+ {name:'🔎 البحث والإعدادات',role:'admin',platform:'web',items:[
+   ['البحث (/search/)',P.WEB],['بحث الطلاب (api/student-search)',P.WEB],
+   ['تصدير البحث PDF (search/export/pdf)',P.EXPORT],['الإعدادات (/settings/)',P.WEB],
+   ['حفظ الإعدادات (settings/update)',P.WEB]]},
+
+ {name:'📱 PWA والأوفلاين',role:'student',platform:'pwa',items:[
+   ['Service Worker (sw.js) يسجّل',P.WEB],['صفحة الأوفلاين (/offline/)',P.WEB],
+   ['manifest.json صحيح',P.WEB],['بانر التحديث يظهر',P.WEB]]},
+
+ {name:'🤖 واجهة API (/api/v1/)',role:'api',platform:'api',items:[
+   ['health / ping',P.API],['auth/login يرجّع توكن',P.API],['me يرجّع المستخدم',P.API],
+   ['dashboard',P.API],['schedule',P.API],['reports/summary',P.API],
+   ['notifications',P.API],['scan',P.API],['courses / classrooms / departments',P.API],
+   ['teachers / students',P.API],['attendance-logs / gate-logs',P.API],
+   ['audit-log',P.API],['exams / excuses',P.API],['dean-evaluations',P.API],['search',P.API],
+   ['settings',P.API],['coordinator/students',P.API],['gate/toggle-access',P.API],
+   ['teacher/timeline',P.API],['gate-reports',P.API],
+   ['sessions/active',P.API],['lecture-attendance/sync',P.API],['التوثيق بالـBearer token',P.API]]},
+
+ {name:'📲 تطبيق فلاتر (Android)',role:'student',platform:'flutter',items:[
+   ['تسجيل الدخول',P.FLUTTER],['اكتشاف السيرفر (Api.discover)',P.FLUTTER],
+   ['لوحة المدير vs المنسّق vs المحاضر/الطالب',P.FLUTTER],['المسح بالكاميرا (scan_screen)',P.FACE],
+   ['الجدول (schedule_screen)',P.FLUTTER],['القوائم المرقّمة (resource_list)',P.FLUTTER],
+   ['نماذج الإنشاء (create_screens)',P.FLUTTER],['صفحات التفاصيل (detail_screens)',P.FLUTTER],
+   ['القائمة الجانبية (menu_drawer)',P.FLUTTER],['الوضع الليلي',P.FLUTTER],
+   ['الاتجاه RTL والعربية',P.FLUTTER],['التنقل بين التبويبات (IndexedStack)',P.FLUTTER]]},
+
+ {name:'🗄️ البنية التحتية وقاعدة البيانات',role:'admin',platform:'web',items:[
+   ['اتصال PostgreSQL (VPS)',P.WEB],['التبديل التلقائي لـSQLite عند انقطاع VPS',P.WEB],
+   ['WebSocket (consumers) للحضور المباشر',P.WEB],['الكاش الحدّي (edge_cache) أوفلاين',P.WEB],
+   ['إشعارات الإيميل (email_utils)',P.WEB],['live-reload بعد النشر',P.WEB]]}
+];
+
+// ===== بناء الواجهة =====
+let problems=0;
+const cats=document.getElementById('cats');
+CAT.forEach((c,ci)=>{
+  const box=document.createElement('div');box.className='cat';
+  box.innerHTML=`<h2 onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">${c.name}<span class="badge">${c.items.length} عنصر</span></h2>`;
+  const items=document.createElement('div');items.className='items';
+  c.items.forEach((it,ii)=>{
+    const opts=it[1].map(o=>`<option>${o}</option>`).join('');
+    const d=document.createElement('div');d.className='item';d.dataset.ci=ci;d.dataset.ii=ii;
+    d.innerHTML=`<div class="top">
+      <span class="name">${it[0]}</span>
+      <div class="seg">
+        <button class="ok on" onclick="setState(this,1)">✅ شغال</button>
+        <button class="bad" onclick="setState(this,0)">❌ مشكلة</button>
+      </div></div>
+      <div class="detail">
+        <div class="row">
+          <div><label>نوع المشكلة</label><select class="ptype" onchange="toggleOther(this)">${opts}<option value="__other">أخرى (اكتب بنفسك)</option></select></div>
+          <div><label>الخطورة</label><select class="sev"><option>critical</option><option>high</option><option selected>medium</option><option>low</option></select></div>
+        </div>
+        <div class="otherWrap" style="display:none"><label>اكتب المشكلة</label><input class="other" placeholder="صف المشكلة"></div>
+        <label>تفاصيل / خطوات / رسالة الخطأ</label><textarea class="notes" placeholder="اكتب أي تفاصيل تساعد في الحل"></textarea>
+      </div>`;
+    items.appendChild(d);
+  });
+  box.appendChild(items);cats.appendChild(box);
+});
+
+function setState(btn,ok){
+  const seg=btn.parentElement, item=seg.closest('.item'), det=item.querySelector('.detail');
+  seg.querySelectorAll('button').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  det.classList.toggle('show',!ok);
+  item.dataset.bad=ok?'0':'1';
+  recount();
+}
+function toggleOther(sel){sel.closest('.detail').querySelector('.otherWrap').style.display=sel.value==='__other'?'block':'none';}
+function recount(){problems=document.querySelectorAll('.item[data-bad="1"]').length;document.getElementById('counter').innerHTML='المشاكل: <b>'+problems+'</b>';}
+
+function collect(){
+  const tester=document.getElementById('tester').value.trim();
+  let n=parseInt(document.getElementById('startId').value)||1;
+  const today=new Date().toISOString().slice(0,10);
+  const out=[];
+  document.querySelectorAll('.item[data-bad="1"]').forEach(item=>{
+    const c=CAT[item.dataset.ci];
+    const name=item.querySelector('.name').textContent;
+    const sel=item.querySelector('.ptype');
+    const ptype=sel.value==='__other'?(item.querySelector('.other').value.trim()||'أخرى'):sel.value;
+    const sev=item.querySelector('.sev').value;
+    const notes=item.querySelector('.notes').value.trim();
+    const id=String(n++).padStart(4,'0');
+    const title=`${name} — ${ptype}`;
+    const body=`---
+type: bug
+id: ${id}
+status: open
+severity: ${sev}
+role: ${c.role}
+platform: ${c.platform}
+area: ${c.name.replace(/^[^؀-ۿa-zA-Z]+/,'').trim()}
+date_found: ${today}
+tester: ${tester}
+tags: [bug]
+---
+
+# 🐞 ${title}
+
+## القسم
+${c.name}
+
+## الميزة
+${name}
+
+## نوع المشكلة
+${ptype}
+
+## التفاصيل
+${notes||'-'}
+
+## الحل
+- [ ] تم تحديد السبب
+- [ ] تم الإصلاح
+- [ ] تم إعادة الاختبار
+
+### ملاحظات الإصلاح
+`;
+    const fn=`${id}-${title.replace(/[\\/:*?"<>|]/g,'').replace(/\s+/g,'-').slice(0,60)}.md`;
+    out.push({fn,body});
+  });
+  return out;
+}
+
+function downloadAll(){
+  const items=collect();
+  if(!items.length){return flash('🎉 مافي مشاكل مرصودة — كله شغال!');}
+  items.forEach((f,i)=>setTimeout(()=>{
+    const b=new Blob([f.body],{type:'text/markdown;charset=utf-8'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=f.fn;a.click();
+  },i*350));
+  flash('✅ نزّلنا '+items.length+' ملف — انقلهم لفولدر Issues');
+}
+function copyReport(){
+  const items=collect();
+  if(!items.length){return flash('🎉 مافي مشاكل مرصودة!');}
+  navigator.clipboard.writeText(items.map(f=>f.body).join('\n\n---\n\n')).then(()=>flash('✅ تم نسخ تقرير بـ'+items.length+' مشكلة'));
+}
+function flash(t){const m=document.getElementById('msg');m.textContent=t;setTimeout(()=>m.textContent='',4000);}
+</script>
+</body>
+</html>

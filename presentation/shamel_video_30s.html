@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920,initial-scale=1">
+<title>SHAMEL — 30s Motion Graphics</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700;900&family=Inter:wght@300;400;700;900&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --navy:#080F1E;
+  --navy2:#0D1829;
+  --blue:#3B82F6;
+  --gold:#C9A82C;
+  --gold2:#E8CA6A;
+  --em:#10B981;
+  --red:#F87171;
+  --white:#F4F6FB;
+  --muted:#64748B;
+}
+
+html,body{
+  width:1920px;height:1080px;
+  overflow:hidden;
+  background:var(--navy);
+  font-family:'Inter',sans-serif;
+  color:var(--white);
+}
+
+/* ── CANVAS ── */
+#stage{
+  position:relative;
+  width:1920px;height:1080px;
+  overflow:hidden;
+  background:var(--navy);
+}
+
+/* ── PARTICLE CANVAS ── */
+#particles{
+  position:absolute;inset:0;
+  z-index:0;pointer-events:none;
+}
+
+/* ── GRID OVERLAY ── */
+#stage::before{
+  content:'';
+  position:absolute;inset:0;z-index:1;
+  background-image:
+    linear-gradient(rgba(59,130,246,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(59,130,246,.035) 1px,transparent 1px);
+  background-size:80px 80px;
+  pointer-events:none;
+}
+
+/* ── SCENES ── */
+.scene{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;
+  justify-content:center;align-items:center;
+  z-index:2;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .6s ease;
+}
+.scene.visible{opacity:1;}
+
+/* ── SCENE 1: TITLE ── */
+#sc1 .brand{
+  font-family:'Cairo',sans-serif;
+  font-size:180px;
+  font-weight:900;
+  letter-spacing:-6px;
+  line-height:1;
+  background:linear-gradient(135deg,var(--gold),var(--gold2),var(--em));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+  opacity:0;
+  transform:scale(.7) translateY(40px);
+  transition:all .9s cubic-bezier(.34,1.56,.64,1);
+}
+#sc1.visible .brand{opacity:1;transform:scale(1) translateY(0);}
+
+#sc1 .tagline{
+  font-size:24px;font-weight:300;
+  color:var(--muted);
+  letter-spacing:6px;
+  text-transform:uppercase;
+  margin-top:24px;
+  opacity:0;
+  transform:translateY(20px);
+  transition:all .7s ease .5s;
+}
+#sc1.visible .tagline{opacity:1;transform:translateY(0);}
+
+#sc1 .accent-bar{
+  width:0;height:4px;
+  background:linear-gradient(90deg,var(--blue),var(--em));
+  border-radius:2px;
+  margin-top:32px;
+  transition:width 1s ease .8s;
+}
+#sc1.visible .accent-bar{width:320px;}
+
+/* ── SCENE 2: PROBLEM ── */
+#sc2 .section-tag{
+  font-size:14px;font-weight:700;
+  letter-spacing:5px;text-transform:uppercase;
+  color:var(--red);
+  margin-bottom:24px;
+  opacity:0;transform:translateY(-20px);
+  transition:all .5s ease;
+}
+#sc2.visible .section-tag{opacity:1;transform:translateY(0);}
+
+#sc2 h2{
+  font-family:'Cairo',sans-serif;
+  font-size:72px;font-weight:900;
+  text-align:center;
+  line-height:1.15;
+  max-width:1000px;
+  opacity:0;transform:translateY(30px);
+  transition:all .7s ease .2s;
+}
+#sc2.visible h2{opacity:1;transform:translateY(0);}
+
+.prob-pills{
+  display:flex;gap:20px;flex-wrap:wrap;
+  justify-content:center;
+  max-width:1100px;
+  margin-top:40px;
+}
+.prob-pill{
+  background:rgba(248,113,113,.12);
+  border:1px solid rgba(248,113,113,.3);
+  border-radius:999px;
+  padding:12px 28px;
+  font-size:18px;font-weight:600;
+  color:#FCA5A5;
+  opacity:0;transform:scale(.8);
+}
+#sc2.visible .prob-pill{opacity:1;transform:scale(1);}
+#sc2.visible .prob-pill:nth-child(1){transition:all .5s ease .4s;}
+#sc2.visible .prob-pill:nth-child(2){transition:all .5s ease .55s;}
+#sc2.visible .prob-pill:nth-child(3){transition:all .5s ease .7s;}
+#sc2.visible .prob-pill:nth-child(4){transition:all .5s ease .85s;}
+#sc2.visible .prob-pill:nth-child(5){transition:all .5s ease 1s;}
+
+/* ── SCENE 3: SOLUTION ── */
+#sc3 .section-tag{
+  font-size:14px;font-weight:700;
+  letter-spacing:5px;text-transform:uppercase;
+  color:var(--em);
+  margin-bottom:24px;
+  opacity:0;transform:translateY(-20px);
+  transition:all .5s ease;
+}
+#sc3.visible .section-tag{opacity:1;transform:translateY(0);}
+
+#sc3 h2{
+  font-family:'Cairo',sans-serif;
+  font-size:64px;font-weight:900;
+  text-align:center;
+  max-width:900px;
+  line-height:1.2;
+  opacity:0;transform:translateY(30px);
+  transition:all .7s ease .2s;
+}
+#sc3.visible h2{opacity:1;transform:translateY(0);}
+
+.pillars{
+  display:flex;gap:32px;
+  margin-top:48px;
+}
+.pillar{
+  width:280px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(59,130,246,.2);
+  border-radius:20px;
+  padding:36px 28px;
+  text-align:center;
+  opacity:0;transform:translateY(50px);
+}
+.pillar .p-icon{font-size:52px;margin-bottom:16px;}
+.pillar .p-title{font-size:22px;font-weight:700;margin-bottom:8px;}
+.pillar .p-sub{font-size:15px;color:var(--muted);line-height:1.5;}
+
+#sc3.visible .pillar:nth-child(1){opacity:1;transform:translateY(0);transition:all .6s cubic-bezier(.34,1.56,.64,1) .35s;}
+#sc3.visible .pillar:nth-child(2){opacity:1;transform:translateY(0);transition:all .6s cubic-bezier(.34,1.56,.64,1) .5s;}
+#sc3.visible .pillar:nth-child(3){opacity:1;transform:translateY(0);transition:all .6s cubic-bezier(.34,1.56,.64,1) .65s;}
+
+/* ── SCENE 4: FACE SCAN ── */
+#sc4{background:radial-gradient(ellipse at center,#0d2040 0%,var(--navy) 70%);}
+
+#sc4 .scan-frame{
+  position:relative;
+  width:420px;height:420px;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;transform:scale(.6);
+  transition:all .8s cubic-bezier(.34,1.56,.64,1);
+}
+#sc4.visible .scan-frame{opacity:1;transform:scale(1);}
+
+.scan-corners::before,.scan-corners::after,
+.scan-corners-2::before,.scan-corners-2::after{
+  content:'';position:absolute;
+  width:48px;height:48px;
+  border-color:var(--em);
+  border-style:solid;
+}
+.scan-corners::before{top:0;left:0;border-width:4px 0 0 4px;}
+.scan-corners::after {top:0;right:0;border-width:4px 4px 0 0;}
+.scan-corners-2::before{bottom:0;left:0;border-width:0 0 4px 4px;}
+.scan-corners-2::after {bottom:0;right:0;border-width:0 4px 4px 0;}
+
+.scan-line{
+  position:absolute;
+  left:4px;right:4px;
+  height:3px;
+  background:linear-gradient(90deg,transparent,var(--em),transparent);
+  top:4px;
+  animation:scan 2s linear infinite;
+  box-shadow:0 0 20px var(--em);
+}
+
+@keyframes scan{
+  0%{top:4px;} 50%{top:calc(100% - 7px);} 100%{top:4px;}
+}
+
+.face-shape{
+  width:160px;height:180px;
+  border:3px solid rgba(16,185,129,.4);
+  border-radius:50% 50% 45% 45%;
+  background:rgba(16,185,129,.06);
+  animation:pulse-face 2s ease-in-out infinite;
+}
+@keyframes pulse-face{
+  0%,100%{border-color:rgba(16,185,129,.4);}
+  50%{border-color:rgba(16,185,129,.9);box-shadow:0 0 40px rgba(16,185,129,.3);}
+}
+
+.scan-info{
+  position:absolute;
+  bottom:-80px;left:50%;transform:translateX(-50%);
+  text-align:center;white-space:nowrap;
+}
+.scan-info .match{font-size:26px;font-weight:700;color:var(--em);}
+.scan-info .time {font-size:16px;color:var(--muted);margin-top:4px;}
+
+#sc4 .sc4-text{
+  margin-left:80px;
+  opacity:0;transform:translateX(40px);
+  transition:all .7s ease .4s;
+  max-width:600px;
+}
+#sc4.visible .sc4-text{opacity:1;transform:translateX(0);}
+#sc4 .sc4-text h2{
+  font-family:'Cairo',sans-serif;
+  font-size:58px;font-weight:900;
+  line-height:1.15;margin-bottom:24px;
+}
+#sc4.visible{display:flex;flex-direction:row;gap:0;align-items:center;justify-content:center;}
+
+/* ── SCENE 5: METRICS ── */
+#sc5 .section-tag{
+  font-size:14px;font-weight:700;
+  letter-spacing:5px;text-transform:uppercase;
+  color:var(--gold);
+  margin-bottom:24px;
+  opacity:0;transform:translateY(-20px);
+  transition:all .5s ease;
+}
+#sc5.visible .section-tag{opacity:1;transform:translateY(0);}
+
+#sc5 h2{
+  font-family:'Cairo',sans-serif;
+  font-size:52px;font-weight:900;
+  text-align:center;
+  margin-bottom:48px;
+  opacity:0;transform:translateY(20px);
+  transition:all .7s ease .2s;
+}
+#sc5.visible h2{opacity:1;transform:translateY(0);}
+
+.metrics{display:flex;gap:40px;flex-wrap:wrap;justify-content:center;}
+.metric{
+  width:240px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(201,168,44,.2);
+  border-radius:20px;
+  padding:32px 20px;
+  text-align:center;
+  opacity:0;transform:translateY(40px);
+}
+.metric .m-num{
+  font-size:64px;font-weight:900;
+  line-height:1;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.metric .m-label{font-size:15px;color:var(--muted);margin-top:10px;}
+
+#sc5.visible .metric:nth-child(1){opacity:1;transform:translateY(0);transition:all .5s cubic-bezier(.34,1.56,.64,1) .3s;}
+#sc5.visible .metric:nth-child(2){opacity:1;transform:translateY(0);transition:all .5s cubic-bezier(.34,1.56,.64,1) .45s;}
+#sc5.visible .metric:nth-child(3){opacity:1;transform:translateY(0);transition:all .5s cubic-bezier(.34,1.56,.64,1) .6s;}
+#sc5.visible .metric:nth-child(4){opacity:1;transform:translateY(0);transition:all .5s cubic-bezier(.34,1.56,.64,1) .75s;}
+
+/* ── SCENE 6: OUTRO ── */
+#sc6{
+  background:radial-gradient(ellipse at center,#0d1f3c 0%,var(--navy) 65%);
+}
+#sc6 .brand{
+  font-family:'Cairo',sans-serif;
+  font-size:130px;font-weight:900;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+  opacity:0;transform:scale(.8);
+  transition:all .9s cubic-bezier(.34,1.56,.64,1);
+}
+#sc6.visible .brand{opacity:1;transform:scale(1);}
+#sc6 .outro-sub{
+  font-size:22px;font-weight:300;
+  color:var(--muted);
+  letter-spacing:8px;
+  text-transform:uppercase;
+  margin-top:16px;
+  opacity:0;transform:translateY(16px);
+  transition:all .7s ease .5s;
+}
+#sc6.visible .outro-sub{opacity:1;transform:translateY(0);}
+#sc6 .built-with{
+  display:flex;gap:16px;margin-top:40px;flex-wrap:wrap;justify-content:center;
+  opacity:0;
+  transition:opacity .7s ease .8s;
+}
+#sc6.visible .built-with{opacity:1;}
+.bw-tag{
+  padding:8px 20px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:999px;
+  font-size:15px;font-weight:600;color:var(--white);
+}
+
+/* ── TIMELINE INDICATOR ── */
+#timeline-bar{
+  position:fixed;
+  bottom:0;left:0;height:4px;
+  background:linear-gradient(90deg,var(--blue),var(--em));
+  z-index:999;
+  width:0%;
+  transition:none;
+}
+
+#scene-label{
+  position:fixed;
+  bottom:16px;right:24px;
+  font-size:12px;font-weight:600;
+  color:rgba(255,255,255,.2);
+  letter-spacing:3px;text-transform:uppercase;
+  z-index:999;
+}
+
+#play-overlay{
+  position:fixed;inset:0;
+  background:rgba(8,15,30,.92);
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  z-index:1000;
+  cursor:pointer;
+}
+#play-overlay .play-btn{
+  width:90px;height:90px;
+  border:3px solid var(--gold);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:36px;
+  color:var(--gold);
+  margin-bottom:20px;
+  transition:transform .2s;
+}
+#play-overlay:hover .play-btn{transform:scale(1.1);}
+#play-overlay p{font-size:18px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;}
+
+#record-tip{
+  position:fixed;top:20px;left:50%;transform:translateX(-50%);
+  background:rgba(201,168,44,.15);
+  border:1px solid rgba(201,168,44,.3);
+  border-radius:8px;
+  padding:10px 24px;
+  font-size:14px;color:var(--gold2);
+  z-index:1000;
+  display:none;
+}
+</style>
+</head>
+<body>
+
+<!-- Record tip -->
+<div id="record-tip">
+  🎬 Recording: Use OBS / ShareX / Win+G to capture this window at 1920×1080
+</div>
+
+<!-- Play overlay -->
+<div id="play-overlay" onclick="startVideo()">
+  <div class="play-btn">▶</div>
+  <p>Click to play · 30 seconds</p>
+</div>
+
+<!-- Main stage -->
+<div id="stage">
+  <canvas id="particles"></canvas>
+
+  <!-- SCENE 1: TITLE (0–5s) -->
+  <div class="scene" id="sc1">
+    <div class="brand">SHAMEL</div>
+    <div class="tagline">Smart · Automated · Secure</div>
+    <div class="accent-bar"></div>
+  </div>
+
+  <!-- SCENE 2: PROBLEM (5–11s) -->
+  <div class="scene" id="sc2">
+    <div class="section-tag">The Problem</div>
+    <h2>University management<br><span style="color:var(--red)">is broken.</span></h2>
+    <div class="prob-pills">
+      <div class="prob-pill">❌ Attendance Fraud</div>
+      <div class="prob-pill">🚪 Unsecured Gate</div>
+      <div class="prob-pill">📄 Paper Records</div>
+      <div class="prob-pill">🔇 No Real-Time Data</div>
+      <div class="prob-pill">⚠️ No Role Separation</div>
+    </div>
+  </div>
+
+  <!-- SCENE 3: SOLUTION (11–17s) -->
+  <div class="scene" id="sc3">
+    <div class="section-tag">The Solution</div>
+    <h2>One platform.<br><span style="color:var(--em)">Every problem solved.</span></h2>
+    <div class="pillars">
+      <div class="pillar">
+        <div class="p-icon">🧠</div>
+        <div class="p-title">AI Face Recognition</div>
+        <div class="p-sub">InsightFace ONNX<br>13ms end-to-end</div>
+      </div>
+      <div class="pillar">
+        <div class="p-icon">⚡</div>
+        <div class="p-title">Real-Time Monitoring</div>
+        <div class="p-sub">WebSocket live feed<br>all roles, zero delay</div>
+      </div>
+      <div class="pillar">
+        <div class="p-icon">📱</div>
+        <div class="p-title">Web + Mobile + Gate</div>
+        <div class="p-sub">Django PWA<br>Flutter Android · Offline</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCENE 4: FACE SCAN (17–23s) -->
+  <div class="scene" id="sc4">
+    <div class="scan-frame">
+      <div class="scan-corners"></div>
+      <div class="scan-corners-2"></div>
+      <div class="scan-line"></div>
+      <div class="face-shape"></div>
+      <div class="scan-info">
+        <div class="match">✓ Identity Verified</div>
+        <div class="time">512-dim cosine · 13ms · No GPU needed</div>
+      </div>
+    </div>
+    <div class="sc4-text">
+      <h2>Biometric<br><span style="color:var(--em)">Gate Security</span></h2>
+      <div style="margin-top:20px;display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="color:var(--em);font-size:20px;">✓</span>
+          <span style="font-size:18px;color:#CBD5E1;">Multi-face detection in one frame</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="color:var(--em);font-size:20px;">✓</span>
+          <span style="font-size:18px;color:#CBD5E1;">30-second cooldown per person</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="color:var(--em);font-size:20px;">✓</span>
+          <span style="font-size:18px;color:#CBD5E1;">Access logs update in real-time</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCENE 5: METRICS (23–28s) -->
+  <div class="scene" id="sc5">
+    <div class="section-tag">Performance</div>
+    <h2>Numbers that <span style="color:var(--gold)">prove it.</span></h2>
+    <div class="metrics">
+      <div class="metric">
+        <div class="m-num" id="m1">0%</div>
+        <div class="m-label">Face Match Accuracy</div>
+      </div>
+      <div class="metric">
+        <div class="m-num" id="m2">0ms</div>
+        <div class="m-label">End-to-End Inference</div>
+      </div>
+      <div class="metric">
+        <div class="m-num" id="m3">0</div>
+        <div class="m-label">Role Scopes · Zero Crossover</div>
+      </div>
+      <div class="metric">
+        <div class="m-num" id="m4">0%</div>
+        <div class="m-label">Offline-First Capable</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCENE 6: OUTRO (28–30s) -->
+  <div class="scene" id="sc6">
+    <div class="brand">SHAMEL</div>
+    <div class="outro-sub">Smart · Holistic · Compliant</div>
+    <div class="built-with">
+      <span class="bw-tag">Python · Django</span>
+      <span class="bw-tag">InsightFace ONNX</span>
+      <span class="bw-tag">Flutter</span>
+      <span class="bw-tag">WebSocket</span>
+      <span class="bw-tag">Docker</span>
+    </div>
+  </div>
+</div>
+
+<!-- Timeline bar -->
+<div id="timeline-bar"></div>
+<div id="scene-label">00:00</div>
+
+<script>
+// ── PARTICLES ──────────────────────────────────────────────────────────────
+const canvas = document.getElementById('particles');
+const ctx    = canvas.getContext('2d');
+canvas.width = 1920; canvas.height = 1080;
+
+const PTS = 70;
+const pts = Array.from({length:PTS}, () => ({
+  x: Math.random()*1920, y: Math.random()*1080,
+  vx:(Math.random()-.5)*.4, vy:(Math.random()-.5)*.4,
+  r: Math.random()*2+1,
+  a: Math.random()*.4+.1,
+}));
+
+function drawParticles(){
+  ctx.clearRect(0,0,1920,1080);
+  pts.forEach(p=>{
+    p.x+=p.vx; p.y+=p.vy;
+    if(p.x<0||p.x>1920) p.vx*=-1;
+    if(p.y<0||p.y>1080) p.vy*=-1;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle=`rgba(59,130,246,${p.a})`;
+    ctx.fill();
+  });
+  // connections
+  for(let i=0;i<pts.length;i++){
+    for(let j=i+1;j<pts.length;j++){
+      const dx=pts[i].x-pts[j].x, dy=pts[i].y-pts[j].y;
+      const d=Math.sqrt(dx*dx+dy*dy);
+      if(d<160){
+        ctx.beginPath();
+        ctx.strokeStyle=`rgba(59,130,246,${.12*(1-d/160)})`;
+        ctx.lineWidth=1;
+        ctx.moveTo(pts[i].x,pts[i].y);
+        ctx.lineTo(pts[j].x,pts[j].y);
+        ctx.stroke();
+      }
+    }
+  }
+  requestAnimationFrame(drawParticles);
+}
+drawParticles();
+
+// ── TIMELINE ───────────────────────────────────────────────────────────────
+// [start_ms, end_ms, scene_id]
+const scenes = [
+  [0,    5000,  'sc1'],
+  [5000, 11000, 'sc2'],
+  [11000,17000, 'sc3'],
+  [17000,23000, 'sc4'],
+  [23000,28000, 'sc5'],
+  [28000,30000, 'sc6'],
+];
+
+let startTime = null;
+let animFrame = null;
+let counterAnim = null;
+
+function pad(n){return String(Math.floor(n)).padStart(2,'0');}
+
+function tick(now){
+  if(!startTime) return;
+  const elapsed = now - startTime;
+  const total = 30000;
+  const pct = Math.min(elapsed/total*100, 100);
+
+  document.getElementById('timeline-bar').style.width = pct + '%';
+  const s=Math.floor(elapsed/1000), ms=Math.floor((elapsed%1000)/10);
+  document.getElementById('scene-label').textContent =
+    `${pad(s/60)}:${pad(s%60)}`;
+
+  // activate scenes
+  scenes.forEach(([s,e,id])=>{
+    const el = document.getElementById(id);
+    if(elapsed >= s && elapsed < e){
+      if(!el.classList.contains('visible')) el.classList.add('visible');
+    } else {
+      el.classList.remove('visible');
+    }
+  });
+
+  // Counter animation for metrics (sc5 starts at 23s)
+  if(elapsed >= 23000 && elapsed < 28000){
+    const p = Math.min((elapsed-23000)/2500,1); // animate over 2.5s
+    document.getElementById('m1').textContent = Math.round(95*p)+'%';
+    document.getElementById('m2').textContent = Math.round(13*p)+'ms';
+    document.getElementById('m3').textContent = Math.round(5*p);
+    document.getElementById('m4').textContent = Math.round(100*p)+'%';
+  }
+
+  if(elapsed < total){
+    animFrame = requestAnimationFrame(tick);
+  } else {
+    // End state
+    document.getElementById('timeline-bar').style.width = '100%';
+    document.getElementById('sc6').classList.add('visible');
+  }
+}
+
+function startVideo(){
+  document.getElementById('play-overlay').style.display='none';
+  document.getElementById('record-tip').style.display='block';
+  startTime = performance.now();
+  animFrame = requestAnimationFrame(tick);
+}
+</script>
+</body>
+</html>

@@ -14,7 +14,7 @@
       <option value="{{ dept.id }}">{{ dept.name }}</option>
       {% endfor %}
     </select>
-    <a href="/admin/attendance/teacher/add/"
+    <a href="{% url 'register_teacher' %}"
       class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary-container transition-all shadow-sm">
       <span class="material-symbols-outlined text-lg">person_add</span> إضافة أستاذ
     </a>

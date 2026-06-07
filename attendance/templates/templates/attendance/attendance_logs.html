@@ -1,63 +1,67 @@
 ﻿{% extends 'attendance/base.html' %}
-{% block title %}Attendance Logs — SHAMEL{% endblock %}
+{% block title %}سجلات الحضور — شامل{% endblock %}
 {% block content %}
 
 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
   <div>
-    <h1 class="text-2xl font-extrabold text-slate-900 font-headline"><span data-en="Attendance Logs" data-ar="سجلات الحضور">Attendance Logs</span></h1>
-    <p class="text-sm text-slate-500 mt-1">Real-time biometric verification history and audit trails.</p>
+    <h1 class="text-2xl font-extrabold text-slate-900 font-headline">سجلات الحضور</h1>
+    <p class="text-sm text-slate-500 mt-1">سجل التحقق البيومتري الفوري ومسارات المراجعة.</p>
   </div>
   <div class="flex items-center gap-3">
     <select id="statusFilter"
       class="bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-primary/20 outline-none shadow-sm cursor-pointer">
-      <option value="all">All Status</option>
-      <option value="PRESENT">Present Only</option>
-      <option value="FLAGGED">Flagged Only</option>
+      <option value="all">كل الحالات</option>
+      <option value="PRESENT">حضور فقط</option>
+      <option value="ABSENT">غياب فقط</option>
     </select>
     <button id="exportBtn"
       class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary-container transition-all shadow-sm">
-      <span class="material-symbols-outlined text-lg">download</span> Export CSV
+      <span class="material-symbols-outlined text-lg">download</span> تصدير CSV
     </button>
   </div>
 </div>
 
-<div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+<div class="bg-white dark:bg-surface-variant rounded-2xl border border-slate-100 dark:border-white/10 shadow-sm overflow-hidden">
   <div class="overflow-x-auto">
     <table class="w-full text-sm" id="logsTable">
-      <thead class="bg-slate-50 text-xs text-slate-400 uppercase tracking-wider">
+      <thead class="bg-slate-50 dark:bg-white/5 text-xs text-slate-400 uppercase tracking-wider">
         <tr>
-          <th class="px-6 py-3 text-left font-semibold">Student</th>
-          <th class="px-6 py-3 text-left font-semibold">Timestamp</th>
-          <th class="px-6 py-3 text-left font-semibold">Status</th>
-          <th class="px-6 py-3 text-right font-semibold">Confidence</th>
+          <th class="px-6 py-3 text-right font-semibold">الطالب</th>
+          <th class="px-6 py-3 text-right font-semibold">التوقيت</th>
+          <th class="px-6 py-3 text-right font-semibold">الحالة</th>
+          <th class="px-6 py-3 text-left font-semibold">درجة الثقة</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-slate-50">
+      <tbody class="divide-y divide-slate-50 dark:divide-white/5">
         {% for log in logs %}
-        <tr class="hover:bg-slate-50 transition-colors log-row" data-status="{{ log.status|upper }}">
+        <tr class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors log-row" data-status="{{ log.status|upper }}">
           <td class="px-6 py-3">
             <div class="flex items-center gap-3">
               <div class="w-9 h-9 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-sm flex-shrink-0">
                 {{ log.student.name|first|upper }}
               </div>
-              <span class="font-semibold text-slate-800">{{ log.student.name }}</span>
+              <span class="font-semibold text-slate-800 dark:text-slate-100 log-student-name">{{ log.student.name }}</span>
             </div>
           </td>
-          <td class="px-6 py-3 text-slate-500">
-            {{ log.timestamp|date:"M d, Y" }} · {{ log.timestamp|time:"H:i" }}
+          <td class="px-6 py-3 text-slate-500 log-timestamp">
+            {{ log.timestamp|date:"d/m/Y" }} · {{ log.timestamp|time:"H:i" }}
           </td>
           <td class="px-6 py-3">
             {% if log.status == 'Present' %}
             <span class="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Present
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> حضور
+            </span>
+            {% elif log.status == 'Excused' %}
+            <span class="inline-flex items-center gap-1 text-xs font-bold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full">
+              <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> معذور
             </span>
             {% else %}
             <span class="inline-flex items-center gap-1 text-xs font-bold text-red-700 bg-red-50 px-2.5 py-1 rounded-full">
-              <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Flagged
+              <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> غياب
             </span>
             {% endif %}
           </td>
-          <td class="px-6 py-3 text-right font-mono text-sm font-bold text-slate-700">
+          <td class="px-6 py-3 text-left font-mono text-sm font-bold text-slate-700 dark:text-slate-200 log-confidence">
             {{ log.confidence_score|floatformat:2 }}%
           </td>
         </tr>
@@ -65,7 +69,7 @@
         <tr>
           <td colspan="4" class="px-6 py-12 text-center text-slate-400 text-sm">
             <span class="material-symbols-outlined text-3xl block mb-2 opacity-30">history</span>
-            No attendance records found.
+            لا توجد سجلات حضور.
           </td>
         </tr>
         {% endfor %}
@@ -83,10 +87,14 @@ document.getElementById('statusFilter').addEventListener('change', function() {
 });
 
 document.getElementById('exportBtn').addEventListener('click', function() {
-  let csv = 'Student,Timestamp,Status,Confidence\n';
-  document.querySelectorAll('.log-row').forEach(row => {
-    const cols = Array.from(row.querySelectorAll('td')).map(td => td.innerText.replace(/[·\n]/g, '').trim());
-    csv += cols.join(',') + '\n';
+  let csv = 'الطالب,التوقيت,الحالة,درجة الثقة\n';
+  document.querySelectorAll('.log-row:not([style*="none"])').forEach(row => {
+    // Extract specific cells to avoid avatar initial contamination
+    const name = row.querySelector('.log-student-name')?.innerText.trim() || '';
+    const ts   = row.querySelector('.log-timestamp')?.innerText.trim().replace(/·/g, '').replace(/\s+/g, ' ') || '';
+    const status = row.querySelector('span span:last-child')?.closest('span.inline-flex')?.innerText.trim() || '';
+    const conf = row.querySelector('.log-confidence')?.innerText.trim() || '';
+    csv += [name, ts, status, conf].map(v => `"${v.replace(/"/g, '""')}"`).join(',') + '\n';
   });
   const link = document.createElement('a');
   link.href = 'data:text/csv;charset=utf-8,' + encodeURI(csv);

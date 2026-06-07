@@ -1115,10 +1115,6 @@ tailwind = {
       <span class="material-symbols-outlined text-[18px]">assessment</span>
       <span data-en="Attendance Report" data-ar="تقرير الحضور">Attendance Report</span>
     </a>
-    <a href="{% url 'coordinator_grading' %}" class="nav-link {% if request.resolver_match.url_name == 'coordinator_grading' %}active{% endif %}">
-      <span class="material-symbols-outlined text-[18px]">grade</span>
-      <span data-en="Grading" data-ar="الدرجات">Grading</span>
-    </a>
     <a href="{% url 'export_coordinator_csv' %}" class="nav-link {% if request.resolver_match.url_name == 'export_coordinator_csv' %}active{% endif %}">
       <span class="material-symbols-outlined text-[18px]">download</span>
       <span data-en="Export Students" data-ar="تصدير بيانات الطلاب">Export Students</span>
@@ -1905,16 +1901,26 @@ function applyLang(lang) {
       el.removeAttribute('data-orig-ph');
     });
 
-    // 4b. Reverse dictionary: translate Arabic leaf nodes → English
-    // Handles templates written entirely in Arabic with no data-en attributes
-    document.querySelectorAll(TRANSLATE_SCOPE).forEach(el => {
-      if (el.closest('[data-en]')) return;
-      if (el.children.length > 0) return;
-      if (el.hasAttribute('data-orig-ar')) return; // already translated
-      const txt = el.textContent.trim();
+    // 4b. Reverse dictionary: translate Arabic text nodes → English
+    // Uses TreeWalker to hit text nodes in mixed-content elements too
+    const SKIP_TAGS = new Set(['SCRIPT','STYLE','CODE','PRE','INPUT','TEXTAREA']);
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        const p = node.parentElement;
+        if (!p) return NodeFilter.FILTER_REJECT;
+        if (SKIP_TAGS.has(p.tagName)) return NodeFilter.FILTER_REJECT;
+        if (p.closest('[data-en]')) return NodeFilter.FILTER_REJECT;
+        if (p.hasAttribute('data-orig-ar-node')) return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    const textNodes = [];
+    while (walker.nextNode()) textNodes.push(walker.currentNode);
+    textNodes.forEach(node => {
+      const txt = node.textContent.trim();
       if (txt && EN[txt]) {
-        el.setAttribute('data-orig-ar', el.textContent);
-        el.textContent = el.textContent.replace(txt, EN[txt]);
+        node.parentElement.setAttribute('data-orig-ar-node', node.textContent);
+        node.textContent = node.textContent.replace(txt, EN[txt]);
       }
     });
     // 4c. Input placeholders: Arabic → English via reverse dict
@@ -1937,6 +1943,18 @@ function applyLang(lang) {
     document.querySelectorAll('[data-orig-ar-ph]').forEach(el => {
       el.setAttribute('placeholder', el.getAttribute('data-orig-ar-ph'));
       el.removeAttribute('data-orig-ar-ph');
+    });
+    // Restore text nodes translated by TreeWalker pass
+    document.querySelectorAll('[data-orig-ar-node]').forEach(el => {
+      const orig = el.getAttribute('data-orig-ar-node');
+      // Find and restore the first text node child
+      for (const node of el.childNodes) {
+        if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
+          node.textContent = orig;
+          break;
+        }
+      }
+      el.removeAttribute('data-orig-ar-node');
     });
   }
 

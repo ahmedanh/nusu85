@@ -72,7 +72,7 @@ def _bearer(request):
     hdr = request.META.get('HTTP_AUTHORIZATION', '')
     if hdr.startswith('Bearer '):
         return hdr[7:].strip()
-    return request.GET.get('token') or request.POST.get('token')
+    return None  # GET/POST token params removed — header-only for security (tokens in URLs appear in logs)
 
 
 def api_auth(view):
@@ -91,10 +91,7 @@ def api_auth(view):
 
 def _role_of(user):
     if user.is_superuser or user.is_staff:
-        # staff could still be a coordinator
-        if Coordinator.objects.filter(auth_user=user).exists():
-            return 'coordinator'
-        return 'admin'
+        return 'admin'  # admin takes priority — coordinator record does not demote a staff user
     if Coordinator.objects.filter(auth_user=user).exists():
         return 'coordinator'
     if Teacher.objects.filter(auth_user=user).exists():
@@ -353,14 +350,20 @@ def scan_submit(request):
         name = names[idx]
         confidence = round(float(score), 3)
 
-        student = Student.objects.filter(name__icontains=name).first()
+        # Match student by name from in-memory cache (names aligned with known_face_encodings)
+        student = Student.objects.filter(name=name).first()
         logged = False
         if student and schedule_id:
             sch = Schedule.objects.filter(id=schedule_id).first()
             if sch:
+                # get_or_create on (student, schedule) — NOT timestamp — prevents duplicate records
                 AIAttendanceLog.objects.get_or_create(
-                    student=student, schedule=sch, timestamp=timezone.now(),
-                    defaults={'confidence_score': confidence, 'status': 'Present'},
+                    student=student, schedule=sch,
+                    defaults={
+                        'confidence_score': confidence,
+                        'status': 'Present',
+                        'timestamp': timezone.now(),
+                    },
                 )
                 logged = True
         return JsonResponse({'ok': True, 'matched': name, 'confidence': confidence,

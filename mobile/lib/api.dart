@@ -13,13 +13,15 @@ class Api {
   // Both Daphne (:9000) and the Django dev server (:8000) serve /api/v1.
   // The app auto-discovers whichever is reachable so testing never breaks
   // just because one server is down.
-  static String baseUrl = 'http://10.0.2.2:9000';
+  static String baseUrl = 'https://shamel.sd';
 
   /// Candidate hosts tried in order during discovery.
+  /// Production server is tried first — if internet is available it wins instantly.
   static const List<String> _candidates = [
-    'http://10.0.2.2:9000', // emulator → host Daphne
-    'http://10.0.2.2:8000', // emulator → host Django dev server
-    'http://127.0.0.1:9000', // desktop / same host
+    'https://shamel.sd',       // production — tried first, no local Django needed
+    'http://10.0.2.2:9000',   // emulator → host Daphne (fallback)
+    'http://10.0.2.2:8000',   // emulator → host Django dev server
+    'http://127.0.0.1:9000',
     'http://127.0.0.1:8000',
   ];
 

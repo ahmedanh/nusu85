@@ -1,4 +1,4 @@
-﻿{% load static %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="ar" dir="rtl" class="">
 <head>
@@ -41,11 +41,9 @@ tailwind.config = {
 // ── Apply saved theme & language BEFORE render (prevents flash) ──
 (function(){
   const theme = localStorage.getItem('acdc_theme') || 'light';
-  // One-time migration: reset any old stored 'en' to 'ar'.
-  // SHAMEL is Arabic-first — 'ar' is the canonical default.
-  if (!localStorage.getItem('shamel_lang_reset_v1')) {
+  // Default for new visitors is Arabic ('ar')
+  if (!localStorage.getItem('acdc_lang')) {
     localStorage.setItem('acdc_lang', 'ar');
-    localStorage.setItem('shamel_lang_reset_v1', '1');
   }
   const lang = localStorage.getItem('acdc_lang') || 'ar';
   if (theme === 'dark') document.documentElement.classList.add('dark');
@@ -60,6 +58,69 @@ tailwind.config = {
   h1,h2,h3,.font-headline { font-family:'Manrope','Segoe UI',system-ui,sans-serif; }
   .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24; }
   .fill-icon { font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
+
+  /* ── Global Form / Layout Overrides for Tailwind CDN @apply compatibility ── */
+  .label-xs {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.375rem;
+  }
+  .dark .label-xs {
+    color: #94A3B8;
+  }
+  
+  .inp {
+    width: 100%;
+    border-radius: 0.75rem;
+    background-color: #F8F9FA;
+    border: 1px solid #E2E8F0;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #1E293B;
+    outline: none;
+    transition: all 0.15s ease;
+  }
+  .dark .inp {
+    background-color: #1E293B !important;
+    border-color: #334155 !important;
+    color: #F1F5F9 !important;
+  }
+  .inp:focus {
+    border-color: rgba(30, 58, 138, 0.4);
+    box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.2);
+  }
+  .dark .inp:focus {
+    border-color: rgba(245, 158, 11, 0.4);
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+  }
+  
+  .tab-btn {
+    color: #64748B;
+    transition: all 0.15s ease;
+  }
+  .dark .tab-btn {
+    color: #94A3B8;
+  }
+  .tab-btn:hover {
+    color: #1E293B;
+  }
+  .dark .tab-btn:hover {
+    color: #FFFFFF;
+  }
+  .tab-btn.active {
+    background-color: #FFFFFF;
+    color: #1E3A8A;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  }
+  .dark .tab-btn.active {
+    background-color: #334155;
+    color: #FFFFFF;
+  }
 
   /* ── Sidebar link styles ── */
   .nav-link {
@@ -340,10 +401,7 @@ tailwind.config = {
       <span class="material-symbols-outlined text-[18px]">person</span>
       <span data-en="My Profile" data-ar="ملفي">My Profile</span>
     </a>
-    <a href="{% url 'teacher_permissions' %}" class="nav-link {% if request.resolver_match.url_name == 'teacher_permissions' %}active{% endif %}">
-      <span class="material-symbols-outlined text-[18px]">lock_open</span>
-      <span data-en="Room Permissions" data-ar="صلاحيات القاعات">Room Permissions</span>
-    </a>
+    {# Room Permissions removed — teachers have implicit access to all rooms #}
 
     <!-- ══ STUDENT ══ -->
     {% elif student_profile %}

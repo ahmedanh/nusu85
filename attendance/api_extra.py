@@ -413,37 +413,6 @@ def dean_evaluations(request):
                              'evaluations': [], 'unavailable': True})
 
 
-# ── Grades (coordinator) ───────────────────────────────────────────────────
-@api_auth
-@require_http_methods(['GET'])
-def grades(request):
-    from django.db import OperationalError, ProgrammingError
-    from .models import Grade
-    try:
-        qs = Grade.objects.select_related('student', 'course').order_by('-updated_at')
-        role = _role_of(request.api_user)
-        if role == 'student':
-            s = Student.objects.filter(auth_user=request.api_user).first()
-            qs = qs.filter(student=s) if s else qs.none()
-        elif role == 'teacher':
-            t = Teacher.objects.filter(auth_user=request.api_user).first()
-            from .models import Schedule as _Sched
-            course_ids = _Sched.objects.filter(teacher=t).values_list('course_id', flat=True) if t else []
-            qs = qs.filter(course__in=course_ids) if t else qs.none()
-        elif role == 'coordinator':
-            co = Coordinator.objects.filter(auth_user=request.api_user).first()
-            qs = qs.filter(course__college=co.college) if co else qs.none()
-        elif role == 'gate':
-            qs = qs.none()
-        rows, total, _ = _page(qs, request)
-        data = [{'id': g.id, 'student': getattr(g.student, 'name', None),
-                 'course': getattr(g.course, 'title', None),
-                 'score': g.score, 'grade': g.grade, 'semester': g.semester} for g in rows]
-        return JsonResponse({'ok': True, 'total': total, 'count': len(data), 'grades': data})
-    except (OperationalError, ProgrammingError):
-        return JsonResponse({'ok': True, 'total': 0, 'count': 0, 'grades': [], 'unavailable': True})
-
-
 # ── Medical excuses ────────────────────────────────────────────────────────
 @api_auth
 @require_http_methods(['GET'])

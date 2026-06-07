@@ -21,6 +21,13 @@ class AttendanceConfig(AppConfig):
             return
         os.environ['SHAMEL_SCHEDULER_STARTED'] = '1'
 
+        # Pre-load face embeddings into memory so the scan station is ready immediately
+        try:
+            from .views import load_known_faces
+            load_known_faces()
+        except Exception:
+            pass
+
         try:
             from apscheduler.schedulers.background import BackgroundScheduler
             from apscheduler.triggers.interval import IntervalTrigger

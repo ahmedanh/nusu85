@@ -1,5 +1,5 @@
 {% extends 'attendance/base.html' %}
-{% block title %}طلبات الأعذار — SHAMEL{% endblock %}
+{% block title %}طلبات الأعذار — Excuse Requests — SHAMEL{% endblock %}
 {% block content %}
 <div class="max-w-4xl mx-auto space-y-6">
   <div class="flex items-center gap-4">
@@ -7,8 +7,8 @@
       <span class="material-symbols-outlined text-amber-600">medical_information</span>
     </div>
     <div>
-      <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline">طلبات الأعذار</h1>
-      <p class="text-sm text-slate-500">قدّم عذراً لغيابك عن أي محاضرة</p>
+      <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white font-headline" data-en="Excuse Requests" data-ar="طلبات الأعذار">طلبات الأعذار</h1>
+      <p class="text-sm text-slate-500" data-en="Submit an excuse for your absence from any lecture" data-ar="قدّم عذراً لغيابك عن أي محاضرة">قدّم عذراً لغيابك عن أي محاضرة</p>
     </div>
   </div>
 
@@ -20,45 +20,45 @@
   <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
     <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 flex items-center gap-2">
       <span class="material-symbols-outlined text-primary text-lg">add_circle</span>
-      <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm">تقديم عذر جديد</h2>
+      <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm" data-en="Submit New Excuse" data-ar="تقديم عذر جديد">تقديم عذر جديد</h2>
     </div>
     <form method="post" enctype="multipart/form-data" class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
       {% csrf_token %}
       <div>
-        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">المادة *</label>
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5" data-en="Course *" data-ar="المادة *">المادة *</label>
         <select name="course_id" required class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm font-medium dark:text-white outline-none">
-          <option value="">— اختر المادة —</option>
+          <option value="" data-en="— Select Course —" data-ar="— اختر المادة —">— اختر المادة —</option>
           {% for c in enrolled_courses %}<option value="{{ c.id }}">{{ c.title }}</option>{% endfor %}
         </select>
       </div>
       <div>
-        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">تاريخ الغياب *</label>
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5" data-en="Absence Date *" data-ar="تاريخ الغياب *">تاريخ الغياب *</label>
         <input type="date" name="absence_date" required class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm dark:text-white outline-none">
       </div>
       <div>
-        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">نوع العذر</label>
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5" data-en="Excuse Type" data-ar="نوع العذر">نوع العذر</label>
         <select name="excuse_type" class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm dark:text-white outline-none">
-          <option value="medical">طبي</option>
-          <option value="personal">شخصي</option>
-          <option value="official">رسمي</option>
-          <option value="other">أخرى</option>
+          <option value="medical" data-en="Medical" data-ar="طبي">طبي</option>
+          <option value="personal" data-en="Personal" data-ar="شخصي">شخصي</option>
+          <option value="official" data-en="Official" data-ar="رسمي">رسمي</option>
+          <option value="other" data-en="Other" data-ar="أخرى">أخرى</option>
         </select>
       </div>
       <div>
-        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">مرفق (اختياري)</label>
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5" data-en="Attachment (Optional)" data-ar="مرفق (اختياري)">مرفق (اختياري)</label>
         <label class="w-full rounded-xl bg-white border border-slate-300 px-4 py-3 flex items-center gap-2 cursor-pointer hover:bg-slate-50 transition-colors">
-          <span class="px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-sm font-bold border border-primary/20">اختر ملف</span>
-          <span class="file-name text-sm text-slate-500">لم يُختر ملف</span>
+          <span class="px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-sm font-bold border border-primary/20" data-en="Choose File" data-ar="اختر ملف">اختر ملف</span>
+          <span class="file-name text-sm text-slate-500" data-en="No file chosen" data-ar="لم يُختر ملف">لم يُختر ملف</span>
           <input type="file" name="attachment" accept=".jpg,.jpeg,.png,.pdf" class="hidden" onchange="this.parentNode.querySelector('.file-name').textContent=this.files[0]?this.files[0].name:'لم يُختر ملف'">
         </label>
       </div>
       <div class="md:col-span-2">
-        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">وصف العذر *</label>
-        <textarea name="description" rows="3" required placeholder="اكتب سبب الغياب بالتفصيل..." class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm dark:text-white outline-none resize-none"></textarea>
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5" data-en="Excuse Description *" data-ar="وصف العذر *">وصف العذر *</label>
+        <textarea name="description" rows="3" required placeholder="اكتب سبب الغياب بالتفصيل..." data-en-placeholder="Write absence reason in detail..." data-ar-placeholder="اكتب سبب الغياب بالتفصيل..." class="w-full rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm dark:text-white outline-none resize-none"></textarea>
       </div>
       <div class="md:col-span-2">
         <button type="submit" class="inline-flex items-center gap-2 bg-primary hover:bg-primary-container text-white font-bold text-sm px-6 py-3 rounded-xl transition-all shadow-sm">
-          <span class="material-symbols-outlined text-base">send</span> إرسال الطلب
+          <span class="material-symbols-outlined text-base">send</span> <span data-en="Submit Request" data-ar="إرسال الطلب">إرسال الطلب</span>
         </button>
       </div>
     </form>
@@ -67,7 +67,7 @@
   <!-- My Excuses -->
   <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
     <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40">
-      <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm">طلباتي السابقة</h2>
+      <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm" data-en="My Previous Requests" data-ar="طلباتي السابقة">طلباتي السابقة</h2>
     </div>
     {% if my_excuses %}
     <div class="divide-y divide-slate-100 dark:divide-slate-700">
@@ -75,20 +75,32 @@
       <div class="px-6 py-4 flex items-center justify-between gap-4">
         <div>
           <p class="text-sm font-bold text-slate-900 dark:text-white">{{ e.course.title }}</p>
-          <p class="text-xs text-slate-500 mt-0.5">{{ e.absence_date }} · {{ e.get_excuse_type_display }}</p>
-          {% if e.reviewer_note %}<p class="text-xs text-slate-400 mt-1 italic">ملاحظة المنسق: {{ e.reviewer_note }}</p>{% endif %}
+          <p class="text-xs text-slate-500 mt-0.5">
+            <span>{{ e.absence_date|date:"d/m/Y" }}</span> · 
+            <span data-en="{% if e.excuse_type == 'medical' %}Medical{% elif e.excuse_type == 'personal' %}Personal{% elif e.excuse_type == 'official' %}Official{% else %}Other{% endif %}"
+                  data-ar="{% if e.excuse_type == 'medical' %}طبي{% elif e.excuse_type == 'personal' %}شخصي{% elif e.excuse_type == 'official' %}رسمي{% else %}أخرى{% endif %}">
+              {{ e.get_excuse_type_display }}
+            </span>
+          </p>
+          {% if e.review_note %}
+          <p class="text-xs text-slate-400 mt-1 italic">
+            <span data-en="Coordinator Note:" data-ar="ملاحظة المنسق:">ملاحظة المنسق:</span> {{ e.review_note }}
+          </p>
+          {% endif %}
         </div>
         <span class="text-xs font-bold px-3 py-1 rounded-full
           {% if e.status == 'approved' %}bg-emerald-100 text-emerald-700
           {% elif e.status == 'rejected' %}bg-red-100 text-red-700
-          {% else %}bg-amber-100 text-amber-700{% endif %}">
+          {% else %}bg-amber-100 text-amber-700{% endif %}"
+          data-en="{% if e.status == 'approved' %}Approved{% elif e.status == 'rejected' %}Rejected{% else %}Pending{% endif %}"
+          data-ar="{% if e.status == 'approved' %}مقبول{% elif e.status == 'rejected' %}مرفوض{% else %}قيد المراجعة{% endif %}">
           {{ e.get_status_display }}
         </span>
       </div>
       {% endfor %}
     </div>
     {% else %}
-    <div class="py-12 text-center text-slate-400">
+    <div class="py-12 text-center text-slate-400" data-en="No requests submitted" data-ar="لا توجد طلبات مقدمة">
       <span class="material-symbols-outlined text-4xl block mb-2">inbox</span>
       لا توجد طلبات مقدمة
     </div>

@@ -122,6 +122,51 @@ def match(known: list[list[float]], probe: list[float]):
         return -1, 0.0
 
 
+def encode_all(image: np.ndarray) -> list[dict]:
+    """Return embedding + bbox for ALL detected faces in one pass."""
+    engine = active_engine()
+    if engine == 'insightface':
+        app = _get_insightface()
+        if app is None:
+            return []
+        try:
+            faces = app.get(image)
+            result = []
+            for f in faces:
+                x1, y1, x2, y2 = [float(v) for v in f.bbox]
+                result.append({
+                    'embedding': [float(x) for x in f.normed_embedding],
+                    'bbox': {'x1': x1, 'y1': y1, 'x2': x2, 'y2': y2},
+                    'score': float(f.det_score) if hasattr(f, 'det_score') else 1.0,
+                })
+            return result
+        except Exception:
+            return []
+    return []
+
+
+def detect(image: np.ndarray) -> list[dict]:
+    """Return list of detected faces with bbox and confidence. No embedding computed."""
+    engine = active_engine()
+    if engine == 'insightface':
+        app = _get_insightface()
+        if app is None:
+            return []
+        try:
+            faces = app.get(image)
+            result = []
+            for f in faces:
+                x1, y1, x2, y2 = [float(v) for v in f.bbox]
+                result.append({
+                    'x1': x1, 'y1': y1, 'x2': x2, 'y2': y2,
+                    'score': float(f.det_score) if hasattr(f, 'det_score') else 1.0,
+                })
+            return result
+        except Exception:
+            return []
+    return []
+
+
 def available() -> bool:
     """Is the active engine usable right now?"""
     if active_engine() == 'insightface':

@@ -6,7 +6,7 @@ from .models import (
     AIAttendanceLog, StudentFaceEmbedding, TeacherFaceEmbedding,
     CameraSource, GateLog,
     Notification, SupportTicket,
-    FinancialStatus, Grade, AuditLog,
+    FinancialStatus, AuditLog,
     MedicalExcuse, Exam, ExamSeat, CourseEvaluation,
     SystemConfig, AsyncTask,
 )
@@ -137,11 +137,6 @@ class FinancialStatusAdmin(admin.ModelAdmin):
     list_filter   = ('status',)
     search_fields = ('student__name', 'student__student_code')
 
-@admin.register(Grade)
-class GradeAdmin(admin.ModelAdmin):
-    list_display  = ('student', 'course', 'semester', 'score', 'grade')
-    list_filter   = ('semester', 'grade')
-    search_fields = ('student__name', 'course__title')
 
 @admin.register(AuditLog)
 class AuditLogAdmin(admin.ModelAdmin):

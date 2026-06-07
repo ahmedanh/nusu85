@@ -22,10 +22,10 @@
           {{ ticket.get_status_display }}
         </span>
         <span class="px-2 py-0.5 rounded-full text-[10px] font-bold
-          {% if ticket.priority == 'urgent' %}bg-red-100 text-red-600
-          {% elif ticket.priority == 'high' %}bg-orange-100 text-orange-600
-          {% elif ticket.priority == 'medium' %}bg-amber-100 text-amber-600
-          {% else %}bg-slate-100 text-slate-500{% endif %}">
+          {% if ticket.priority == 'urgent' %}bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400
+          {% elif ticket.priority == 'high' %}bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400
+          {% elif ticket.priority == 'medium' %}bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400
+          {% else %}bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400{% endif %}">
           {{ ticket.get_priority_display }}
         </span>
       </div>
@@ -39,7 +39,7 @@
 
   {% if messages %}
   {% for msg in messages %}
-  <div class="rounded-2xl p-4 {% if msg.tags == 'error' %}bg-red-50 border border-red-200 text-red-700{% else %}bg-emerald-50 border border-emerald-200 text-emerald-700{% endif %} text-sm font-semibold">
+  <div class="rounded-2xl p-4 {% if msg.tags == 'error' %}bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300{% else %}bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300{% endif %} text-sm font-semibold">
     {{ msg }}
   </div>
   {% endfor %}
