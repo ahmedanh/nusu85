@@ -20,16 +20,20 @@
     </div>
   </div>
 
+  <!-- Angle progress steps -->
+  <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-4">
+    <p class="text-xs font-bold text-slate-500 dark:text-slate-400 mb-3 uppercase tracking-widest">تقدّم التسجيل — 5 زوايا</p>
+    <div class="flex gap-2 justify-between" id="angle-steps">
+      <!-- filled by JS -->
+    </div>
+  </div>
+
   <!-- Scanner Card -->
   <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
 
     <!-- Camera + Canvas overlay -->
     <div class="relative bg-slate-950" style="aspect-ratio:4/3;">
-
-      <!-- Live video (hidden — drawn to canvas) -->
       <video id="webcam" autoplay playsinline muted class="hidden w-full h-full object-cover"></video>
-
-      <!-- Canvas: video + bbox overlay -->
       <canvas id="display-canvas" class="w-full h-full object-cover block"></canvas>
 
       <!-- Placeholder -->
@@ -40,19 +44,26 @@
         <p class="text-slate-500 text-sm font-semibold">الكاميرا غير مفعّلة</p>
       </div>
 
+      <!-- Camera picker -->
+      <div id="camera-picker-root" class="absolute bottom-3 left-1/2 -translate-x-1/2 z-10"></div>
+
+      <!-- Angle instruction overlay -->
+      <div id="angle-overlay" class="hidden absolute inset-0 flex flex-col items-center justify-end pb-6 pointer-events-none gap-2">
+        <div id="angle-direction" class="text-6xl"></div>
+        <div id="angle-label-overlay" class="px-5 py-2 rounded-full bg-slate-900/80 text-white text-sm font-bold backdrop-blur-sm"></div>
+      </div>
+
       <!-- Status overlay (top) -->
-      <div id="scan-label" class="hidden absolute top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase shadow-lg transition-all duration-300
-           bg-slate-800/80 text-slate-300 backdrop-blur-sm">
+      <div id="scan-label" class="hidden absolute top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase shadow-lg transition-all duration-300 bg-slate-800/80 text-slate-300 backdrop-blur-sm">
         جاري البحث عن وجه...
       </div>
 
       <!-- Countdown circle -->
-      <div id="countdown-wrap" class="hidden absolute inset-0 flex items-end justify-center pb-6 pointer-events-none">
-        <div class="w-14 h-14 rounded-full bg-emerald-500/90 text-white flex items-center justify-center text-3xl font-black shadow-xl">
+      <div id="countdown-wrap" class="hidden absolute top-4 right-4 pointer-events-none">
+        <div class="w-12 h-12 rounded-full bg-emerald-500/90 text-white flex items-center justify-center text-2xl font-black shadow-xl">
           <span id="countdown-num">3</span>
         </div>
       </div>
-
     </div>
 
     <!-- Controls -->
@@ -82,7 +93,7 @@
         <button id="capture-btn" onclick="manualCapture()" disabled
           class="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary-container text-white font-bold text-sm py-3 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed">
           <span class="material-symbols-outlined text-lg">face</span>
-          التقاط يدوي
+          <span id="capture-btn-label">التقاط يدوي</span>
         </button>
       </div>
 
@@ -101,7 +112,7 @@
     </h3>
     <div class="grid grid-cols-2 gap-2 text-xs text-slate-500 dark:text-slate-400">
       <div class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">light_mode</span> إضاءة جيدة ومتساوية</div>
-      <div class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">center_focus_strong</span> وجه الكاميرا مباشرة</div>
+      <div class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">center_focus_strong</span> اتبع التوجيه لكل زاوية</div>
       <div class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">masks</span> إزالة الكمامة</div>
       <div class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">mood</span> تعبير طبيعي محايد</div>
     </div>
@@ -133,21 +144,38 @@ const DETECT_URL  = '{% url "detect_face_api" %}';
 const UPLOAD_URL  = '{{ upload_url }}';
 const CSRF_TOKEN  = '{{ csrf_token }}';
 
-const video       = document.getElementById('webcam');
-const canvas      = document.getElementById('display-canvas');
-const ctx         = canvas.getContext('2d');
-const placeholder = document.getElementById('cam-placeholder');
-const scanLabel   = document.getElementById('scan-label');
+// ── Angle definitions ─────────────────────────────────────────────────────────
+const ANGLES = [
+  { label: 'انظر للكاميرا مباشرة',  icon: '😐', emoji: '⬆️', key: 'أمام'    },
+  { label: 'أدر وجهك قليلاً لليمين', icon: '😑', emoji: '➡️', key: 'يمين'   },
+  { label: 'أدر وجهك قليلاً للشمال', icon: '😑', emoji: '⬅️', key: 'شمال'   },
+  { label: 'ارفع رأسك قليلاً لأعلى', icon: '🙂', emoji: '⬆️', key: 'فوق'    },
+  { label: 'انظر قليلاً للأسفل',      icon: '😶', emoji: '⬇️', key: 'تحت'    },
+];
+
+let currentAngle  = 0;
+const anglesDone  = new Array(ANGLES.length).fill(false);
+
+const video         = document.getElementById('webcam');
+const canvas        = document.getElementById('display-canvas');
+const ctx           = canvas.getContext('2d');
+const placeholder   = document.getElementById('cam-placeholder');
+const scanLabel     = document.getElementById('scan-label');
 const countdownWrap = document.getElementById('countdown-wrap');
 const countdownNum  = document.getElementById('countdown-num');
-const startBtn    = document.getElementById('start-btn');
-const captureBtn  = document.getElementById('capture-btn');
-const msgBox      = document.getElementById('msg-box');
-const msgIcon     = document.getElementById('msg-icon');
-const msgText     = document.getElementById('msg-text');
-const progressWrap= document.getElementById('progress-wrap');
-const progressBar = document.getElementById('progress-bar');
-const progressLbl = document.getElementById('progress-label');
+const startBtn      = document.getElementById('start-btn');
+const captureBtn    = document.getElementById('capture-btn');
+const captureLbl    = document.getElementById('capture-btn-label');
+const msgBox        = document.getElementById('msg-box');
+const msgIcon       = document.getElementById('msg-icon');
+const msgText       = document.getElementById('msg-text');
+const progressWrap  = document.getElementById('progress-wrap');
+const progressBar   = document.getElementById('progress-bar');
+const progressLbl   = document.getElementById('progress-label');
+const angleOverlay  = document.getElementById('angle-overlay');
+const angleDir      = document.getElementById('angle-direction');
+const angleLblOvr   = document.getElementById('angle-label-overlay');
+const stepsEl       = document.getElementById('angle-steps');
 
 let detectInterval = null;
 let lastFaces      = [];
@@ -157,6 +185,32 @@ let countdownVal   = 3;
 let enrollLocked   = false;
 let animFrame      = null;
 
+// ── Build step indicators ─────────────────────────────────────────────────────
+function renderSteps() {
+  stepsEl.innerHTML = ANGLES.map((a, i) => `
+    <div class="flex-1 text-center">
+      <div class="w-8 h-8 mx-auto rounded-full flex items-center justify-center text-sm font-bold mb-1
+        ${anglesDone[i] ? 'bg-emerald-500 text-white' : i === currentAngle ? 'bg-primary text-white ring-2 ring-primary/40' : 'bg-slate-200 dark:bg-slate-700 text-slate-500'}">
+        ${anglesDone[i] ? '✓' : i + 1}
+      </div>
+      <div class="text-[10px] ${i === currentAngle ? 'text-primary font-bold' : 'text-slate-400'}">${a.key}</div>
+    </div>
+  `).join('<div class="flex-none self-center text-slate-300 dark:text-slate-600 text-xs">›</div>');
+}
+renderSteps();
+
+// ── Show current angle instruction ────────────────────────────────────────────
+function showAngleInstruction() {
+  const a = ANGLES[currentAngle];
+  angleOverlay.classList.remove('hidden');
+  angleDir.textContent      = a.emoji;
+  angleLblOvr.textContent   = a.label;
+  captureLbl.textContent    = `التقاط — ${a.key}`;
+  setScanLabel(`الزاوية ${currentAngle + 1}/5: ${a.label}`, 'bg-primary/90 text-white');
+  renderSteps();
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 function showMsg(text, type) {
   const map = {
     info:    ['bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300',    'info'],
@@ -184,169 +238,119 @@ function setScanLabel(text, color) {
   scanLabel.className = `absolute top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase shadow-lg transition-all duration-300 backdrop-blur-sm ${color}`;
 }
 
-// ── Draw loop ────────────────────────────────────────────────────────────────
+// ── Draw loop ─────────────────────────────────────────────────────────────────
 function drawLoop() {
   if (!video.srcObject) return;
   canvas.width  = video.videoWidth  || canvas.clientWidth;
   canvas.height = video.videoHeight || canvas.clientHeight;
-
-  // Mirror horizontally (selfie view)
   ctx.save();
   ctx.translate(canvas.width, 0);
   ctx.scale(-1, 1);
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
   ctx.restore();
-
-  // Draw face bounding boxes
   const scaleX = canvas.width  / (video.videoWidth  || canvas.width);
   const scaleY = canvas.height / (video.videoHeight || canvas.height);
-
   lastFaces.forEach((f, i) => {
-    // Mirror the x coordinates for the flipped canvas
     const x1m = canvas.width - f.x2 * scaleX;
     const x2m = canvas.width - f.x1 * scaleX;
     const y1  = f.y1 * scaleY;
     const y2  = f.y2 * scaleY;
     const w   = x2m - x1m;
     const h   = y2  - y1;
-
     const isMain = i === 0;
-    const color  = isMain
-      ? (stableCount >= 2 ? '#10b981' : '#f59e0b')   // green when locked, amber when tracking
-      : 'rgba(148,163,184,0.7)';
-    const lw = isMain ? 2.5 : 1.5;
-
-    // Rounded rectangle
+    const color  = isMain ? (stableCount >= 2 ? '#10b981' : '#f59e0b') : 'rgba(148,163,184,0.7)';
     const r = 12;
-    ctx.strokeStyle = color;
-    ctx.lineWidth   = lw;
-    ctx.shadowColor = color;
-    ctx.shadowBlur  = isMain ? 8 : 4;
+    ctx.strokeStyle = color; ctx.lineWidth = isMain ? 2.5 : 1.5;
+    ctx.shadowColor = color; ctx.shadowBlur = isMain ? 8 : 4;
     ctx.beginPath();
-    ctx.moveTo(x1m + r, y1);
-    ctx.lineTo(x2m - r, y1);  ctx.arcTo(x2m, y1, x2m, y1+r, r);
-    ctx.lineTo(x2m, y2 - r);  ctx.arcTo(x2m, y2, x2m-r, y2, r);
-    ctx.lineTo(x1m + r, y2);  ctx.arcTo(x1m, y2, x1m, y2-r, r);
-    ctx.lineTo(x1m, y1 + r);  ctx.arcTo(x1m, y1, x1m+r, y1, r);
-    ctx.closePath();
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-
-    // Corner brackets (main face only)
+    ctx.moveTo(x1m + r, y1); ctx.lineTo(x2m - r, y1); ctx.arcTo(x2m, y1, x2m, y1+r, r);
+    ctx.lineTo(x2m, y2 - r); ctx.arcTo(x2m, y2, x2m-r, y2, r);
+    ctx.lineTo(x1m + r, y2); ctx.arcTo(x1m, y2, x1m, y2-r, r);
+    ctx.lineTo(x1m, y1 + r); ctx.arcTo(x1m, y1, x1m+r, y1, r);
+    ctx.closePath(); ctx.stroke(); ctx.shadowBlur = 0;
     if (isMain) {
       const bl = Math.min(w, h) * 0.18;
-      ctx.strokeStyle = color;
-      ctx.lineWidth   = 3;
+      ctx.lineWidth = 3;
       [[x1m,y1],[x2m,y1],[x2m,y2],[x1m,y2]].forEach(([cx,cy], qi) => {
-        const dx = qi===0||qi===3 ?  bl : -bl;
-        const dy = qi===0||qi===1 ?  bl : -bl;
-        ctx.beginPath();
-        ctx.moveTo(cx + dx, cy); ctx.lineTo(cx, cy); ctx.lineTo(cx, cy + dy);
-        ctx.stroke();
+        const dx = qi===0||qi===3 ? bl : -bl;
+        const dy = qi===0||qi===1 ? bl : -bl;
+        ctx.beginPath(); ctx.moveTo(cx+dx,cy); ctx.lineTo(cx,cy); ctx.lineTo(cx,cy+dy); ctx.stroke();
       });
     }
   });
-
   animFrame = requestAnimationFrame(drawLoop);
 }
 
-// ── Webcam ───────────────────────────────────────────────────────────────────
+// ── Webcam ────────────────────────────────────────────────────────────────────
 function stopWebcam() {
-  if (window._webcamStream) {
-    window._webcamStream.getTracks().forEach(t => t.stop());
-    window._webcamStream = null;
-  }
+  if (_enrollPicker) { _enrollPicker.stop(); _enrollPicker = null; }
+  if (window._webcamStream) { window._webcamStream.getTracks().forEach(t => t.stop()); window._webcamStream = null; }
   if (detectInterval) { clearInterval(detectInterval); detectInterval = null; }
   if (animFrame)       { cancelAnimationFrame(animFrame); animFrame = null; }
   if (countdownTimer)  { clearInterval(countdownTimer); countdownTimer = null; }
 }
 window.addEventListener('beforeunload', stopWebcam);
-window.addEventListener('pagehide',     stopWebcam);
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') stopWebcam();
-});
+window.addEventListener('pagehide', stopWebcam);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') stopWebcam(); });
+
+let _enrollPicker = null;
 
 async function startCamera() {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
-    });
-    window._webcamStream = stream;
-    video.srcObject = stream;
-    await new Promise(r => { video.onloadedmetadata = r; });
-
-    placeholder.classList.add('hidden');
-    captureBtn.disabled = false;
-    startBtn.disabled   = true;
-    startBtn.classList.add('opacity-50');
-
-    // start draw loop
-    animFrame = requestAnimationFrame(drawLoop);
-
-    // start detection polling every 600ms
-    setScanLabel('جاري البحث عن وجه...', 'bg-slate-800/80 text-slate-300');
-    scanLabel.classList.remove('hidden');
-    detectInterval = setInterval(pollDetect, 600);
-
-    showMsg('الكاميرا جاهزة — ضع وجهك أمام الكاميرا', 'info');
-  } catch(e) {
-    showMsg('تعذّر الوصول إلى الكاميرا: ' + e.message, 'error');
-  }
+  if (_enrollPicker) _enrollPicker.stop();
+  _enrollPicker = new CameraPicker({
+    root: '#camera-picker-root',
+    facingMode: 'user',
+    idealWidth: 640, idealHeight: 480,
+    onStream: async (stream) => {
+      window._webcamStream = stream;
+      video.srcObject = stream;
+      await new Promise(r => { video.onloadedmetadata = r; });
+      placeholder.classList.add('hidden');
+      captureBtn.disabled = false;
+      startBtn.disabled   = true;
+      startBtn.classList.add('opacity-50');
+      animFrame = requestAnimationFrame(drawLoop);
+      showAngleInstruction();
+      detectInterval = setInterval(pollDetect, 700);
+      showMsg(`الزاوية 1/5: ${ANGLES[0].label}`, 'info');
+    },
+    onError: (msg) => showMsg(msg, 'error'),
+  });
+  await _enrollPicker.init();
 }
 
-// ── Detection polling ────────────────────────────────────────────────────────
+// ── Detection polling ─────────────────────────────────────────────────────────
 let _detecting = false;
 async function pollDetect() {
   if (_detecting || enrollLocked || !video.srcObject) return;
   _detecting = true;
   try {
-    // Capture current frame at reduced size for speed
     const tmp = document.createElement('canvas');
-    tmp.width  = 320;
-    tmp.height = 240;
-    const tc = tmp.getContext('2d');
-    tc.drawImage(video, 0, 0, 320, 240);
-    const frame = tmp.toDataURL('image/jpeg', 0.75);
-
+    tmp.width = 320; tmp.height = 240;
+    tmp.getContext('2d').drawImage(video, 0, 0, 320, 240);
     const fd = new FormData();
-    fd.append('frame', frame);
+    fd.append('frame', tmp.toDataURL('image/jpeg', 0.75));
     fd.append('csrfmiddlewaretoken', CSRF_TOKEN);
-
-    const res  = await fetch(DETECT_URL, { method: 'POST', body: fd });
-    const data = await res.json();
-
+    const data = await (await fetch(DETECT_URL, { method: 'POST', body: fd })).json();
     if (data.detected && data.faces && data.faces.length > 0) {
-      // Scale bboxes back to video resolution
       const sx = (video.videoWidth  || 640) / 320;
       const sy = (video.videoHeight || 480) / 240;
-      lastFaces = data.faces.map(f => ({
-        x1: f.x1 * sx, y1: f.y1 * sy,
-        x2: f.x2 * sx, y2: f.y2 * sy,
-      }));
+      lastFaces = data.faces.map(f => ({ x1: f.x1*sx, y1: f.y1*sy, x2: f.x2*sx, y2: f.y2*sy }));
       stableCount++;
-
       if (stableCount >= 2 && !countdownTimer) {
         setScanLabel('وجه مكتشف — جاري الالتقاط...', 'bg-emerald-600/90 text-white');
         startCountdown();
-      } else if (stableCount < 2) {
-        setScanLabel('جاري تتبع الوجه...', 'bg-amber-500/90 text-white');
       }
     } else {
-      lastFaces = [];
-      stableCount = 0;
+      lastFaces = []; stableCount = 0;
       if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
-      countdownWrap.classList.add('hidden');
-      countdownVal = 3;
-      setScanLabel('جاري البحث عن وجه...', 'bg-slate-800/80 text-slate-300');
+      countdownWrap.classList.add('hidden'); countdownVal = 3;
+      showAngleInstruction();
     }
-  } catch(e) {
-    // silent
-  } finally {
-    _detecting = false;
-  }
+  } catch(e) {} finally { _detecting = false; }
 }
 
-// ── Countdown then auto-capture ──────────────────────────────────────────────
+// ── Countdown ─────────────────────────────────────────────────────────────────
 function startCountdown() {
   countdownVal = 3;
   countdownNum.textContent = countdownVal;
@@ -355,85 +359,90 @@ function startCountdown() {
     countdownVal--;
     countdownNum.textContent = countdownVal;
     if (countdownVal <= 0) {
-      clearInterval(countdownTimer);
-      countdownTimer = null;
+      clearInterval(countdownTimer); countdownTimer = null;
       countdownWrap.classList.add('hidden');
       captureAndEnroll();
     }
   }, 1000);
 }
 
-// ── Manual capture ────────────────────────────────────────────────────────────
 function manualCapture() {
   if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
   countdownWrap.classList.add('hidden');
   captureAndEnroll();
 }
 
-// ── Enroll ────────────────────────────────────────────────────────────────────
+// ── Enroll one angle ──────────────────────────────────────────────────────────
 async function captureAndEnroll() {
   if (enrollLocked) return;
   enrollLocked = true;
-  clearInterval(detectInterval);
-  detectInterval = null;
-  cancelAnimationFrame(animFrame);
-  animFrame = null;
+  clearInterval(detectInterval); detectInterval = null;
+  cancelAnimationFrame(animFrame); animFrame = null;
 
-  showMsg('جاري استخراج معالم الوجه وحفظ البصمة...', 'loading');
+  const angleIdx = currentAngle;
+  showMsg(`جاري حفظ زاوية ${angleIdx + 1}/5: ${ANGLES[angleIdx].label}...`, 'loading');
   setProgress(20, 'التقاط الصورة...');
-  setScanLabel('جاري استخراج المعالم...', 'bg-primary/90 text-white');
 
-  // Capture full-res frame
   const snap = document.createElement('canvas');
   snap.width  = video.videoWidth  || 640;
   snap.height = video.videoHeight || 480;
   snap.getContext('2d').drawImage(video, 0, 0);
-  const imageData = snap.toDataURL('image/jpeg', 0.92);
 
-  setProgress(50, 'إرسال البيانات للخادم...');
-
+  setProgress(50, 'إرسال للخادم...');
   const fd = new FormData();
-  fd.append('image_data', imageData);
-  fd.append('user_type',  '{{ user_type }}');
-  fd.append('user_id',    '{{ user_id }}');
+  fd.append('image_data', snap.toDataURL('image/jpeg', 0.92));
+  fd.append('user_type',    '{{ user_type }}');
+  fd.append('user_id',      '{{ user_id }}');
+  fd.append('angle_index',  angleIdx);
   fd.append('csrfmiddlewaretoken', CSRF_TOKEN);
 
   try {
     setProgress(75, 'معالجة بصمة الوجه...');
-    const resp = await fetch(UPLOAD_URL, { method: 'POST', body: fd });
-    const data = await resp.json();
+    const data = await (await fetch(UPLOAD_URL, { method: 'POST', body: fd })).json();
     setProgress(100, 'اكتمل');
 
     if (data.status === 'success') {
-      setScanLabel('تم التسجيل ✓', 'bg-emerald-600/90 text-white');
-      showMsg('تم تسجيل بصمة الوجه بنجاح ✓', 'success');
-      captureBtn.innerHTML = '<span class="material-symbols-outlined text-lg">check_circle</span> تم التسجيل';
-      captureBtn.classList.replace('bg-primary', 'bg-emerald-600');
-      captureBtn.classList.replace('hover:bg-primary-container', 'hover:bg-emerald-700');
+      anglesDone[angleIdx] = true;
+      renderSteps();
 
-      // Draw final frame frozen
-      ctx.save();
-      ctx.translate(canvas.width, 0);
-      ctx.scale(-1, 1);
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      ctx.restore();
-      stopWebcam();
+      const remaining = ANGLES.length - anglesDone.filter(Boolean).length;
+      if (remaining === 0) {
+        // All angles done
+        setScanLabel('تم التسجيل الكامل ✓', 'bg-emerald-600/90 text-white');
+        showMsg('✅ تم تسجيل جميع الزوايا (5/5) — البصمة قوية ودقيقة', 'success');
+        captureBtn.disabled = true;
+        captureBtn.innerHTML = '<span class="material-symbols-outlined text-lg">check_circle</span> مكتمل';
+        captureBtn.classList.replace('bg-primary','bg-emerald-600');
+        captureBtn.classList.replace('hover:bg-primary-container','hover:bg-emerald-700');
+        ctx.save(); ctx.translate(canvas.width,0); ctx.scale(-1,1);
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height); ctx.restore();
+        stopWebcam();
+      } else {
+        // Move to next angle
+        currentAngle = anglesDone.findIndex(d => !d);
+        showMsg(`✓ زاوية ${angleIdx+1} مسجّلة — الآن ${ANGLES[currentAngle].label}`, 'success');
+        enrollLocked = false;
+        stableCount = 0; lastFaces = [];
+        animFrame = requestAnimationFrame(drawLoop);
+        detectInterval = setInterval(pollDetect, 700);
+        showAngleInstruction();
+      }
     } else {
       showMsg(data.message || 'فشل تسجيل البصمة — حاول مجدداً', 'error');
       setScanLabel('فشل — أعد المحاولة', 'bg-red-600/90 text-white');
       enrollLocked = false;
-      // Resume detection
-      animFrame = requestAnimationFrame(drawLoop);
-      detectInterval = setInterval(pollDetect, 600);
       stableCount = 0;
+      animFrame = requestAnimationFrame(drawLoop);
+      detectInterval = setInterval(pollDetect, 700);
     }
   } catch(e) {
-    setProgress(0, '');
+    setProgress(0,'');
     showMsg('خطأ في الاتصال بالخادم', 'error');
     enrollLocked = false;
     animFrame = requestAnimationFrame(drawLoop);
-    detectInterval = setInterval(pollDetect, 600);
+    detectInterval = setInterval(pollDetect, 700);
   }
 }
 </script>
+<script src="{% static 'js/camera-picker.js' %}"></script>
 {% endblock %}

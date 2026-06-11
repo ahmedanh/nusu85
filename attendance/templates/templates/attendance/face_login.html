@@ -1,10 +1,12 @@
-﻿<!DOCTYPE html>
+﻿{% load static %}
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>تسجيل الدخول بالوجه — SHAMEL</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+<script src="{% static 'js/camera-picker.js' %}"></script>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <style>
@@ -59,6 +61,9 @@
 
         <!-- Canvas (hidden, used for capture) -->
         <canvas id="snap-canvas" class="hidden"></canvas>
+
+        <!-- Camera picker -->
+        <div id="camera-picker-root" class="absolute bottom-3 left-1/2 -translate-x-1/2 z-10"></div>
       </div>
 
       <!-- Controls -->
@@ -138,21 +143,28 @@
     if (document.visibilityState === 'hidden') stopWebcam();
   });
 
+  let _loginPicker = null;
+
   async function startCamera() {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
-      window._webcamStream = stream;
-      video.srcObject = stream;
-      video.classList.remove('hidden');
-      placeholder.classList.add('hidden');
-      overlay.classList.remove('hidden');
-      scanBtn.disabled = false;
-      startBtn.disabled = true;
-      startBtn.classList.add('opacity-50');
-      showStatus('الكاميرا جاهزة — اضغط "فحص الوجه"', 'info');
-    } catch (e) {
-      showStatus('تعذّر الوصول إلى الكاميرا — تأكد من السماح باستخدامها في المتصفح', 'error');
-    }
+    if (_loginPicker) _loginPicker.stop();
+    _loginPicker = new CameraPicker({
+      root: '#camera-picker-root',
+      facingMode: 'user',
+      idealWidth: 640, idealHeight: 480,
+      onStream: (stream) => {
+        window._webcamStream = stream;
+        video.srcObject = stream;
+        video.classList.remove('hidden');
+        placeholder.classList.add('hidden');
+        overlay.classList.remove('hidden');
+        scanBtn.disabled = false;
+        startBtn.disabled = true;
+        startBtn.classList.add('opacity-50');
+        showStatus('الكاميرا جاهزة — اضغط "فحص الوجه"', 'info');
+      },
+      onError: () => showStatus('تعذّر الوصول إلى الكاميرا — تأكد من السماح باستخدامها في المتصفح', 'error'),
+    });
+    await _loginPicker.init();
   }
 
   async function captureAndScan() {

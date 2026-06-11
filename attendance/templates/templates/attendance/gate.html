@@ -18,6 +18,7 @@ tailwind.config = {
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <!-- MediaPipe: client-side face detection (no server round-trip for Phase 1) -->
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection@0.4/face_detection.js" crossorigin="anonymous"></script>
+<script src="{% static 'js/camera-picker.js' %}"></script>
 <style>
   body { font-family: 'Segoe UI',system-ui,sans-serif; }
   h1,h2,h3 { font-family: 'Manrope','Segoe UI',system-ui,sans-serif; }
@@ -122,6 +123,9 @@ tailwind.config = {
         <p class="text-slate-500 text-sm font-semibold">الكاميرا مُغلقة</p>
         <p class="text-slate-600 text-xs">اضغط "تشغيل" للبدء</p>
       </div>
+
+      <!-- Camera picker (shown only when 2+ cameras connected) -->
+      <div id="camera-picker-root" class="absolute bottom-3 left-1/2 -translate-x-1/2 z-10"></div>
 
       <!-- Face-lock overlay (shown briefly on match) -->
       <div id="face-flash" class="hidden absolute inset-0 pointer-events-none rounded-none border-4 transition-all duration-300"></div>
@@ -336,40 +340,41 @@ async function toggleCamera() {
   }
 }
 
+let _cameraPicker = null;
+
 async function startCamera() {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } }
-    });
-    window._gateStream = stream;
-    webcam.srcObject = stream;
-    await new Promise(r => { webcam.onloadedmetadata = r; });
-
-    camPh.classList.add('hidden');
-    scanLine.classList.remove('hidden');
-    drawFrame = requestAnimationFrame(drawLoop);
-
-    isOn = true;
-    toggleIcon.textContent  = 'stop_circle';
-    toggleLabel.textContent = 'إيقاف';
-    toggleBtn.className = 'flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-1.5 rounded-lg transition-all';
-    statusDot.className  = 'w-2 h-2 rounded-full bg-emerald-500 animate-ping';
-    statusText.textContent = 'مسح نشط';
-    statusText.className   = 'text-emerald-400 font-bold text-xs';
-
-    showPanel('scanning');
-    // Phase 1: try MediaPipe first (client-side, zero latency), fallback to server
-    initMediaPipe();
-    mpLoopActive = true;
-    mpLoop();
-    // Fallback interval in case MediaPipe fails to load
-    detectTimer = setInterval(() => { if (!mpReady) phaseOneFallback(); }, 700);
-  } catch(e) {
-    showToast('تعذّر الوصول إلى الكاميرا: ' + e.message, false);
-  }
+  if (_cameraPicker) { _cameraPicker.stop(); }
+  _cameraPicker = new CameraPicker({
+    root: '#camera-picker-root',
+    facingMode: 'environment',
+    idealWidth: 640, idealHeight: 480,
+    onStream: async (stream) => {
+      window._gateStream = stream;
+      webcam.srcObject = stream;
+      await new Promise(r => { webcam.onloadedmetadata = r; });
+      camPh.classList.add('hidden');
+      scanLine.classList.remove('hidden');
+      if (!drawFrame) drawFrame = requestAnimationFrame(drawLoop);
+      isOn = true;
+      toggleIcon.textContent  = 'stop_circle';
+      toggleLabel.textContent = 'إيقاف';
+      toggleBtn.className = 'flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-1.5 rounded-lg transition-all';
+      statusDot.className  = 'w-2 h-2 rounded-full bg-emerald-500 animate-ping';
+      statusText.textContent = 'مسح نشط';
+      statusText.className   = 'text-emerald-400 font-bold text-xs';
+      showPanel('scanning');
+      initMediaPipe();
+      mpLoopActive = true;
+      mpLoop();
+      detectTimer = setInterval(() => { if (!mpReady) phaseOneFallback(); }, 700);
+    },
+    onError: (msg) => showToast(msg, false),
+  });
+  await _cameraPicker.init();
 }
 
 function stopCamera() {
+  if (_cameraPicker) { _cameraPicker.stop(); }
   if (window._gateStream) {
     window._gateStream.getTracks().forEach(t => t.stop());
     window._gateStream = null;

@@ -228,6 +228,7 @@ class AIAttendanceLog(models.Model):
 class StudentFaceEmbedding(models.Model):
     student   = models.OneToOneField(Student, on_delete=models.CASCADE, related_name='face_embedding')
     embedding = VectorField(dimensions=512) if VectorField else models.JSONField(default=list)
+    extra_embeddings = models.JSONField(default=list)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -241,6 +242,7 @@ class StudentFaceEmbedding(models.Model):
 class TeacherFaceEmbedding(models.Model):
     teacher    = models.OneToOneField(Teacher, on_delete=models.CASCADE, related_name='face_embedding')
     face_vector = VectorField(dimensions=512) if VectorField else models.JSONField(default=list)
+    extra_embeddings = models.JSONField(default=list)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

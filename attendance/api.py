@@ -380,3 +380,23 @@ def scan_submit(request):
 def health(request):
     return JsonResponse({'ok': True, 'service': 'shamel-api', 'version': 'v1',
                          'time': timezone.now().isoformat()})
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# App Version — used by Flutter client for in-app update check
+# ──────────────────────────────────────────────────────────────────────────
+# Bump APP_VERSION_CODE whenever a new APK is released.
+# Place the APK at /static/apk/shamel-latest.apk before incrementing.
+APP_VERSION_CODE = 1          # integer — compare against Flutter build number
+APP_VERSION_NAME = '1.0.0'   # display string
+
+@require_http_methods(['GET'])
+def app_version(request):
+    from django.templatetags.static import static
+    apk_url = request.build_absolute_uri(static('apk/shamel-latest.apk'))
+    return JsonResponse({
+        'version_code': APP_VERSION_CODE,
+        'version_name': APP_VERSION_NAME,
+        'apk_url': apk_url,
+        'notes': 'آخر إصدار من نظام شامل',
+    })
