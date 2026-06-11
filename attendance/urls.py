@@ -6,6 +6,7 @@ from . import api_extra as apix
 urlpatterns = [
     # ── Native-app REST API (JSON, token auth) ──────────────────────────
     path('api/v1/health',              api.health,                 name='api_health'),
+    path('api/v1/app/version',         api.app_version,            name='api_app_version'),
     path('api/v1/auth/login',          api.login,                  name='api_login'),
     path('api/v1/me',                  api.me,                     name='api_me'),
     path('api/v1/dashboard',           api.dashboard,              name='api_dashboard'),
@@ -60,6 +61,7 @@ urlpatterns = [
     path('login/face/', views.face_login, name='face_login'),
     path('logout/', views.logout_view, name='logout'),
     path('demo-login/', views.demo_login, name='demo_login'),
+    path('showcase/', views.showcase, name='showcase'),
 
     # Attendance feedback pages
     path('attendance-success/', views.attendance_success, name='attendance_success'),

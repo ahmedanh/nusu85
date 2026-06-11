@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme.dart';
 import '../auth.dart';
+import '../update_checker.dart';
 import 'dashboard_screen.dart';
 import 'schedule_screen.dart';
 import 'reports_screen.dart';
@@ -19,6 +20,15 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _index = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // Deferred so the widget tree is fully mounted before showing a dialog
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) UpdateChecker.checkAndPrompt(context);
+    });
+  }
 
   List<_Tab> _tabsFor(String role) {
     final dash = _Tab('الرئيسية', Icons.dashboard_outlined, const DashboardScreen());

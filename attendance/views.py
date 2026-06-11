@@ -210,24 +210,30 @@ def load_known_faces():
         for emb in (StudentFaceEmbedding.objects
                     .select_related('student')
                     .filter(student__is_allowed_entry=True)
-                    .only('embedding', 'student__name')):
+                    .only('embedding', 'extra_embeddings', 'student__name')):
             try:
                 vec = emb.embedding if isinstance(emb.embedding, list) else list(emb.embedding)
-                if len(vec) != expected_dim:
-                    continue  # skip stale dlib 128-dim if engine is insightface
-                known_face_encodings.append(np.array(vec, dtype=np.float32))
-                known_face_names.append(emb.student.name)
+                if len(vec) == expected_dim:
+                    known_face_encodings.append(np.array(vec, dtype=np.float32))
+                    known_face_names.append(emb.student.name)
+                for extra in (emb.extra_embeddings or []):
+                    if isinstance(extra, list) and len(extra) == expected_dim:
+                        known_face_encodings.append(np.array(extra, dtype=np.float32))
+                        known_face_names.append(emb.student.name)
             except Exception:
                 pass
         for emb in (TeacherFaceEmbedding.objects
                     .select_related('teacher')
-                    .only('face_vector', 'teacher__name')):
+                    .only('face_vector', 'extra_embeddings', 'teacher__name')):
             try:
                 vec = emb.face_vector if isinstance(emb.face_vector, list) else list(emb.face_vector)
-                if len(vec) != expected_dim:
-                    continue
-                known_face_encodings.append(np.array(vec, dtype=np.float32))
-                known_face_names.append(emb.teacher.name)
+                if len(vec) == expected_dim:
+                    known_face_encodings.append(np.array(vec, dtype=np.float32))
+                    known_face_names.append(emb.teacher.name)
+                for extra in (emb.extra_embeddings or []):
+                    if isinstance(extra, list) and len(extra) == expected_dim:
+                        known_face_encodings.append(np.array(extra, dtype=np.float32))
+                        known_face_names.append(emb.teacher.name)
             except Exception:
                 pass
 
@@ -244,8 +250,8 @@ def match_face_from_db(live_encoding: list) -> tuple[str | None, str | None, int
     expected_dim = _fe.embedding_dim()
     CHUNK = 200
 
-    def _best_in_collection(queryset, vec_field, name_getter, pk_getter, person_type):
-        """Scan all batches and return the single best-scoring match."""
+    def _best_in_collection(queryset, vec_field, extra_field, name_getter, pk_getter, person_type):
+        """Scan all batches (primary + extra_embeddings) and return best match."""
         best_score = -1.0
         best_name = None
         best_pk = None
@@ -256,11 +262,18 @@ def match_face_from_db(live_encoding: list) -> tuple[str | None, str | None, int
                 break
             for emb in batch:
                 try:
+                    # Collect all vectors: primary + any extra angles
+                    all_vecs = []
                     raw = getattr(emb, vec_field)
-                    vec = np.array(raw if isinstance(raw, list) else list(raw), dtype=np.float32)
-                    if len(vec) != expected_dim:
+                    primary = raw if isinstance(raw, list) else list(raw)
+                    if len(primary) == expected_dim:
+                        all_vecs.append(primary)
+                    for extra in (getattr(emb, extra_field, None) or []):
+                        if isinstance(extra, list) and len(extra) == expected_dim:
+                            all_vecs.append(extra)
+                    if not all_vecs:
                         continue
-                    idx, score = _fe.match([vec.tolist()], probe.tolist())
+                    idx, score = _fe.match(all_vecs, probe.tolist())
                     if idx >= 0 and score > best_score:
                         best_score = score
                         best_name = name_getter(emb)
@@ -274,16 +287,16 @@ def match_face_from_db(live_encoding: list) -> tuple[str | None, str | None, int
 
     s_name, s_type, s_pk = _best_in_collection(
         StudentFaceEmbedding.objects.select_related('student')
-            .only('embedding', 'student__id', 'student__name'),
-        'embedding',
+            .only('embedding', 'extra_embeddings', 'student__id', 'student__name'),
+        'embedding', 'extra_embeddings',
         lambda e: e.student.name,
         lambda e: e.student.pk,
         'student',
     )
     t_name, t_type, t_pk = _best_in_collection(
         TeacherFaceEmbedding.objects.select_related('teacher')
-            .only('face_vector', 'teacher__id', 'teacher__name'),
-        'face_vector',
+            .only('face_vector', 'extra_embeddings', 'teacher__id', 'teacher__name'),
+        'face_vector', 'extra_embeddings',
         lambda e: e.teacher.name,
         lambda e: e.teacher.pk,
         'teacher',
@@ -1657,6 +1670,11 @@ def enroll_face(request, person_type=None, person_id=None):
             return JsonResponse({'status': 'error', 'message': 'لم تصل صورة'})
         if not FACE_ENGINE_AVAILABLE or not NUMPY_AVAILABLE:
             return JsonResponse({'status': 'error', 'message': 'محرك التعرف على الوجه غير متوفر على الخادم'})
+        # angle_index: 0=front (main), 1-4=extra angles
+        try:
+            angle_index = int(request.POST.get('angle_index', 0))
+        except (ValueError, TypeError):
+            angle_index = 0
         try:
             if ',' in b64:
                 b64 = b64.split(',')[1]
@@ -1671,15 +1689,37 @@ def enroll_face(request, person_type=None, person_id=None):
             if not enc:
                 return JsonResponse({'status': 'error', 'message': 'لم يتم اكتشاف وجه — تأكد من الإضاءة وأن الوجه واضح أمام الكاميرا'})
             if student_obj:
-                StudentFaceEmbedding.objects.update_or_create(
-                    student=student_obj, defaults={'embedding': enc}
+                emb_obj, _ = StudentFaceEmbedding.objects.get_or_create(
+                    student=student_obj, defaults={'embedding': enc, 'extra_embeddings': []}
                 )
+                if angle_index == 0:
+                    emb_obj.embedding = enc
+                else:
+                    extras = list(emb_obj.extra_embeddings or [])
+                    idx = angle_index - 1
+                    if idx < len(extras):
+                        extras[idx] = enc
+                    else:
+                        extras.append(enc)
+                    emb_obj.extra_embeddings = extras
+                emb_obj.save()
             else:
-                TeacherFaceEmbedding.objects.update_or_create(
-                    teacher=teacher_obj, defaults={'face_vector': enc}
+                emb_obj, _ = TeacherFaceEmbedding.objects.get_or_create(
+                    teacher=teacher_obj, defaults={'face_vector': enc, 'extra_embeddings': []}
                 )
+                if angle_index == 0:
+                    emb_obj.face_vector = enc
+                else:
+                    extras = list(emb_obj.extra_embeddings or [])
+                    idx = angle_index - 1
+                    if idx < len(extras):
+                        extras[idx] = enc
+                    else:
+                        extras.append(enc)
+                    emb_obj.extra_embeddings = extras
+                emb_obj.save()
             load_known_faces()
-            return JsonResponse({'status': 'success'})
+            return JsonResponse({'status': 'success', 'angle_index': angle_index})
         except Exception as e:
             logger.error('enroll_face error: %s', e, exc_info=True)
             return JsonResponse({'status': 'error', 'message': str(e)})
@@ -2953,6 +2993,42 @@ def dean_evaluation_dashboard(request):
     })
 
 
+# ── Project showcase (public landing page) ───────────────────────────────────
+
+def showcase(request):
+    from django.conf import settings
+    stats = [
+        {'value': str(Student.objects.count()),  'label': 'طالب مسجّل'},
+        {'value': str(Teacher.objects.count()),  'label': 'عضو هيئة تدريس'},
+        {'value': str(Course.objects.count()),   'label': 'مقرر أكاديمي'},
+        {'value': str(GateLog.objects.count()),  'label': 'سجل دخول'},
+    ]
+    features = [
+        {'emoji': '🤖', 'title': 'تعرّف على الوجه', 'desc': 'InsightFace buffalo_s — 512-dim cosine، تسجيل 5 زوايا، CLAHE مقاومة الإضاءة الضعيفة'},
+        {'emoji': '✅', 'title': 'حضور المحاضرات',  'desc': 'جلسات مباشرة، مسح بالكاميرا أو يدوياً، تتبع الغياب والأعذار الطبية'},
+        {'emoji': '🚪', 'title': 'نظام البوابة',    'desc': 'مراقبة دخول الطلاب والأساتذة، كشف الوجه الفوري، سجلات مفصّلة'},
+        {'emoji': '📊', 'title': 'تقارير شاملة',    'desc': 'إحصائيات لحظية، تصدير PDF/Excel/CSV، مخططات بيانية تفاعلية'},
+        {'emoji': '📡', 'title': 'دعم Offline',     'desc': 'تطبيق Flutter يعمل بدون إنترنت ويتزامن تلقائياً عند الاتصال'},
+        {'emoji': '🔔', 'title': 'إشعارات فورية',   'desc': 'WebSocket feed حي، إشعارات الغياب المتكرر، تذكيرات الامتحانات'},
+    ]
+    roles = [
+        {'key': 'admin',       'name': 'المدير العام',     'emoji': '🛡️', 'color': '#EF4444', 'scope': 'نطاق الجامعة كاملاً', 'desc': 'البنية التحتية، سجلات البوابة، دقة الكاميرا، الإحصائيات الكلية، لوحة التدقيق'},
+        {'key': 'coordinator', 'name': 'منسق الكلية',     'emoji': '🏫', 'color': '#8B5CF6', 'scope': 'كلية واحدة',          'desc': 'الأعذار المعلّقة، المقررات غير المرصودة، نسبة الحضور بالكلية، الطلاب المعرّضون للخطر'},
+        {'key': 'teacher',     'name': 'عضو هيئة التدريس','emoji': '👨‍🏫', 'color': '#3B82F6', 'scope': 'مقرراته فقط',         'desc': 'إدارة الجلسات، تسجيل الحضور بالكاميرا أو يدوياً، الجدول الزمني'},
+        {'key': 'student',     'name': 'الطالب',           'emoji': '🎓', 'color': '#10B981', 'scope': 'بياناته الشخصية',     'desc': 'نسبة حضوره، جدوله، الأعذار الطبية، درجاته'},
+        {'key': 'gate',        'name': 'موظف البوابة',     'emoji': '🚦', 'color': '#F59E0B', 'scope': 'نقطة الدخول',         'desc': 'سجلات الدخول الفوري، حالة قاعات الدراسة، مسح الوجه عند البوابة'},
+    ]
+    tech = [
+        'Django 4.x', 'Flutter 3.41', 'InsightFace ONNX', 'dlib', 'PostgreSQL',
+        'SQLite (offline)', 'Django Channels', 'WebSocket', 'PWA', 'Tailwind CSS',
+        'Chart.js', 'MediaPipe', 'sqflite', 'REST API', 'JWT Auth',
+    ]
+    return render(request, 'attendance/showcase.html', {
+        'stats': stats, 'features': features, 'roles': roles, 'tech': tech,
+        'debug': settings.DEBUG,
+    })
+
+
 # ── Demo login (DEBUG only) ──────────────────────────────────────────────────
 
 def demo_login(request):
@@ -3686,24 +3762,37 @@ def audit_log_view(request):
     if not request.user.is_staff:
         return redirect('admin_panel')
 
-    logs = AuditLog.objects.select_related('user').order_by('-timestamp')
+    try:
+        logs = AuditLog.objects.select_related('user').order_by('-timestamp')
 
-    action_f = request.GET.get('action', '')
-    model_f  = request.GET.get('model', '')
-    user_f   = request.GET.get('user', '')
-    date_f   = request.GET.get('date', '')
+        action_f = request.GET.get('action', '')
+        model_f  = request.GET.get('model', '')
+        user_f   = request.GET.get('user', '')
+        date_f   = request.GET.get('date', '')
 
-    if action_f: logs = logs.filter(action=action_f)
-    if model_f:  logs = logs.filter(target_model__icontains=model_f)
-    if user_f:   logs = logs.filter(user__username__icontains=user_f)
-    if date_f:   logs = logs.filter(timestamp__date=date_f)
+        if action_f: logs = logs.filter(action=action_f)
+        if model_f:  logs = logs.filter(target_model__icontains=model_f)
+        if user_f:   logs = logs.filter(user__username__icontains=user_f)
+        if date_f:
+            try:
+                from datetime import date as _date
+                _date.fromisoformat(date_f)
+                logs = logs.filter(timestamp__date=date_f)
+            except (ValueError, TypeError):
+                pass
 
-    logs = logs[:500]
+        logs = list(logs[:500])
+    except Exception as e:
+        logs = []
+        action_f = model_f = user_f = date_f = ''
+
     action_choices = [
         ('CREATE', 'إنشاء'), ('UPDATE', 'تعديل'), ('DELETE', 'حذف'),
         ('LOGIN', 'تسجيل دخول'), ('LOGOUT', 'تسجيل خروج'),
-        ('TOGGLE_ACCESS', 'تغيير صلاحية'), ('REGISTER_STUDENT', 'تسجيل طالب'),
-        ('REGISTER_TEACHER', 'تسجيل أستاذ'), ('OPEN_SESSION', 'فتح جلسة'),
+        ('TOGGLE_ACCESS', 'تغيير صلاحية'), ('TOGGLE_STUDENT_ACCESS', 'تغيير صلاحية طالب'),
+        ('REGISTER_STUDENT', 'تسجيل طالب'), ('REGISTER_TEACHER', 'تسجيل أستاذ'),
+        ('OPEN_SESSION', 'فتح جلسة'), ('STOP_SESSION', 'إغلاق جلسة'),
+        ('ENROLL_FACE', 'تسجيل وجه'),
     ]
     return render(request, 'attendance/audit_log.html', {
         'logs': logs,

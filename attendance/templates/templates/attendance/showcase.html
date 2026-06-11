@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+{% load static %}
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>شامل — نظام الحضور الذكي</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#C9A227',
+            navy: '#09193A',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @font-face {
+      font-family: 'Material Symbols Outlined';
+      font-style: normal;
+      src: url('/static/fonts/material-symbols.ttf') format('truetype');
+    }
+    * { font-family: Cairo, 'Segoe UI', Arial, sans-serif; }
+    .material-symbols-outlined {
+      font-family: 'Material Symbols Outlined';
+      font-weight: normal; font-style: normal;
+      font-size: 24px; line-height: 1; letter-spacing: normal;
+      text-transform: none; display: inline-block;
+      white-space: nowrap; word-wrap: normal;
+      direction: ltr; font-feature-settings: 'liga';
+      -webkit-font-smoothing: antialiased;
+    }
+    .feature-card { transition: transform .2s, box-shadow .2s; }
+    .feature-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(201,162,39,.18); }
+    .role-card { border: 2px solid transparent; transition: border-color .2s, transform .2s; }
+    .role-card:hover { border-color: #C9A227; transform: translateY(-3px); }
+    .dot-bg { background-image: radial-gradient(circle at 25% 25%, rgba(201,162,39,0.15) 1px, transparent 1px), radial-gradient(circle at 75% 75%, rgba(201,162,39,0.1) 1px, transparent 1px); background-size: 40px 40px; }
+    .btn-gold { background: linear-gradient(135deg, #C9A227 0%, #E8B84B 100%); color: #09193A; font-weight: 700; display: inline-flex; align-items: center; gap: .4rem; border-radius: .75rem; transition: filter .2s, transform .15s; }
+    .btn-gold:hover { filter: brightness(1.08); transform: translateY(-1px); }
+    .tech-badge { background: rgba(201,162,39,0.1); border: 1px solid rgba(201,162,39,.3); color: #C9A227; border-radius: 999px; padding: .25rem .75rem; font-size: .75rem; font-weight: 700; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+
+<!-- ── NAV ──────────────────────────────────────────────────────────────── -->
+<nav class="bg-navy text-white px-6 py-3 flex items-center justify-between sticky top-0 z-50 shadow-lg">
+  <div class="flex items-center gap-3">
+    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#C9A227] to-[#E8B84B] flex items-center justify-center">
+      <span class="material-symbols-outlined text-lg text-navy">shield_person</span>
+    </div>
+    <span class="font-black text-xl tracking-tight">شامـل</span>
+    <span class="text-xs text-white/40 font-bold hidden sm:inline">نظام الحضور الذكي</span>
+  </div>
+  <div class="flex items-center gap-3">
+    {% if user.is_authenticated %}
+    <a href="/" class="btn-gold px-4 py-2 text-sm">
+      <span class="material-symbols-outlined text-base">dashboard</span>
+      لوحة التحكم
+    </a>
+    {% else %}
+    <a href="{% url 'login' %}" class="btn-gold px-4 py-2 text-sm">
+      <span class="material-symbols-outlined text-base">login</span>
+      دخول
+    </a>
+    {% endif %}
+  </div>
+</nav>
+
+<!-- ── HERO ──────────────────────────────────────────────────────────────── -->
+<div class="bg-navy dot-bg text-white py-16 px-6">
+  <div class="max-w-4xl mx-auto text-center">
+    <div class="inline-flex items-center gap-4 mb-8">
+      <div class="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#C9A227] to-[#E8B84B] flex items-center justify-center shadow-2xl">
+        <span class="material-symbols-outlined text-4xl text-navy">shield_person</span>
+      </div>
+    </div>
+    <h1 class="text-5xl font-black mb-3 tracking-tight">نظام <span class="text-[#E8B84B]">شامل</span></h1>
+    <p class="text-xl font-semibold text-white/80 mb-3">Smart Holistic Attendance Management & Compliance</p>
+    <p class="text-white/60 text-base max-w-2xl mx-auto mb-10 leading-relaxed">
+      منصة أكاديمية متكاملة للجامعات السودانية — تعرّف على الوجه، تتبع الحضور، إدارة الجلسات،
+      وتقارير فورية لكل المستويات الإدارية والأكاديمية
+    </p>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto mb-10">
+      {% for s in stats %}
+      <div class="bg-white/8 rounded-2xl p-5 border border-white/10 backdrop-blur-sm">
+        <div class="text-3xl font-black text-[#E8B84B] leading-none mb-1">{{ s.value }}</div>
+        <div class="text-white/50 text-xs">{{ s.label }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- CTA -->
+    <div class="flex flex-wrap gap-3 justify-center">
+      {% if user.is_authenticated %}
+      <a href="/" class="btn-gold px-7 py-3 text-base">
+        <span class="material-symbols-outlined">dashboard</span>لوحة التحكم
+      </a>
+      {% else %}
+      <a href="{% url 'login' %}" class="btn-gold px-7 py-3 text-base">
+        <span class="material-symbols-outlined">login</span> دخول للنظام
+      </a>
+      {% endif %}
+      <a href="#roles" class="px-7 py-3 text-base font-bold rounded-xl bg-white/10 hover:bg-white/15 border border-white/20 transition-all text-white">
+        <span class="material-symbols-outlined text-base align-middle">explore</span> استكشاف الأدوار
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ── FEATURES ─────────────────────────────────────────────────────────── -->
+<div class="max-w-5xl mx-auto px-6 py-16">
+  <h2 class="text-3xl font-black text-center mb-2">المزايا الرئيسية</h2>
+  <p class="text-center text-slate-400 mb-10">تقنيات حديثة تخدم الاحتياجات الأكاديمية الواقعية</p>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+    {% for f in features %}
+    <div class="feature-card bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+      <div class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center mb-4">
+        <span style="font-size:1.75rem;">{{ f.emoji }}</span>
+      </div>
+      <h3 class="font-bold text-slate-900 mb-2 text-base">{{ f.title }}</h3>
+      <p class="text-sm text-slate-500 leading-relaxed">{{ f.desc }}</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- ── ROLES ────────────────────────────────────────────────────────────── -->
+<div id="roles" class="bg-white py-16 px-6">
+  <div class="max-w-5xl mx-auto">
+    <h2 class="text-3xl font-black text-center mb-2">أدوار المستخدمين</h2>
+    <p class="text-center text-slate-400 mb-10">5 واجهات مخصصة لكل دور في المؤسسة الأكاديمية</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      {% for r in roles %}
+      <div class="role-card bg-slate-50 rounded-2xl p-5 cursor-default">
+        <div class="flex items-start gap-3 mb-3">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 text-2xl" style="background:{{ r.color }}18;">
+            {{ r.emoji }}
+          </div>
+          <div>
+            <div class="font-bold text-slate-900">{{ r.name }}</div>
+            <div class="text-xs text-slate-400">{{ r.scope }}</div>
+          </div>
+        </div>
+        <p class="text-sm text-slate-500 leading-relaxed mb-4">{{ r.desc }}</p>
+        {% if debug %}
+        <a href="{% url 'demo_login' %}?role={{ r.key }}"
+           class="block w-full text-center text-sm font-bold py-2 rounded-xl transition-all"
+           style="background:{{ r.color }}15;color:{{ r.color }};border:1.5px solid {{ r.color }}35;">
+          <span class="material-symbols-outlined text-sm align-middle">play_circle</span>
+          تجربة هذا الدور
+        </a>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- ── TECH STACK ────────────────────────────────────────────────────────── -->
+<div class="max-w-5xl mx-auto px-6 py-12">
+  <div class="bg-navy rounded-3xl p-8 text-white text-center">
+    <h2 class="text-2xl font-black mb-2">المكدس التقني</h2>
+    <p class="text-white/50 text-sm mb-6">التقنيات التي تشغّل النظام</p>
+    <div class="flex flex-wrap gap-2 justify-center">
+      {% for t in tech %}
+      <span class="tech-badge">{{ t }}</span>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- ── ARCHITECTURE ──────────────────────────────────────────────────────── -->
+<div class="max-w-5xl mx-auto px-6 pb-16">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+    <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm text-center">
+      <div class="text-4xl mb-3">☁️</div>
+      <div class="font-bold text-slate-900 mb-1">Django + REST API</div>
+      <p class="text-xs text-slate-400 leading-relaxed">Django 4.x · Channels ASGI · WebSocket feed حي · PWA</p>
+    </div>
+    <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm text-center">
+      <div class="text-4xl mb-3">📱</div>
+      <div class="font-bold text-slate-900 mb-1">Flutter Android</div>
+      <p class="text-xs text-slate-400 leading-relaxed">تطبيق أصلي · sqflite · offline-first · auto-sync</p>
+    </div>
+    <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm text-center">
+      <div class="text-4xl mb-3">🤖</div>
+      <div class="font-bold text-slate-900 mb-1">InsightFace AI</div>
+      <p class="text-xs text-slate-400 leading-relaxed">buffalo_s ONNX · 512-dim cosine · تسجيل 5 زوايا · CLAHE</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── FOOTER ────────────────────────────────────────────────────────────── -->
+<footer class="bg-navy text-white/40 text-center text-xs py-6">
+  <p>شامل — نظام إدارة الحضور الذكي © 2025 | جامعة السودان للعلوم والتكنولوجيا</p>
+</footer>
+
+</body>
+</html>

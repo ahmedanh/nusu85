@@ -245,6 +245,37 @@ tailwind = {
     #main-canvas { margin-left:0 !important; margin-right:0 !important; }
   }
 
+  /* ── Mobile topbar: hide non-essential items on small screens ── */
+  @media(max-width:639px){
+    /* Hide search bar — takes too much space on phone */
+    #topbar .relative.flex-1 { display:none !important; }
+    /* Hide lang toggle button text — keep icon only */
+    #lang-btn span:last-child { display:none; }
+    #lang-btn { padding:.375rem .5rem !important; }
+    /* Hide profile name/role text — avatar only */
+    #profile-btn .min-w-0 { display:none !important; }
+    button[onclick="toggleProfile()"] > span { display:none !important; }
+    #profile-btn { padding:.375rem .5rem !important; gap:.375rem !important; }
+    /* Tighten topbar spacing */
+    #topbar { padding-left:.75rem; padding-right:.75rem; gap:0.5rem; }
+    /* Smaller icon buttons */
+    #topbar button[onclick="toggleTheme()"],
+    #topbar button[onclick="toggleNotif()"] { padding:.4rem !important; }
+    /* Prevent notification dropdown from going off screen */
+    #notif-menu { right:-4rem !important; width:calc(100vw - 1rem) !important; max-width:24rem; }
+    #profile-menu { right:0 !important; }
+  }
+
+  /* ── Prevent horizontal overflow on all screens ── */
+  body { overflow-x:hidden; }
+  #main-canvas { overflow-x:hidden; }
+
+  /* ── Mobile content spacing ── */
+  @media(max-width:639px){
+    #main-canvas > div.p-5 { padding:1rem !important; }
+    #main-canvas > div.lg\:p-8 { padding:1rem !important; }
+  }
+
   /* ── Toasts ── */
   #toast-container { pointer-events:none; }
   .toast { animation:s-slideIn .32s var(--ease-out), s-fadeOut .4s var(--ease-in-out) 3.6s forwards; pointer-events:auto; }
@@ -924,6 +955,181 @@ tailwind = {
   .bg-primary   { background: var(--s-gold) !important; color: var(--s-navy) !important; }
   .border-primary { border-color: var(--s-gold) !important; }
   .bg-primary\/5, .bg-primary\/10 { background: var(--s-gold-dim) !important; }
+
+  /* ════════════════════════════════════════════════════════════════
+     QA FIX-BATCH v2 — CSS additions
+     ════════════════════════════════════════════════════════════════ */
+
+  /* Stat / KPI number emphasis — large, bold, navy/gold by role */
+  .kpi-num, [data-kpi] {
+    font-size: clamp(1.75rem, 4vw, 2.5rem) !important;
+    font-weight: 900 !important;
+    line-height: 1 !important;
+    letter-spacing: -.02em !important;
+    font-family: 'Manrope','Segoe UI',system-ui,sans-serif !important;
+    color: var(--s-text) !important;
+  }
+  /* Label below KPI number */
+  .kpi-label {
+    font-size: .7rem !important;
+    font-weight: 700 !important;
+    color: var(--s-text-3) !important;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-top: .25rem;
+  }
+
+  /* Stat card base — consistent padding + shadow */
+  .stat-card {
+    background: var(--s-surface);
+    border: 1px solid var(--s-border);
+    border-radius: 1.25rem;
+    padding: 1.25rem 1.5rem;
+    box-shadow: var(--s-shadow);
+    transition: transform var(--dur-base) var(--ease-out),
+                box-shadow var(--dur-base) var(--ease-out);
+  }
+  .stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--s-shadow-lg);
+    border-color: var(--s-border-hi);
+  }
+
+  /* Confirmation dialog for delete actions — styled native confirm */
+  /* (browser native confirm() — no custom CSS needed) */
+
+  /* Delete buttons — always red-tinted */
+  [data-action="delete"], .btn-delete,
+  a[href*="/delete/"], button.delete-btn {
+    color: var(--s-error-text) !important;
+  }
+  [data-action="delete"]:hover, .btn-delete:hover {
+    background: rgba(185,28,28,0.08) !important;
+  }
+
+  /* Table action icon minimum size — 36px touch target */
+  table .action-icon, table a[title], table button[title] {
+    min-width: 2.25rem;
+    min-height: 2.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: .5rem;
+    transition: background var(--dur-fast) var(--ease-out),
+                color var(--dur-fast) var(--ease-out);
+  }
+  /* Tooltips via title attribute — show on hover via CSS (no JS) */
+  table [title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%; transform: translateX(-50%);
+    background: var(--s-navy);
+    color: #fff;
+    font-size: .7rem;
+    font-weight: 600;
+    padding: .25rem .625rem;
+    border-radius: .5rem;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 100;
+  }
+  table [title] { position: relative; }
+
+  /* Status pill min contrast — use text tokens, not icon-only values */
+  .status-present { background: rgba(16,185,129,0.12)  !important; color: var(--s-success-text) !important; }
+  .status-absent  { background: rgba(185,28,28,0.12)   !important; color: var(--s-error-text)   !important; }
+  .status-late    { background: rgba(184,128,0,0.12)   !important; color: var(--s-warning)       !important; }
+  .status-excused { background: rgba(26,111,173,0.12)  !important; color: var(--s-info)          !important; }
+
+  /* Button minimum touch target — WCAG 2.5.8 (44×44px) */
+  button, a.btn, [role="button"], input[type="submit"], input[type="button"] {
+    min-height: 2.25rem; /* 36px — soft floor, explicit sizing overrides */
+  }
+  /* Primary action buttons (gold) */
+  .btn-primary-action {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+    padding: .625rem 1.25rem;
+  }
+
+  /* Breadcrumb component */
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .25rem;
+    font-size: .75rem;
+    font-weight: 600;
+    color: var(--s-text-3);
+    margin-bottom: 1rem;
+  }
+  .breadcrumb a {
+    color: var(--s-text-3);
+    text-decoration: none;
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+  .breadcrumb a:hover { color: var(--s-gold); }
+  .breadcrumb .sep {
+    color: var(--s-border-hi);
+    user-select: none;
+  }
+  .breadcrumb .current { color: var(--s-text-2); }
+
+  /* Alternating table rows for readability */
+  tbody tr:nth-child(even) { background: var(--s-surface-alt); }
+  html.dark tbody tr:nth-child(even) { background: var(--s-surface-alt); }
+
+  /* Sticky table header */
+  thead th { position: sticky; top: 0; z-index: 1; background: var(--s-surface-alt); }
+
+  /* Form label for required field — asterisk auto-injected via JS */
+  .req-star { color: var(--s-error) !important; font-weight: 800; }
+
+  /* Input focus ring — more visible */
+  input:focus:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select:focus, textarea:focus {
+    border-color: var(--s-gold) !important;
+    box-shadow: 0 0 0 3px var(--s-gold-dim), 0 0 0 1px var(--s-gold) !important;
+    outline: none !important;
+  }
+
+  /* Success / error form field states */
+  .field-error input, .field-error select, .field-error textarea {
+    border-color: var(--s-error) !important;
+    background: rgba(185,28,28,0.04) !important;
+  }
+  .field-error .field-msg { color: var(--s-error-text); font-size: .72rem; margin-top: .2rem; }
+  .field-success input, .field-success select { border-color: var(--s-success) !important; }
+
+  /* Chart container responsive */
+  .chart-wrap {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+  }
+  @media(max-width:639px) {
+    .chart-wrap { max-height: 200px; }
+    canvas { max-height: 200px; }
+  }
+
+  /* Mobile: hide non-critical table columns */
+  @media(max-width:639px) {
+    .col-hide-mobile { display: none !important; }
+    table td, table th { padding: .45rem .6rem !important; font-size: .75rem !important; }
+  }
+
+  /* Confirm delete button styling (red) */
+  .btn-danger {
+    background: rgba(185,28,28,0.10) !important;
+    color: var(--s-error-text) !important;
+    border: 1.5px solid rgba(185,28,28,0.22) !important;
+    font-weight: 700;
+    transition: background var(--dur-fast) var(--ease-out);
+  }
+  .btn-danger:hover {
+    background: rgba(185,28,28,0.18) !important;
+  }
 </style>
 </head>
 
@@ -1472,6 +1678,9 @@ tailwind = {
       {% endfor %}
     </div>
     {% endif %}
+
+    <!-- Breadcrumb block — individual templates may override -->
+    {% block breadcrumb %}{% endblock %}
 
     {% block content %}{% endblock %}
   </div>
@@ -2039,6 +2248,173 @@ document.addEventListener('keydown', function(e) {
 
 <!-- PWA init -->
 <script src="/static/pwa/pwa-init.js" defer></script>
+
+<script>
+/* ════════════════════════════════════════════════════════════════
+   QA FIX-BATCH v2 — global UX hardening applied to every page
+   1. Delete confirmation dialogs
+   2. Button loading states on form submit
+   3. Required field asterisk markers
+   4. KPI number counter animation
+   5. Chart responsive wrapper
+   ════════════════════════════════════════════════════════════════ */
+(function(){
+  var isAr = (localStorage.getItem('acdc_lang') || 'ar') === 'ar';
+
+  /* ── 1. Delete confirm ──────────────────────────────────────────
+     Intercepts any <a> or <button> that looks like a delete action.
+     Use data-confirm="..." to override the default message.
+     Use data-no-confirm to explicitly skip confirmation.             */
+  document.addEventListener('click', function(e) {
+    var el = e.target.closest('[data-confirm]');
+    if (!el) {
+      /* Auto-detect delete links by URL pattern */
+      var link = e.target.closest('a[href]');
+      if (link && !link.hasAttribute('data-no-confirm')) {
+        var href = link.getAttribute('href') || '';
+        if (/\/(delete|حذف|remove)\//i.test(href) || link.closest('form[method="post"]')) {
+          el = link;
+        }
+      }
+    }
+    if (!el || el.hasAttribute('data-no-confirm')) return;
+    var msg = el.dataset.confirm ||
+      (isAr ? 'هل أنت متأكد من الحذف؟\nلا يمكن التراجع عن هذا الإجراء.' :
+               'Are you sure you want to delete?\nThis action cannot be undone.');
+    if (!window.confirm(msg)) e.preventDefault();
+  }, true);
+
+  /* Also intercept form-submit delete buttons */
+  document.addEventListener('submit', function(e) {
+    var form = e.target;
+    var isDeleteForm = (form.action || '').match(/\/(delete|حذف)\//i) ||
+                       form.dataset.deleteForm;
+    if (!isDeleteForm) return;
+    var msg = form.dataset.confirm ||
+      (isAr ? 'هل أنت متأكد من الحذف؟\nلا يمكن التراجع عن هذا الإجراء.' :
+               'Are you sure you want to delete?\nThis action cannot be undone.');
+    if (!window.confirm(msg)) e.preventDefault();
+  }, true);
+
+  /* ── 2. Button loading state on form submit ─────────────────── */
+  document.addEventListener('submit', function(e) {
+    var form = e.target;
+    /* Skip delete forms (already handled) and no-loading forms */
+    if (form.dataset.noLoading) return;
+    var btn = form.querySelector('button[type="submit"]:not([data-no-loading])') ||
+              form.querySelector('input[type="submit"]:not([data-no-loading])');
+    if (!btn || btn.__shamelLoading) return;
+    btn.__shamelLoading = true;
+    var origHTML = btn.innerHTML;
+    var origDisabled = btn.disabled;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;animation:spin .8s linear infinite;">refresh</span>&nbsp;' +
+                    (isAr ? 'جارٍ...' : 'Loading...');
+    /* Auto-restore after 12s in case of server error preventing page reload */
+    setTimeout(function() {
+      if (btn.__shamelLoading) {
+        btn.__shamelLoading = false;
+        btn.disabled = origDisabled;
+        btn.innerHTML = origHTML;
+      }
+    }, 12000);
+  }, false);
+
+  /* ── 3. Required field asterisk markers ─────────────────────── */
+  function markRequiredFields(root) {
+    root = root || document;
+    root.querySelectorAll('input[required],select[required],textarea[required]').forEach(function(inp) {
+      if (inp.dataset.reqMarked) return;
+      inp.dataset.reqMarked = '1';
+      /* Find associated label by: for attr, ancestor div, data-field parent */
+      var label = null;
+      if (inp.id) label = document.querySelector('label[for="' + inp.id + '"]');
+      if (!label) {
+        var container = inp.closest('[data-field], .field-wrap');
+        if (container) label = container.querySelector('label');
+      }
+      if (!label) {
+        var p = inp.parentElement;
+        while (p && p !== document.body) {
+          var l = p.querySelector('label');
+          if (l && !l.querySelector('input,select,textarea')) { label = l; break; }
+          p = p.parentElement;
+        }
+      }
+      if (label && !label.querySelector('.req-star')) {
+        var star = document.createElement('span');
+        star.className = 'req-star';
+        star.setAttribute('aria-hidden', 'true');
+        star.textContent = ' *';
+        star.style.cssText = 'color:var(--s-error);font-weight:800;';
+        label.appendChild(star);
+      }
+    });
+  }
+
+  /* ── 4. KPI number counter animation (count up from 0) ─────── */
+  function animateKPIs(root) {
+    root = root || document;
+    root.querySelectorAll('[data-kpi]').forEach(function(el) {
+      if (el.__kpiDone) return;
+      el.__kpiDone = true;
+      var target = parseFloat(el.textContent.replace(/[^0-9.]/g, ''));
+      if (isNaN(target) || target === 0) return;
+      var isFloat = el.textContent.includes('.');
+      var suffix = el.textContent.replace(/^[\d,.]+/, '');
+      var dur = 900, start = null, from = 0;
+      function step(ts) {
+        if (!start) start = ts;
+        var prog = Math.min((ts - start) / dur, 1);
+        /* easeOutCubic */
+        prog = 1 - Math.pow(1 - prog, 3);
+        var val = from + (target - from) * prog;
+        el.textContent = (isFloat ? val.toFixed(1) : Math.round(val).toLocaleString()) + suffix;
+        if (prog < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    });
+  }
+
+  /* ── 5. Chart responsive: ensure canvas containers have height ─ */
+  function fixChartContainers() {
+    document.querySelectorAll('canvas').forEach(function(c) {
+      var parent = c.parentElement;
+      if (!parent) return;
+      /* If the parent has no explicit height and the canvas will overflow, constrain it */
+      if (!parent.style.height && !parent.style.maxHeight) {
+        parent.style.maxWidth = '100%';
+        parent.style.overflowX = 'auto';
+      }
+      c.style.maxWidth = '100%';
+    });
+  }
+
+  /* Spin keyframe for loading button */
+  var styleEl = document.createElement('style');
+  styleEl.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
+  document.head.appendChild(styleEl);
+
+  /* Boot everything */
+  function boot() {
+    markRequiredFields();
+    fixChartContainers();
+    /* KPI animation uses IntersectionObserver for performance */
+    if (window.IntersectionObserver) {
+      var obs = new IntersectionObserver(function(entries) {
+        entries.forEach(function(en) {
+          if (en.isIntersecting) { animateKPIs(en.target.parentElement); obs.unobserve(en.target); }
+        });
+      }, { threshold: 0.3 });
+      document.querySelectorAll('[data-kpi]').forEach(function(el) { obs.observe(el); });
+    } else {
+      animateKPIs();
+    }
+  }
+  if (document.readyState !== 'loading') boot();
+  else document.addEventListener('DOMContentLoaded', boot);
+})();
+</script>
 
 <script>
 /* ── CSRF hardening ─────────────────────────────────────────────────────

@@ -53,9 +53,28 @@ def embedding_dim() -> int:
     return 512 if active_engine() == 'insightface' else 128
 
 
+def _preprocess(image: np.ndarray) -> np.ndarray:
+    """CLAHE on LAB L-channel only — boosts contrast without colour distortion.
+    Makes recognition robust to dim/uneven lighting conditions."""
+    try:
+        import cv2
+        # image arrives as RGB from callers
+        bgr = image[:, :, ::-1]
+        lab = cv2.cvtColor(bgr, cv2.COLOR_BGR2LAB)
+        l, a, b = cv2.split(lab)
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+        l = clahe.apply(l)
+        lab = cv2.merge((l, a, b))
+        bgr = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
+        return bgr[:, :, ::-1]  # back to RGB
+    except Exception:
+        return image
+
+
 def encode(image: np.ndarray) -> list | None:
     """Detect the most prominent face in an RGB/BGR ndarray and return its
     embedding as a plain list of floats, or None if no face is found."""
+    image = _preprocess(image)
     engine = active_engine()
     if engine == 'insightface':
         app = _get_insightface()
@@ -96,7 +115,7 @@ def match(known: list[list[float]], probe: list[float]):
 
     if engine == 'insightface':
         # cosine similarity on L2-normalised vectors; threshold ~0.35
-        threshold = getattr(settings, 'FACE_THRESHOLD', 0.35)
+        threshold = getattr(settings, 'FACE_THRESHOLD', 0.28)
         best_i, best_s = -1, -1.0
         for i, k in enumerate(known):
             ka = np.asarray(k, dtype=np.float32)
@@ -124,6 +143,7 @@ def match(known: list[list[float]], probe: list[float]):
 
 def encode_all(image: np.ndarray) -> list[dict]:
     """Return embedding + bbox for ALL detected faces in one pass."""
+    image = _preprocess(image)
     engine = active_engine()
     if engine == 'insightface':
         app = _get_insightface()

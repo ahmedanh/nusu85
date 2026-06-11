@@ -9,21 +9,38 @@ import 'local_db.dart';
 ///  - Android emulator reaches the host machine at 10.0.2.2
 ///  - A physical phone would use the LAN IP / public domain (shamel.sd)
 class Api {
-  // 10.0.2.2 = host loopback from the Android emulator.
-  // Both Daphne (:9000) and the Django dev server (:8000) serve /api/v1.
-  // The app auto-discovers whichever is reachable so testing never breaks
-  // just because one server is down.
-  static String baseUrl = 'https://shamel.sd';
+  // SHAMEL_SERVER can be injected at build/run time via:
+  //   flutter run --dart-define=SHAMEL_SERVER=local        → use local emulator
+  //   flutter run --dart-define=SHAMEL_SERVER=https://... → pin to that URL
+  // If absent, defaults to production (shamel.sd first, local fallback).
+  static const _serverOverride = String.fromEnvironment('SHAMEL_SERVER');
 
-  /// Candidate hosts tried in order during discovery.
-  /// Production server is tried first — if internet is available it wins instantly.
-  static const List<String> _candidates = [
-    'https://shamel.sd',       // production — tried first, no local Django needed
-    'http://10.0.2.2:9000',   // emulator → host Daphne (fallback)
-    'http://10.0.2.2:8000',   // emulator → host Django dev server
-    'http://127.0.0.1:9000',
-    'http://127.0.0.1:8000',
-  ];
+  static String baseUrl = _serverOverride.isNotEmpty && _serverOverride != 'local'
+      ? _serverOverride
+      : 'https://shamel.sd';
+
+  static List<String> get _candidates {
+    if (_serverOverride == 'local') {
+      // Local-only mode — never hit production
+      return [
+        'http://10.0.2.2:9000',
+        'http://10.0.2.2:8000',
+        'http://127.0.0.1:9000',
+        'http://127.0.0.1:8000',
+      ];
+    }
+    if (_serverOverride.isNotEmpty) {
+      // Pinned URL — only try that one
+      return [_serverOverride];
+    }
+    return [
+      'https://shamel.sd',       // production first
+      'http://10.0.2.2:9000',   // emulator → host Daphne
+      'http://10.0.2.2:8000',   // emulator → host Django dev server
+      'http://127.0.0.1:9000',
+      'http://127.0.0.1:8000',
+    ];
+  }
 
   /// Probe candidate hosts and lock onto the first reachable one.
   /// Returns true if a server was found.
