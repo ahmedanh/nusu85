@@ -1740,6 +1740,98 @@ def enroll_face(request, person_type=None, person_id=None):
 
 
 @login_required
+def bulk_enroll_view(request):
+    """Admin page: upload a photo directly to enroll any student or teacher."""
+    if not request.user.is_staff:
+        return redirect('admin_panel')
+
+    result = None
+
+    if request.method == 'POST':
+        person_type = request.POST.get('person_type', 'student')
+        person_id   = request.POST.get('person_id', '')
+        photo       = request.FILES.get('photo')
+
+        if not photo or not person_id:
+            result = {'status': 'error', 'message': 'اختر الشخص والصورة'}
+        elif not FACE_ENGINE_AVAILABLE or not NUMPY_AVAILABLE:
+            result = {'status': 'error', 'message': 'محرك التعرف على الوجه غير مثبّت على الخادم'}
+        else:
+            try:
+                import cv2 as _cv2
+                # Read uploaded file into numpy
+                file_bytes = np.frombuffer(photo.read(), dtype=np.uint8)
+                img = _cv2.imdecode(file_bytes, _cv2.IMREAD_COLOR)
+                if img is None:
+                    raise ValueError('الصورة غير صالحة أو تالفة')
+                img_rgb = img[:, :, ::-1]
+
+                enc = _fe.encode(img_rgb)
+                if not enc:
+                    raise ValueError('لم يتم اكتشاف وجه — تأكد من وضوح الوجه والإضاءة الجيدة')
+
+                # Generate 4 noise-augmented extras for robustness
+                emb_arr = np.array(enc, dtype=np.float32)
+                extras = []
+                for _ in range(4):
+                    noisy = emb_arr + np.random.normal(0, 0.018, emb_arr.shape).astype(np.float32)
+                    n = np.linalg.norm(noisy)
+                    if n > 0: noisy /= n
+                    extras.append(noisy.tolist())
+
+                name = ''
+                if person_type == 'student':
+                    obj = get_object_or_404(Student, pk=int(person_id))
+                    name = obj.name
+                    emb, created = StudentFaceEmbedding.objects.get_or_create(
+                        student=obj, defaults={'embedding': enc, 'extra_embeddings': extras}
+                    )
+                    if not created:
+                        emb.embedding = enc
+                        emb.extra_embeddings = extras
+                        emb.save()
+                else:
+                    obj = get_object_or_404(Teacher, pk=int(person_id))
+                    name = obj.name
+                    emb, created = TeacherFaceEmbedding.objects.get_or_create(
+                        teacher=obj, defaults={'face_vector': enc, 'extra_embeddings': extras}
+                    )
+                    if not created:
+                        emb.face_vector = enc
+                        emb.extra_embeddings = extras
+                        emb.save()
+
+                # Refresh in-memory cache
+                load_known_faces()
+                result = {'status': 'success', 'name': name,
+                          'dim': len(enc), 'created': created}
+                log_audit(request, 'ENROLL_FACE', person_type.capitalize(),
+                          person_id, f'Bulk enrolled: {name}')
+            except Exception as e:
+                result = {'status': 'error', 'message': str(e)}
+
+    # Build quick-access lists for the form
+    students = Student.objects.select_related('auth_user').order_by('name')[:500]
+    teachers = Teacher.objects.select_related('auth_user').order_by('name')[:300]
+    enrolled_s = set(StudentFaceEmbedding.objects.values_list('student_id', flat=True))
+    enrolled_t = set(TeacherFaceEmbedding.objects.values_list('teacher_id', flat=True))
+    total_enrolled = len(enrolled_s) + len(enrolled_t)
+
+    return render(request, 'attendance/bulk_enroll.html', {
+        'students': students,
+        'teachers': teachers,
+        'enrolled_s': enrolled_s,
+        'enrolled_t': enrolled_t,
+        'total_enrolled': total_enrolled,
+        'total_s': StudentFaceEmbedding.objects.count(),
+        'total_t': TeacherFaceEmbedding.objects.count(),
+        'result': result,
+        'engine': _fe.active_engine(),
+        'dim': _fe.embedding_dim(),
+    })
+
+
+@login_required
 def api_departments(request):
     college_id = request.GET.get('college_id', '')
     depts = Department.objects.all()

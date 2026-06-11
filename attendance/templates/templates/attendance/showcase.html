@@ -90,7 +90,8 @@
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto mb-10">
       {% for s in stats %}
       <div class="bg-white/8 rounded-2xl p-5 border border-white/10 backdrop-blur-sm">
-        <div class="text-3xl font-black text-[#E8B84B] leading-none mb-1">{{ s.value }}</div>
+        <div class="text-3xl font-black text-[#E8B84B] leading-none mb-1 counter-num"
+             data-target="{{ s.value }}">0</div>
         <div class="text-white/50 text-xs">{{ s.label }}</div>
       </div>
       {% endfor %}
@@ -156,7 +157,49 @@
           <span class="material-symbols-outlined text-sm align-middle">play_circle</span>
           تجربة هذا الدور
         </a>
+        {% else %}
+        <a href="{% url 'login' %}"
+           class="block w-full text-center text-sm font-bold py-2 rounded-xl transition-all"
+           style="background:{{ r.color }}15;color:{{ r.color }};border:1.5px solid {{ r.color }}35;">
+          <span class="material-symbols-outlined text-sm align-middle">login</span>
+          دخول كـ{{ r.name }}
+        </a>
         {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- ── DEMO CREDENTIALS ──────────────────────────────────────────────────── -->
+<div class="max-w-5xl mx-auto px-6 py-10">
+  <div class="rounded-3xl p-8 text-white" style="background:#09193A;">
+    <div class="text-center mb-7">
+      <h2 class="text-2xl font-black mb-1">حسابات العرض التجريبي</h2>
+      <p style="color:rgba(255,255,255,.45);" class="text-sm mb-3">استخدم هذه البيانات لتجربة النظام مباشرة</p>
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold"
+           style="background:rgba(201,162,39,0.15);border:1px solid rgba(201,162,39,0.3);color:#E8B84B;">
+        <span class="material-symbols-outlined" style="font-size:14px;">key</span>
+        كلمة المرور لجميع الحسابات:&nbsp;
+        <code style="background:rgba(201,162,39,0.22);padding:.1rem .5rem;border-radius:.35rem;letter-spacing:.04em;">Test@1234</code>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      {% for r in roles %}
+      <div class="flex items-center justify-between rounded-xl px-4 py-3"
+           style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);">
+        <div class="flex items-center gap-3">
+          <span style="font-size:1.35rem;">{{ r.emoji }}</span>
+          <div>
+            <div class="font-bold text-sm text-white">{{ r.name }}</div>
+            <code style="font-size:.72rem;color:#E8B84B;">test_{{ r.key }}</code>
+          </div>
+        </div>
+        <a href="{% url 'login' %}"
+           class="text-xs font-bold px-3 py-1.5 rounded-lg"
+           style="background:rgba(201,162,39,0.18);color:#E8B84B;border:1px solid rgba(201,162,39,0.3);">
+          دخول
+        </a>
       </div>
       {% endfor %}
     </div>
@@ -201,6 +244,39 @@
 <footer class="bg-navy text-white/40 text-center text-xs py-6">
   <p>شامل — نظام إدارة الحضور الذكي © 2025 | جامعة السودان للعلوم والتكنولوجيا</p>
 </footer>
+
+<script>
+// Counter animation
+function animateCounters() {
+  document.querySelectorAll('.counter-num[data-target]').forEach(function(el) {
+    var target = parseInt(el.dataset.target, 10);
+    if (isNaN(target)) { el.textContent = el.dataset.target; return; }
+    var start = 0;
+    var duration = 1400;
+    var startTime = null;
+    function step(ts) {
+      if (!startTime) startTime = ts;
+      var pct = Math.min((ts - startTime) / duration, 1);
+      var ease = 1 - Math.pow(1 - pct, 3);
+      el.textContent = Math.floor(ease * target).toLocaleString('ar-SA');
+      if (pct < 1) requestAnimationFrame(step);
+      else el.textContent = target.toLocaleString('ar-SA');
+    }
+    requestAnimationFrame(step);
+  });
+}
+
+// Fire when hero scrolls into view
+var heroObserver = new IntersectionObserver(function(entries) {
+  if (entries[0].isIntersecting) {
+    animateCounters();
+    heroObserver.disconnect();
+  }
+}, { threshold: 0.3 });
+var heroCounters = document.querySelector('.counter-num');
+if (heroCounters) heroObserver.observe(heroCounters.closest('div').parentElement);
+else animateCounters();
+</script>
 
 </body>
 </html>

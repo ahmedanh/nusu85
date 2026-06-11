@@ -1,0 +1,317 @@
+{% extends 'attendance/base.html' %}
+{% block title %}تسجيل الوجوه الجماعي — SHAMEL{% endblock %}
+
+{% block breadcrumb %}
+<nav class="breadcrumb">
+  <a href="{% url 'admin_panel' %}">لوحة التحكم</a>
+  <span class="sep">›</span>
+  <span class="current">تسجيل الوجوه الجماعي</span>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-extrabold font-headline" style="color:var(--s-text);">تسجيل الوجوه الجماعي</h1>
+      <p class="text-sm mt-0.5" style="color:var(--s-text-3);">ارفع صورة وجه مباشرة لأي طالب أو أستاذ — بديل سريع عن التسجيل بالكاميرا</p>
+    </div>
+    <a href="{% url 'enroll_face' %}" class="btn-gold inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm">
+      <span class="material-symbols-outlined text-base">videocam</span>
+      التسجيل بالكاميرا
+    </a>
+  </div>
+
+  <!-- Stats row -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+    <div class="stat-card text-center">
+      <div class="text-2xl font-black" style="color:var(--s-gold);" data-kpi>{{ total_s }}</div>
+      <div class="kpi-label">طلاب مسجّلون</div>
+    </div>
+    <div class="stat-card text-center">
+      <div class="text-2xl font-black" style="color:var(--s-gold);" data-kpi>{{ total_t }}</div>
+      <div class="kpi-label">أساتذة مسجّلون</div>
+    </div>
+    <div class="stat-card text-center">
+      <div class="text-2xl font-black" style="color:var(--s-text);">{{ engine|upper }}</div>
+      <div class="kpi-label">المحرك النشط</div>
+    </div>
+    <div class="stat-card text-center">
+      <div class="text-2xl font-black" style="color:var(--s-text);">{{ dim }}</div>
+      <div class="kpi-label">أبعاد المتجه</div>
+    </div>
+  </div>
+
+  <!-- Result alert -->
+  {% if result %}
+  <div class="flex items-start gap-3 px-4 py-3 rounded-xl text-sm font-semibold"
+    style="{% if result.status == 'success' %}background:rgba(16,185,129,0.10);color:var(--s-success-text);border:1px solid rgba(16,185,129,0.25);
+           {% else %}background:rgba(185,28,28,0.10);color:var(--s-error-text);border:1px solid rgba(185,28,28,0.25);{% endif %}">
+    <span class="material-symbols-outlined fill-icon text-xl">
+      {% if result.status == 'success' %}check_circle{% else %}error{% endif %}
+    </span>
+    <div>
+      {% if result.status == 'success' %}
+        ✓ تم تسجيل وجه <strong>{{ result.name }}</strong> بنجاح
+        ({{ result.dim }}-dim · {% if result.created %}جديد{% else %}تحديث{% endif %})
+      {% else %}
+        خطأ: {{ result.message }}
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- Upload Form -->
+    <div class="bg-white rounded-2xl p-6 shadow-sm" style="border:1px solid var(--s-border);">
+      <h2 class="font-bold text-base mb-4 flex items-center gap-2" style="color:var(--s-text);">
+        <span class="material-symbols-outlined text-xl" style="color:var(--s-gold);">upload_file</span>
+        رفع صورة وجه
+      </h2>
+
+      <form method="post" enctype="multipart/form-data" class="space-y-4" data-no-loading>
+        {% csrf_token %}
+
+        <!-- Person type toggle -->
+        <div>
+          <label class="label-xs">نوع الشخص <span class="req-star">*</span></label>
+          <div class="flex gap-2 mt-1">
+            <label class="flex-1 flex items-center gap-2 p-3 rounded-xl cursor-pointer border-2 transition-all"
+                   id="tab-student"
+                   style="border-color:var(--s-gold);background:var(--s-gold-dim);">
+              <input type="radio" name="person_type" value="student" class="hidden" id="pt-student" checked
+                     onchange="switchType('student')">
+              <span class="material-symbols-outlined text-sm" style="color:var(--s-gold);">school</span>
+              <span class="font-bold text-sm" style="color:var(--s-gold);">طالب</span>
+            </label>
+            <label class="flex-1 flex items-center gap-2 p-3 rounded-xl cursor-pointer border-2 transition-all"
+                   id="tab-teacher"
+                   style="border-color:var(--s-border);background:var(--s-surface-alt);">
+              <input type="radio" name="person_type" value="teacher" class="hidden" id="pt-teacher"
+                     onchange="switchType('teacher')">
+              <span class="material-symbols-outlined text-sm" style="color:var(--s-text-3);">person</span>
+              <span class="font-bold text-sm" style="color:var(--s-text-3);">أستاذ</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Person select -->
+        <div>
+          <label class="label-xs" for="person_id">الاختيار من القائمة <span class="req-star">*</span></label>
+          <div style="position:relative;">
+            <input type="text" id="person-search" placeholder="ابحث بالاسم..." class="inp mb-2"
+                   oninput="filterPersons(this.value)">
+            <select name="person_id" id="person-select" required class="inp" size="6"
+                    style="height:auto;max-height:200px;overflow-y:auto;border-radius:.75rem;">
+              <!-- Students (default visible) -->
+              <optgroup label="— الطلاب —" id="students-group">
+                {% for s in students %}
+                <option value="{{ s.pk }}" data-type="student"
+                  {% if s.pk in enrolled_s %}data-enrolled="1"{% endif %}>
+                  {% if s.pk in enrolled_s %}✓ {% endif %}{{ s.name }}
+                  {% if s.student_id %} ({{ s.student_id }}){% endif %}
+                </option>
+                {% endfor %}
+              </optgroup>
+              <!-- Teachers (hidden until teacher tab selected) -->
+              <optgroup label="— الأساتذة —" id="teachers-group" style="display:none;">
+                {% for t in teachers %}
+                <option value="{{ t.pk }}" data-type="teacher"
+                  {% if t.pk in enrolled_t %}data-enrolled="1"{% endif %}>
+                  {% if t.pk in enrolled_t %}✓ {% endif %}{{ t.name }}
+                </option>
+                {% endfor %}
+              </optgroup>
+            </select>
+          </div>
+          <p class="text-xs mt-1" style="color:var(--s-text-3);">✓ = مسجّل بالفعل (سيُحدَّث)</p>
+        </div>
+
+        <!-- Photo upload with preview -->
+        <div>
+          <label class="label-xs" for="photo">صورة الوجه (JPG/PNG) <span class="req-star">*</span></label>
+          <div id="drop-zone"
+               style="border:2px dashed var(--s-border);border-radius:.875rem;padding:1.5rem;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;position:relative;"
+               onclick="document.getElementById('photo-input').click()"
+               ondragover="event.preventDefault();this.style.borderColor='var(--s-gold)'"
+               ondragleave="this.style.borderColor='var(--s-border)'"
+               ondrop="handleDrop(event)">
+            <input type="file" name="photo" id="photo-input" accept="image/*" required
+                   class="hidden" onchange="previewPhoto(this)">
+            <div id="drop-placeholder">
+              <span class="material-symbols-outlined text-4xl" style="color:var(--s-border-hi);">add_photo_alternate</span>
+              <p class="text-sm mt-2" style="color:var(--s-text-3);">اسحب الصورة هنا أو اضغط للاختيار</p>
+              <p class="text-xs" style="color:var(--s-text-3);">JPG, PNG — الحجم الأقصى 10MB</p>
+            </div>
+            <img id="photo-preview" src="" alt="" class="hidden"
+                 style="max-height:180px;border-radius:.75rem;margin:0 auto;object-fit:contain;">
+          </div>
+        </div>
+
+        <button type="submit"
+                class="btn-gold w-full py-3 rounded-xl font-bold text-base flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined">how_to_reg</span>
+          تسجيل البصمة الآن
+        </button>
+      </form>
+    </div>
+
+    <!-- Tips + instructions -->
+    <div class="space-y-4">
+
+      <!-- Photo tips -->
+      <div class="bg-white rounded-2xl p-5" style="border:1px solid var(--s-border);">
+        <h3 class="font-bold text-sm mb-3 flex items-center gap-2" style="color:var(--s-text);">
+          <span class="material-symbols-outlined text-base" style="color:var(--s-gold);">tips_and_updates</span>
+          نصائح للحصول على أفضل بصمة
+        </h3>
+        <ul class="space-y-2 text-sm" style="color:var(--s-text-2);">
+          <li class="flex items-start gap-2">
+            <span class="material-symbols-outlined text-base fill-icon" style="color:var(--s-success);flex-shrink:0;">check_circle</span>
+            إضاءة جيدة ومتساوية — لا ظلال على الوجه
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="material-symbols-outlined text-base fill-icon" style="color:var(--s-success);flex-shrink:0;">check_circle</span>
+            الوجه في المنتصف — أمامي مباشر
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="material-symbols-outlined text-base fill-icon" style="color:var(--s-success);flex-shrink:0;">check_circle</span>
+            صورة واضحة بدون ضبابية أو تشويش
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="material-symbols-outlined text-base fill-icon" style="color:var(--s-success);flex-shrink:0;">check_circle</span>
+            لا كمامة أو نظارة شمسية أو غطاء رأس
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="material-symbols-outlined text-base fill-icon" style="color:var(--s-warning);flex-shrink:0;">warning</span>
+            تعبير طبيعي محايد (لا ابتسامة مبالغ فيها)
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="material-symbols-outlined text-base fill-icon" style="color:var(--s-info);flex-shrink:0;">info</span>
+            الحد الأدنى لدقة الصورة: 200×200 بكسل
+          </li>
+        </ul>
+      </div>
+
+      <!-- CLI command -->
+      <div class="bg-white rounded-2xl p-5" style="border:1px solid var(--s-border);">
+        <h3 class="font-bold text-sm mb-3 flex items-center gap-2" style="color:var(--s-text);">
+          <span class="material-symbols-outlined text-base" style="color:var(--s-gold);">terminal</span>
+          تسجيل جماعي عبر الأوامر (أسرع للديمو)
+        </h3>
+        <p class="text-xs mb-2" style="color:var(--s-text-3);">لتسجيل وجه واحد لجميع الحسابات التجريبية دفعة واحدة:</p>
+        <div class="rounded-lg p-3 text-xs font-mono" style="background:var(--s-navy);color:#C5D8F5;direction:ltr;text-align:left;">
+          # ضع صورتك في مجلد المشروع باسم test_face.jpg ثم شغّل:<br>
+          python manage.py seed_test_faces --photo test_face.jpg<br><br>
+          # لعرض حالة التسجيل:<br>
+          python manage.py seed_test_faces --list
+        </div>
+      </div>
+
+      <!-- Current status -->
+      <div class="bg-white rounded-2xl p-5" style="border:1px solid var(--s-border);">
+        <h3 class="font-bold text-sm mb-3 flex items-center gap-2" style="color:var(--s-text);">
+          <span class="material-symbols-outlined text-base" style="color:var(--s-gold);">database</span>
+          حالة قاعدة البيانات
+        </h3>
+        <div class="space-y-2">
+          <div class="flex items-center justify-between text-sm">
+            <span style="color:var(--s-text-2);">طلاب مسجّلون</span>
+            <span class="font-bold px-2 py-0.5 rounded-full text-xs
+              {% if total_s > 0 %}bg-emerald-100 text-emerald-700{% else %}bg-red-100 text-red-600{% endif %}">
+              {{ total_s }}
+            </span>
+          </div>
+          <div class="flex items-center justify-between text-sm">
+            <span style="color:var(--s-text-2);">أساتذة مسجّلون</span>
+            <span class="font-bold px-2 py-0.5 rounded-full text-xs
+              {% if total_t > 0 %}bg-emerald-100 text-emerald-700{% else %}bg-red-100 text-red-600{% endif %}">
+              {{ total_t }}
+            </span>
+          </div>
+          {% if total_s == 0 and total_t == 0 %}
+          <div class="flex items-start gap-2 mt-2 p-2 rounded-lg" style="background:rgba(185,28,28,0.07);">
+            <span class="material-symbols-outlined text-sm" style="color:var(--s-error);">error</span>
+            <p class="text-xs" style="color:var(--s-error-text);">
+              لا توجد بصمات مسجّلة — نظام التعرف على الوجه لن يعمل حتى يتم التسجيل
+            </p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function switchType(type) {
+  var sg = document.getElementById('students-group');
+  var tg = document.getElementById('teachers-group');
+  var tabS = document.getElementById('tab-student');
+  var tabT = document.getElementById('tab-teacher');
+  if (type === 'student') {
+    sg.style.display = '';
+    tg.style.display = 'none';
+    tabS.style.borderColor = 'var(--s-gold)';
+    tabS.style.background  = 'var(--s-gold-dim)';
+    tabS.querySelector('span.material-symbols-outlined').style.color = 'var(--s-gold)';
+    tabS.querySelector('span.font-bold').style.color = 'var(--s-gold)';
+    tabT.style.borderColor = 'var(--s-border)';
+    tabT.style.background  = 'var(--s-surface-alt)';
+    tabT.querySelector('span.material-symbols-outlined').style.color = 'var(--s-text-3)';
+    tabT.querySelector('span.font-bold').style.color = 'var(--s-text-3)';
+  } else {
+    sg.style.display = 'none';
+    tg.style.display = '';
+    tabT.style.borderColor = 'var(--s-gold)';
+    tabT.style.background  = 'var(--s-gold-dim)';
+    tabT.querySelector('span.material-symbols-outlined').style.color = 'var(--s-gold)';
+    tabT.querySelector('span.font-bold').style.color = 'var(--s-gold)';
+    tabS.style.borderColor = 'var(--s-border)';
+    tabS.style.background  = 'var(--s-surface-alt)';
+    tabS.querySelector('span.material-symbols-outlined').style.color = 'var(--s-text-3)';
+    tabS.querySelector('span.font-bold').style.color = 'var(--s-text-3)';
+  }
+  document.getElementById('person-search').value = '';
+  filterPersons('');
+}
+
+function filterPersons(q) {
+  q = q.toLowerCase();
+  var sel = document.getElementById('person-select');
+  Array.from(sel.options).forEach(function(opt) {
+    var show = !q || opt.text.toLowerCase().includes(q);
+    opt.style.display = show ? '' : 'none';
+  });
+}
+
+function previewPhoto(input) {
+  if (!input.files || !input.files[0]) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = document.getElementById('photo-preview');
+    var ph  = document.getElementById('drop-placeholder');
+    img.src = e.target.result;
+    img.classList.remove('hidden');
+    ph.classList.add('hidden');
+    document.getElementById('drop-zone').style.borderColor = 'var(--s-gold)';
+    document.getElementById('drop-zone').style.background  = 'var(--s-gold-dim)';
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  var files = e.dataTransfer.files;
+  if (!files.length) return;
+  var inp = document.getElementById('photo-input');
+  inp.files = files;
+  previewPhoto(inp);
+  document.getElementById('drop-zone').style.borderColor = 'var(--s-gold)';
+}
+</script>
+{% endblock %}

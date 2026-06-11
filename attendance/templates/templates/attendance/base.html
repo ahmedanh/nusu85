@@ -1237,6 +1237,10 @@ tailwind = {
       <span class="material-symbols-outlined text-[18px]">manage_search</span>
       <span data-en="Audit Log" data-ar="سجل التدقيق">Audit Log</span>
     </a>
+    <a href="{% url 'bulk_enroll' %}" class="nav-link {% if request.resolver_match.url_name == 'bulk_enroll' %}active{% endif %}">
+      <span class="material-symbols-outlined text-[18px]">how_to_reg</span>
+      <span data-en="Bulk Enroll Faces" data-ar="تسجيل الوجوه">تسجيل الوجوه</span>
+    </a>
     <a href="{% url 'global_search' %}" class="nav-link {% if request.resolver_match.url_name == 'global_search' %}active{% endif %}">
       <span class="material-symbols-outlined text-[18px]">search</span>
       <span data-en="Search" data-ar="البحث">Search</span>
