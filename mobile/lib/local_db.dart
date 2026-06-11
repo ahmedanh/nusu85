@@ -76,6 +76,16 @@ class LocalDb {
     );
   }
 
+  /// Calls [syncer] with all pending records, then marks them synced.
+  static Future<void> syncAll(
+      Future<dynamic> Function(List<Map<String, dynamic>> records) syncer) async {
+    final records = await pendingRecords();
+    if (records.isEmpty) return;
+    await syncer(records);
+    final ids = records.map((r) => r['id'] as int).toList();
+    await markSynced(ids);
+  }
+
   static Future<int> pendingCount() async {
     final d = await db;
     final r = await d.rawQuery(

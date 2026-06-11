@@ -92,6 +92,8 @@ class ShamelColors {
   static const success          = successIcon;
   /// Decorative icon/badge use — passes WCAG for non-text. For text use [errorText].
   static const error            = errorIcon;
+  /// Info / blue — 4.7:1 on white ✅
+  static const info             = Color(0xFF1A6FAD);
   /// @deprecated Soft error background tint.
   static const errorContainer   = Color(0xFFFEE2E2);
   /// @deprecated Use [textLight].

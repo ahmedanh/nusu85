@@ -4,15 +4,20 @@ import 'api.dart';
 /// Holds the authenticated user + role across the app.
 class AuthState extends ChangeNotifier {
   Map<String, dynamic>? user;
-  bool loading = true;
+  bool loading       = true;
+  bool serverReachable = true;
+  bool sessionExpired  = false; // set true when 401 received mid-session
 
   String get role => (user?['role'] ?? 'student') as String;
   String get name => (user?['name'] ?? 'مستخدم') as String;
+  bool   get isLoggedIn => user != null;
 
-  bool serverReachable = true;
-
-  /// Called at startup: discover a reachable server, restore token, fetch profile.
+  /// Called at startup: discover server, restore token, fetch profile.
+  /// Also registers the 401 callback so any future 401 auto-logs out.
   Future<void> bootstrap() async {
+    // Register 401 auto-logout — called by Api._handleResponse on 401
+    Api.onUnauthorized = _onSessionExpired;
+
     serverReachable = await Api.discover();
     await Api.loadToken();
     if (Api.isLoggedIn) {
@@ -23,16 +28,27 @@ class AuthState extends ChangeNotifier {
         } else {
           await Api.clearToken();
         }
+      } on AuthException {
+        // Token was invalid on startup — clear it
+        await Api.clearToken();
       } catch (_) {
-        // offline but token present — keep logged-in shell, screens handle errors
+        // Offline but token present — keep logged-in shell
       }
     }
     loading = false;
     notifyListeners();
   }
 
+  /// Called automatically by Api when a 401 is received on any request.
+  void _onSessionExpired() {
+    if (user == null) return; // already logged out
+    user = null;
+    sessionExpired = true;
+    notifyListeners();
+  }
+
   Future<String?> login(String username, String password) async {
-    // Re-discover if the previous probe failed (server may have come up).
+    sessionExpired = false;
     if (!serverReachable) {
       serverReachable = await Api.discover();
     }
@@ -44,8 +60,8 @@ class AuthState extends ChangeNotifier {
         return null; // success
       }
       return (r['message'] ?? 'فشل تسجيل الدخول') as String;
-    } catch (e) {
-      // Try one more discovery pass before giving up.
+    } on ApiException catch (e) {
+      // Rediscover and retry once
       if (await Api.discover()) {
         try {
           final r = await Api.login(username, password);
@@ -57,14 +73,14 @@ class AuthState extends ChangeNotifier {
           return (r['message'] ?? 'فشل تسجيل الدخول') as String;
         } catch (_) {}
       }
-      return 'تعذّر الوصول للخادم — تأكد أن خادم SHAMEL يعمل على الكمبيوتر '
-          '(المنفذ 9000 أو 8000)';
+      return e.message;
     }
   }
 
   Future<void> logout() async {
     await Api.clearToken();
     user = null;
+    sessionExpired = false;
     notifyListeners();
   }
 }
