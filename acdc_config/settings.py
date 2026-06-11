@@ -245,6 +245,9 @@ ENCRYPTION_KEY = config('ENCRYPTION_KEY', default='')
 # PRODUCTION SECURITY HARDENING
 # ─────────────────────────────────────────────
 if not DEBUG:
+    # Nginx terminates SSL and forwards via X-Forwarded-Proto: https
+    # Without this Django would loop-redirect HTTP requests from the proxy.
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT = True
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
