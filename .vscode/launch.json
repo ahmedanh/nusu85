@@ -1,0 +1,47 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "SHAMEL — Production (shamel.sd)",
+      "request": "launch",
+      "type": "dart",
+      "program": "mobile/lib/main.dart",
+      "args": [
+        "--dart-define=SHAMEL_SERVER=https://shamel.sd"
+      ],
+      "flutterMode": "debug"
+    },
+    {
+      "name": "SHAMEL — Local Dev (10.0.2.2)",
+      "request": "launch",
+      "type": "dart",
+      "program": "mobile/lib/main.dart",
+      "args": [
+        "--dart-define=SHAMEL_SERVER=local"
+      ],
+      "flutterMode": "debug"
+    },
+    {
+      "name": "SHAMEL — Release APK (Production)",
+      "request": "launch",
+      "type": "dart",
+      "program": "mobile/lib/main.dart",
+      "args": [
+        "--dart-define=SHAMEL_SERVER=https://shamel.sd",
+        "--release"
+      ],
+      "flutterMode": "release"
+    },
+    {
+      "name": "SHAMEL — Profile Mode (Production)",
+      "request": "launch",
+      "type": "dart",
+      "program": "mobile/lib/main.dart",
+      "args": [
+        "--dart-define=SHAMEL_SERVER=https://shamel.sd",
+        "--profile"
+      ],
+      "flutterMode": "profile"
+    }
+  ]
+}

@@ -54,15 +54,39 @@ def embedding_dim() -> int:
 
 
 def _preprocess(image: np.ndarray) -> np.ndarray:
-    """CLAHE on LAB L-channel only — boosts contrast without colour distortion.
-    Makes recognition robust to dim/uneven lighting conditions."""
+    """Auto-gamma + CLAHE on LAB L-channel.
+
+    Handles both under-lit (projector rooms, night) and over-exposed (direct
+    sunlight) conditions. clipLimit bumped to 3.0 for stronger contrast boost.
+    """
     try:
         import cv2
         # image arrives as RGB from callers
         bgr = image[:, :, ::-1]
+
+        # 1) Auto-gamma: boost dark images, dampen blown-out ones
+        gray = cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY)
+        mean_b = float(gray.mean())
+        if mean_b < 70:          # very dark room / back-lit
+            gamma = 1.8
+        elif mean_b < 110:       # slightly dim
+            gamma = 1.3
+        elif mean_b > 200:       # overexposed / harsh flash
+            gamma = 0.65
+        elif mean_b > 170:       # a bit bright
+            gamma = 0.85
+        else:
+            gamma = 1.0
+        if gamma != 1.0:
+            lut = np.array(
+                [min(255, int(((i / 255.0) ** (1.0 / gamma)) * 255))
+                 for i in range(256)], dtype=np.uint8)
+            bgr = cv2.LUT(bgr, lut)
+
+        # 2) CLAHE on LAB L-channel (stronger clip for presentation rooms)
         lab = cv2.cvtColor(bgr, cv2.COLOR_BGR2LAB)
         l, a, b = cv2.split(lab)
-        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+        clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
         l = clahe.apply(l)
         lab = cv2.merge((l, a, b))
         bgr = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
@@ -114,8 +138,10 @@ def match(known: list[list[float]], probe: list[float]):
     engine = active_engine()
 
     if engine == 'insightface':
-        # cosine similarity on L2-normalised vectors; threshold ~0.35
-        threshold = getattr(settings, 'FACE_THRESHOLD', 0.28)
+        # cosine similarity on L2-normalised vectors; threshold ~0.30
+        # Lower fallback (0.25) gives more robustness in bad lighting while
+        # still rejecting random strangers (same-person sim is usually 0.5+)
+        threshold = getattr(settings, 'FACE_THRESHOLD', 0.25)
         best_i, best_s = -1, -1.0
         for i, k in enumerate(known):
             ka = np.asarray(k, dtype=np.float32)
