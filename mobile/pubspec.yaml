@@ -1,7 +1,7 @@
 name: shamel
 description: "SHAMEL — Smart Holistic Attendance Management & Compliance System (native mobile app)."
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.1.0+2
 
 environment:
   sdk: ^3.11.0
