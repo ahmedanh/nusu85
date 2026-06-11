@@ -194,6 +194,49 @@ class SkeletonList extends StatelessWidget {
   }
 }
 
+/// Shimmer 2-column card grid — for dashboard skeleton.
+class SkeletonGrid extends StatelessWidget {
+  final int count;
+  const SkeletonGrid({super.key, this.count = 6});
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final bg   = dark ? ShamelColors.surfaceDark   : ShamelColors.surfaceLight;
+    final bdr  = dark ? ShamelColors.borderDark    : ShamelColors.borderLight;
+    return Shimmer(
+      child: GridView.count(
+        crossAxisCount: 2,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        childAspectRatio: 1.55,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        children: List.generate(count, (_) => Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: bg,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: bdr),
+          ),
+          child: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              SkeletonBox(width: 34, height: 34, radius: 10),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                SkeletonBox(width: 60, height: 18),
+                SizedBox(height: 6),
+                SkeletonBox(width: 90, height: 10),
+              ]),
+            ],
+          ),
+        )),
+      ),
+    );
+  }
+}
+
 class LoadingOrError extends StatelessWidget {
   final bool loading;
   final String? error;

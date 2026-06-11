@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme.dart';
 import '../auth.dart';
+import '../biometric_auth.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -10,12 +11,22 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _formKey   = GlobalKey<FormState>();
-  final _user      = TextEditingController();
-  final _pass      = TextEditingController();
-  bool  _obscure   = true;
-  bool  _busy      = false;
+  final _formKey = GlobalKey<FormState>();
+  final _user    = TextEditingController();
+  final _pass    = TextEditingController();
+  bool  _obscure = true;
+  bool  _busy    = false;
   String? _error;
+
+  // Biometric state
+  bool _bioAvailable = false;
+  bool _bioEnabled   = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkBiometric();
+  }
 
   @override
   void dispose() {
@@ -24,13 +35,19 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  // ── Validators ───────────────────────────────────────────────────────────
+  Future<void> _checkBiometric() async {
+    final avail   = await BiometricAuth.isAvailable();
+    final enabled = await BiometricAuth.isEnabled();
+    if (!mounted) return;
+    setState(() { _bioAvailable = avail; _bioEnabled = enabled; });
+  }
+
+  // ── Validators ──────────────────────────────────────────────────────────
 
   String? _validateUsername(String? v) {
     v = v?.trim() ?? '';
-    if (v.isEmpty)   return 'اسم المستخدم مطلوب';
+    if (v.isEmpty)    return 'اسم المستخدم مطلوب';
     if (v.length < 3) return 'اسم المستخدم قصير جداً (3 أحرف على الأقل)';
-    // Only alphanumeric + underscore + hyphen
     if (!RegExp(r'^[a-zA-Z0-9_\-@\.]+$').hasMatch(v)) {
       return 'اسم المستخدم يحتوي على أحرف غير مسموح بها';
     }
@@ -39,15 +56,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
   String? _validatePassword(String? v) {
     v = v ?? '';
-    if (v.isEmpty)   return 'كلمة المرور مطلوبة';
+    if (v.isEmpty)    return 'كلمة المرور مطلوبة';
     if (v.length < 6) return 'كلمة المرور قصيرة جداً (6 أحرف على الأقل)';
     return null;
   }
 
-  // ── Submit ────────────────────────────────────────────────────────────────
+  // ── Submit (password) ────────────────────────────────────────────────────
 
   Future<void> _submit() async {
-    // Clear global error before re-validating
     setState(() => _error = null);
     if (!_formKey.currentState!.validate()) return;
 
@@ -57,12 +73,36 @@ class _LoginScreenState extends State<LoginScreen> {
       _pass.text,
     );
     if (!mounted) return;
+
+    if (err == null) {
+      // Login succeeded — offer to enable biometric for next time
+      await BiometricAuth.enableAfterLogin();
+      await _checkBiometric();
+    }
     setState(() { _busy = false; _error = err; });
   }
 
+  // ── Submit (biometric) ───────────────────────────────────────────────────
+
+  Future<void> _submitBiometric() async {
+    setState(() { _busy = true; _error = null; });
+    final ok = await BiometricAuth.authenticate();
+    if (!mounted) return;
+    if (!ok) {
+      setState(() { _busy = false; _error = 'فشل التحقق البيومتري — حاول بكلمة المرور'; });
+      return;
+    }
+    // Re-validate existing token via dashboard ping
+    final err = await context.read<AuthState>().loginBiometric();
+    if (!mounted) return;
+    setState(() { _busy = false; _error = err; });
+  }
+
+  // ── Build ─────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthState>();
+    final auth    = context.watch<AuthState>();
     final expired = auth.sessionExpired;
 
     return Scaffold(
@@ -89,17 +129,22 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Brand emblem
-                    Container(
-                      width: 72, height: 72,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [ShamelColors.navy, ShamelColors.primaryContainer],
-                          begin: Alignment.topLeft, end: Alignment.bottomRight,
+
+                    // ── Brand emblem ────────────────────────────────────────
+                    Semantics(
+                      label: 'شامل — منظومة الحضور الذكية',
+                      child: Container(
+                        width: 72, height: 72,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [ShamelColors.navy, ShamelColors.primaryContainer],
+                            begin: Alignment.topLeft, end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(20),
                         ),
-                        borderRadius: BorderRadius.circular(20),
+                        child: const Icon(Icons.shield_outlined,
+                            color: ShamelColors.gold, size: 38),
                       ),
-                      child: const Icon(Icons.shield_outlined, color: ShamelColors.gold, size: 38),
                     ),
                     const SizedBox(height: 8),
                     Container(width: 90, height: 3, color: ShamelColors.gold),
@@ -109,10 +154,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             color: ShamelColors.primary)),
                     const SizedBox(height: 6),
                     const Text('سجّل الدخول للوصول إلى بوابتك الأكاديمية',
+                        textAlign: TextAlign.center,
                         style: TextStyle(color: ShamelColors.secondary, fontSize: 13)),
                     const SizedBox(height: 24),
 
-                    // Session-expired banner
+                    // ── Session-expired banner ──────────────────────────────
                     if (expired) ...[
                       _AlertBanner(
                         icon: Icons.lock_clock,
@@ -122,7 +168,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 12),
                     ],
 
-                    // API error banner
+                    // ── Error banner ────────────────────────────────────────
                     if (_error != null) ...[
                       _AlertBanner(
                         icon: Icons.error_outline,
@@ -132,7 +178,37 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 16),
                     ],
 
-                    // Username field
+                    // ── Biometric quick-login ───────────────────────────────
+                    if (_bioAvailable && _bioEnabled && !expired) ...[
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: _busy ? null : _submitBiometric,
+                          icon: const Icon(Icons.fingerprint, size: 22,
+                              color: ShamelColors.gold),
+                          label: const Text('تسجيل الدخول ببصمة الإصبع / الوجه',
+                              style: TextStyle(color: ShamelColors.gold,
+                                  fontWeight: FontWeight.w700)),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: ShamelColors.gold),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      const Row(children: [
+                        Expanded(child: Divider()),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 10),
+                          child: Text('أو', style: TextStyle(
+                              color: ShamelColors.outline, fontSize: 12)),
+                        ),
+                        Expanded(child: Divider()),
+                      ]),
+                      const SizedBox(height: 16),
+                    ],
+
+                    // ── Username ────────────────────────────────────────────
                     const Align(
                       alignment: Alignment.centerRight,
                       child: Text('اسم المستخدم',
@@ -140,19 +216,23 @@ class _LoginScreenState extends State<LoginScreen> {
                               color: ShamelColors.secondary, letterSpacing: 0.5)),
                     ),
                     const SizedBox(height: 6),
-                    TextFormField(
-                      controller: _user,
-                      textDirection: TextDirection.ltr,
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
-                      validator: _validateUsername,
-                      decoration: const InputDecoration(
-                        hintText: 'أدخل اسم المستخدم',
-                        prefixIcon: Icon(Icons.person_outline, size: 18),
+                    Semantics(
+                      label: 'حقل اسم المستخدم',
+                      textField: true,
+                      child: TextFormField(
+                        controller: _user,
+                        textDirection: TextDirection.ltr,
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
+                        validator: _validateUsername,
+                        decoration: const InputDecoration(
+                          hintText: 'أدخل اسم المستخدم',
+                          prefixIcon: Icon(Icons.person_outline, size: 18),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),
 
-                    // Password field
+                    // ── Password ────────────────────────────────────────────
                     const Align(
                       alignment: Alignment.centerRight,
                       child: Text('كلمة المرور',
@@ -160,57 +240,83 @@ class _LoginScreenState extends State<LoginScreen> {
                               color: ShamelColors.secondary, letterSpacing: 0.5)),
                     ),
                     const SizedBox(height: 6),
-                    TextFormField(
-                      controller: _pass,
-                      obscureText: _obscure,
-                      textDirection: TextDirection.ltr,
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
-                      validator: _validatePassword,
-                      onFieldSubmitted: (_) => _submit(),
-                      decoration: InputDecoration(
-                        hintText: 'أدخل كلمة المرور',
-                        prefixIcon: const Icon(Icons.lock_outline, size: 18),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscure ? Icons.visibility_off : Icons.visibility,
-                            color: ShamelColors.gold, size: 20,
+                    Semantics(
+                      label: 'حقل كلمة المرور',
+                      textField: true,
+                      obscured: true,
+                      child: TextFormField(
+                        controller: _pass,
+                        obscureText: _obscure,
+                        textDirection: TextDirection.ltr,
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
+                        validator: _validatePassword,
+                        onFieldSubmitted: (_) => _submit(),
+                        decoration: InputDecoration(
+                          hintText: 'أدخل كلمة المرور',
+                          prefixIcon: const Icon(Icons.lock_outline, size: 18),
+                          suffixIcon: Semantics(
+                            label: _obscure ? 'إظهار كلمة المرور' : 'إخفاء كلمة المرور',
+                            button: true,
+                            child: IconButton(
+                              icon: Icon(
+                                _obscure ? Icons.visibility_off : Icons.visibility,
+                                color: ShamelColors.gold, size: 20,
+                              ),
+                              onPressed: () => setState(() => _obscure = !_obscure),
+                            ),
                           ),
-                          onPressed: () => setState(() => _obscure = !_obscure),
                         ),
                       ),
                     ),
                     const SizedBox(height: 24),
 
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _busy ? null : _submit,
-                        child: _busy
-                            ? const SizedBox(height: 20, width: 20,
-                                child: CircularProgressIndicator(
-                                    strokeWidth: 2, color: Colors.white))
-                            : const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                                Icon(Icons.login, size: 18),
-                                SizedBox(width: 8),
-                                Text('تسجيل الدخول'),
-                              ]),
+                    // ── Login button ────────────────────────────────────────
+                    Semantics(
+                      label: 'زر تسجيل الدخول',
+                      button: true,
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _busy ? null : _submit,
+                          child: _busy
+                              ? const SizedBox(height: 20, width: 20,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2, color: Colors.white))
+                              : const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.login, size: 18),
+                                    SizedBox(width: 8),
+                                    Text('تسجيل الدخول'),
+                                  ]),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),
-                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      Icon(
-                        Icons.circle,
-                        color: auth.serverReachable ? ShamelColors.success : ShamelColors.error,
-                        size: 8,
+
+                    // ── Server status ───────────────────────────────────────
+                    Semantics(
+                      label: auth.serverReachable ? 'الخادم متصل' : 'الخادم غير متاح',
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.circle,
+                            color: auth.serverReachable
+                                ? ShamelColors.success : ShamelColors.error,
+                            size: 8,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            auth.serverReachable
+                                ? 'النظام متصل  •  SHAMEL v4.2'
+                                : 'الخادم غير متاح — يعمل بوضع محدود',
+                            style: const TextStyle(
+                                color: ShamelColors.outline, fontSize: 11),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 6),
-                      Text(
-                        auth.serverReachable
-                            ? 'النظام متصل  •  SHAMEL v4.2'
-                            : 'الخادم غير متاح — يعمل بوضع محدود',
-                        style: const TextStyle(color: ShamelColors.outline, fontSize: 11),
-                      ),
-                    ]),
+                    ),
                   ],
                 ),
               ),
@@ -226,7 +332,8 @@ class _AlertBanner extends StatelessWidget {
   final IconData icon;
   final Color    color;
   final String   text;
-  const _AlertBanner({required this.icon, required this.color, required this.text});
+  const _AlertBanner(
+      {required this.icon, required this.color, required this.text});
 
   @override
   Widget build(BuildContext context) {
@@ -241,8 +348,12 @@ class _AlertBanner extends StatelessWidget {
       child: Row(children: [
         Icon(icon, color: color, size: 18),
         const SizedBox(width: 8),
-        Expanded(child: Text(text,
-            style: TextStyle(color: color, fontSize: 13, fontWeight: FontWeight.w600))),
+        Expanded(
+            child: Text(text,
+                style: TextStyle(
+                    color: color,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600))),
       ]),
     );
   }

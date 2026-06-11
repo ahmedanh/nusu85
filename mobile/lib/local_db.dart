@@ -9,6 +9,10 @@ import 'package:path/path.dart';
 class LocalDb {
   static Database? _db;
 
+  // Test helper — reset singleton between tests.
+  // ignore: invalid_use_of_visible_for_testing_member
+  static void resetForTest() { _db = null; }
+
   static Future<Database> get db async {
     _db ??= await _open();
     return _db!;

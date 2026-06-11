@@ -20,6 +20,9 @@ class ResourceListScreen extends StatefulWidget {
   final Widget? fab;
   /// Human-readable hint for the empty-state message.
   final String emptyHint;
+  /// Supported sort fields, e.g. [('الاسم', 'name'), ('التاريخ', 'date')].
+  /// Empty list = no sort UI shown.
+  final List<(String label, String value)> sortOptions;
 
   const ResourceListScreen({
     super.key,
@@ -35,6 +38,7 @@ class ResourceListScreen extends StatefulWidget {
     this.searchable = false,
     this.fab,
     this.emptyHint = '',
+    this.sortOptions = const [],
   });
 
   @override
@@ -53,6 +57,8 @@ class _ResourceListScreenState extends State<ResourceListScreen> {
   bool   _hasMore    = false;
   String _q          = '';
   bool   _fromCache  = false;
+  String _sort       = '';      // sort field value; '' = default
+  bool   _sortAsc    = true;
 
   final _searchCtrl = TextEditingController();
   Timer? _debounce;
@@ -115,7 +121,8 @@ class _ResourceListScreenState extends State<ResourceListScreen> {
     final sep = widget.endpoint.contains('?') ? '&' : '?';
     var path = widget.endpoint;
     final params = <String>[];
-    if (_q.isNotEmpty) params.add('q=${Uri.encodeComponent(_q)}');
+    if (_q.isNotEmpty)     params.add('q=${Uri.encodeComponent(_q)}');
+    if (_sort.isNotEmpty)  params.add('sort=${_sort}&order=${_sortAsc ? 'asc' : 'desc'}');
     params.add('page=$page');
     params.add('page_size=$_pageSize');
     return path + sep + params.join('&');
@@ -151,6 +158,53 @@ class _ResourceListScreenState extends State<ResourceListScreen> {
       appBar: AppBar(
         title: Text(widget.title,
             style: const TextStyle(fontWeight: FontWeight.w800)),
+        actions: [
+          if (widget.sortOptions.isNotEmpty) ...[
+            // Direction toggle
+            Semantics(
+              label: _sortAsc ? 'ترتيب تصاعدي' : 'ترتيب تنازلي',
+              button: true,
+              child: IconButton(
+                icon: Icon(
+                    _sortAsc ? Icons.arrow_upward : Icons.arrow_downward,
+                    size: 18),
+                tooltip: _sortAsc ? 'تصاعدي' : 'تنازلي',
+                onPressed: () {
+                  setState(() => _sortAsc = !_sortAsc);
+                  _load();
+                },
+              ),
+            ),
+            // Sort field dropdown
+            PopupMenuButton<String>(
+              tooltip: 'ترتيب حسب',
+              icon: Badge(
+                isLabelVisible: _sort.isNotEmpty,
+                child: const Icon(Icons.sort),
+              ),
+              onSelected: (v) {
+                setState(() => _sort = _sort == v ? '' : v);
+                _load();
+              },
+              itemBuilder: (_) => widget.sortOptions.map((opt) {
+                final selected = _sort == opt.$2;
+                return PopupMenuItem<String>(
+                  value: opt.$2,
+                  child: Row(children: [
+                    Expanded(child: Text(opt.$1,
+                        style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: selected
+                                ? ShamelColors.gold
+                                : ShamelColors.primary))),
+                    if (selected)
+                      const Icon(Icons.check, size: 16, color: ShamelColors.gold),
+                  ]),
+                );
+              }).toList(),
+            ),
+          ],
+        ],
       ),
       floatingActionButton: widget.fab,
       body: Column(children: [

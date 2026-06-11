@@ -77,6 +77,24 @@ class AuthState extends ChangeNotifier {
     }
   }
 
+  /// Biometric login: token already exists — just re-validate via /me.
+  Future<String?> loginBiometric() async {
+    sessionExpired = false;
+    try {
+      final r = await Api.me();
+      if (r['ok'] == true) {
+        user = r['user'] as Map<String, dynamic>;
+        notifyListeners();
+        return null;
+      }
+      return 'انتهت صلاحية الجلسة — أعد تسجيل الدخول بكلمة المرور';
+    } on AuthException {
+      return 'انتهت صلاحية الجلسة — أعد تسجيل الدخول بكلمة المرور';
+    } on ApiException catch (e) {
+      return e.message;
+    }
+  }
+
   Future<void> logout() async {
     await Api.clearToken();
     user = null;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../api.dart';
 import '../theme.dart';
 import '../widgets.dart';
@@ -33,8 +34,40 @@ class _AttendanceLogsScreenState extends State<AttendanceLogsScreen> {
   bool get _hasFilters => _from != null || _to != null ||
       _status.isNotEmpty || _courseId.isNotEmpty;
 
+  static const _prefFrom     = 'att_filter_from';
+  static const _prefTo       = 'att_filter_to';
+  static const _prefStatus   = 'att_filter_status';
+
   @override
-  void initState() { super.initState(); _load(); }
+  void initState() { super.initState(); _restoreFilters(); }
+
+  Future<void> _restoreFilters() async {
+    final p = await SharedPreferences.getInstance();
+    final from   = p.getString(_prefFrom);
+    final to     = p.getString(_prefTo);
+    final status = p.getString(_prefStatus) ?? '';
+    setState(() {
+      _from   = from   != null ? DateTime.tryParse(from)   : null;
+      _to     = to     != null ? DateTime.tryParse(to)     : null;
+      _status = status;
+    });
+    _load();
+  }
+
+  Future<void> _saveFilters() async {
+    final p = await SharedPreferences.getInstance();
+    if (_from != null) {
+      await p.setString(_prefFrom, _from!.toIso8601String());
+    } else {
+      await p.remove(_prefFrom);
+    }
+    if (_to != null) {
+      await p.setString(_prefTo, _to!.toIso8601String());
+    } else {
+      await p.remove(_prefTo);
+    }
+    await p.setString(_prefStatus, _status);
+  }
 
   Future<void> _load() async {
     setState(() { _loading = true; _error = null; });
@@ -68,6 +101,7 @@ class _AttendanceLogsScreenState extends State<AttendanceLogsScreen> {
       _from = null; _to = null;
       _status = ''; _courseId = '';
     });
+    _saveFilters();
     _load();
   }
 
@@ -85,6 +119,7 @@ class _AttendanceLogsScreenState extends State<AttendanceLogsScreen> {
     );
     if (picked == null || !mounted) return;
     setState(() { isFrom ? _from = picked : _to = picked; });
+    _saveFilters();
     _load();
   }
 
@@ -369,6 +404,7 @@ class _AttendanceLogsScreenState extends State<AttendanceLogsScreen> {
                   onSelected: (_) {
                     setState(() => _status = opt.$1);
                     setSheetState(() {});
+                    _saveFilters();
                     _load();
                   },
                   selectedColor: ShamelColors.gold.withValues(alpha: 0.20),

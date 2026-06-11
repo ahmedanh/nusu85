@@ -117,41 +117,59 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthState>();
-    if (_loading || _error != null) {
-      return LoadingOrError(loading: _loading, error: _error, onRetry: _load);
+    if (_loading) {
+      return ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          const SkeletonBox(height: 90, radius: 18),
+          const SizedBox(height: 20),
+          const SkeletonBox(width: 100, height: 16, radius: 8),
+          const SizedBox(height: 12),
+          const SkeletonGrid(),
+        ],
+      );
+    }
+    if (_error != null) {
+      return LoadingOrError(loading: false, error: _error, onRetry: _load);
     }
     return RefreshIndicator(
       onRefresh: _load,
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [ShamelColors.navy, ShamelColors.primaryContainer],
-                begin: Alignment.topRight, end: Alignment.bottomLeft,
+          Semantics(
+            label: 'مرحباً ${auth.name} — ${ShamelTheme.roleLabel(auth.role)}',
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [ShamelColors.navy, ShamelColors.primaryContainer],
+                  begin: Alignment.topRight, end: Alignment.bottomLeft,
+                ),
+                borderRadius: BorderRadius.circular(18),
               ),
-              borderRadius: BorderRadius.circular(18),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('أهلاً، ${auth.name}',
+                    style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 4),
+                Text(ShamelTheme.roleLabel(auth.role),
+                    style: const TextStyle(color: ShamelColors.goldLight, fontSize: 13, fontWeight: FontWeight.w600)),
+              ]),
             ),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('أهلاً، ${auth.name}',
-                  style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
-              const SizedBox(height: 4),
-              Text(ShamelTheme.roleLabel(auth.role),
-                  style: const TextStyle(color: ShamelColors.goldLight, fontSize: 13, fontWeight: FontWeight.w600)),
-            ]),
           ),
           const SizedBox(height: 20),
           const SectionTitle('نظرة عامة'),
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            childAspectRatio: 1.55,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            children: _cards(auth.role),
+          Semantics(
+            label: 'إحصائيات نظرة عامة',
+            child: GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              childAspectRatio: 1.55,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              children: _cards(auth.role),
+            ),
           ),
           // ── Role-specific extras ───────────────────────────────────
           if (auth.role == 'admin') ...[
