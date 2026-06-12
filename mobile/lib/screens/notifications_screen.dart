@@ -56,12 +56,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       return LoadingOrError(loading: _loading, error: _error, onRetry: _load);
     }
     if (_rows.isEmpty) {
-      return const Center(
+      return Center(
         child: Padding(padding: EdgeInsets.all(40),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Icon(Icons.notifications_none, size: 48, color: ShamelColors.outline),
+            Icon(Icons.notifications_none, size: 48, color: ShamelColors.sub(context)),
             SizedBox(height: 12),
-            Text('لا توجد إشعارات', style: TextStyle(color: ShamelColors.secondary)),
+            Text('لا توجد إشعارات', style: TextStyle(color: ShamelColors.sec(context))),
           ])),
       );
     }
@@ -94,9 +94,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               return Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: read ? Colors.white : _levelColor(lvl).withValues(alpha: 0.05),
+                  color: read ? ShamelColors.surf(context) : _levelColor(lvl).withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: read ? const Color(0xFFE8EAED) : _levelColor(lvl).withValues(alpha: 0.3)),
+                  border: Border.all(color: read ? ShamelColors.bord(context) : _levelColor(lvl).withValues(alpha: 0.3)),
                 ),
                 child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Icon(_levelIcon(lvl), color: _levelColor(lvl), size: 22),
@@ -104,7 +104,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     if ('${n['title'] ?? ''}'.isNotEmpty)
                       Text('${n['title']}', style: const TextStyle(fontWeight: FontWeight.w700, color: ShamelColors.primary, fontSize: 14)),
-                    Text('${n['body'] ?? ''}', style: const TextStyle(color: ShamelColors.secondary, fontSize: 13)),
+                    Text('${n['body'] ?? ''}', style: TextStyle(color: ShamelColors.sec(context), fontSize: 13)),
                   ])),
                 ]),
               );

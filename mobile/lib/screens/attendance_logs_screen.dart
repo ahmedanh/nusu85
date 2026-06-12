@@ -135,7 +135,7 @@ class _AttendanceLogsScreenState extends State<AttendanceLogsScreen> {
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = dark ? ShamelColors.surfaceDark : Colors.white;
-    final bdr    = dark ? ShamelColors.borderDark  : const Color(0xFFE8EAED);
+    final bdr    = dark ? ShamelColors.borderDark  : ShamelColors.bord(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -193,8 +193,8 @@ class _AttendanceLogsScreenState extends State<AttendanceLogsScreen> {
                   size: 15, color: ShamelColors.primary),
               const SizedBox(width: 6),
               Text('${_rows.length} من $_total سجل',
-                  style: const TextStyle(
-                      color: ShamelColors.secondary,
+                  style: TextStyle(
+                      color: ShamelColors.sec(context),
                       fontWeight: FontWeight.w700, fontSize: 12)),
               if (_fromCache) ...[
                 const SizedBox(width: 8),
@@ -220,15 +220,15 @@ class _AttendanceLogsScreenState extends State<AttendanceLogsScreen> {
               : _rows.isEmpty
                   ? Center(
                       child: Column(mainAxisSize: MainAxisSize.min, children: [
-                        const Icon(Icons.fact_check_outlined,
-                            size: 48, color: ShamelColors.outline),
+                        Icon(Icons.fact_check_outlined,
+                            size: 48, color: ShamelColors.sub(context)),
                         const SizedBox(height: 12),
                         Text(
                           _hasFilters
                               ? 'لا توجد سجلات تطابق الفلتر المحدد'
                               : 'لا توجد سجلات حضور بعد',
-                          style: const TextStyle(
-                              color: ShamelColors.secondary,
+                          style: TextStyle(
+                              color: ShamelColors.sec(context),
                               fontWeight: FontWeight.w600),
                         ),
                         if (_hasFilters) ...[
@@ -279,13 +279,13 @@ class _AttendanceLogsScreenState extends State<AttendanceLogsScreen> {
                                     Text('${l['course'] ?? ''}',
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                            color: ShamelColors.secondary,
+                                        style: TextStyle(
+                                            color: ShamelColors.sec(context),
                                             fontSize: 12)),
                                     if (date.isNotEmpty)
                                       Text(date,
-                                          style: const TextStyle(
-                                              color: ShamelColors.outline,
+                                          style: TextStyle(
+                                              color: ShamelColors.sub(context),
                                               fontSize: 11)),
                                   ],
                                 )),
@@ -308,8 +308,8 @@ class _AttendanceLogsScreenState extends State<AttendanceLogsScreen> {
                                       padding: const EdgeInsets.only(top: 4),
                                       child: Text(
                                         '${(conf is num ? (conf * 100).toStringAsFixed(0) : conf)}%',
-                                        style: const TextStyle(
-                                            color: ShamelColors.outline,
+                                        style: TextStyle(
+                                            color: ShamelColors.sub(context),
                                             fontSize: 11),
                                       ),
                                     ),
@@ -343,7 +343,7 @@ class _AttendanceLogsScreenState extends State<AttendanceLogsScreen> {
             Container(
               width: 40, height: 4,
               decoration: BoxDecoration(
-                color: ShamelColors.outline.withValues(alpha: 0.4),
+                color: ShamelColors.sub(context).withValues(alpha: 0.4),
                 borderRadius: BorderRadius.circular(4),
               ),
             ),
@@ -387,11 +387,11 @@ class _AttendanceLogsScreenState extends State<AttendanceLogsScreen> {
             const SizedBox(height: 16),
 
             // Status
-            const Align(
+            Align(
               alignment: Alignment.centerRight,
               child: Text('الحالة',
                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700,
-                      color: ShamelColors.secondary)),
+                      color: ShamelColors.sec(context))),
             ),
             const SizedBox(height: 8),
             Wrap(
@@ -410,7 +410,7 @@ class _AttendanceLogsScreenState extends State<AttendanceLogsScreen> {
                   selectedColor: ShamelColors.gold.withValues(alpha: 0.20),
                   labelStyle: TextStyle(
                       fontWeight: FontWeight.w700,
-                      color: selected ? ShamelColors.gold : ShamelColors.secondary),
+                      color: selected ? ShamelColors.gold : ShamelColors.sec(context)),
                 );
               }).toList(),
             ),
@@ -484,9 +484,9 @@ class _DateRow extends StatelessWidget {
     return Row(children: [
       Expanded(
         child: Text(label,
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 13, fontWeight: FontWeight.w600,
-                color: ShamelColors.secondary)),
+                color: ShamelColors.sec(context))),
       ),
       GestureDetector(
         onTap: onPick,
@@ -498,7 +498,7 @@ class _DateRow extends StatelessWidget {
             border: Border.all(
                 color: value != null
                     ? ShamelColors.gold.withValues(alpha: 0.4)
-                    : ShamelColors.outline.withValues(alpha: 0.3)),
+                    : ShamelColors.sub(context).withValues(alpha: 0.3)),
           ),
           child: Row(mainAxisSize: MainAxisSize.min, children: [
             const Icon(Icons.calendar_today_outlined,
@@ -506,14 +506,14 @@ class _DateRow extends StatelessWidget {
             const SizedBox(width: 6),
             Text(value ?? 'اختر تاريخاً',
                 style: TextStyle(
-                    color: value != null ? ShamelColors.gold : ShamelColors.outline,
+                    color: value != null ? ShamelColors.gold : ShamelColors.sub(context),
                     fontSize: 13, fontWeight: FontWeight.w600)),
           ]),
         ),
       ),
       if (onClear != null)
         IconButton(
-          icon: const Icon(Icons.clear, size: 16, color: ShamelColors.outline),
+          icon: Icon(Icons.clear, size: 16, color: ShamelColors.sub(context)),
           onPressed: onClear,
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(minWidth: 32, minHeight: 32),

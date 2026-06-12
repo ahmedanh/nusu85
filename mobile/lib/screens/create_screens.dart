@@ -73,7 +73,7 @@ class _FormScaffoldState extends State<_FormScaffold> {
         for (final f in widget.fields) ...[
           Align(alignment: Alignment.centerRight, child: Text(
             f.label + (f.required ? ' *' : ''),
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: ShamelColors.secondary))),
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: ShamelColors.sec(context)))),
           const SizedBox(height: 6),
           TextField(controller: f.ctrl, keyboardType: f.type,
               decoration: InputDecoration(hintText: f.label)),

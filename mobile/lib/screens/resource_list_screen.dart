@@ -152,7 +152,7 @@ class _ResourceListScreenState extends State<ResourceListScreen> {
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = dark ? ShamelColors.surfaceDark : Colors.white;
-    final border = dark ? ShamelColors.borderDark  : const Color(0xFFE8EAED);
+    final border = dark ? ShamelColors.borderDark  : ShamelColors.bord(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -411,8 +411,8 @@ class _EmptyState extends StatelessWidget {
                 fontSize: 15)),
         const SizedBox(height: 6),
         Text(sub,
-            style: const TextStyle(
-                color: ShamelColors.secondary, fontSize: 13)),
+            style: TextStyle(
+                color: ShamelColors.sec(context), fontSize: 13)),
         if (onClear != null) ...[
           const SizedBox(height: 14),
           OutlinedButton.icon(

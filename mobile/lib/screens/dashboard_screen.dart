@@ -243,7 +243,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFE8EAED)),
+          border: Border.all(color: ShamelColors.bord(context)),
         ),
         child: Row(children: [
           Icon(it.$2, color: it.$3, size: 20),
@@ -302,8 +302,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white, borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFE8EAED)),
+          color: ShamelColors.surf(context), borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: ShamelColors.bord(context)),
         ),
         child: Row(children: [
           Icon(Icons.meeting_room_outlined, size: 18, color: busy ? ShamelColors.error : ShamelColors.success),
@@ -319,8 +319,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white, borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE8EAED)),
+        color: ShamelColors.surf(context), borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: ShamelColors.bord(context)),
       ),
       child: Row(children: [
         Container(

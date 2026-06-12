@@ -3,12 +3,12 @@ import '../api.dart';
 import '../theme.dart';
 import '../widgets.dart';
 
-Widget _kv(String k, dynamic v) {
+Widget _kv(BuildContext context, String k, dynamic v) {
   if (v == null || '$v'.isEmpty) return const SizedBox.shrink();
   return Padding(
     padding: const EdgeInsets.symmetric(vertical: 9),
     child: Row(children: [
-      Text(k, style: const TextStyle(color: ShamelColors.secondary, fontSize: 13)),
+      Text(k, style: TextStyle(color: ShamelColors.sec(context), fontSize: 13)),
       const Spacer(),
       Flexible(child: Text('$v', textAlign: TextAlign.left,
           style: const TextStyle(fontWeight: FontWeight.w700, color: ShamelColors.primary, fontSize: 14))),
@@ -58,10 +58,10 @@ class TeacherDetailScreen extends StatelessWidget {
           ]),
           const SizedBox(height: 16),
           _Card(children: [
-            _kv('التخصص', d['major']), _kv('القسم', d['department']),
-            _kv('الكلية', d['college']), _kv('البريد', d['email']),
-            _kv('الهاتف', d['phone']),
-            _kv('دخول البوابة', d['allowed_entry'] == true ? 'مسموح' : 'موقوف'),
+            _kv(context, 'التخصص', d['major']), _kv(context, 'القسم', d['department']),
+            _kv(context, 'الكلية', d['college']), _kv(context, 'البريد', d['email']),
+            _kv(context, 'الهاتف', d['phone']),
+            _kv(context, 'دخول البوابة', d['allowed_entry'] == true ? 'مسموح' : 'موقوف'),
           ]),
         ],
       );
@@ -84,9 +84,9 @@ class StudentDetailScreen extends StatelessWidget {
           ]),
           const SizedBox(height: 16),
           _Card(children: [
-            _kv('الرقم الجامعي', d['code']), _kv('القسم', d['department']),
-            _kv('الدفعة', d['batch']), _kv('البريد', d['email']), _kv('الهاتف', d['phone']),
-            _kv('إجمالي السجلات', d['total_records']),
+            _kv(context, 'الرقم الجامعي', d['code']), _kv(context, 'القسم', d['department']),
+            _kv(context, 'الدفعة', d['batch']), _kv(context, 'البريد', d['email']), _kv(context, 'الهاتف', d['phone']),
+            _kv(context, 'إجمالي السجلات', d['total_records']),
           ]),
         ],
       );
@@ -107,7 +107,7 @@ class _Header extends StatelessWidget {
         const SizedBox(width: 14),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: ShamelColors.primary)),
-          if (sub.isNotEmpty) Text(sub, style: const TextStyle(color: ShamelColors.secondary, fontSize: 13)),
+          if (sub.isNotEmpty) Text(sub, style: TextStyle(color: ShamelColors.sec(context), fontSize: 13)),
         ])),
       ]);
 }
@@ -119,8 +119,8 @@ class _Card extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
-          color: Colors.white, borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFE8EAED)),
+          color: ShamelColors.surf(context), borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: ShamelColors.bord(context)),
         ),
         child: Column(children: children),
       );
@@ -156,16 +156,16 @@ class TicketDetailScreen extends StatelessWidget {
             ]),
             const SizedBox(height: 6),
             Text('${d['user'] ?? ''} • أولوية: ${d['priority'] ?? ''}',
-                style: const TextStyle(color: ShamelColors.secondary, fontSize: 12)),
+                style: TextStyle(color: ShamelColors.sec(context), fontSize: 12)),
             const SizedBox(height: 16),
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: Colors.white, borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFFE8EAED)),
+                color: ShamelColors.surf(context), borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: ShamelColors.bord(context)),
               ),
-              child: Text('${d['body'] ?? ''}', style: const TextStyle(color: ShamelColors.onSurface, height: 1.5)),
+              child: Text('${d['body'] ?? ''}', style: TextStyle(color: ShamelColors.txt(context), height: 1.5)),
             ),
             if ('${d['reply'] ?? ''}'.isNotEmpty) ...[
               const SizedBox(height: 16),
@@ -179,7 +179,7 @@ class TicketDetailScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(color: ShamelColors.success.withValues(alpha: 0.3)),
                 ),
-                child: Text('${d['reply']}', style: const TextStyle(color: ShamelColors.onSurface, height: 1.5)),
+                child: Text('${d['reply']}', style: TextStyle(color: ShamelColors.txt(context), height: 1.5)),
               ),
             ],
           ];
@@ -237,11 +237,11 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget _row(IconData ic, Color c, String t, String s) => Container(
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFE8EAED))),
+        decoration: BoxDecoration(color: ShamelColors.surf(context), borderRadius: BorderRadius.circular(12), border: Border.all(color: ShamelColors.bord(context))),
         child: Row(children: [
           Icon(ic, color: c, size: 18), const SizedBox(width: 12),
           Expanded(child: Text(t, style: const TextStyle(fontWeight: FontWeight.w700, color: ShamelColors.primary))),
-          if (s.isNotEmpty) Text(s, style: const TextStyle(color: ShamelColors.secondary, fontSize: 12)),
+          if (s.isNotEmpty) Text(s, style: TextStyle(color: ShamelColors.sec(context), fontSize: 12)),
         ]),
       );
 }
@@ -260,10 +260,10 @@ class SettingsScreen extends StatelessWidget {
           final s = (snap.data!['settings'] ?? {}) as Map;
           return ListView(padding: const EdgeInsets.all(16), children: [
             _Card(children: [
-              _kv('الإصدار', s['version']),
-              _kv('محرك التعرف على الوجه', s['face_engine']),
-              _kv('الدور', ShamelTheme.roleLabel('${s['role']}')),
-              _kv('عنوان الخادم', Api.baseUrl),
+              _kv(context, 'الإصدار', s['version']),
+              _kv(context, 'محرك التعرف على الوجه', s['face_engine']),
+              _kv(context, 'الدور', ShamelTheme.roleLabel('${s['role']}')),
+              _kv(context, 'عنوان الخادم', Api.baseUrl),
             ]),
           ]);
         },

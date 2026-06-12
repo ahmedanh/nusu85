@@ -18,7 +18,7 @@ class ProfileScreen extends StatelessWidget {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 10),
         child: Row(children: [
-          Text(label, style: const TextStyle(color: ShamelColors.secondary, fontSize: 13)),
+          Text(label, style: TextStyle(color: ShamelColors.sec(context), fontSize: 13)),
           const Spacer(),
           Text('$value', style: const TextStyle(fontWeight: FontWeight.w700, color: ShamelColors.primary, fontSize: 14)),
         ]),
@@ -57,9 +57,9 @@ class ProfileScreen extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: ShamelColors.surf(context),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE8EAED)),
+            border: Border.all(color: ShamelColors.bord(context)),
           ),
           child: Column(children: [
             row('اسم المستخدم', u['username']),
@@ -81,7 +81,7 @@ class ProfileScreen extends StatelessWidget {
             decoration: BoxDecoration(
               color: Theme.of(ctx).cardColor,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE8EAED)),
+              border: Border.all(color: ShamelColors.bord(context)),
             ),
             child: SwitchListTile(
               value: tc.isDark,
@@ -109,7 +109,7 @@ class ProfileScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        const Center(child: Text('SHAMEL v4.2  •  تطبيق أصلي', style: TextStyle(color: ShamelColors.outline, fontSize: 11))),
+        Center(child: Text('SHAMEL v4.2  •  تطبيق أصلي', style: TextStyle(color: ShamelColors.sub(context), fontSize: 11))),
       ],
     );
   }

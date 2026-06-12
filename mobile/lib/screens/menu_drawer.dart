@@ -46,8 +46,8 @@ class MenuDrawer extends StatelessWidget {
                 for (final g in groups) ...[
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 16, 20, 6),
-                    child: Text(g.title, style: const TextStyle(
-                        color: ShamelColors.outline, fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 1)),
+                    child: Text(g.title, style: TextStyle(
+                        color: ShamelColors.sub(context), fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 1)),
                   ),
                   for (final s in g.items)
                     ListTile(
@@ -69,9 +69,9 @@ class MenuDrawer extends StatelessWidget {
               ],
             ),
           ),
-          const Padding(
+          Padding(
             padding: EdgeInsets.all(12),
-            child: Text('SHAMEL v4.2 • تطبيق أصلي', style: TextStyle(color: ShamelColors.outline, fontSize: 11)),
+            child: Text('SHAMEL v4.2 • تطبيق أصلي', style: TextStyle(color: ShamelColors.sub(context), fontSize: 11)),
           ),
         ]),
       ),

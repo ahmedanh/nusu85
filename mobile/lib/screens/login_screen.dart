@@ -153,9 +153,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800,
                             color: ShamelColors.primary)),
                     const SizedBox(height: 6),
-                    const Text('سجّل الدخول للوصول إلى بوابتك الأكاديمية',
+                    Text('سجّل الدخول للوصول إلى بوابتك الأكاديمية',
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: ShamelColors.secondary, fontSize: 13)),
+                        style: TextStyle(color: ShamelColors.sec(context), fontSize: 13)),
                     const SizedBox(height: 24),
 
                     // ── Session-expired banner ──────────────────────────────
@@ -196,12 +196,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      const Row(children: [
+                      Row(children: [
                         Expanded(child: Divider()),
                         Padding(
                           padding: EdgeInsets.symmetric(horizontal: 10),
                           child: Text('أو', style: TextStyle(
-                              color: ShamelColors.outline, fontSize: 12)),
+                              color: ShamelColors.sub(context), fontSize: 12)),
                         ),
                         Expanded(child: Divider()),
                       ]),
@@ -209,11 +209,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
 
                     // ── Username ────────────────────────────────────────────
-                    const Align(
+                    Align(
                       alignment: Alignment.centerRight,
                       child: Text('اسم المستخدم',
                           style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
-                              color: ShamelColors.secondary, letterSpacing: 0.5)),
+                              color: ShamelColors.sec(context), letterSpacing: 0.5)),
                     ),
                     const SizedBox(height: 6),
                     Semantics(
@@ -233,11 +233,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 16),
 
                     // ── Password ────────────────────────────────────────────
-                    const Align(
+                    Align(
                       alignment: Alignment.centerRight,
                       child: Text('كلمة المرور',
                           style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
-                              color: ShamelColors.secondary, letterSpacing: 0.5)),
+                              color: ShamelColors.sec(context), letterSpacing: 0.5)),
                     ),
                     const SizedBox(height: 6),
                     Semantics(
@@ -311,8 +311,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             auth.serverReachable
                                 ? 'النظام متصل  •  SHAMEL v4.2'
                                 : 'الخادم غير متاح — يعمل بوضع محدود',
-                            style: const TextStyle(
-                                color: ShamelColors.outline, fontSize: 11),
+                            style: TextStyle(
+                                color: ShamelColors.sub(context), fontSize: 11),
                           ),
                         ],
                       ),

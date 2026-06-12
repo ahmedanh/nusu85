@@ -105,10 +105,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   const Icon(Icons.date_range_outlined,
                       size: 16, color: ShamelColors.gold),
                   const SizedBox(width: 6),
-                  const Text('نطاق التاريخ',
+                  Text('نطاق التاريخ',
                       style: TextStyle(
                           fontWeight: FontWeight.w700, fontSize: 13,
-                          color: ShamelColors.secondary)),
+                          color: ShamelColors.sec(context))),
                   const Spacer(),
                   if (_from != null || _to != null)
                     TextButton(
@@ -173,9 +173,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         style: const TextStyle(
                             fontSize: 30, fontWeight: FontWeight.w800,
                             color: ShamelColors.primary)),
-                    const Text('متوسط الحضور',
+                    Text('متوسط الحضور',
                         style: TextStyle(
-                            fontSize: 11, color: ShamelColors.secondary)),
+                            fontSize: 11, color: ShamelColors.sec(context))),
                   ]),
                 ]),
               ),
@@ -285,18 +285,18 @@ class _DateBtn extends StatelessWidget {
           border: Border.all(
               color: active
                   ? ShamelColors.gold.withValues(alpha: 0.40)
-                  : ShamelColors.outline.withValues(alpha: 0.20)),
+                  : ShamelColors.sub(context).withValues(alpha: 0.20)),
         ),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           Icon(Icons.calendar_today_outlined,
               size: 14,
-              color: active ? ShamelColors.gold : ShamelColors.outline),
+              color: active ? ShamelColors.gold : ShamelColors.sub(context)),
           const SizedBox(width: 6),
           Flexible(child: Text(label,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                   fontSize: 12, fontWeight: FontWeight.w600,
-                  color: active ? ShamelColors.gold : ShamelColors.outline))),
+                  color: active ? ShamelColors.gold : ShamelColors.sub(context)))),
         ]),
       ),
     );

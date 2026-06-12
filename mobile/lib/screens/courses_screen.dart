@@ -100,7 +100,7 @@ class _CoursesScreenState extends State<CoursesScreen> {
   Widget build(BuildContext context) {
     final dark   = Theme.of(context).brightness == Brightness.dark;
     final cardBg = dark ? ShamelColors.surfaceDark : Colors.white;
-    final border = dark ? ShamelColors.borderDark  : const Color(0xFFE8EAED);
+    final border = dark ? ShamelColors.borderDark  : ShamelColors.bord(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -189,7 +189,7 @@ class _CoursesScreenState extends State<CoursesScreen> {
                               _q.isNotEmpty
                                   ? 'لا توجد نتائج لـ "$_q"'
                                   : 'لا توجد مواد',
-                              style: const TextStyle(color: ShamelColors.secondary),
+                              style: TextStyle(color: ShamelColors.sec(context)),
                             ),
                           ]),
                         )

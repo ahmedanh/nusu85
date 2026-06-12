@@ -129,14 +129,6 @@ Section _deanEval() => Section('تقييمات العميد', Icons.star_outline
       trailingOf: (m) => '⭐ ${_s(m, 'rating')}',
     ));
 
-Section _grades() => Section('الدرجات', Icons.grade_outlined, () => ResourceListScreen(
-      title: 'الدرجات', endpoint: '/api/v1/grades', listKey: 'grades',
-      icon: Icons.grade_outlined, accent: ShamelColors.gold,
-      titleOf: (m) => _s(m, 'student'),
-      subtitleOf: (m) => _s(m, 'course'),
-      trailingOf: (m) => '${_s(m, 'grade')} (${_s(m, 'score')})',
-    ));
-
 Section _excuses() => Section('الأعذار الطبية', Icons.medical_services_outlined, () => ResourceListScreen(
       title: 'الأعذار الطبية', endpoint: '/api/v1/excuses', listKey: 'excuses',
       icon: Icons.medical_services_outlined, accent: ShamelColors.error,
@@ -171,14 +163,14 @@ List<SectionGroup> sectionsFor(String role) {
       return [
         SectionGroup('الإدارة', [_teachers(), _students(), _staffCourses(), _classrooms(), _departments(), _schedule()]),
         SectionGroup('العمليات', [_classroomStatus(), _attendanceLogs(), _gateLogs(), _gateReports(), _exams(), _teacherTimeline()]),
-        SectionGroup('الأكاديمي', [_grades(), _excuses(), _deanEval()]),
+        SectionGroup('الأكاديمي', [_excuses(), _deanEval()]),
         SectionGroup('النظام', [_tickets(), _auditLog(), _search(), _settings()]),
       ];
     case 'coordinator':
       return [
         SectionGroup('الإدارة', [_coordStudents(), _teachers(), _staffCourses(), _classrooms(), _schedule()]),
         SectionGroup('العمليات', [_attendanceLogs(), _exams()]),
-        SectionGroup('الأكاديمي', [_grades(), _excuses()]),
+        SectionGroup('الأكاديمي', [_excuses()]),
         SectionGroup('النظام', [_tickets(), _search(), _settings()]),
       ];
     case 'teacher':
@@ -188,7 +180,7 @@ List<SectionGroup> sectionsFor(String role) {
       ];
     case 'student':
       return [
-        SectionGroup('الدراسة', [_studentCourses(), _attendanceLogs(), _grades(), _excuses()]),
+        SectionGroup('الدراسة', [_studentCourses(), _attendanceLogs(), _excuses()]),
         SectionGroup('النظام', [_tickets(), _search(), _settings()]),
       ];
     case 'gate':

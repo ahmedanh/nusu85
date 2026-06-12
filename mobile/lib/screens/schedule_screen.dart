@@ -43,12 +43,12 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       return LoadingOrError(loading: _loading, error: _error, onRetry: _load);
     }
     if (_rows.isEmpty) {
-      return const Center(
+      return Center(
         child: Padding(padding: EdgeInsets.all(40),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Icon(Icons.event_busy, size: 48, color: ShamelColors.outline),
+            Icon(Icons.event_busy, size: 48, color: ShamelColors.sub(context)),
             SizedBox(height: 12),
-            Text('لا توجد محاضرات مجدولة', style: TextStyle(color: ShamelColors.secondary)),
+            Text('لا توجد محاضرات مجدولة', style: TextStyle(color: ShamelColors.sec(context))),
           ])),
       );
     }
@@ -62,7 +62,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           final r = _rows[i] as Map;
           final dark   = Theme.of(context).brightness == Brightness.dark;
           final cardBg = dark ? ShamelColors.surfaceDark : Colors.white;
-          final border = dark ? ShamelColors.borderDark  : const Color(0xFFE8EAED);
+          final border = dark ? ShamelColors.borderDark  : ShamelColors.bord(context);
           return Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
