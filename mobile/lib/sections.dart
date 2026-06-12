@@ -5,6 +5,7 @@ import 'screens/detail_screens.dart';
 import 'screens/create_screens.dart';
 import 'screens/attendance_logs_screen.dart';
 import 'screens/schedule_screen.dart';
+import 'screens/courses_screen.dart';
 
 /// A navigable section: a label + icon + a builder for its screen.
 class Section {
@@ -23,14 +24,12 @@ class SectionGroup {
 String _s(Map m, String k) => '${m[k] ?? ''}';
 
 // ── Reusable section factories ──────────────────────────────────────────────
-Section _courses() => Section('المواد الدراسية', Icons.menu_book_outlined, () => ResourceListScreen(
-      title: 'المواد الدراسية', endpoint: '/api/v1/courses', listKey: 'courses',
-      icon: Icons.menu_book_outlined, accent: ShamelColors.gold, searchable: true,
-      titleOf: (m) => _s(m, 'title'),
-      subtitleOf: (m) => '${_s(m, 'code')} • ${_s(m, 'department')}',
-      trailingOf: (m) => '${_s(m, 'hours')} س',
-      fab: const _AddFab(CreateCourseScreen()),
-    ));
+Section _courses({bool studentMode = false}) => Section(
+    'المواد الدراسية', Icons.menu_book_outlined,
+    () => CoursesScreen(studentMode: studentMode));
+
+Section _staffCourses() => _courses(studentMode: false);
+Section _studentCourses() => _courses(studentMode: true);
 
 Section _classrooms() => Section('القاعات', Icons.meeting_room_outlined, () => ResourceListScreen(
       title: 'القاعات', endpoint: '/api/v1/classrooms', listKey: 'classrooms',
@@ -170,26 +169,26 @@ List<SectionGroup> sectionsFor(String role) {
   switch (role) {
     case 'admin':
       return [
-        SectionGroup('الإدارة', [_teachers(), _students(), _courses(), _classrooms(), _departments(), _schedule()]),
+        SectionGroup('الإدارة', [_teachers(), _students(), _staffCourses(), _classrooms(), _departments(), _schedule()]),
         SectionGroup('العمليات', [_classroomStatus(), _attendanceLogs(), _gateLogs(), _gateReports(), _exams(), _teacherTimeline()]),
         SectionGroup('الأكاديمي', [_grades(), _excuses(), _deanEval()]),
         SectionGroup('النظام', [_tickets(), _auditLog(), _search(), _settings()]),
       ];
     case 'coordinator':
       return [
-        SectionGroup('الإدارة', [_coordStudents(), _teachers(), _courses(), _classrooms(), _schedule()]),
+        SectionGroup('الإدارة', [_coordStudents(), _teachers(), _staffCourses(), _classrooms(), _schedule()]),
         SectionGroup('العمليات', [_attendanceLogs(), _exams()]),
         SectionGroup('الأكاديمي', [_grades(), _excuses()]),
         SectionGroup('النظام', [_tickets(), _search(), _settings()]),
       ];
     case 'teacher':
       return [
-        SectionGroup('التدريس', [_teacherTimeline(), _attendanceLogs(), _courses(), _classrooms()]),
+        SectionGroup('التدريس', [_teacherTimeline(), _attendanceLogs(), _staffCourses(), _classrooms()]),
         SectionGroup('النظام', [_tickets(), _settings()]),
       ];
     case 'student':
       return [
-        SectionGroup('الدراسة', [_courses(), _attendanceLogs(), _grades(), _excuses()]),
+        SectionGroup('الدراسة', [_studentCourses(), _attendanceLogs(), _grades(), _excuses()]),
         SectionGroup('النظام', [_tickets(), _search(), _settings()]),
       ];
     case 'gate':
@@ -209,7 +208,7 @@ class _AddFab extends StatelessWidget {
   @override
   Widget build(BuildContext context) => FloatingActionButton(
         backgroundColor: ShamelColors.gold,
-        foregroundColor: ShamelColors.gold,
+        foregroundColor: Colors.white,
         onPressed: () => Navigator.push(context, ShamelPageRoute(page: target)),
         child: const Icon(Icons.add),
       );

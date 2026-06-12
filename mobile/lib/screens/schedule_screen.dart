@@ -60,12 +60,15 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         separatorBuilder: (_, __) => const SizedBox(height: 10),
         itemBuilder: (_, i) {
           final r = _rows[i] as Map;
+          final dark   = Theme.of(context).brightness == Brightness.dark;
+          final cardBg = dark ? ShamelColors.surfaceDark : Colors.white;
+          final border = dark ? ShamelColors.borderDark  : const Color(0xFFE8EAED);
           return Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: cardBg,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFFE8EAED)),
+              border: Border.all(color: border),
             ),
             child: Row(children: [
               Container(
@@ -96,8 +99,15 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
+  /// Convert "HH:MM" or "HH:MM:SS" → "H:MM صباحاً/مساءً"
   String _fmt(dynamic t) {
     final s = '$t';
-    return s.length >= 5 ? s.substring(0, 5) : s;
+    if (s.length < 5) return s;
+    final parts = s.split(':');
+    final h = int.tryParse(parts[0]) ?? 0;
+    final m = parts.length > 1 ? parts[1] : '00';
+    final period = h < 12 ? 'ص' : 'م';
+    final h12 = h == 0 ? 12 : (h > 12 ? h - 12 : h);
+    return '$h12:$m $period';
   }
 }

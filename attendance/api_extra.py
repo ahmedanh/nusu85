@@ -36,7 +36,29 @@ def _page(qs, request, size=50):
 @api_auth
 @require_http_methods(['GET'])
 def courses(request):
+    user = _user_from_token(request)
     qs = Course.objects.select_related('college', 'department').all()
+
+    # Determine caller's college for scoped filtering
+    role = _role_of(user)
+    caller_college_id = None
+    if role == 'student':
+        try:
+            caller_college_id = Student.objects.get(user=user).department.college_id
+        except Exception:
+            pass
+    elif role == 'coordinator':
+        try:
+            caller_college_id = Coordinator.objects.get(user=user).college_id
+        except Exception:
+            pass
+
+    # ?scope=mine → caller's college only (default for student)
+    # ?scope=all  → unrestricted (admin/coordinator/teacher default)
+    scope = request.GET.get('scope', 'mine' if role == 'student' else 'all')
+    if scope == 'mine' and caller_college_id:
+        qs = qs.filter(college_id=caller_college_id)
+
     q = request.GET.get('q', '').strip()
     if q:
         qs = qs.filter(Q(title__icontains=q) | Q(course_code__icontains=q))
@@ -47,7 +69,10 @@ def courses(request):
         'college': getattr(c.college, 'college_name', None),
         'department': getattr(c.department, 'name', None),
     } for c in rows]
-    return JsonResponse({'ok': True, 'total': total, 'count': len(data), 'courses': data})
+    return JsonResponse({
+        'ok': True, 'total': total, 'count': len(data), 'courses': data,
+        'scope': scope, 'college_id': caller_college_id,
+    })
 
 
 @api_staff
