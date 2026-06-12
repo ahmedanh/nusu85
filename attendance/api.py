@@ -387,8 +387,8 @@ def health(request):
 # ──────────────────────────────────────────────────────────────────────────
 # Bump APP_VERSION_CODE whenever a new APK is released.
 # Place the APK at /static/apk/shamel-latest.apk before incrementing.
-APP_VERSION_CODE = 2          # integer — compare against Flutter build number
-APP_VERSION_NAME = '1.1.0'   # display string
+APP_VERSION_CODE = 3          # integer — compare against Flutter build number
+APP_VERSION_NAME = '1.2.0'   # display string
 
 @require_http_methods(['GET'])
 def app_version(request):

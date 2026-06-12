@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -133,8 +134,10 @@ class _UpdateDialogState extends State<_UpdateDialog> {
     }
   }
 
-  /// Install the downloaded APK.
-  /// Strategy: try in-app install first; fall back to browser download.
+  /// Install the downloaded APK via native MethodChannel (FileProvider content URI).
+  /// Falls back to browser download if native install fails.
+  static const _installerChannel = MethodChannel('sd.shamel.shamel/installer');
+
   Future<void> _install() async {
     if (_apkPath == null) return;
     final file = File(_apkPath!);
@@ -143,19 +146,15 @@ class _UpdateDialogState extends State<_UpdateDialog> {
       return;
     }
 
-    // Try to launch the APK file via the system installer.
-    // On Android 8+ this requires "install unknown apps" permission.
-    // We launch a chooser intent via url_launcher as a content URI.
-    final uri = Uri.file(_apkPath!);
-    bool launched = false;
+    // Use native Kotlin: FileProvider.getUriForFile → ACTION_VIEW intent.
+    // This correctly creates a content:// URI (file:// is blocked on Android 7+).
     try {
-      if (await canLaunchUrl(uri)) {
-        launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
-      }
-    } catch (_) {}
-
-    if (!launched) {
-      // Fallback: open browser to download (always works, browser handles install)
+      await _installerChannel.invokeMethod('installApk', {'path': _apkPath});
+      // If we get here, the system install dialog was launched.
+      if (mounted) Navigator.pop(context);
+    } on PlatformException {
+      _openInBrowser();
+    } catch (_) {
       _openInBrowser();
     }
   }
