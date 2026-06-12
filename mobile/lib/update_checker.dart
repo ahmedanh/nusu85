@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:open_file/open_file.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
 import 'api.dart';
 
@@ -71,11 +71,14 @@ class _UpdateDialog extends StatefulWidget {
 class _UpdateDialogState extends State<_UpdateDialog> {
   double _progress = 0;
   bool _downloading = false;
+  bool _readyToInstall = false;
   String? _error;
+  String? _apkPath;
 
   Future<void> _download() async {
     setState(() {
       _downloading = true;
+      _readyToInstall = false;
       _error = null;
       _progress = 0;
     });
@@ -86,32 +89,81 @@ class _UpdateDialogState extends State<_UpdateDialog> {
       await apkDir.create(recursive: true);
       final apkFile = File('${apkDir.path}/shamel-update.apk');
 
+      // Delete old APK if exists
+      if (await apkFile.exists()) await apkFile.delete();
+
       final client = http.Client();
-      final request = http.Request('GET', Uri.parse(widget.apkUrl));
-      final response = await client.send(request);
+      try {
+        final request = http.Request('GET', Uri.parse(widget.apkUrl));
+        final response = await client.send(request)
+            .timeout(const Duration(minutes: 5));
 
-      final total = response.contentLength ?? 0;
-      int received = 0;
+        final total = response.contentLength ?? 0;
+        int received = 0;
 
-      final sink = apkFile.openWrite();
-      await for (final chunk in response.stream) {
-        sink.add(chunk);
-        received += chunk.length;
-        if (total > 0) {
-          setState(() => _progress = received / total);
+        final sink = apkFile.openWrite();
+        await for (final chunk in response.stream) {
+          sink.add(chunk);
+          received += chunk.length;
+          if (total > 0 && mounted) {
+            setState(() => _progress = received / total);
+          }
         }
+        await sink.close();
+      } finally {
+        client.close();
       }
-      await sink.close();
-      client.close();
 
-      setState(() => _progress = 1.0);
-      await OpenFile.open(apkFile.path);
-    } catch (e) {
+      if (!mounted) return;
       setState(() {
-        _error = 'فشل التنزيل: $e';
+        _progress = 1.0;
+        _apkPath = apkFile.path;
+        _readyToInstall = true;
+        _downloading = false;
+      });
+
+      // Auto-trigger install immediately
+      await _install();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = 'فشل التنزيل — جرب تحديث يدوي';
         _downloading = false;
       });
     }
+  }
+
+  /// Install the downloaded APK.
+  /// Strategy: try in-app install first; fall back to browser download.
+  Future<void> _install() async {
+    if (_apkPath == null) return;
+    final file = File(_apkPath!);
+    if (!await file.exists()) {
+      _openInBrowser();
+      return;
+    }
+
+    // Try to launch the APK file via the system installer.
+    // On Android 8+ this requires "install unknown apps" permission.
+    // We launch a chooser intent via url_launcher as a content URI.
+    final uri = Uri.file(_apkPath!);
+    bool launched = false;
+    try {
+      if (await canLaunchUrl(uri)) {
+        launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    } catch (_) {}
+
+    if (!launched) {
+      // Fallback: open browser to download (always works, browser handles install)
+      _openInBrowser();
+    }
+  }
+
+  void _openInBrowser() {
+    final uri = Uri.parse(widget.apkUrl);
+    launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (mounted) Navigator.pop(context);
   }
 
   @override
@@ -147,26 +199,47 @@ class _UpdateDialogState extends State<_UpdateDialog> {
               style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
             ),
           ],
+          if (_readyToInstall && !_downloading) ...[
+            const SizedBox(height: 12),
+            Row(children: [
+              Icon(Icons.check_circle, color: Colors.green.shade600, size: 18),
+              const SizedBox(width: 6),
+              Text('تم التنزيل — سيبدأ التثبيت الآن',
+                  style: TextStyle(
+                      color: Colors.green.shade700,
+                      fontSize: 12, fontWeight: FontWeight.w600)),
+            ]),
+          ],
           if (_error != null) ...[
             const SizedBox(height: 8),
             Text(_error!,
                 style: const TextStyle(color: Colors.red, fontSize: 12)),
+            const SizedBox(height: 4),
+            Text('اضغط "تنزيل من المتصفح" لتحديث يدوي',
+                style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant)),
           ],
         ],
       ),
-      actions: _downloading && _error == null
-          ? []
-          : [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('لاحقاً', style: TextStyle(color: cs.onSurfaceVariant)),
-              ),
-              ElevatedButton.icon(
-                onPressed: _downloading ? null : _download,
-                icon: const Icon(Icons.download),
-                label: Text(_error != null ? 'إعادة المحاولة' : 'تحديث الآن'),
-              ),
-            ],
+      actions: [
+        if (!_downloading)
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('لاحقاً', style: TextStyle(color: cs.onSurfaceVariant)),
+          ),
+        if (_error != null)
+          ElevatedButton.icon(
+            onPressed: _openInBrowser,
+            icon: const Icon(Icons.open_in_browser, size: 16),
+            label: const Text('تنزيل من المتصفح'),
+          )
+        else if (!_downloading)
+          ElevatedButton.icon(
+            onPressed: _readyToInstall ? _install : _download,
+            icon: Icon(_readyToInstall ? Icons.install_mobile : Icons.download,
+                size: 16),
+            label: Text(_readyToInstall ? 'تثبيت' : 'تحديث الآن'),
+          ),
+      ],
     );
   }
 }
