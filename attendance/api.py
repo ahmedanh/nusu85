@@ -393,7 +393,8 @@ APP_VERSION_NAME = '1.2.0'   # display string
 @require_http_methods(['GET'])
 def app_version(request):
     from django.templatetags.static import static
-    apk_url = request.build_absolute_uri(static('apk/shamel-latest.apk'))
+    # ?v= busts browser/proxy caches so clients never download a stale APK
+    apk_url = request.build_absolute_uri(static('apk/shamel-latest.apk')) + f'?v={APP_VERSION_CODE}'
     return JsonResponse({
         'version_code': APP_VERSION_CODE,
         'version_name': APP_VERSION_NAME,
