@@ -36,7 +36,7 @@ def _page(qs, request, size=50):
 @api_auth
 @require_http_methods(['GET'])
 def courses(request):
-    user = _user_from_token(request)
+    user = request.api_user  # set by @api_auth decorator
     qs = Course.objects.select_related('college', 'department').all()
 
     # Determine caller's college for scoped filtering
@@ -44,12 +44,13 @@ def courses(request):
     caller_college_id = None
     if role == 'student':
         try:
-            caller_college_id = Student.objects.get(user=user).department.college_id
+            st = Student.objects.select_related('department__college').get(auth_user=user)
+            caller_college_id = st.department.college_id if st.department else None
         except Exception:
             pass
     elif role == 'coordinator':
         try:
-            caller_college_id = Coordinator.objects.get(user=user).college_id
+            caller_college_id = Coordinator.objects.get(auth_user=user).college_id
         except Exception:
             pass
 

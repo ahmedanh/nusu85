@@ -166,8 +166,8 @@ class _CoursesScreenState extends State<CoursesScreen> {
               const SizedBox(width: 6),
               Text(
                 'عرض ${_items.length} من $_total مادة',
-                style: const TextStyle(
-                    color: ShamelColors.secondary,
+                style: TextStyle(
+                    color: ShamelColors.sec(context),
                     fontSize: 12, fontWeight: FontWeight.w700),
               ),
             ]),
@@ -242,17 +242,17 @@ class _CoursesScreenState extends State<CoursesScreen> {
                                         Text('${m['title'] ?? ''}',
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                                 fontWeight: FontWeight.w700,
                                                 fontSize: 14,
-                                                color: ShamelColors.primary)),
+                                                color: ShamelColors.txt(ctx))),
                                         const SizedBox(height: 2),
                                         Text(
                                           '${m['code'] ?? ''} • ${m['department'] ?? ''}',
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                              color: ShamelColors.secondary,
+                                          style: TextStyle(
+                                              color: ShamelColors.sec(ctx),
                                               fontSize: 12),
                                         ),
                                       ],

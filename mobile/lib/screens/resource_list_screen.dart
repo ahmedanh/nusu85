@@ -241,8 +241,8 @@ class _ResourceListScreenState extends State<ResourceListScreen> {
                 _q.isEmpty
                     ? 'عرض ${_items.length} من $_total عنصر'
                     : 'نتائج البحث: ${_items.length} من $_total',
-                style: const TextStyle(
-                    color: ShamelColors.secondary, fontSize: 12,
+                style: TextStyle(
+                    color: ShamelColors.sec(context), fontSize: 12,
                     fontWeight: FontWeight.w700),
               ),
               if (_fromCache) ...[
@@ -348,15 +348,15 @@ class _ItemCard extends StatelessWidget {
               children: [
                 Text(widget.titleOf(item),
                     maxLines: 1, overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.w700,
-                        fontSize: 14, color: ShamelColors.primary)),
+                    style: TextStyle(fontWeight: FontWeight.w700,
+                        fontSize: 14, color: ShamelColors.txt(context))),
                 if (widget.subtitleOf != null &&
                     widget.subtitleOf!(item).isNotEmpty) ...[
                   const SizedBox(height: 2),
                   Text(widget.subtitleOf!(item),
                       maxLines: 1, overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          color: ShamelColors.secondary, fontSize: 12)),
+                      style: TextStyle(
+                          color: ShamelColors.sec(context), fontSize: 12)),
                 ],
               ],
             )),
@@ -365,7 +365,7 @@ class _ItemCard extends StatelessWidget {
                   style: TextStyle(fontWeight: FontWeight.w800,
                       fontSize: 12, color: widget.accent)),
             if (widget.onTap != null)
-              const Icon(Icons.chevron_left, color: ShamelColors.outline),
+              Icon(Icons.chevron_left, color: ShamelColors.sub(context)),
           ]),
         ),
       ),

@@ -113,6 +113,28 @@ class ShamelColors {
   static const dSuccess         = successTextDark;
   static const dError           = errorTextDark;
 
+  // ── Context-aware helpers (auto light/dark) ─────────────────────────────
+  static bool _isDark(BuildContext c) =>
+      Theme.of(c).brightness == Brightness.dark;
+
+  /// Primary body text — textLight / textDark
+  static Color txt(BuildContext c) => _isDark(c) ? textDark : textLight;
+
+  /// Secondary / subtitle text — text2Light / text2Dark
+  static Color sec(BuildContext c) => _isDark(c) ? text2Dark : text2Light;
+
+  /// Tertiary / hint text — text3Light / text3Dark
+  static Color sub(BuildContext c) => _isDark(c) ? text3Dark : text3Light;
+
+  /// Card surface — surfaceLight / surfaceDark
+  static Color surf(BuildContext c) => _isDark(c) ? surfaceDark : surfaceLight;
+
+  /// Card border — borderLight / borderDark
+  static Color bord(BuildContext c) => _isDark(c) ? borderDark : borderLight;
+
+  /// Gold text — gold / goldDark
+  static Color gld(BuildContext c) => _isDark(c) ? goldDark : gold;
+
   /// Human-readable Arabic role label.
   static String labelForRole(String role) => switch (role) {
     'admin'       => 'مدير النظام',

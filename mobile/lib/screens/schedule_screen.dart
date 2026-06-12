@@ -79,18 +79,18 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text('${r['course'] ?? '—'}',
-                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: ShamelColors.primary)),
+                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: ShamelColors.gld(context))),
                   const SizedBox(height: 4),
                   Text('${r['teacher'] ?? ''}  •  ${r['classroom'] ?? ''}',
-                      style: const TextStyle(color: ShamelColors.secondary, fontSize: 12)),
+                      style: TextStyle(color: ShamelColors.sec(context), fontSize: 12)),
                 ]),
               ),
               Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
                 Text(_dayAr[r['day']] ?? '${r['day'] ?? ''}',
-                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: ShamelColors.primaryContainer)),
+                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: ShamelColors.txt(context))),
                 const SizedBox(height: 4),
                 Text('${_fmt(r['start'])} - ${_fmt(r['end'])}',
-                    style: const TextStyle(color: ShamelColors.outline, fontSize: 11)),
+                    style: TextStyle(color: ShamelColors.sub(context), fontSize: 11)),
               ]),
             ]),
           );
