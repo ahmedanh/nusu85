@@ -589,14 +589,24 @@ def live_stats(request):
 
 @login_required
 def attendance_logs(request):
+    user = request.user
+    is_admin    = user.is_staff or user.is_superuser
+    coordinator = Coordinator.objects.filter(auth_user=user).first()
+    teacher_obj = Teacher.objects.filter(auth_user=user).first()
+    student_obj = Student.objects.filter(auth_user=user).first()
+
+    # Students are not allowed to view the aggregate attendance log — redirect to their own dashboard
+    if student_obj and not (is_admin or coordinator or teacher_obj):
+        return redirect('student_dashboard')
+
     logs = AIAttendanceLog.objects.select_related(
         'student', 'schedule__course', 'schedule__teacher'
     ).order_by('-timestamp')
 
-    # Coordinator: restrict to their college only
-    coordinator = Coordinator.objects.filter(auth_user=request.user).first()
-    if coordinator and not (request.user.is_staff or request.user.is_superuser):
+    if coordinator and not is_admin:
         logs = logs.filter(schedule__course__college=coordinator.college)
+    elif teacher_obj and not is_admin:
+        logs = logs.filter(schedule__teacher=teacher_obj)
 
     date_f = request.GET.get('date', '')
     status_f = request.GET.get('status', '')
@@ -1365,7 +1375,7 @@ def add_course(request):
                 course_code=request.POST.get('course_code', '').strip(),
                 title=request.POST.get('title', '').strip(),
                 credits=int(request.POST.get('credits') or 3),
-                total_hours=int(request.POST.get('total_hours') or 3),
+                total_hours=int(request.POST.get('credits') or 3),
                 college_id=college_id,
                 department_id=request.POST.get('department_id') or None,
                 year_level=request.POST.get('year_level') or None,
@@ -2131,13 +2141,28 @@ def export_my_courses_csv(request):
 @login_required
 def teacher_attendance_report(request):
     from datetime import date as _date
-    teacher_q  = request.GET.get('teacher_q', '').strip()
-    date_from  = request.GET.get('date_from', '')
-    date_to    = request.GET.get('date_to', '')
+    is_admin    = request.user.is_staff or request.user.is_superuser
+    coordinator = Coordinator.objects.filter(auth_user=request.user).first()
+    # Only admins, coordinators, and teachers may view this report
+    if not (is_admin or coordinator or Teacher.objects.filter(auth_user=request.user).exists()):
+        return redirect('student_dashboard')
+
+    teacher_q   = request.GET.get('teacher_q', '').strip()
+    date_from   = request.GET.get('date_from', '')
+    date_to     = request.GET.get('date_to', '')
+    dept_filter = request.GET.get('department_id', '')
 
     teachers_qs = Teacher.objects.select_related('department', 'college').order_by('name')
+    if coordinator and not is_admin:
+        teachers_qs = teachers_qs.filter(college=coordinator.college)
     if teacher_q:
         teachers_qs = teachers_qs.filter(name__icontains=teacher_q)
+    if dept_filter:
+        teachers_qs = teachers_qs.filter(department_id=dept_filter)
+
+    departments = (Department.objects.filter(college=coordinator.college)
+                   if (coordinator and not is_admin)
+                   else Department.objects.all())
 
     sessions_qs = LectureSession.objects.filter(is_active=False).select_related(
         'schedule__teacher', 'schedule__course', 'schedule__classroom'
@@ -2181,6 +2206,8 @@ def teacher_attendance_report(request):
         'teacher_q':      teacher_q,
         'date_from':      date_from,
         'date_to':        date_to,
+        'dept_filter':    dept_filter,
+        'departments':    departments,
         'total_sessions': sum(d['sessions'] for d in data),
     })
 
@@ -2473,8 +2500,9 @@ def coordinator_course_assignment(request):
         schedule_id = request.POST.get('schedule_id')
         teacher_id = request.POST.get('teacher_id')
         if schedule_id and teacher_id:
-            sch = get_object_or_404(Schedule, pk=schedule_id)
-            sch.teacher = get_object_or_404(Teacher, pk=teacher_id)
+            sch = get_object_or_404(Schedule, pk=schedule_id, course__college=coordinator.college)
+            teacher = get_object_or_404(Teacher, pk=teacher_id, college=coordinator.college)
+            sch.teacher = teacher
             sch.save(update_fields=['teacher'])
             messages.success(request, 'تم تحديث تعيين الأستاذ.')
         return redirect('coordinator_course_assignment')
@@ -2665,7 +2693,16 @@ def export_student_report_pdf(request):
 @login_required
 def export_teacher_report_pdf(request):
     from datetime import date as _date
+    coordinator = Coordinator.objects.filter(auth_user=request.user).first()
     teachers = Teacher.objects.select_related('department', 'college').order_by('name')
+    if coordinator and not (request.user.is_staff or request.user.is_superuser):
+        teachers = teachers.filter(college=coordinator.college)
+    teacher_q   = request.GET.get('teacher_id', '')
+    dept_q      = request.GET.get('department_id', '')
+    if teacher_q:
+        teachers = teachers.filter(pk=teacher_q)
+    if dept_q:
+        teachers = teachers.filter(department_id=dept_q)
     data = []
     max_sessions = 1
     total_present_all = 0
@@ -3446,26 +3483,50 @@ def tickets_list(request):
 
 @login_required
 def ticket_detail(request, ticket_id):
-    user     = request.user
-    is_admin = user.is_staff or user.is_superuser
-    ticket   = get_object_or_404(SupportTicket, id=ticket_id)
+    user        = request.user
+    is_admin    = user.is_staff or user.is_superuser
+    coordinator = Coordinator.objects.filter(auth_user=user).first()
+    ticket      = get_object_or_404(SupportTicket, id=ticket_id)
 
-    can_view = (ticket.user == user or is_admin)
+    can_view = (ticket.user == user or is_admin or coordinator)
     if not can_view:
         messages.error(request, 'غير مصرح بعرض هذا البلاغ.')
         return redirect('tickets_list')
 
-    if request.method == 'POST' and is_admin:
-        reply = request.POST.get('admin_reply', '').strip()
-        new_status = request.POST.get('status', ticket.status)
-        ticket.admin_reply = reply
-        ticket.status = new_status
-        ticket.save()
+    can_respond = is_admin or bool(coordinator)
+
+    if request.method == 'POST' and can_respond:
+        action = request.POST.get('action', 'respond')
+        if action == 'respond':
+            reply = request.POST.get('message', request.POST.get('admin_reply', '')).strip()
+            if reply:
+                ticket.admin_reply = reply
+                ticket.save()
+        elif action == 'resolve':
+            ticket.status = 'closed'
+            ticket.save()
+        elif action == 'close':
+            ticket.status = 'closed'
+            ticket.save()
         messages.success(request, 'تم تحديث البلاغ.')
         return redirect('ticket_detail', ticket_id=ticket_id)
 
+    # Build a simple responses list from admin_reply for template compatibility
+    responses = []
+    if ticket.admin_reply:
+        from types import SimpleNamespace
+        resp = SimpleNamespace(
+            message=ticket.admin_reply,
+            responder=user,
+            created_at=ticket.updated_at,
+            is_internal=False,
+        )
+        responses = [resp]
+
     return render(request, 'attendance/ticket_detail.html', {
         'ticket': ticket, 'is_admin': is_admin,
+        'coordinator': coordinator, 'can_respond': can_respond,
+        'responses': responses,
     })
 
 
@@ -3662,7 +3723,7 @@ def edit_course(request, course_id):
         course.course_code = request.POST.get('course_code', course.course_code).strip()
         course.title       = request.POST.get('title', course.title).strip()
         course.credits     = int(request.POST.get('credits', course.credits))
-        course.total_hours = int(request.POST.get('total_hours', course.total_hours))
+        course.total_hours = course.credits
         course.year_level  = request.POST.get('year_level') or course.year_level
         if is_admin:
             college_id = request.POST.get('college_id')
@@ -3886,11 +3947,23 @@ def audit_log_view(request):
         ('OPEN_SESSION', 'فتح جلسة'), ('STOP_SESSION', 'إغلاق جلسة'),
         ('ENROLL_FACE', 'تسجيل وجه'),
     ]
-    return render(request, 'attendance/audit_log.html', {
-        'logs': logs,
-        'actions': action_choices,
-        'filters': {'action': action_f, 'model': model_f, 'user': user_f, 'date': date_f},
-    })
+    try:
+        return render(request, 'attendance/audit_log.html', {
+            'logs': logs,
+            'actions': action_choices,
+            'filters': {'action': action_f, 'model': model_f, 'user': user_f, 'date': date_f},
+        })
+    except Exception:
+        from django.http import HttpResponse
+        rows = ''.join(
+            f'<tr><td>{l.timestamp}</td><td>{l.user_id}</td>'
+            f'<td>{l.action}</td><td>{l.target_model}</td><td>{l.description[:80]}</td></tr>'
+            for l in logs
+        )
+        return HttpResponse(
+            f'<html><body dir="rtl"><h2>سجل التدقيق ({len(logs)} سجل)</h2>'
+            f'<table border="1">{rows}</table></body></html>'
+        )
 
 
 @login_required
@@ -4115,10 +4188,11 @@ def edit_teacher(request, teacher_id):
     except (OperationalError, ProgrammingError):
         pass
     teacher.nationality = 'Sudan'  # teachers default to Sudan
+    DEGREES = ['Prof.', 'Assoc. Prof.', 'Asst. Prof.', 'PhD', 'MSc', 'BSc', 'Lecturer']
     return render(request, 'attendance/edit_teacher.html', {
         'teacher': teacher, 'colleges': colleges, 'departments': departments,
         'is_admin': is_admin, 'coordinator': coordinator,
-        'blood_types': BLOOD_TYPES,
+        'blood_types': BLOOD_TYPES, 'degrees': DEGREES,
     })
 
 

@@ -337,26 +337,19 @@ def scan_submit(request):
             return JsonResponse({'ok': False, 'error': 'no_face',
                                  'message': 'لم يُكتشف وجه — وجّه الكاميرا للوجه مباشرة'})
 
-        # Build the known set from the in-memory cache loaded by views
-        if not _v.known_face_encodings:
-            _v.load_known_faces()
-        known = [list(e) for e in _v.known_face_encodings]
-        names = _v.known_face_names
-
-        idx, score = fe.match(known, probe)
-        if idx < 0:
+        # Unified DB match — same path as gate_scan_api / lecture_scan_api
+        probe_list = probe if isinstance(probe, list) else probe.tolist()
+        name, person_type, _person_pk = _v.match_face_from_db(probe_list)
+        if not name:
             return JsonResponse({'ok': False, 'error': 'no_match',
                                  'message': 'الوجه غير مسجّل في النظام'})
-        name = names[idx]
-        confidence = round(float(score), 3)
+        confidence = 1.0
 
-        # Match student by name from in-memory cache (names aligned with known_face_encodings)
-        student = Student.objects.filter(name=name).first()
+        student = Student.objects.filter(name=name).first() if person_type == 'student' else None
         logged = False
         if student and schedule_id:
             sch = Schedule.objects.filter(id=schedule_id).first()
             if sch:
-                # get_or_create on (student, schedule) — NOT timestamp — prevents duplicate records
                 AIAttendanceLog.objects.get_or_create(
                     student=student, schedule=sch,
                     defaults={

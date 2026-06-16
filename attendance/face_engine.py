@@ -54,27 +54,43 @@ def embedding_dim() -> int:
 
 
 def _preprocess(image: np.ndarray) -> np.ndarray:
-    """Auto-gamma + CLAHE on LAB L-channel.
+    """Robust lighting normalisation for all indoor/outdoor conditions.
 
-    Handles both under-lit (projector rooms, night) and over-exposed (direct
-    sunlight) conditions. clipLimit bumped to 3.0 for stronger contrast boost.
+    Pipeline:
+      1. White-balance via gray-world assumption (removes colour casts)
+      2. Auto-gamma from mean luminance (dark / dim / bright / blown-out)
+      3. Histogram stretching for severely dark images (mean < 50)
+      4. CLAHE on LAB L-channel (strong contrast, preserves colour)
     """
     try:
         import cv2
         # image arrives as RGB from callers
         bgr = image[:, :, ::-1]
 
-        # 1) Auto-gamma: boost dark images, dampen blown-out ones
+        # 1) Gray-world white balance — removes projector / sodium-lamp colour cast
+        b_ch, g_ch, r_ch = cv2.split(bgr.astype(np.float32))
+        b_mean, g_mean, r_mean = b_ch.mean(), g_ch.mean(), r_ch.mean()
+        if b_mean > 0 and g_mean > 0 and r_mean > 0:
+            global_mean = (b_mean + g_mean + r_mean) / 3.0
+            bgr = cv2.merge([
+                np.clip(b_ch * (global_mean / b_mean), 0, 255).astype(np.uint8),
+                np.clip(g_ch * (global_mean / g_mean), 0, 255).astype(np.uint8),
+                np.clip(r_ch * (global_mean / r_mean), 0, 255).astype(np.uint8),
+            ])
+
+        # 2) Auto-gamma from mean luminance
         gray = cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY)
         mean_b = float(gray.mean())
-        if mean_b < 70:          # very dark room / back-lit
+        if mean_b < 50:          # severe darkness (night / blackout room)
+            gamma = 2.5
+        elif mean_b < 80:        # dark room / back-lit
             gamma = 1.8
-        elif mean_b < 110:       # slightly dim
+        elif mean_b < 115:       # slightly dim
             gamma = 1.3
-        elif mean_b > 200:       # overexposed / harsh flash
-            gamma = 0.65
-        elif mean_b > 170:       # a bit bright
-            gamma = 0.85
+        elif mean_b > 210:       # blown-out / harsh flash
+            gamma = 0.55
+        elif mean_b > 175:       # bright
+            gamma = 0.80
         else:
             gamma = 1.0
         if gamma != 1.0:
@@ -83,10 +99,18 @@ def _preprocess(image: np.ndarray) -> np.ndarray:
                  for i in range(256)], dtype=np.uint8)
             bgr = cv2.LUT(bgr, lut)
 
-        # 2) CLAHE on LAB L-channel (stronger clip for presentation rooms)
+        # 3) Histogram stretching for severely dark images after gamma
+        if mean_b < 50:
+            gray2 = cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY)
+            p1, p99 = np.percentile(gray2, [1, 99])
+            if p99 > p1:
+                alpha = 255.0 / (p99 - p1)
+                bgr = np.clip((bgr.astype(np.float32) - p1) * alpha, 0, 255).astype(np.uint8)
+
+        # 4) CLAHE on LAB L-channel
         lab = cv2.cvtColor(bgr, cv2.COLOR_BGR2LAB)
         l, a, b = cv2.split(lab)
-        clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
+        clahe = cv2.createCLAHE(clipLimit=3.5, tileGridSize=(8, 8))
         l = clahe.apply(l)
         lab = cv2.merge((l, a, b))
         bgr = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
@@ -141,7 +165,7 @@ def match(known: list[list[float]], probe: list[float]):
         # cosine similarity on L2-normalised vectors; threshold ~0.30
         # Lower fallback (0.25) gives more robustness in bad lighting while
         # still rejecting random strangers (same-person sim is usually 0.5+)
-        threshold = getattr(settings, 'FACE_THRESHOLD', 0.25)
+        threshold = getattr(settings, 'FACE_THRESHOLD', 0.22)
         best_i, best_s = -1, -1.0
         for i, k in enumerate(known):
             ka = np.asarray(k, dtype=np.float32)

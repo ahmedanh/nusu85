@@ -50,3 +50,29 @@ class CloseOldConnectionsMiddleware:
             response['Expires'] = '0'
 
         return response
+
+
+class ContentSecurityPolicyMiddleware:
+    """Adds Content-Security-Policy header to all responses."""
+
+    CSP = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' "
+        "  https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
+        "style-src 'self' 'unsafe-inline' "
+        "  https://cdn.tailwindcss.com https://fonts.googleapis.com https://cdn.jsdelivr.net; "
+        "font-src 'self' data: https://fonts.gstatic.com; "
+        "img-src 'self' data: blob:; "
+        "connect-src 'self' ws: wss:; "
+        "media-src 'self' blob:; "
+        "worker-src blob:; "
+        "frame-ancestors 'none';"
+    )
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        response['Content-Security-Policy'] = self.CSP
+        return response
