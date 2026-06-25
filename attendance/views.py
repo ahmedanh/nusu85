@@ -295,7 +295,7 @@ def match_face_from_db(live_encoding: list) -> tuple[str | None, str | None, int
     )
     t_name, t_type, t_pk = _best_in_collection(
         TeacherFaceEmbedding.objects.select_related('teacher')
-            .only('face_vector', 'extra_embeddings', 'teacher__id', 'teacher__name'),
+            .only('face_vector', 'extra_embeddings', 'teacher__teacher_id', 'teacher__name'),
         'face_vector', 'extra_embeddings',
         lambda e: e.teacher.name,
         lambda e: e.teacher.pk,
