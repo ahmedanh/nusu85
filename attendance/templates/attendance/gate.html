@@ -41,7 +41,18 @@ tailwind.config = {
   .pulse-red { animation: pulse-red 1.5s infinite; }
 </style>
 </head>
-<body class="min-h-screen bg-slate-950 text-white flex flex-col overflow-hidden">
+<style>
+  /* Mobile gate layout fixes */
+  @media(max-width:1023px){
+    body { overflow-y: auto !important; }
+    #gate-main { display: flex !important; flex-direction: column !important; height: auto !important; overflow: visible !important; }
+    #cam-col   { height: 55vw; min-height: 260px; max-height: 420px; }
+    #result-col{ overflow: visible !important; height: auto !important; }
+    #log-strip { max-height: 200px; }
+    #idle-panel, #scanning-panel, #result-panel { min-height: 160px; }
+  }
+</style>
+<body class="min-h-screen bg-slate-950 text-white flex flex-col">
 
 <!-- ══ TOP BAR ══════════════════════════════════════════════════════════ -->
 <header class="flex items-center justify-between px-5 py-3 bg-slate-900 border-b border-white/10 shrink-0">
@@ -88,10 +99,10 @@ tailwind.config = {
 </header>
 
 <!-- ══ MAIN ══════════════════════════════════════════════════════════════ -->
-<main class="flex-1 grid grid-cols-1 lg:grid-cols-5 overflow-hidden">
+<main id="gate-main" class="flex-1 grid grid-cols-1 lg:grid-cols-5 lg:overflow-hidden">
 
   <!-- ── Camera column ─────────────────────────────────────────── 3/5 -->
-  <div class="lg:col-span-3 bg-black relative flex flex-col">
+  <div id="cam-col" class="lg:col-span-3 bg-black relative flex flex-col">
 
     <!-- Camera toolbar -->
     <div class="flex items-center justify-between px-4 py-2.5 bg-slate-900/90 border-b border-white/10 shrink-0">
@@ -129,7 +140,7 @@ tailwind.config = {
   </div>
 
   <!-- ── Right column ───────────────────────────────────────────── 2/5 -->
-  <div class="lg:col-span-2 bg-slate-900 border-r border-white/10 flex flex-col overflow-hidden">
+  <div id="result-col" class="lg:col-span-2 bg-slate-900 border-r border-white/10 flex flex-col lg:overflow-hidden">
 
     <!-- Identity result -->
     <div class="flex-1 flex flex-col overflow-hidden">
@@ -191,7 +202,7 @@ tailwind.config = {
     </div>
 
     <!-- ── Log strip ───────────────────────────────────────────────── -->
-    <div class="border-t border-white/10 shrink-0" style="max-height:220px">
+    <div id="log-strip" class="border-t border-white/10 shrink-0" style="max-height:220px">
       <div class="flex items-center justify-between px-4 py-2 border-b border-white/5">
         <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">آخر الأحداث اليوم</p>
         <span class="text-[10px] text-slate-600" id="log-count">0 دخول</span>
