@@ -460,17 +460,17 @@ def health(request):
 # ──────────────────────────────────────────────────────────────────────────
 # Bump APP_VERSION_CODE whenever a new APK is released.
 # Place the APK at /static/apk/shamel-latest.apk before incrementing.
-APP_VERSION_CODE = 4          # integer — compare against Flutter build number
-APP_VERSION_NAME = '1.3.0'   # display string
+APP_VERSION_CODE = 5          # integer — compare against Flutter build number
+APP_VERSION_NAME = '1.3.1'   # display string
+APP_VERSION_APK  = 'shamel-v1.2-production.apk'  # actual filename in /static/apk/
 
 @require_http_methods(['GET'])
 def app_version(request):
     from django.templatetags.static import static
-    # ?v= busts browser/proxy caches so clients never download a stale APK
-    apk_url = request.build_absolute_uri(static('apk/shamel-latest.apk')) + f'?v={APP_VERSION_CODE}'
+    apk_url = request.build_absolute_uri(static(f'apk/{APP_VERSION_APK}')) + f'?v={APP_VERSION_CODE}'
     return JsonResponse({
         'version_code': APP_VERSION_CODE,
         'version_name': APP_VERSION_NAME,
         'apk_url': apk_url,
-        'notes': 'إصلاح شامل للوضع الداكن، إزالة صفحة الدرجات، وتحسين التثبيت المباشر للتحديثات.',
+        'notes': 'تصميم محسّن للهاتف في صفحة المسح والبوابة، تسجيل دخول ببصمة الوجه، ونظام عمل بدون إنترنت.',
     })
