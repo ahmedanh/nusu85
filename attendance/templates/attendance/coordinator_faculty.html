@@ -17,6 +17,7 @@
             <th class="px-6 py-4">المقررات</th>
             <th class="px-6 py-4">المحاضرات المنجزة</th>
             <th class="px-6 py-4">نسبة الإنجاز</th>
+            <th class="px-6 py-4 text-center">إجراءات</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-50">
@@ -45,6 +46,16 @@
             <td class="px-6 py-4">
               <div class="w-24 bg-slate-100 rounded-full h-2">
                 <div class="h-2 rounded-full bg-purple-400" style="width: 60%"></div>
+              </div>
+            </td>
+            <td class="px-6 py-4 text-center">
+              <div class="flex items-center justify-center gap-2">
+                <a href="{% url 'teacher_detail' teacher.pk %}" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-primary bg-primary/10 rounded-lg hover:bg-primary/20 transition-all">
+                  <span class="material-symbols-outlined text-xs">visibility</span> عرض
+                </a>
+                <a href="{% url 'enroll_face_person' 'teacher' teacher.pk %}" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-all dark:bg-emerald-900/30 dark:text-emerald-400">
+                  <span class="material-symbols-outlined text-xs">face</span> بصمة
+                </a>
               </div>
             </td>
           </tr>

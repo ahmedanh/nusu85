@@ -84,9 +84,14 @@
               {% endif %}
             </td>
             <td class="px-4 py-3.5 text-center">
-              <a href="{% url 'student_detail' student.id %}" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-primary bg-primary/10 rounded-lg hover:bg-primary/20 transition-all">
-                <span class="material-symbols-outlined text-xs">visibility</span> عرض
-              </a>
+              <div class="flex items-center justify-center gap-2 flex-wrap">
+                <a href="{% url 'student_detail' student.id %}" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-primary bg-primary/10 rounded-lg hover:bg-primary/20 transition-all">
+                  <span class="material-symbols-outlined text-xs">visibility</span> عرض
+                </a>
+                <a href="{% url 'enroll_face_person' 'student' student.id %}" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-all dark:bg-emerald-900/30 dark:text-emerald-400">
+                  <span class="material-symbols-outlined text-xs">face</span> بصمة
+                </a>
+              </div>
             </td>
           </tr>
           {% empty %}

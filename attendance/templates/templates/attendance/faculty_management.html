@@ -66,8 +66,8 @@
           </td>
           <td class="px-6 py-4 text-right">
             <div class="flex items-center justify-end gap-1">
-              <a href="/attendance/user/teacher/{{ teacher.pk }}/upload-face/" title="رفع صورة الوجه"
-                class="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors">
+              <a href="{% url 'enroll_face_person' 'teacher' teacher.pk %}" title="تسجيل بصمة الوجه"
+                class="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">
                 <span class="material-symbols-outlined text-lg">face</span>
               </a>
               <a href="/admin/attendance/teacher/{{ teacher.pk }}/change/" title="تعديل"

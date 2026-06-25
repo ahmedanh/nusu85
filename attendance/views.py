@@ -1677,7 +1677,15 @@ def detect_face_api(request):
 
 @login_required
 def enroll_face(request, person_type=None, person_id=None):
-    """Enroll a face embedding for the given person (or the logged-in user if no person specified)."""
+    """Enroll a face embedding for the given person (or the logged-in user if no person specified).
+
+    Access rules:
+      - Self: any logged-in user may enroll their own face (no person_type/person_id in URL)
+      - Admin/staff: may enroll any person
+      - Coordinator: may enroll students and teachers within their college only
+    """
+    is_admin = request.user.is_staff or request.user.is_superuser
+    coord = Coordinator.objects.filter(auth_user=request.user).first()
 
     # Resolve the target person — URL params take priority over POST fallback
     pt = person_type or request.POST.get('user_type', '')
@@ -1689,6 +1697,8 @@ def enroll_face(request, person_type=None, person_id=None):
 
     student_obj = None
     teacher_obj = None
+    enrolling_other = bool(pt and pid)
+
     if pt == 'student' and pid:
         student_obj = get_object_or_404(Student, pk=pid)
     elif pt == 'teacher' and pid:
@@ -1701,6 +1711,17 @@ def enroll_face(request, person_type=None, person_id=None):
     person = student_obj or teacher_obj
     if person is None:
         return HttpResponseBadRequest('لم يتم العثور على الشخص المطلوب')
+
+    # Permission check for enrolling another person
+    if enrolling_other and not is_admin:
+        if not coord:
+            messages.error(request, 'غير مصرح لك بتسجيل وجه شخص آخر.')
+            return _redirect_by_role(request)
+        # Coordinator: enforce college scope
+        person_college = getattr(person, 'college', None)
+        if person_college != coord.college:
+            messages.error(request, 'غير مصرح — الشخص المطلوب خارج نطاق كليتك.')
+            return _redirect_by_role(request)
 
     user_type_ctx = 'student' if student_obj else 'teacher'
 
@@ -2539,6 +2560,7 @@ def coordinator_dashboard(request):
     })
 
 
+@login_required
 @login_required
 def coordinator_students(request):
     try:

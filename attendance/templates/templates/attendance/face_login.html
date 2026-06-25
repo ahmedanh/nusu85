@@ -144,6 +144,14 @@
   });
 
   let _loginPicker = null;
+  let _autoScanTimer = null;
+  let _scanning = false;
+  let _done = false;
+
+  const CSRF_VAL = () => {
+    const m = document.cookie.match('(^|;)\\s*csrftoken\\s*=\\s*([^;]+)');
+    return m ? decodeURIComponent(m[2]) : '{{ csrf_token }}';
+  };
 
   async function startCamera() {
     if (_loginPicker) _loginPicker.stop();
@@ -160,28 +168,37 @@
         scanBtn.disabled = false;
         startBtn.disabled = true;
         startBtn.classList.add('opacity-50');
-        showStatus('الكاميرا جاهزة — اضغط "فحص الوجه"', 'info');
+        showStatus('جارٍ المسح التلقائي — ضع وجهك أمام الكاميرا', 'info');
+        // Start auto-scan loop after 1.5s (let camera warm up)
+        setTimeout(autoScanLoop, 1500);
       },
       onError: () => showStatus('تعذّر الوصول إلى الكاميرا — تأكد من السماح باستخدامها في المتصفح', 'error'),
     });
     await _loginPicker.init();
   }
 
-  async function captureAndScan() {
-    if (!video.srcObject) { showStatus('شغّل الكاميرا أولاً', 'error'); return; }
+  function stopAutoScan() {
+    if (_autoScanTimer) { clearTimeout(_autoScanTimer); _autoScanTimer = null; }
+  }
 
-    showStatus('جارٍ التعرف على الوجه...', 'loading');
-    scanBtn.disabled = true;
+  async function autoScanLoop() {
+    if (_done) return;
+    await captureAndScan(true);
+    if (!_done) _autoScanTimer = setTimeout(autoScanLoop, 2500);
+  }
+
+  async function captureAndScan(auto = false) {
+    if (!video.srcObject) { if (!auto) showStatus('شغّل الكاميرا أولاً', 'error'); return; }
+    if (_scanning || _done) return;
+
+    _scanning = true;
+    if (!auto) showStatus('جارٍ التعرف على الوجه...', 'loading');
 
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     canvas.getContext('2d').drawImage(video, 0, 0);
-    const imageData = canvas.toDataURL('image/jpeg', 0.85);
-
-    /* Always read csrftoken from the live cookie — never use the baked
-       Django template value which becomes stale in PWA/browser cache. */
-    const csrfLive = (document.cookie.match('(^|;)\\s*csrftoken\\s*=\\s*([^;]+)') || [,''])[2];
-    const csrfVal  = csrfLive ? decodeURIComponent(csrfLive) : '{{ csrf_token }}';
+    const imageData = canvas.toDataURL('image/jpeg', 0.88);
+    const csrfVal = CSRF_VAL();
 
     const formData = new FormData();
     formData.append('image_data', imageData);
@@ -195,15 +212,22 @@
       const data = await resp.json();
 
       if (data.status === 'success') {
-        showStatus('تم التعرف عليك، جارٍ تسجيل الدخول...', 'success');
-        setTimeout(() => { window.location.href = data.redirect; }, 1000);
+        _done = true;
+        stopAutoScan();
+        showStatus('✓ تم التعرف على ' + (data.name || 'المستخدم') + ' — جارٍ الدخول...', 'success');
+        scanBtn.disabled = true;
+        setTimeout(() => { window.location.href = data.redirect; }, 900);
       } else {
-        showStatus(data.message || 'لم يتم التعرف — حاول مجدداً', 'error');
-        scanBtn.disabled = false;
+        // Only show error for manual press or persistent failure message
+        const code = data.code || '';
+        if (!auto || code === 'face_not_registered') {
+          showStatus(data.message || 'لم يتم التعرف — حاول مجدداً', code === 'face_not_registered' ? 'error' : 'loading');
+        }
       }
     } catch (e) {
-      showStatus('خطأ في الاتصال بالخادم', 'error');
-      scanBtn.disabled = false;
+      if (!auto) showStatus('خطأ في الاتصال بالخادم', 'error');
+    } finally {
+      _scanning = false;
     }
   }
 </script>
