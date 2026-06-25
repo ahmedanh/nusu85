@@ -6,6 +6,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <meta name="csrf-token" content="{{ csrf_token }}"/>
 <title>{% block title %}SHAMEL{% endblock %}</title>
+<link rel="icon" type="image/x-icon"  href="{% static 'images/favicon.ico' %}"/>
+<link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon.png' %}"/>
+<link rel="apple-touch-icon"          href="{% static 'pwa/icons/icon-192.png' %}"/>
+<link rel="manifest"                  href="{% static 'pwa/manifest.json' %}"/>
+<meta name="theme-color" content="#1e3a5f"/>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="{% static 'fonts/fonts.css' %}" rel="stylesheet"/>
 <script>
