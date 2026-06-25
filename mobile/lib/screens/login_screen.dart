@@ -18,28 +18,11 @@ class _LoginScreenState extends State<LoginScreen> {
   bool  _busy    = false;
   String? _error;
 
-  // Biometric state
-  bool _bioAvailable = false;
-  bool _bioEnabled   = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _checkBiometric();
-  }
-
   @override
   void dispose() {
     _user.dispose();
     _pass.dispose();
     super.dispose();
-  }
-
-  Future<void> _checkBiometric() async {
-    final avail   = await BiometricAuth.isAvailable();
-    final enabled = await BiometricAuth.isEnabled();
-    if (!mounted) return;
-    setState(() { _bioAvailable = avail; _bioEnabled = enabled; });
   }
 
   // ── Validators ──────────────────────────────────────────────────────────
@@ -66,33 +49,23 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _submit() async {
     setState(() => _error = null);
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => _busy = true);
     final err = await context.read<AuthState>().login(
-      _user.text.trim(),
-      _pass.text,
-    );
+      _user.text.trim(), _pass.text);
     if (!mounted) return;
-
-    if (err == null) {
-      // Login succeeded — offer to enable biometric for next time
-      await BiometricAuth.enableAfterLogin();
-      await _checkBiometric();
-    }
     setState(() { _busy = false; _error = err; });
   }
 
-  // ── Submit (biometric) ───────────────────────────────────────────────────
+  // ── Face login (central DB) ──────────────────────────────────────────────
 
-  Future<void> _submitBiometric() async {
-    setState(() { _busy = true; _error = null; });
-    final ok = await BiometricAuth.authenticate();
+  Future<void> _faceLogin() async {
+    setState(() { _error = null; });
+    final result = await FaceLoginSheet.show(context);
     if (!mounted) return;
-    if (!ok) {
-      setState(() { _busy = false; _error = 'فشل التحقق البيومتري — حاول بكلمة المرور'; });
-      return;
-    }
-    // Re-validate existing token via dashboard ping
+    if (result == null) return; // user dismissed
+
+    // Token was saved by FaceLoginSheet — just load profile
+    setState(() => _busy = true);
     final err = await context.read<AuthState>().loginBiometric();
     if (!mounted) return;
     setState(() { _busy = false; _error = err; });
@@ -178,15 +151,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 16),
                     ],
 
-                    // ── Biometric quick-login ───────────────────────────────
-                    if (_bioAvailable && _bioEnabled && !expired) ...[
+                    // ── Face login (central DB) ─────────────────────────────
+                    if (!expired) ...[
                       SizedBox(
                         width: double.infinity,
                         child: OutlinedButton.icon(
-                          onPressed: _busy ? null : _submitBiometric,
-                          icon: const Icon(Icons.fingerprint, size: 22,
+                          onPressed: _busy ? null : _faceLogin,
+                          icon: const Icon(Icons.face_retouching_natural, size: 22,
                               color: ShamelColors.gold),
-                          label: const Text('تسجيل الدخول ببصمة الإصبع / الوجه',
+                          label: const Text('تسجيل الدخول ببصمة الوجه',
                               style: TextStyle(color: ShamelColors.gold,
                                   fontWeight: FontWeight.w700)),
                           style: OutlinedButton.styleFrom(
@@ -199,7 +172,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Row(children: [
                         Expanded(child: Divider()),
                         Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 10),
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
                           child: Text('أو', style: TextStyle(
                               color: ShamelColors.sub(context), fontSize: 12)),
                         ),

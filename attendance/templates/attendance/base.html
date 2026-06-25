@@ -188,8 +188,32 @@ tailwind.config = {
   #main-canvas { overflow-x:hidden; }
 
   @media(max-width:639px){
-    #main-canvas > div.p-5 { padding:1rem !important; }
-    #main-canvas > div.lg\:p-8 { padding:1rem !important; }
+    #main-canvas > div.p-5 { padding:0.75rem !important; }
+    #main-canvas > div.lg\:p-8 { padding:0.75rem !important; }
+
+    /* ── All tables scroll horizontally on mobile ── */
+    #main-canvas table { display:block; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    #main-canvas thead, #main-canvas tbody, #main-canvas tr { display:table; width:100%; table-layout:fixed; }
+    #main-canvas thead { width:100%; }
+
+    /* ── Reduce hero card font sizes ── */
+    .text-5xl { font-size:2rem !important; line-height:1.1 !important; }
+    .text-4xl { font-size:1.6rem !important; }
+    .text-3xl { font-size:1.4rem !important; }
+
+    /* ── Hero card padding reduction ── */
+    #main-canvas .p-8 { padding:1.25rem !important; }
+
+    /* ── Flex-wrap forms on mobile ── */
+    #main-canvas form.flex:not(.flex-col) { flex-wrap:wrap; }
+
+    /* ── Card grids: force 1-col on very small screens for 4+ col grids ── */
+    #main-canvas .grid.grid-cols-2.lg\:grid-cols-4 > * { min-width: 0; }
+  }
+
+  @media(max-width:479px){
+    /* ── On very small phones, 2-col stats become 1-col ── */
+    #main-canvas .grid.grid-cols-2 { grid-template-columns: 1fr !important; }
   }
 
   /* ── Toasts ── */

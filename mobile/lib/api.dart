@@ -10,6 +10,7 @@ abstract class _K {
   static const schedule    = 'cache:schedule';
   static const session     = 'cache:active_session';
   static const attLogs     = 'cache:attendance_logs';
+  static const userProfile = 'cache:user_profile';
 }
 
 // ── Typed exceptions ─────────────────────────────────────────────────────────
@@ -98,6 +99,9 @@ class Api {
     _token = null;
     await _storage.delete(key: _K.token);
   }
+
+  /// Public surface used by FaceLoginSheet after a successful face-login API call.
+  static Future<void> saveTokenPublic(String t) => _saveToken(t);
 
   static bool get isLoggedIn => _token != null;
 
@@ -201,7 +205,7 @@ class Api {
     try {
       final r = await http
           .get(_u('/api/v1/health'))
-          .timeout(const Duration(seconds: 5));
+          .timeout(const Duration(seconds: 3));
       return r.statusCode == 200;
     } catch (_) {
       return false;
@@ -210,7 +214,26 @@ class Api {
 
   // ── Standard endpoints ─────────────────────────────────────────────────────
 
-  static Future<Map<String, dynamic>> me()             => _get('/api/v1/me');
+  static Future<Map<String, dynamic>> me() async {
+    final data = await _get('/api/v1/me');
+    // Cache profile for offline bootstrap
+    if (data['ok'] == true && data['user'] != null) {
+      await LocalDb.cacheSet(_K.userProfile, jsonEncode(data['user']));
+    }
+    return data;
+  }
+
+  /// Returns cached user profile if offline, null if no cache.
+  static Future<Map<String, dynamic>?> cachedProfile() async {
+    final raw = await LocalDb.cacheGet(_K.userProfile,
+        maxAge: const Duration(days: 30));
+    if (raw == null) return null;
+    try {
+      return jsonDecode(raw) as Map<String, dynamic>;
+    } catch (_) {
+      return null;
+    }
+  }
   static Future<Map<String, dynamic>> dashboard()      => _get('/api/v1/dashboard');
   static Future<Map<String, dynamic>> schedule()       => _get('/api/v1/schedule');
   static Future<Map<String, dynamic>> reportsSummary() => _get('/api/v1/reports/summary');

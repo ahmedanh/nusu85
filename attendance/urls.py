@@ -8,6 +8,7 @@ urlpatterns = [
     path('api/v1/health',              api.health,                 name='api_health'),
     path('api/v1/app/version',         api.app_version,            name='api_app_version'),
     path('api/v1/auth/login',          api.login,                  name='api_login'),
+    path('api/v1/auth/face-login',     api.face_login_api,         name='api_face_login'),
     path('api/v1/me',                  api.me,                     name='api_me'),
     path('api/v1/dashboard',           api.dashboard,              name='api_dashboard'),
     path('api/v1/schedule',            api.schedule,               name='api_schedule'),

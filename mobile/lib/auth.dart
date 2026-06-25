@@ -15,11 +15,11 @@ class AuthState extends ChangeNotifier {
   /// Called at startup: discover server, restore token, fetch profile.
   /// Also registers the 401 callback so any future 401 auto-logs out.
   Future<void> bootstrap() async {
-    // Register 401 auto-logout — called by Api._handleResponse on 401
     Api.onUnauthorized = _onSessionExpired;
 
     serverReachable = await Api.discover();
     await Api.loadToken();
+
     if (Api.isLoggedIn) {
       try {
         final r = await Api.me();
@@ -29,10 +29,15 @@ class AuthState extends ChangeNotifier {
           await Api.clearToken();
         }
       } on AuthException {
-        // Token was invalid on startup — clear it
+        // Token was invalid — clear it
         await Api.clearToken();
       } catch (_) {
-        // Offline but token present — keep logged-in shell
+        // Offline — try cached profile so user stays logged in
+        final cached = await Api.cachedProfile();
+        if (cached != null) {
+          user = cached;
+        }
+        // If no cache either, user must re-login when back online
       }
     }
     loading = false;

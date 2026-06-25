@@ -136,6 +136,86 @@ def _profile_payload(user):
 # ──────────────────────────────────────────────────────────────────────────
 @csrf_exempt
 @require_http_methods(['POST'])
+def face_login_api(request):
+    """
+    POST /api/v1/auth/face-login
+    Body: { "image": "<base64 JPEG>" }
+    Returns: { "ok": true, "token": "...", "user": {...} }
+
+    Uses the central InsightFace DB — no local OS biometrics.
+    """
+    import numpy as np
+    import cv2
+    from .views import match_face_from_db, FACE_ENGINE_AVAILABLE, NUMPY_AVAILABLE, CV2_AVAILABLE, _fe
+
+    try:
+        payload = json.loads(request.body or '{}')
+    except json.JSONDecodeError:
+        return JsonResponse({'ok': False, 'message': 'طلب غير صالح'}, status=400)
+
+    b64_data = payload.get('image') or ''
+    if not b64_data:
+        return JsonResponse({'ok': False, 'message': 'لم يتم إرسال صورة'}, status=400)
+
+    # Strip data-URL prefix if present
+    if ',' in b64_data:
+        b64_data = b64_data.split(',', 1)[1]
+    b64_data = b64_data.strip().replace(' ', '+')
+    pad = 4 - len(b64_data) % 4
+    if pad != 4:
+        b64_data += '=' * pad
+
+    try:
+        img_bytes = base64.b64decode(b64_data)
+    except Exception:
+        return JsonResponse({'ok': False, 'message': 'بيانات الصورة غير صالحة'}, status=400)
+
+    if not (FACE_ENGINE_AVAILABLE and NUMPY_AVAILABLE and CV2_AVAILABLE):
+        return JsonResponse({'ok': False, 'message': 'محرك التعرف على الوجه غير متاح'}, status=503)
+
+    try:
+        img_arr = cv2.imdecode(np.frombuffer(img_bytes, dtype=np.uint8), cv2.IMREAD_COLOR)
+        if img_arr is None:
+            return JsonResponse({'ok': False, 'message': 'تعذّر فك تشفير الصورة'}, status=400)
+        live_encoding = _fe.encode(img_arr[:, :, ::-1])  # BGR→RGB
+    except Exception as e:
+        return JsonResponse({'ok': False, 'message': 'خطأ في معالجة الصورة'}, status=500)
+
+    if live_encoding is None:
+        return JsonResponse({'ok': False, 'code': 'no_face', 'message': 'لم يُكتشف وجه — قرّب وجهك من الكاميرا'})
+
+    matched_name, matched_type, matched_pk = match_face_from_db(live_encoding)
+
+    if not matched_name:
+        return JsonResponse({'ok': False, 'code': 'face_not_registered',
+                             'message': 'الوجه غير مسجل — سجّل الدخول بكلمة المرور'})
+
+    # Resolve auth user from match
+    auth_user = None
+    if matched_type == 'student':
+        person = Student.objects.filter(pk=matched_pk).select_related('auth_user').first()
+        if person:
+            auth_user = person.auth_user
+    else:
+        person = Teacher.objects.filter(pk=matched_pk).select_related('auth_user').first()
+        if person:
+            auth_user = person.auth_user
+
+    if not auth_user:
+        return JsonResponse({'ok': False, 'message': 'الوجه معروف لكن لا يوجد حساب مرتبط — راجع الإدارة'})
+
+    if not auth_user.is_active:
+        return JsonResponse({'ok': False, 'message': 'الحساب معطّل'}, status=403)
+
+    return JsonResponse({
+        'ok': True,
+        'token': make_token(auth_user),
+        'user': _profile_payload(auth_user),
+    })
+
+
+@csrf_exempt
+@require_http_methods(['POST'])
 def login(request):
     try:
         payload = json.loads(request.body or '{}')
