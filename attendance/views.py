@@ -857,72 +857,102 @@ def export_teachers_csv(request):
 
 @login_required
 def upload_face(request, user_type, user_id):
-    """Upload a face image and store embedding."""
-    # Only staff/admin may manage face embeddings for arbitrary users.
-    if not (request.user.is_staff or request.user.is_superuser):
+    """Upload a face image and store embedding + noise-augmented extras.
+
+    Access: admin/staff OR coordinator (students in their college only).
+    Redirects to bulk_enroll page which is the canonical UI for this flow.
+    """
+    is_admin = request.user.is_staff or request.user.is_superuser
+    coord = Coordinator.objects.filter(auth_user=request.user).first()
+
+    if not is_admin and not coord:
         messages.error(request, 'غير مصرح.')
         return _redirect_by_role(request)
 
-    # Load the person for context
+    # Load the person and enforce coordinator college scope
     person = None
     if user_type == 'teacher':
         person = get_object_or_404(Teacher, pk=user_id)
+        if coord and not is_admin:
+            # Coordinators can only enroll teachers in their college
+            if getattr(person, 'college', None) != coord.college:
+                messages.error(request, 'غير مصرح — الأستاذ خارج نطاق كليتك.')
+                return _redirect_by_role(request)
     elif user_type == 'student':
         person = get_object_or_404(Student, pk=user_id)
+        if coord and not is_admin:
+            if getattr(person, 'college', None) != coord.college:
+                messages.error(request, 'غير مصرح — الطالب خارج نطاق كليتك.')
+                return _redirect_by_role(request)
 
     if request.method == 'GET':
-        return render(request, 'attendance/upload_face.html', {
-            'person': person,
-            'user_type': user_type,
-            'user_id': user_id,
-        })
+        # Redirect to the new unified enrollment UI
+        return redirect(reverse('enroll_face_person', args=[user_type, user_id]))
 
     if request.method == 'POST' and request.FILES.get('face_image'):
         img_file = request.FILES['face_image']
         face_enrolled = False
-        if user_type == 'student':
-            obj = get_object_or_404(Student, pk=user_id)
-            obj.face_image = img_file
-            obj.save(update_fields=['face_image'])
-            if FACE_ENGINE_AVAILABLE and NUMPY_AVAILABLE:
-                try:
-                    import cv2 as _cv2
-                    raw = np.frombuffer(open(obj.face_image.path, 'rb').read(), dtype=np.uint8)
-                    img = _cv2.imdecode(raw, _cv2.IMREAD_COLOR)
-                    if img is not None:
-                        enc = _fe.encode(img[:, :, ::-1])  # BGR→RGB
-                        if enc:
-                            StudentFaceEmbedding.objects.update_or_create(
-                                student=obj, defaults={'embedding': enc}
-                            )
-                            load_known_faces()
-                            face_enrolled = True
-                except Exception as e:
-                    logger.warning('Face encoding error: %s', e)
-        elif user_type == 'teacher':
-            obj = get_object_or_404(Teacher, pk=user_id)
-            obj.face_image = img_file
-            obj.save(update_fields=['face_image'])
-            if FACE_ENGINE_AVAILABLE and NUMPY_AVAILABLE:
-                try:
-                    import cv2 as _cv2
-                    raw = np.frombuffer(open(obj.face_image.path, 'rb').read(), dtype=np.uint8)
-                    img = _cv2.imdecode(raw, _cv2.IMREAD_COLOR)
-                    if img is not None:
-                        enc = _fe.encode(img[:, :, ::-1])
-                        if enc:
-                            TeacherFaceEmbedding.objects.update_or_create(
-                                teacher=obj, defaults={'face_vector': enc}
-                            )
-                            load_known_faces()
-                            face_enrolled = True
-                except Exception as e:
-                    logger.warning('Face encoding error: %s', e)
+
+        if not FACE_ENGINE_AVAILABLE or not NUMPY_AVAILABLE or not CV2_AVAILABLE:
+            messages.error(request, 'محرك التعرف على الوجه غير متوفر على الخادم.')
+            return redirect(reverse('bulk_enroll'))
+
+        try:
+            import cv2 as _cv2
+            # Read file bytes directly — no disk path dependency
+            file_bytes = np.frombuffer(img_file.read(), dtype=np.uint8)
+            img = _cv2.imdecode(file_bytes, _cv2.IMREAD_COLOR)
+            if img is None:
+                raise ValueError('الصورة غير صالحة أو تالفة')
+
+            enc = _fe.encode(img[:, :, ::-1])  # BGR→RGB
+            if not enc:
+                raise ValueError('لم يتم اكتشاف وجه — تأكد أن الوجه ظاهر بوضوح وغير محجوب')
+
+            # Generate 4 noise-augmented extras for robustness (same as bulk_enroll_view)
+            emb_arr = np.array(enc, dtype=np.float32)
+            extras = []
+            for _ in range(4):
+                noisy = emb_arr + np.random.normal(0, 0.018, emb_arr.shape).astype(np.float32)
+                n = np.linalg.norm(noisy)
+                if n > 0:
+                    noisy /= n
+                extras.append(noisy.tolist())
+
+            if user_type == 'student':
+                obj = get_object_or_404(Student, pk=user_id)
+                emb, created = StudentFaceEmbedding.objects.get_or_create(
+                    student=obj, defaults={'embedding': enc, 'extra_embeddings': extras}
+                )
+                if not created:
+                    emb.embedding = enc
+                    emb.extra_embeddings = extras
+                    emb.save()
+            else:
+                obj = get_object_or_404(Teacher, pk=user_id)
+                emb, created = TeacherFaceEmbedding.objects.get_or_create(
+                    teacher=obj, defaults={'face_vector': enc, 'extra_embeddings': extras}
+                )
+                if not created:
+                    emb.face_vector = enc
+                    emb.extra_embeddings = extras
+                    emb.save()
+
+            load_known_faces()
+            log_audit(request, 'ENROLL_FACE', user_type.capitalize(),
+                      user_id, f'upload_face enrolled: {person.name if person else user_id}')
+            face_enrolled = True
+
+        except ValueError as ve:
+            messages.warning(request, str(ve))
+        except Exception as e:
+            logger.error('upload_face error: %s', e, exc_info=True)
+            messages.error(request, f'خطأ أثناء معالجة الصورة: {e}')
+
         if face_enrolled:
-            messages.success(request, 'تم رفع الصورة وتسجيل بصمة الوجه بنجاح.')
-        else:
-            messages.warning(request, 'تم رفع الصورة لكن لم يتم اكتشاف وجه — تأكد أن الوجه واضح في الصورة وأعد الرفع.')
-    return _redirect_by_role(request)
+            messages.success(request, f'✓ تم تسجيل بصمة الوجه لـ {person.name if person else ""} بنجاح ({_fe.embedding_dim()}-dim + 4 زوايا إضافية).')
+
+    return redirect(reverse('bulk_enroll'))
 
 
 @login_required
@@ -1751,9 +1781,11 @@ def enroll_face(request, person_type=None, person_id=None):
 
 @login_required
 def bulk_enroll_view(request):
-    """Admin page: upload a photo directly to enroll any student or teacher."""
-    if not request.user.is_staff:
-        return redirect('admin_panel')
+    """Admin/Coordinator page: upload a photo or use camera to enroll any student or teacher."""
+    is_admin = request.user.is_staff or request.user.is_superuser
+    is_coordinator = Coordinator.objects.filter(auth_user=request.user).exists()
+    if not is_admin and not is_coordinator:
+        return redirect('student_dashboard')
 
     result = None
 
@@ -1778,7 +1810,7 @@ def bulk_enroll_view(request):
 
                 enc = _fe.encode(img_rgb)
                 if not enc:
-                    raise ValueError('لم يتم اكتشاف وجه — تأكد من وضوح الوجه والإضاءة الجيدة')
+                    raise ValueError('لم يتم اكتشاف وجه — تأكد من أن الوجه ظاهر بوضوح وغير محجوب')
 
                 # Generate 4 noise-augmented extras for robustness
                 emb_arr = np.array(enc, dtype=np.float32)
@@ -1838,6 +1870,58 @@ def bulk_enroll_view(request):
         'result': result,
         'engine': _fe.active_engine(),
         'dim': _fe.embedding_dim(),
+        'is_admin': is_admin,
+    })
+
+
+@login_required
+def face_audit_view(request):
+    """Admin-only: audit face embeddings vs current engine dimensions."""
+    if not (request.user.is_staff or request.user.is_superuser):
+        return JsonResponse({'error': 'forbidden'}, status=403)
+
+    eng_dim = _fe.embedding_dim()
+    eng_name = _fe.active_engine()
+
+    student_ok, student_bad, student_none = [], [], []
+    for emb in StudentFaceEmbedding.objects.select_related('student').all():
+        v = list(emb.embedding or [])
+        if not v:
+            student_none.append({'id': emb.student_id, 'name': emb.student.name})
+        elif len(v) != eng_dim:
+            student_bad.append({'id': emb.student_id, 'name': emb.student.name,
+                                'dim': len(v), 'expected': eng_dim})
+        else:
+            student_ok.append(emb.student_id)
+
+    teacher_ok, teacher_bad, teacher_none = [], [], []
+    for emb in TeacherFaceEmbedding.objects.select_related('teacher').all():
+        v = list(emb.face_vector or [])
+        if not v:
+            teacher_none.append({'id': emb.teacher_id, 'name': emb.teacher.name})
+        elif len(v) != eng_dim:
+            teacher_bad.append({'id': emb.teacher_id, 'name': emb.teacher.name,
+                                'dim': len(v), 'expected': eng_dim})
+        else:
+            teacher_ok.append(emb.teacher_id)
+
+    return JsonResponse({
+        'engine': eng_name,
+        'expected_dim': eng_dim,
+        'engine_available': _fe.available(),
+        'students': {
+            'ok': len(student_ok),
+            'mismatch': student_bad,
+            'empty': student_none,
+        },
+        'teachers': {
+            'ok': len(teacher_ok),
+            'mismatch': teacher_bad,
+            'empty': teacher_none,
+        },
+        'total_mismatch': len(student_bad) + len(teacher_bad),
+        'action_required': (len(student_bad) + len(teacher_bad)) > 0,
+        'fix_command': 'python manage.py reenroll_faces' if (student_bad or teacher_bad) else None,
     })
 
 
@@ -4234,8 +4318,9 @@ def face_login(request):
                     if img_arr is not None:
                         enc = _fe.encode(img_arr[:, :, ::-1])  # BGR→RGB
                         live_encoding = enc
-            except Exception:
-                return JsonResponse({'status': 'error', 'message': 'تعذر تحليل الصورة — تأكد من وضوح الإضاءة وأن الوجه ظاهر بوضوح'})
+            except Exception as _enc_err:
+                logger.error('face_login encode error: %s', _enc_err, exc_info=True)
+                return JsonResponse({'status': 'error', 'message': 'تعذر معالجة الصورة — أعد المحاولة'})
 
             if live_encoding is None:
                 return JsonResponse({'status': 'error', 'message': 'لم يتم اكتشاف وجه — ضع وجهك أمام الكاميرا مباشرة'})

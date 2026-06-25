@@ -1,0 +1,138 @@
+syntax = "proto3";
+
+package shamel;
+
+// Face recognition service — replaces HTTP polling for embedded clients (Flutter).
+// Browser clients continue to use the HTTP endpoints (gRPC-web requires Envoy proxy).
+
+service FaceService {
+  // Gate entry: match face, log GateLog, return person info
+  rpc ScanGate(FrameRequest) returns (GateScanResponse);
+
+  // Lecture attendance: match face against enrolled course students
+  rpc ScanLecture(LectureFrameRequest) returns (LectureScanResponse);
+
+  // Face login: match face, return auth token
+  rpc LoginFace(FrameRequest) returns (LoginResponse);
+
+  // Face enrollment: store embedding for a person
+  rpc EnrollFace(EnrollRequest) returns (EnrollResponse);
+
+  // Live gate event stream (replaces WebSocket for native clients)
+  rpc LiveGateFeed(LiveFeedRequest) returns (stream GateEvent);
+
+  // Check engine status and DB embedding health
+  rpc HealthCheck(HealthRequest) returns (HealthResponse);
+}
+
+// ─── Common ───────────────────────────────────────────────
+message FrameRequest {
+  bytes image_data   = 1;  // JPEG/PNG raw bytes
+  string csrf_token  = 2;  // not used for gRPC (kept for compat)
+  string auth_token  = 3;  // Bearer token for authentication
+}
+
+message LectureFrameRequest {
+  bytes  image_data    = 1;
+  string auth_token    = 2;
+  int32  session_id    = 3;
+}
+
+message BoundingBox {
+  float x1 = 1;
+  float y1 = 2;
+  float x2 = 3;
+  float y2 = 4;
+}
+
+// ─── Gate Scan ────────────────────────────────────────────
+message PersonInfo {
+  string name         = 1;
+  string type         = 2;  // "student" | "teacher"
+  bool   allowed      = 3;
+  string deny_reason  = 4;
+  bool   cooldown     = 5;
+  string student_code = 6;
+  string phone        = 7;
+  bool   registered   = 8;
+  bool   fees_paid    = 9;
+}
+
+message FaceResult {
+  bool       matched = 1;
+  BoundingBox bbox   = 2;
+  PersonInfo person  = 3;  // only set when matched=true
+}
+
+message GateScanResponse {
+  bool   ok            = 1;
+  bool   detected      = 2;
+  string error         = 3;
+  repeated FaceResult results = 4;
+  int32  frame_width   = 5;
+  int32  frame_height  = 6;
+}
+
+// ─── Lecture Scan ──────────────────────────────────────────
+message LecturePersonResult {
+  string name         = 1;
+  string type         = 2;
+  bool   matched      = 3;
+  bool   already_logged = 4;
+  BoundingBox bbox    = 5;
+}
+
+message LectureScanResponse {
+  bool   ok            = 1;
+  bool   detected      = 2;
+  string error         = 3;
+  repeated LecturePersonResult results = 4;
+}
+
+// ─── Face Login ───────────────────────────────────────────
+message LoginResponse {
+  bool   success      = 1;
+  string name         = 2;
+  string redirect_url = 3;
+  string error        = 4;
+  string session_key  = 5;  // Django session key for web; auth token for Flutter
+}
+
+// ─── Enrollment ──────────────────────────────────────────
+message EnrollRequest {
+  bytes  image_data   = 1;
+  string auth_token   = 2;
+  string person_type  = 3;  // "student" | "teacher"
+  int32  person_id    = 4;
+  int32  angle_index  = 5;  // 0=front, 1-4=extra angles
+}
+
+message EnrollResponse {
+  bool   success      = 1;
+  string error        = 2;
+  int32  angle_index  = 3;
+}
+
+// ─── Live Gate Feed ───────────────────────────────────────
+message LiveFeedRequest {
+  string auth_token = 1;
+}
+
+message GateEvent {
+  string person_name  = 1;
+  string status       = 2;  // "Allowed" | "Denied"
+  string timestamp    = 3;  // ISO 8601
+  string person_type  = 4;
+}
+
+// ─── Health Check ─────────────────────────────────────────
+message HealthRequest {}
+
+message HealthResponse {
+  bool   engine_available  = 1;
+  string engine_name       = 2;
+  int32  student_embeddings = 3;
+  int32  teacher_embeddings = 4;
+  int32  dim_mismatch_count = 5;  // embeddings with wrong dimension for current engine
+  string engine_dim        = 6;   // expected embedding dimension
+}

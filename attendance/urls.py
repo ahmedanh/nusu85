@@ -171,6 +171,7 @@ path('admin-panel/dean-evaluation/', views.dean_evaluation_dashboard, name='dean
     path('enroll-face/', views.enroll_face, name='enroll_face'),
     path('enroll-face/<str:person_type>/<int:person_id>/', views.enroll_face, name='enroll_face_person'),
     path('admin-panel/bulk-enroll/', views.bulk_enroll_view, name='bulk_enroll'),
+    path('admin-panel/face-audit/', views.face_audit_view, name='face_audit'),
     path('detect-face/', views.detect_face_api, name='detect_face_api'),
     path('user/<str:user_type>/<int:user_id>/upload-face/', views.upload_face, name='upload_face'),
 

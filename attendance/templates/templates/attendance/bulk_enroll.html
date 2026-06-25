@@ -15,13 +15,35 @@
   <!-- Header -->
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
     <div>
-      <h1 class="text-2xl font-extrabold font-headline" style="color:var(--s-text);">تسجيل الوجوه الجماعي</h1>
-      <p class="text-sm mt-0.5" style="color:var(--s-text-3);">ارفع صورة وجه مباشرة لأي طالب أو أستاذ — بديل سريع عن التسجيل بالكاميرا</p>
+      <h1 class="text-2xl font-extrabold font-headline" style="color:var(--s-text);">تسجيل الوجوه — البيومترية</h1>
+      <p class="text-sm mt-0.5" style="color:var(--s-text-3);">ارفع صورة أو استخدم الكاميرا لتسجيل بصمة الوجه لأي طالب أو أستاذ</p>
     </div>
-    <a href="{% url 'enroll_face' %}" class="btn-gold inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm">
-      <span class="material-symbols-outlined text-base">videocam</span>
-      التسجيل بالكاميرا
-    </a>
+    <div class="flex gap-2">
+      {% if is_admin %}
+      <a href="{% url 'face_audit' %}" target="_blank"
+         class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold border"
+         style="border-color:var(--s-border);color:var(--s-text-2);background:var(--s-surface-alt);">
+        <span class="material-symbols-outlined text-base">health_and_safety</span>
+        مراجعة قاعدة البيانات
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Enrollment mode tabs -->
+  <div class="flex gap-1 p-1 rounded-xl w-fit" style="background:var(--s-surface-alt);border:1px solid var(--s-border);">
+    <button id="tab-upload-btn" onclick="switchMode('upload')"
+      class="px-5 py-2 rounded-lg text-sm font-bold transition-all"
+      style="background:var(--s-surface);color:var(--s-text);box-shadow:0 1px 3px rgba(0,0,0,.1);">
+      <span class="material-symbols-outlined text-base align-middle">upload_file</span>
+      رفع صورة
+    </button>
+    <button id="tab-camera-btn" onclick="switchMode('camera')"
+      class="px-5 py-2 rounded-lg text-sm font-bold transition-all"
+      style="color:var(--s-text-3);">
+      <span class="material-symbols-outlined text-base align-middle">videocam</span>
+      كاميرا مباشرة (5 زوايا)
+    </button>
   </div>
 
   <!-- Stats row -->
@@ -63,7 +85,68 @@
   </div>
   {% endif %}
 
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <!-- Camera mode: select person then redirect to enroll_face -->
+  <div id="panel-camera" class="hidden bg-white rounded-2xl p-6 shadow-sm" style="border:1px solid var(--s-border);">
+    <h2 class="font-bold text-base mb-4 flex items-center gap-2" style="color:var(--s-text);">
+      <span class="material-symbols-outlined text-xl" style="color:var(--s-gold);">videocam</span>
+      تسجيل بالكاميرا المباشرة — 5 زوايا
+    </h2>
+    <p class="text-sm mb-4" style="color:var(--s-text-3);">اختر الشخص ثم سيُفتح شاشة التسجيل التفاعلية بالكاميرا مع توجيه لكل زاوية.</p>
+
+    <div class="space-y-4">
+      <div>
+        <label class="label-xs">نوع الشخص</label>
+        <div class="flex gap-2 mt-1">
+          <label class="flex-1 flex items-center gap-2 p-3 rounded-xl cursor-pointer border-2 transition-all"
+                 id="cam-tab-student" style="border-color:var(--s-gold);background:var(--s-gold-dim);">
+            <input type="radio" name="cam_person_type" value="student" id="cam-pt-student" checked
+                   class="hidden" onchange="camSwitchType('student')">
+            <span class="material-symbols-outlined text-sm" style="color:var(--s-gold);">school</span>
+            <span class="font-bold text-sm" style="color:var(--s-gold);">طالب</span>
+          </label>
+          <label class="flex-1 flex items-center gap-2 p-3 rounded-xl cursor-pointer border-2 transition-all"
+                 id="cam-tab-teacher" style="border-color:var(--s-border);background:var(--s-surface-alt);">
+            <input type="radio" name="cam_person_type" value="teacher" id="cam-pt-teacher"
+                   class="hidden" onchange="camSwitchType('teacher')">
+            <span class="material-symbols-outlined text-sm" style="color:var(--s-text-3);">person</span>
+            <span class="font-bold text-sm" style="color:var(--s-text-3);">أستاذ</span>
+          </label>
+        </div>
+      </div>
+
+      <div>
+        <label class="label-xs">البحث والاختيار</label>
+        <input type="text" id="cam-person-search" placeholder="ابحث بالاسم..." class="inp mb-2"
+               oninput="camFilterPersons(this.value)">
+        <select id="cam-person-select" class="inp" size="6"
+                style="height:auto;max-height:200px;overflow-y:auto;border-radius:.75rem;">
+          <optgroup label="— الطلاب —" id="cam-students-group">
+            {% for s in students %}
+            <option value="{{ s.pk }}" data-type="student">
+              {% if s.pk in enrolled_s %}✓ {% endif %}{{ s.name }}
+              {% if s.student_id %} ({{ s.student_id }}){% endif %}
+            </option>
+            {% endfor %}
+          </optgroup>
+          <optgroup label="— الأساتذة —" id="cam-teachers-group" style="display:none;">
+            {% for t in teachers %}
+            <option value="{{ t.pk }}" data-type="teacher">
+              {% if t.pk in enrolled_t %}✓ {% endif %}{{ t.name }}
+            </option>
+            {% endfor %}
+          </optgroup>
+        </select>
+      </div>
+
+      <button onclick="openCameraEnroll()"
+              class="btn-gold w-full py-3 rounded-xl font-bold text-base flex items-center justify-center gap-2">
+        <span class="material-symbols-outlined">face</span>
+        فتح شاشة التسجيل بالكاميرا
+      </button>
+    </div>
+  </div>
+
+  <div id="panel-upload" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
     <!-- Upload Form -->
     <div class="bg-white rounded-2xl p-6 shadow-sm" style="border:1px solid var(--s-border);">
@@ -245,9 +328,66 @@
     </div>
   </div>
 
+  </div>{# end panel-upload #}
+
 </div>
 
 <script>
+// ── Mode tabs ─────────────────────────────────────────────────────────────────
+function switchMode(mode) {
+  var panelUpload  = document.getElementById('panel-upload');
+  var panelCamera  = document.getElementById('panel-camera');
+  var btnUpload    = document.getElementById('tab-upload-btn');
+  var btnCamera    = document.getElementById('tab-camera-btn');
+  var activeStyle  = 'background:var(--s-surface);color:var(--s-text);box-shadow:0 1px 3px rgba(0,0,0,.1);';
+  var inactiveStyle= 'background:transparent;color:var(--s-text-3);box-shadow:none;';
+  if (mode === 'upload') {
+    panelUpload.classList.remove('hidden');
+    panelCamera.classList.add('hidden');
+    btnUpload.setAttribute('style', activeStyle);
+    btnCamera.setAttribute('style', inactiveStyle);
+  } else {
+    panelUpload.classList.add('hidden');
+    panelCamera.classList.remove('hidden');
+    btnCamera.setAttribute('style', activeStyle);
+    btnUpload.setAttribute('style', inactiveStyle);
+  }
+}
+
+// ── Camera-mode helpers ───────────────────────────────────────────────────────
+function camSwitchType(type) {
+  var sg   = document.getElementById('cam-students-group');
+  var tg   = document.getElementById('cam-teachers-group');
+  var tabS = document.getElementById('cam-tab-student');
+  var tabT = document.getElementById('cam-tab-teacher');
+  if (type === 'student') {
+    sg.style.display = ''; tg.style.display = 'none';
+    tabS.style.cssText = 'border-color:var(--s-gold);background:var(--s-gold-dim);';
+    tabT.style.cssText = 'border-color:var(--s-border);background:var(--s-surface-alt);';
+  } else {
+    sg.style.display = 'none'; tg.style.display = '';
+    tabT.style.cssText = 'border-color:var(--s-gold);background:var(--s-gold-dim);';
+    tabS.style.cssText = 'border-color:var(--s-border);background:var(--s-surface-alt);';
+  }
+  document.getElementById('cam-person-search').value = '';
+  camFilterPersons('');
+}
+
+function camFilterPersons(q) {
+  q = q.toLowerCase();
+  Array.from(document.getElementById('cam-person-select').options).forEach(function(opt) {
+    opt.style.display = (!q || opt.text.toLowerCase().includes(q)) ? '' : 'none';
+  });
+}
+
+function openCameraEnroll() {
+  var sel  = document.getElementById('cam-person-select');
+  var selEl = document.querySelector('input[name="cam_person_type"]:checked');
+  if (!sel.value) { alert('اختر شخصاً من القائمة أولاً'); return; }
+  var type = selEl ? selEl.value : 'student';
+  window.location.href = '/attendance/enroll-face/' + type + '/' + sel.value + '/';
+}
+
 function switchType(type) {
   var sg = document.getElementById('students-group');
   var tg = document.getElementById('teachers-group');

@@ -128,7 +128,8 @@ def encode(image: np.ndarray) -> list | None:
         app = _get_insightface()
         if app is None:
             return None
-        faces = app.get(image)
+        # _preprocess returns RGB; InsightFace expects BGR
+        faces = app.get(image[:, :, ::-1])
         if not faces:
             return None
         # pick the largest face
@@ -200,7 +201,8 @@ def encode_all(image: np.ndarray) -> list[dict]:
         if app is None:
             return []
         try:
-            faces = app.get(image)
+            # _preprocess returns RGB; InsightFace expects BGR
+            faces = app.get(image[:, :, ::-1])
             result = []
             for f in faces:
                 x1, y1, x2, y2 = [float(v) for v in f.bbox]
@@ -223,7 +225,8 @@ def detect(image: np.ndarray) -> list[dict]:
         if app is None:
             return []
         try:
-            faces = app.get(image)
+            # detect() receives RGB (same contract as encode); convert to BGR for InsightFace
+            faces = app.get(image[:, :, ::-1])
             result = []
             for f in faces:
                 x1, y1, x2, y2 = [float(v) for v in f.bbox]
