@@ -462,7 +462,7 @@ def health(request):
 # Place the APK at /static/apk/shamel-latest.apk before incrementing.
 APP_VERSION_CODE = 5          # integer — compare against Flutter build number
 APP_VERSION_NAME = '1.3.1'   # display string
-APP_VERSION_APK  = 'shamel-v1.2-production.apk'  # actual filename in /static/apk/
+APP_VERSION_APK  = 'shamel-v1.3-production.apk'  # actual filename in /static/apk/
 
 @require_http_methods(['GET'])
 def app_version(request):

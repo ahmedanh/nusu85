@@ -3,224 +3,469 @@
 
 {% block content %}
 <style>
-  /* ── Scan station responsive layout ── */
-  @keyframes scan-sweep { 0%,100%{top:10%} 50%{top:85%} }
-  .scan-line-anim { animation: scan-sweep 2.8s ease-in-out infinite; }
+  /* Scan station layout */
+  @keyframes scan-sweep { 0%,100%{top:8%} 50%{top:88%} }
 
-  @keyframes pulse-green {
-    0%{box-shadow:0 0 0 0 rgba(16,185,129,.45)}
-    70%{box-shadow:0 0 0 14px rgba(16,185,129,0)}
-    100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}
+  /* Camera column takes viewport height on desktop */
+  @media(min-width:1024px){
+    #scan-page-wrap { height: calc(100vh - 5rem); overflow: hidden; }
+    #scan-result-col { overflow-y: auto; }
   }
-  @keyframes pulse-red {
-    0%{box-shadow:0 0 0 0 rgba(239,68,68,.45)}
-    70%{box-shadow:0 0 0 14px rgba(239,68,68,0)}
-    100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}
+  /* Mobile: stacked, no overflow hidden */
+  @media(max-width:1023px){
+    #cam-col-inner { height: 60vw; min-height: 240px; max-height: 400px; }
   }
-  .ring-green { animation: pulse-green 1.4s infinite; }
-  .ring-red   { animation: pulse-red   1.4s infinite; }
-
-  /* Camera circle sizing — shrinks on small screens */
-  .cam-circle { width: 260px; height: 260px; }
-  @media(max-width:479px){ .cam-circle { width: 220px; height: 220px; } }
-  @media(min-width:1024px){ .cam-circle { width: 300px; height: 300px; } }
 </style>
 
+<!-- MediaPipe -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection@0.4/face_detection.js" crossorigin="anonymous"></script>
+
 <!-- ── Page wrapper ── -->
-<div class="flex flex-col lg:flex-row gap-4 lg:gap-0 lg:h-[calc(100vh-5rem)] lg:overflow-hidden">
+<div id="scan-page-wrap" class="flex flex-col lg:flex-row gap-0 bg-slate-950 rounded-2xl lg:rounded-none overflow-hidden shadow-2xl">
 
-  <!-- ══ LEFT / TOP: Camera & scanner ══ -->
-  <section class="flex-1 flex flex-col items-center pt-4 pb-6 px-4 lg:px-8 bg-white dark:bg-slate-900 rounded-2xl lg:rounded-none lg:overflow-y-auto border border-slate-100 dark:border-slate-800 lg:border-none shadow-sm lg:shadow-none">
+  <!-- ══ LEFT/TOP: Camera ══ -->
+  <div class="flex-1 bg-black relative flex flex-col">
 
-    <!-- Session + location info -->
-    <div class="w-full flex flex-wrap gap-3 mb-6">
-      <div class="flex items-center gap-3 bg-slate-50 dark:bg-slate-800 px-4 py-3 rounded-xl border border-slate-100 dark:border-slate-700 flex-1 min-w-0">
-        <span class="material-symbols-outlined text-primary text-xl shrink-0">book</span>
-        <div class="min-w-0">
-          <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">الجلسة الحالية</p>
-          <h1 class="font-extrabold text-slate-900 dark:text-white text-lg lg:text-2xl font-headline truncate">
-            {% if current_sched and current_sched.course %}{{ current_sched.course.name }}
-            {% else %}<span class="text-slate-400">مسح عام</span>{% endif %}
-          </h1>
+    <!-- Toolbar -->
+    <div class="flex items-center justify-between px-4 py-2.5 bg-slate-900/90 border-b border-white/10 shrink-0">
+      <div class="flex items-center gap-2">
+        <div id="status-badge" class="flex items-center gap-1.5 text-xs font-bold text-slate-400 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700">
+          <span class="w-2 h-2 rounded-full bg-slate-500" id="status-dot"></span>
+          <span id="status-text">مُغلق</span>
         </div>
       </div>
-      <div class="flex items-center gap-3 bg-emerald-50 dark:bg-emerald-900/20 px-4 py-3 rounded-xl border border-emerald-100 dark:border-emerald-800 shrink-0">
-        <span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-xl">location_on</span>
-        <div>
-          <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-600/60 mb-0.5">القاعة</p>
-          <p class="font-bold text-slate-800 dark:text-slate-200 text-sm">{{ current_sched.classroom.name|default:"—" }}</p>
+      <div class="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider hidden md:flex">
+        <span class="material-symbols-outlined text-primary text-sm">book</span>
+        {% if active_sessions %}
+          {{ active_sessions|length }} جلسة نشطة
+        {% else %}
+          مسح عام
+        {% endif %}
+      </div>
+      <button id="toggle-btn" onclick="toggleCamera()"
+              class="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-1.5 rounded-lg transition-all">
+        <span class="material-symbols-outlined text-base" id="toggle-icon">play_circle</span>
+        <span id="toggle-label">تشغيل</span>
+      </button>
+    </div>
+
+    <!-- Camera viewport -->
+    <div id="cam-col-inner" class="flex-1 relative overflow-hidden">
+      <!-- Webcam (hidden — source for canvas) -->
+      <video id="webcam" autoplay playsinline muted class="absolute inset-0 w-full h-full object-cover opacity-0 pointer-events-none"></video>
+
+      <!-- Canvas — mirrored, with face boxes -->
+      <canvas id="scan-canvas" class="absolute inset-0 w-full h-full object-cover"></canvas>
+
+      <!-- Scan line -->
+      <div id="scan-line" class="hidden absolute inset-x-0 h-[2px] bg-emerald-400/60 z-20 pointer-events-none"
+           style="top:10%;animation:scan-sweep 2.8s ease-in-out infinite;box-shadow:0 0 8px rgba(16,185,129,0.6)"></div>
+
+      <!-- Idle placeholder -->
+      <div id="cam-ph" class="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-slate-950">
+        <span class="material-symbols-outlined text-slate-700 text-[80px]">videocam_off</span>
+        <p class="text-slate-500 text-sm font-semibold">الكاميرا مُغلقة</p>
+        <p class="text-slate-600 text-xs">اضغط "تشغيل" للبدء</p>
+      </div>
+
+      <!-- Flash overlay -->
+      <div id="face-flash" class="hidden absolute inset-0 pointer-events-none rounded-none border-4 transition-all duration-300"></div>
+    </div>
+  </div>
+
+  <!-- ══ RIGHT/BOTTOM: Result & logs ══ -->
+  <div id="scan-result-col" class="w-full lg:w-96 bg-slate-900 border-t lg:border-t-0 lg:border-r border-white/10 flex flex-col">
+
+    <!-- Identity result area -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+
+      <!-- IDLE -->
+      <div id="idle-panel" class="flex-1 flex flex-col items-center justify-center p-8 text-center">
+        <div class="w-20 h-20 rounded-3xl bg-slate-800 flex items-center justify-center mb-5">
+          <span class="material-symbols-outlined text-slate-600 text-4xl">face_unlock</span>
         </div>
+        <p class="font-semibold text-slate-400 text-sm">في انتظار مسح الوجه</p>
+        <p class="text-xs text-slate-600 mt-1">شغّل الكاميرا للبدء</p>
       </div>
-    </div>
 
-    <!-- Camera circle -->
-    <div class="relative flex items-center justify-center mb-5">
-      <!-- Spinning dashed ring -->
-      <div id="scanner-border"
-           class="absolute rounded-full border-2 border-dashed border-primary/20"
-           style="width:calc(100% + 24px);height:calc(100% + 24px);animation:spin 60s linear infinite"></div>
-
-      <div class="cam-circle rounded-full overflow-hidden bg-slate-950 shadow-2xl relative" id="cam-wrap">
-        <!-- MJPEG stream from server -->
-        <img id="main-video-stream"
-             src="{% url 'video_feed' %}"
-             class="absolute inset-0 w-full h-full object-cover z-0"
-             alt="video">
-        <!-- Scan line -->
-        <div class="absolute inset-x-0 h-[2px] bg-emerald-400/70 scan-line-anim z-20
-                    shadow-[0_0_8px_rgba(16,185,129,0.7)]"></div>
-        <!-- Subtle inner border -->
-        <div class="absolute inset-0 rounded-full border-4 border-primary/10 z-10 pointer-events-none"></div>
-      </div>
-    </div>
-
-    <!-- Camera source selector -->
-    <div class="mb-4 text-center">
-      <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">مصدر الكاميرا</label>
-      <select id="camera-select" onchange="updateCamera()"
-              class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 text-sm rounded-xl px-4 py-2 shadow-sm outline-none focus:ring-2 focus:ring-primary/20 w-56 text-center">
-        {% for cam in camera_sources %}
-        <option value="{{ cam.id }}">{{ cam.name }} — {{ cam.location }}</option>
-        {% empty %}
-        <option value="0">كاميرا 0 (افتراضي)</option>
-        <option value="1">كاميرا 1 (USB)</option>
-        <option value="2">كاميرا 2 (USB)</option>
-        {% endfor %}
-      </select>
-    </div>
-
-    <!-- Status badge -->
-    <div id="scanner-info" class="text-[11px] font-bold text-primary animate-pulse tracking-[0.35em] uppercase mb-5">
-      النظام نشط
-    </div>
-
-    <!-- Refresh button -->
-    <button onclick="window.location.reload()"
-            class="flex items-center gap-2 bg-slate-900 dark:bg-slate-700 text-white px-6 py-2.5 rounded-xl shadow hover:bg-primary transition-all active:scale-95 text-sm font-bold">
-      <span class="material-symbols-outlined text-base">qr_code_scanner</span>
-      مسح الآن
-    </button>
-  </section>
-
-  <!-- ══ RIGHT / BOTTOM: Recent scans & stats ══ -->
-  <aside class="w-full lg:w-96 flex flex-col bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 lg:border-y-0 lg:border-l lg:border-r-0 rounded-2xl lg:rounded-none shadow-sm lg:shadow-none">
-
-    <!-- Header -->
-    <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-700 shrink-0">
-      <h2 class="font-bold text-slate-800 dark:text-slate-100 text-base flex items-center gap-2">
-        <span class="material-symbols-outlined text-primary text-lg">history</span>
-        آخر عمليات المسح
-      </h2>
-    </div>
-
-    <!-- Scans list -->
-    <div id="recent-scans-list" class="flex-1 overflow-y-auto px-4 py-3 space-y-2"
-         style="max-height:320px; lg:max-height:none">
-      <p class="text-sm text-slate-400 italic py-2">في انتظار البيانات...</p>
-    </div>
-
-    <!-- AI stats card -->
-    <div class="m-4 bg-slate-900 dark:bg-slate-800 text-white rounded-2xl shadow-xl p-5 relative overflow-hidden shrink-0">
-      <div class="absolute -left-3 -bottom-3 opacity-10">
-        <span class="material-symbols-outlined" style="font-size:5rem">analytics</span>
-      </div>
-      <div class="flex items-center justify-between mb-4 relative z-10">
-        <div class="flex items-center gap-2">
-          <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
-          <span class="text-[10px] font-bold uppercase tracking-widest text-emerald-400/80">محرك الذكاء نشط</span>
+      <!-- SCANNING -->
+      <div id="scanning-panel" class="hidden flex-1 flex flex-col items-center justify-center p-8 text-center">
+        <div class="w-20 h-20 rounded-full border-2 border-dashed border-slate-600 flex items-center justify-center mb-5 animate-spin" style="animation-duration:6s">
+          <span class="material-symbols-outlined text-slate-500 text-4xl" style="animation:none">face</span>
         </div>
-        <span id="total-attendance"
-              class="text-[10px] font-bold bg-white/10 px-2 py-1 rounded-lg border border-white/10">
-          0 حضور
-        </span>
+        <p class="font-semibold text-slate-400 text-sm animate-pulse">جاري البحث عن وجه...</p>
       </div>
-      <div class="relative z-10">
-        <div class="flex justify-between text-xs mb-1.5">
-          <span class="text-slate-400">دقة التطابق</span>
-          <span class="font-mono font-bold text-emerald-400">99.8%</span>
+
+      <!-- RESULT -->
+      <div id="result-panel" class="hidden flex-1 flex flex-col p-4 gap-3 overflow-y-auto">
+        <!-- Access banner -->
+        <div id="access-banner" class="rounded-2xl px-5 py-4 flex items-center gap-4">
+          <div id="access-icon-wrap" class="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0">
+            <span id="access-icon" class="material-symbols-outlined text-3xl fill-icon">check_circle</span>
+          </div>
+          <div>
+            <p id="access-label" class="font-extrabold text-xl font-headline">مؤهل للدخول</p>
+            <p id="access-type" class="text-sm opacity-70 mt-0.5">—</p>
+          </div>
         </div>
-        <div class="h-1.5 bg-white/10 rounded-full overflow-hidden">
-          <div class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full"
-               style="width:99%;box-shadow:0 0 10px rgba(16,185,129,0.5)"></div>
+        <p id="deny-reason" class="hidden text-sm font-bold text-red-400 bg-red-900/30 rounded-xl px-4 py-3 border border-red-800"></p>
+        <div class="grid grid-cols-2 gap-2">
+          <div class="bg-slate-800 rounded-xl p-3 col-span-2">
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">الاسم</p>
+            <p id="res-name" class="font-extrabold text-white text-lg font-headline">—</p>
+          </div>
+          <div class="bg-slate-800 rounded-xl p-3">
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">الرقم</p>
+            <p id="res-code" class="font-bold text-white text-sm font-mono">—</p>
+          </div>
+          <div class="bg-slate-800 rounded-xl p-3">
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">الهاتف</p>
+            <p id="res-phone" class="font-bold text-white text-sm">—</p>
+          </div>
         </div>
       </div>
     </div>
-  </aside>
+
+    <!-- Log strip -->
+    <div class="border-t border-white/10 shrink-0" style="max-height:220px">
+      <div class="flex items-center justify-between px-4 py-2 border-b border-white/5">
+        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">آخر الأحداث</p>
+        <span class="text-[10px] text-slate-600" id="log-count">0 مسح</span>
+      </div>
+      <ul id="log-list" class="overflow-y-auto divide-y divide-white/5" style="max-height:170px">
+        <li class="px-4 py-3 text-xs text-slate-600 italic">لا توجد أحداث بعد.</li>
+      </ul>
+    </div>
+  </div>
 </div>
 
+<!-- Toast stack -->
+<div id="toast-stack" class="fixed bottom-6 left-1/2 -translate-x-1/2 flex flex-col gap-2 z-50 pointer-events-none" style="min-width:320px;max-width:480px"></div>
+
 <script>
-function updateCamera() {
-  const src = document.getElementById('camera-select').value;
-  document.getElementById('main-video-stream').src = `/attendance/video_feed/?source=${src}`;
+const DETECT_URL   = '{% url "detect_face_api" %}';
+const SCAN_URL     = '{% url "gate_scan_api" %}';
+const CSRF = () => {
+  const m = document.cookie.match('(^|;)\\s*csrftoken\\s*=\\s*([^;]+)');
+  return m ? decodeURIComponent(m[2]) : '{{ csrf_token }}';
+};
+
+const webcam      = document.getElementById('webcam');
+const scanCanvas  = document.getElementById('scan-canvas');
+const ctx         = scanCanvas.getContext('2d');
+const camPh       = document.getElementById('cam-ph');
+const scanLine    = document.getElementById('scan-line');
+const toggleBtn   = document.getElementById('toggle-btn');
+const toggleIcon  = document.getElementById('toggle-icon');
+const toggleLabel = document.getElementById('toggle-label');
+const statusDot   = document.getElementById('status-dot');
+const statusText  = document.getElementById('status-text');
+const idlePanel   = document.getElementById('idle-panel');
+const scanPanel   = document.getElementById('scanning-panel');
+const resultPanel = document.getElementById('result-panel');
+const faceFlash   = document.getElementById('face-flash');
+const logList     = document.getElementById('log-list');
+const logCount    = document.getElementById('log-count');
+
+let isOn          = false;
+let detectTimer   = null;
+let drawFrame     = null;
+let lastFaces     = [];
+let stableCount   = 0;
+let matchLock     = false;
+let matchCooldown = false;
+let unknownCooldown = false;
+let scanCount     = 0;
+
+// ── Draw loop ────────────────────────────────────────────────────────────────
+function drawLoop() {
+  if (!webcam.srcObject) return;
+  scanCanvas.width  = webcam.videoWidth  || scanCanvas.clientWidth;
+  scanCanvas.height = webcam.videoHeight || scanCanvas.clientHeight;
+
+  ctx.save();
+  ctx.translate(scanCanvas.width, 0);
+  ctx.scale(-1, 1);
+  ctx.drawImage(webcam, 0, 0, scanCanvas.width, scanCanvas.height);
+  ctx.restore();
+
+  const sw = scanCanvas.width  / (webcam.videoWidth  || scanCanvas.width);
+  const sh = scanCanvas.height / (webcam.videoHeight || scanCanvas.height);
+
+  lastFaces.forEach(f => {
+    const x1m = scanCanvas.width - f.x2 * sw;
+    const x2m = scanCanvas.width - f.x1 * sw;
+    const y1  = f.y1 * sh, y2 = f.y2 * sh;
+    const color = f.color || '#f59e0b';
+    ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+    ctx.shadowColor = color; ctx.shadowBlur = 10;
+    const r = 8;
+    ctx.beginPath();
+    ctx.moveTo(x1m+r,y1); ctx.lineTo(x2m-r,y1); ctx.arcTo(x2m,y1,x2m,y1+r,r);
+    ctx.lineTo(x2m,y2-r); ctx.arcTo(x2m,y2,x2m-r,y2,r);
+    ctx.lineTo(x1m+r,y2); ctx.arcTo(x1m,y2,x1m,y2-r,r);
+    ctx.lineTo(x1m,y1+r); ctx.arcTo(x1m,y1,x1m+r,y1,r);
+    ctx.closePath(); ctx.stroke(); ctx.shadowBlur = 0;
+    if (f.label) {
+      ctx.font = 'bold 13px Segoe UI, sans-serif'; ctx.textAlign = 'center';
+      const lx = (x1m+x2m)/2, ly = y1-8;
+      const tw = ctx.measureText(f.label).width;
+      ctx.fillStyle = color+'cc'; ctx.fillRect(lx-tw/2-6, ly-16, tw+12, 20);
+      ctx.fillStyle = '#fff'; ctx.fillText(f.label, lx, ly-2);
+    }
+  });
+  drawFrame = requestAnimationFrame(drawLoop);
 }
 
-function updateProfileCard(data) {
-  const border = document.getElementById('scanner-border');
-  if (data.status && data.name) {
-    border.className = border.className.replace('border-primary/20','');
-    if (data.is_allowed !== false) {
-      border.style.borderColor = '#10b981';
-      border.style.boxShadow   = '0 0 0 0 rgba(16,185,129,.45)';
-      border.classList.add('ring-green');
-    } else {
-      border.style.borderColor = '#ef4444';
-      border.classList.add('ring-red');
-    }
-  } else {
-    border.style.borderColor = '';
-    border.style.boxShadow   = '';
-    border.classList.remove('ring-green','ring-red');
+// ── Camera toggle ─────────────────────────────────────────────────────────────
+async function toggleCamera() {
+  if (isOn) { stopCamera(); } else { await startCamera(); }
+}
+
+async function startCamera() {
+  try {
+    const constraints = {
+      video: { width: { ideal: 640 }, height: { ideal: 480 } }
+    };
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    window._scanStream = stream;
+    webcam.srcObject = stream;
+    await new Promise(r => { webcam.onloadedmetadata = r; });
+
+    camPh.classList.add('hidden');
+    scanLine.classList.remove('hidden');
+    drawFrame = requestAnimationFrame(drawLoop);
+
+    isOn = true;
+    toggleIcon.textContent  = 'stop_circle';
+    toggleLabel.textContent = 'إيقاف';
+    toggleBtn.className = 'flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-1.5 rounded-lg transition-all';
+    statusDot.className  = 'w-2 h-2 rounded-full bg-emerald-500 animate-ping';
+    statusText.textContent = 'مسح نشط';
+
+    showPanel('scanning');
+    initMediaPipe();
+    mpLoopActive = true;
+    mpLoop();
+    detectTimer = setInterval(() => { if (!mpReady) phaseOneFallback(); }, 700);
+  } catch(e) {
+    alert('تعذّر الوصول إلى الكاميرا: ' + (e.message || e));
   }
 }
 
-async function updateDashboard() {
+function stopCamera() {
+  if (window._scanStream) {
+    window._scanStream.getTracks().forEach(t => t.stop());
+    window._scanStream = null;
+  }
+  if (detectTimer)  { clearInterval(detectTimer); detectTimer = null; }
+  if (drawFrame)    { cancelAnimationFrame(drawFrame); drawFrame = null; }
+  mpLoopActive = false;
+  stableCount = 0; matchLock = false; matchCooldown = false;
+
+  webcam.srcObject = null;
+  ctx.clearRect(0, 0, scanCanvas.width, scanCanvas.height);
+  lastFaces = [];
+  camPh.classList.remove('hidden');
+  scanLine.classList.add('hidden');
+  isOn = false;
+
+  toggleIcon.textContent  = 'play_circle';
+  toggleLabel.textContent = 'تشغيل';
+  toggleBtn.className = 'flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-1.5 rounded-lg transition-all';
+  statusDot.className  = 'w-2 h-2 rounded-full bg-slate-500';
+  statusText.textContent = 'مُغلق';
+  showPanel('idle');
+}
+
+window.addEventListener('beforeunload', stopCamera);
+window.addEventListener('pagehide', stopCamera);
+
+// ── MediaPipe ─────────────────────────────────────────────────────────────────
+let mpDetector = null, mpReady = false, mpLoopActive = false;
+
+function initMediaPipe() {
+  if (mpDetector) return;
   try {
-    const r    = await fetch('/attendance/check-status/');
-    const data = await r.json();
-    updateProfileCard(data);
-    if (data.status) {
-      await Promise.all([fetchLiveStats(), fetchRecentScans()]);
+    mpDetector = new FaceDetection({
+      locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection@0.4/${f}`
+    });
+    mpDetector.setOptions({ model: 'short', minDetectionConfidence: 0.55 });
+    mpDetector.onResults(onMpResults);
+    mpDetector.initialize().then(() => { mpReady = true; }).catch(() => {});
+  } catch(e) { mpDetector = null; }
+}
+
+function onMpResults(results) {
+  if (!isOn) return;
+  const dets = results.detections || [];
+  const vw = webcam.videoWidth||640, vh = webcam.videoHeight||480;
+  if (dets.length > 0) {
+    if (unknownCooldown) return;
+    lastFaces = dets.map(d => {
+      const b = d.boundingBox;
+      return { x1: b.xCenter*vw-(b.width*vw)/2, y1: b.yCenter*vh-(b.height*vh)/2,
+               x2: b.xCenter*vw+(b.width*vw)/2, y2: b.yCenter*vh+(b.height*vh)/2, color: '#f59e0b' };
+    });
+    stableCount++;
+    if (stableCount >= 2 && !matchCooldown && !matchLock) phaseTwo();
+  } else {
+    lastFaces = []; stableCount = 0;
+    if (!matchCooldown && !unknownCooldown) showPanel('scanning');
+  }
+}
+
+async function mpLoop() {
+  if (!mpLoopActive || !webcam.srcObject) return;
+  if (mpReady && mpDetector && !matchLock) {
+    try { await mpDetector.send({ image: webcam }); } catch(e) {}
+  }
+  setTimeout(mpLoop, 120);
+}
+
+let _detecting = false;
+async function phaseOneFallback() {
+  if (_detecting || matchLock || !webcam.srcObject) return;
+  _detecting = true;
+  try {
+    const tmp = document.createElement('canvas');
+    tmp.width = 320; tmp.height = 240;
+    tmp.getContext('2d').drawImage(webcam, 0, 0, 320, 240);
+    const fd = new FormData();
+    fd.append('frame', tmp.toDataURL('image/jpeg', 0.75));
+    fd.append('csrfmiddlewaretoken', CSRF());
+    const res  = await fetch(DETECT_URL, { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.detected && data.faces?.length) {
+      const sx = (webcam.videoWidth||640)/320, sy = (webcam.videoHeight||480)/240;
+      lastFaces = data.faces.map(f => ({ x1:f.x1*sx, y1:f.y1*sy, x2:f.x2*sx, y2:f.y2*sy }));
+      stableCount++;
+      if (stableCount >= 2 && !matchCooldown) phaseTwo();
+    } else {
+      lastFaces = []; stableCount = 0;
+      if (!matchCooldown) showPanel('scanning');
     }
-  } catch(e) { console.error('Dashboard error', e); }
-}
-
-async function fetchLiveStats() {
-  try {
-    const r     = await fetch('/attendance/live-stats/');
-    const stats = await r.json();
-    const el    = document.getElementById('total-attendance');
-    if (el && stats.total_attendance !== undefined)
-      el.textContent = stats.total_attendance + ' حضور';
   } catch(e) {}
+  _detecting = false;
 }
 
-async function fetchRecentScans() {
-  const container = document.getElementById('recent-scans-list');
+// ── Phase 2: full match ───────────────────────────────────────────────────────
+async function phaseTwo() {
+  if (matchLock || matchCooldown || !webcam.srcObject) return;
+  matchLock = true;
   try {
-    const r    = await fetch('/attendance/recent-scans/');
-    const data = await r.json();
-    const list = data.scans || [];
-    if (!list.length) {
-      container.innerHTML = '<p class="text-sm text-slate-400 italic py-2">لا توجد عمليات مسح بعد</p>';
-      return;
+    const snap = document.createElement('canvas');
+    snap.width = webcam.videoWidth||640; snap.height = webcam.videoHeight||480;
+    snap.getContext('2d').drawImage(webcam, 0, 0);
+    const fd = new FormData();
+    fd.append('frame', snap.toDataURL('image/jpeg', 0.88));
+    fd.append('csrfmiddlewaretoken', CSRF());
+    const res  = await fetch(SCAN_URL, { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!data.ok || !data.detected) { matchLock = false; return; }
+    const sw = snap.width/(data.width||snap.width), sh = snap.height/(data.height||snap.height);
+    const results = data.results || [];
+    if (!results.length) { matchLock = false; return; }
+
+    lastFaces = results.map(r => {
+      const b = r.bbox;
+      const color = !r.matched ? 'rgba(148,163,184,0.7)' : r.person.allowed ? '#10b981' : '#ef4444';
+      return { x1:b.x1/sw, y1:b.y1/sh, x2:b.x2/sw, y2:b.y2/sh, color, label: r.matched ? r.person.name : null };
+    });
+
+    const matched = results.filter(r => r.matched);
+    if (!matched.length) {
+      lastFaces = results.map(r => { const b=r.bbox; return { x1:b.x1/sw,y1:b.y1/sh,x2:b.x2/sw,y2:b.y2/sh,color:'#ef4444',label:'؟ غير مسجل' }; });
+      unknownCooldown = true;
+      setTimeout(() => { lastFaces=[]; stableCount=0; unknownCooldown=false; showPanel('scanning'); }, 2000);
+      matchLock = false; return;
     }
-    container.innerHTML = list.map(s => `
-      <div class="bg-white dark:bg-slate-800 p-3 rounded-xl flex items-center gap-3
-                  border border-slate-100 dark:border-slate-700 shadow-sm">
-        <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-          <span class="material-symbols-outlined text-primary text-base">person</span>
-        </div>
-        <div class="flex-1 min-w-0">
-          <p class="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">${s.student}</p>
-          <p class="text-[10px] text-slate-400">${s.timestamp}</p>
-        </div>
-        <span class="material-symbols-outlined text-emerald-500 text-lg"
-              style="font-variation-settings:'FILL' 1">check_circle</span>
-      </div>`).join('');
-  } catch(e) {}
+
+    showResult(matched[0].person);
+    flashScreen(matched[0].person.allowed);
+    matched.forEach(r => {
+      const p = r.person;
+      if (!p.cooldown) addLogEntry(p.name, p.allowed);
+      showToast(p.name, p.allowed, p.cooldown);
+    });
+
+    matchCooldown = true; stableCount = 0;
+    setTimeout(() => { matchCooldown=false; stableCount=0; lastFaces=lastFaces.map(f=>({...f,color:'#f59e0b',label:null})); }, 3500);
+  } catch(e) { /* silent */ }
+  matchLock = false;
 }
 
-setInterval(updateDashboard, 3000);
-setInterval(fetchLiveStats, 10000);
+// ── UI helpers ────────────────────────────────────────────────────────────────
+function showPanel(w) {
+  idlePanel.classList.toggle('hidden',   w !== 'idle');
+  scanPanel.classList.toggle('hidden',   w !== 'scanning');
+  resultPanel.classList.toggle('hidden', w !== 'result');
+}
+
+function showResult(p) {
+  showPanel('result');
+  document.getElementById('res-name').textContent  = p.name || '—';
+  document.getElementById('res-code').textContent  = p.student_code || (p.type==='teacher'?'أستاذ':'—');
+  document.getElementById('res-phone').textContent = p.phone || '—';
+  document.getElementById('access-type').textContent = p.type==='student'?'طالب':'أستاذ';
+  const banner=document.getElementById('access-banner'), iconWrap=document.getElementById('access-icon-wrap'),
+        icon=document.getElementById('access-icon'), label=document.getElementById('access-label'),
+        deny=document.getElementById('deny-reason');
+  if (p.allowed) {
+    banner.className   = 'rounded-2xl px-5 py-4 flex items-center gap-4 bg-emerald-900/50 text-emerald-300 border border-emerald-800';
+    iconWrap.className = 'w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 bg-emerald-700/50';
+    icon.textContent   = 'check_circle'; label.textContent = 'مؤهل للدخول';
+    deny.classList.add('hidden');
+  } else {
+    banner.className   = 'rounded-2xl px-5 py-4 flex items-center gap-4 bg-red-900/50 text-red-300 border border-red-800';
+    iconWrap.className = 'w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 bg-red-700/50';
+    icon.textContent   = 'cancel'; label.textContent = 'غير مؤهل للدخول';
+    if (p.reason) { deny.textContent=p.reason; deny.classList.remove('hidden'); } else deny.classList.add('hidden');
+  }
+}
+
+function flashScreen(allowed) {
+  faceFlash.className = 'absolute inset-0 pointer-events-none rounded-none border-4 transition-all duration-300';
+  faceFlash.classList.add(allowed ? 'border-emerald-500' : 'border-red-500');
+  faceFlash.classList.remove('hidden');
+  setTimeout(() => faceFlash.classList.add('hidden'), 700);
+}
+
+function addLogEntry(name, allowed) {
+  const li = document.createElement('li');
+  const bg  = allowed ? 'bg-emerald-950/30' : 'bg-red-950/30';
+  const col = allowed ? 'text-emerald-400'  : 'text-red-400';
+  const ico = allowed ? 'check_circle'       : 'cancel';
+  li.className = `flex items-center gap-3 px-4 py-2.5 ${bg}`;
+  li.innerHTML = `<span class="material-symbols-outlined text-sm fill-icon ${col}">${ico}</span>
+    <div class="flex-1 min-w-0"><p class="text-xs font-bold text-white truncate">${name}</p>
+    <p class="text-[10px] text-slate-500">${new Date().toLocaleTimeString('ar-SA')}</p></div>`;
+  if (logList.firstChild?.tagName === 'LI' && logList.firstChild.querySelector('.italic'))
+    logList.innerHTML = '';
+  logList.prepend(li);
+  while (logList.children.length > 30) logList.lastChild.remove();
+  scanCount++;
+  logCount.textContent = `${scanCount} مسح`;
+}
+
+function showToast(name, allowed, cooldown) {
+  const stack = document.getElementById('toast-stack');
+  const div   = document.createElement('div');
+  const bg    = allowed ? 'bg-emerald-600' : 'bg-red-600';
+  const icon  = allowed ? 'check_circle' : 'cancel';
+  const verb  = allowed ? 'تم تسجيل الدخول' : 'مرفوض';
+  const sub   = cooldown ? ' (مسجّل مسبقاً)' : '';
+  div.className = `pointer-events-auto flex items-center gap-3 ${bg} text-white px-5 py-3 rounded-2xl shadow-2xl text-sm font-bold translate-y-4 opacity-0`;
+  div.style.transition = 'opacity 350ms ease, transform 350ms ease';
+  div.innerHTML = `<span class="material-symbols-outlined text-xl fill-icon">${icon}</span>
+    <div><p class="text-base font-extrabold">${name}</p><p class="text-xs opacity-80 font-normal">${verb}${sub}</p></div>`;
+  stack.prepend(div);
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    div.classList.replace('translate-y-4','translate-y-0');
+    div.classList.replace('opacity-0','opacity-100');
+  }));
+  setTimeout(() => { div.classList.add('opacity-0','translate-y-2'); setTimeout(()=>div.remove(),400); }, 5000);
+  while (stack.children.length > 4) stack.lastChild.remove();
+}
 </script>
 {% endblock %}
