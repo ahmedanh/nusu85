@@ -225,7 +225,11 @@ tailwind.config = {
 // Phase 2 (on lock, once): gate_scan_api   → full match + GateLog
 const DETECT_URL    = '{% url "detect_face_api" %}';
 const GATE_SCAN_URL = '{% url "gate_scan_api" %}';
-const CSRF          = '{{ csrf_token }}';
+// Always read from live cookie so stale baked token never causes 403
+const CSRF = () => {
+  const m = document.cookie.match('(^|;)\\s*csrftoken\\s*=\\s*([^;]+)');
+  return m ? decodeURIComponent(m[2]) : '{{ csrf_token }}';
+};
 
 const webcam    = document.getElementById('webcam');
 const gateCanvas= document.getElementById('gate-canvas');
@@ -471,7 +475,7 @@ async function phaseOneFallback() {
     tmp.getContext('2d').drawImage(webcam, 0, 0, 320, 240);
     const fd = new FormData();
     fd.append('frame', tmp.toDataURL('image/jpeg', 0.75));
-    fd.append('csrfmiddlewaretoken', CSRF);
+    fd.append('csrfmiddlewaretoken', CSRF());
     const res  = await fetch(DETECT_URL, { method: 'POST', body: fd });
     const data = await res.json();
     if (data.detected && data.faces && data.faces.length) {
@@ -500,7 +504,7 @@ async function phaseTwo() {
 
     const fd = new FormData();
     fd.append('frame', snap.toDataURL('image/jpeg', 0.88));
-    fd.append('csrfmiddlewaretoken', CSRF);
+    fd.append('csrfmiddlewaretoken', CSRF());
 
     const res  = await fetch(GATE_SCAN_URL, { method: 'POST', body: fd });
     const data = await res.json();

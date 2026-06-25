@@ -1647,7 +1647,7 @@ def register_teacher(request):
     })
 
 
-@login_required
+@csrf_exempt
 @require_POST
 def detect_face_api(request):
     """Lightweight endpoint: returns bounding boxes of detected faces for live tracking overlay."""
